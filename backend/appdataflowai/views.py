@@ -1,16 +1,39 @@
-
-
 # views.py
+
 import jwt
+import pandas as pd
 from datetime import datetime, timedelta
 from django.conf import settings
+from django.http import JsonResponse
+from django.db import models
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Usuario
+from rest_framework.permissions import IsAuthenticated
+
+from .models import (
+    Usuario,
+    DetalleProducto,
+    DashboardVentasColtrade,
+    DashboardVentasLoop,
+    DashboardVentasDataflow
+)
+
+# Diccionario que mapea el ID del producto con el modelo correspondiente en base de datos.
+PRODUCTO_MODELO_MAP = {
+    2525: DashboardVentasColtrade,
+    2626: DashboardVentasLoop,
+    2727: DashboardVentasDataflow,
+    # Se pueden agregar más productos en el futuro si es necesario.
+}
 
 
 class LoginView(APIView):
+    """
+    Vista para autenticación de usuarios.
+    Recibe un correo y una contraseña, valida las credenciales,
+    y si son correctas, genera un token JWT con datos del usuario.
+    """
     def post(self, request):
         correo = request.data.get('correo', '').strip()
         contrasena = request.data.get('contrasena', '').strip()
@@ -23,11 +46,11 @@ class LoginView(APIView):
         except Usuario.DoesNotExist:
             return Response({'error': 'Credenciales inválidas'}, status=401)
 
-        # Generar token JWT
+        # Genera el token con duración de 2 horas
         payload = {
             'id_usuario': usuario.id_usuario,
             'correo': usuario.correo,
-            'exp': datetime.utcnow() + timedelta(hours=2),  # Expira en 2 horas
+            'exp': datetime.utcnow() + timedelta(hours=2),
             'iat': datetime.utcnow()
         }
 
@@ -44,22 +67,13 @@ class LoginView(APIView):
         })
 
 
-
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import DetalleProducto
-from django.http import JsonResponse
-import jwt
-from django.conf import settings
-from .models import Usuario
-
-class ProductosUsuarioView(APIView):
+class UsuarioInfoView(APIView):
+    """
+    Vista que retorna la información detallada del usuario autenticado,
+    incluyendo datos personales, rol y empresa, a partir del token JWT.
+    """
     def get(self, request):
-        # Obtener token del header
+        # Se extrae y valida el token del header Authorization
         token = request.headers.get('Authorization', '').split(' ')[-1]
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
@@ -74,8 +88,48 @@ class ProductosUsuarioView(APIView):
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
 
+        # Estructura la respuesta con información detallada del usuario
+        data = {
+            'id': usuario.id_usuario,
+            'nombres': usuario.nombres,
+            'correo': usuario.correo,
+            'rol': usuario.id_permiso_acceso.rol,
+            'empresa': {
+                'id': usuario.id_empresa.id_empresa,
+                'nombre': usuario.id_empresa.nombre_empresa,
+                'ciudad': usuario.id_empresa.ciudad,
+                'pais': usuario.id_empresa.pais
+            }
+        }
+
+        return Response(data, status=200)
+
+
+class ProductosUsuarioView(APIView):
+    """
+    Vista que retorna todos los productos asociados al usuario autenticado,
+    junto con información relevante del producto y del usuario.
+    """
+    def get(self, request):
+        # Se extrae y valida el token del header Authorization
+        token = request.headers.get('Authorization', '').split(' ')[-1]
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=401)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=401)
+
+        try:
+            usuario = Usuario.objects.select_related('id_empresa', 'id_permiso_acceso').get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado'}, status=404)
+
+        # Se consultan los detalles de productos vinculados al usuario
         detalles = DetalleProducto.objects.select_related('id_producto').filter(id_usuario=usuario)
 
+        # Construcción del array de productos con info adicional del usuario
         productos = []
         for dp in detalles:
             productos.append({
@@ -96,39 +150,12 @@ class ProductosUsuarioView(APIView):
         return JsonResponse(productos, safe=False)
 
 
-
-# views.py
-from .models import DashboardVentasColtrade, DashboardVentasLoop, DashboardVentasDataflow
-
-PRODUCTO_MODELO_MAP = {
-    2525: DashboardVentasColtrade,
-    2626: DashboardVentasLoop,
-    2727: DashboardVentasDataflow,
-    # Agrega más si es necesario
-}
-
-
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
-import pandas as pd
-from django.conf import settings
-
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
-import pandas as pd
-from django.db import models
-from .models import DashboardVentasColtrade, DashboardVentasLoop, DashboardVentasDataflow
-
-PRODUCTO_MODELO_MAP = {
-    2525: DashboardVentasColtrade,
-    2626: DashboardVentasLoop,
-    2727: DashboardVentasDataflow,
-    
-}
-
 class ImportarDatosView(APIView):
+    """
+    Vista que permite importar datos desde un archivo Excel (.xlsx),
+    asociándolos al modelo correspondiente según el ID del producto.
+    Solo se importan columnas que coinciden con los campos del modelo.
+    """
     parser_classes = [MultiPartParser]
 
     def post(self, request, id_producto):
@@ -141,20 +168,16 @@ class ImportarDatosView(APIView):
             return Response({'error': 'No se proporcionó archivo'}, status=400)
 
         try:
-            # Leer el archivo Excel
+            # Carga del archivo Excel y normalización de nombres de columnas
             df = pd.read_excel(archivo)
             df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
 
-            # Obtener nombres de campos del modelo (sin AutoField)
+            # Obtención de los campos válidos del modelo (excluyendo el ID autogenerado)
             campos_modelo = [
-                field.name
-                for field in modelo._meta.fields
+                field.name for field in modelo._meta.fields
                 if not isinstance(field, models.AutoField)
             ]
-
             columnas_excel = df.columns.tolist()
-
-            # Filtrar campos que existen tanto en el modelo como en el Excel
             campos_validos = [c for c in campos_modelo if c in columnas_excel]
 
             if not campos_validos:
@@ -162,12 +185,12 @@ class ImportarDatosView(APIView):
 
             registros_creados = 0
 
+            # Iteración por cada fila del Excel para insertar en la base de datos
             for index, row in df.iterrows():
-                datos = {}
-                for campo in campos_validos:
-                    valor = row[campo]
-                    # Opcional: convertir NaN a None
-                    datos[campo] = None if pd.isna(valor) else valor
+                datos = {
+                    campo: None if pd.isna(row[campo]) else row[campo]
+                    for campo in campos_validos
+                }
                 try:
                     modelo.objects.create(**datos)
                     registros_creados += 1
@@ -178,46 +201,3 @@ class ImportarDatosView(APIView):
 
         except Exception as e:
             return Response({'error': f'Error al procesar archivo: {str(e)}'}, status=500)
-
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Usuario
-import jwt
-from django.conf import settings
-
-class UsuarioInfoView(APIView):
-    def get(self, request):
-        # Obtener y decodificar el token manualmente
-        token = request.headers.get('Authorization', '').split(' ')[-1]
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-            id_usuario = payload.get('id_usuario')
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Token expirado'}, status=401)
-        except jwt.InvalidTokenError:
-            return Response({'error': 'Token inválido'}, status=401)
-
-        # Obtener el usuario
-        try:
-            usuario = Usuario.objects.select_related('id_empresa', 'id_permiso_acceso').get(id_usuario=id_usuario)
-        except Usuario.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=404)
-
-        # Estructurar la respuesta
-        data = {
-            'id': usuario.id_usuario,
-            'nombres': usuario.nombres,
-            'correo': usuario.correo,
-            'rol': usuario.id_permiso_acceso.rol,
-            'empresa': {
-                'id': usuario.id_empresa.id_empresa,
-                'nombre': usuario.id_empresa.nombre_empresa,
-                'ciudad': usuario.id_empresa.ciudad,
-                'pais': usuario.id_empresa.pais
-            }
-        }
-        return Response(data, status=200)
