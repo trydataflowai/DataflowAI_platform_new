@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from '../../styles/Index.module.css';
 
+
+//Funcion de index
 const Index = () => {
     const sectionRefs = useRef([]);
     const [activeSection, setActiveSection] = useState(null);
