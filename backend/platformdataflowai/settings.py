@@ -81,10 +81,15 @@ WSGI_APPLICATION = 'platformdataflowai.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dataflow_database_xcnd',
+        'USER': 'root',
+        'PASSWORD': '1aZequxlYhuz0B0aOY1hknMwz6vtr6ak',
+        'HOST': 'dpg-d1qrmmbuibrs73eqte50-a.oregon-postgres.render.com',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation
