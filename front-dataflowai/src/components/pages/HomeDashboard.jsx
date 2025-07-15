@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { obtenerProductosUsuario } from '../../api/Login';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { importarArchivoDashboard } from '../../api/Importacion';
@@ -6,10 +6,16 @@ import styles from '../../styles/HomeDashboard.module.css';
 
 export const HomeDashboard = () => {
   const [productos, setProductos] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [urlActual, setUrlActual] = useState('');
   const [notification, setNotification] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [selectedDashboards, setSelectedDashboards] = useState([]);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,13 +25,74 @@ export const HomeDashboard = () => {
           obtenerInfoUsuario()
         ]);
         setProductos(productosData);
+        setFilteredProducts(productosData);
         setUsuario(usuarioData);
       } catch (err) {
         showNotification('Error al cargar datos', 'error');
       }
     };
     fetchData();
+
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredProducts(productos);
+      return;
+    }
+
+    const filtered = productos.filter(producto =>
+      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [searchTerm, productos]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setShowSuggestions(true);
+  };
+
+  const toggleDashboardSelection = (dashboardName) => {
+    setSelectedDashboards(prev => {
+      if (prev.includes(dashboardName)) {
+        return prev.filter(name => name !== dashboardName);
+      } else {
+        return [...prev, dashboardName];
+      }
+    });
+  };
+
+  const clearAllFilters = () => {
+    setSelectedDashboards([]);
+    setSearchTerm('');
+    setShowSuggestions(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => 
+        prev < filteredProducts.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+      e.preventDefault();
+      toggleDashboardSelection(filteredProducts[highlightedIndex].nombre);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
 
   const handleArchivo = async (id_producto, event) => {
     const archivo = event.target.files[0];
@@ -46,10 +113,8 @@ export const HomeDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
-      {/* Efecto de partículas */}
       <div className={styles.particles}></div>
       
-      {/* Header con efecto de luz */}
       {usuario && (
         <div className={styles.header}>
           <h1>
@@ -61,10 +126,80 @@ export const HomeDashboard = () => {
         </div>
       )}
 
-      {/* Contenedor de tarjetas */}
+      <div className={styles.searchContainer} ref={searchRef}>
+        <div className={styles.searchInputContainer}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Buscar dashboards..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            onFocus={() => setShowSuggestions(true)}
+            onKeyDown={handleKeyDown}
+          />
+          {searchTerm && (
+            <button 
+              className={styles.clearSearch} 
+              onClick={() => setSearchTerm('')}
+              aria-label="Limpiar búsqueda"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        
+        {(selectedDashboards.length > 0 || searchTerm) && (
+          <div className={styles.filterControls}>
+            {selectedDashboards.length > 0 && (
+              <div className={styles.selectedCount}>
+                {selectedDashboards.length} dashboard(s) seleccionado(s)
+              </div>
+            )}
+            <button 
+              className={styles.clearFilterButton}
+              onClick={clearAllFilters}
+              aria-label="Quitar todos los filtros"
+            >
+              <i className="fas fa-times"></i> Quitar filtro
+            </button>
+          </div>
+        )}
+        
+        {showSuggestions && (
+          <div className={styles.suggestionsContainer}>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((producto, index) => (
+                <div
+                  key={producto.id}
+                  className={`${styles.suggestionItem} ${
+                    highlightedIndex === index ? styles.highlighted : ''
+                  }`}
+                  onClick={() => toggleDashboardSelection(producto.nombre)}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                >
+                  <input
+                    type="checkbox"
+                    className={styles.suggestionCheckbox}
+                    checked={selectedDashboards.includes(producto.nombre)}
+                    readOnly
+                    aria-label={`Seleccionar ${producto.nombre}`}
+                  />
+                  {producto.nombre}
+                </div>
+              ))
+            ) : (
+              <div className={styles.noResults}>No se encontraron resultados</div>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className={styles.cardsWrapper}>
         <div className={styles.cardsContainer}>
-          {productos.map((prod) => (
+          {(selectedDashboards.length > 0
+            ? productos.filter(p => selectedDashboards.includes(p.nombre))
+            : productos
+          ).map((prod) => (
             <div key={prod.id} className={styles.card}>
               <div className={styles.cardIcon}>
                 <i className="fas fa-chart-network"></i>
@@ -78,16 +213,18 @@ export const HomeDashboard = () => {
                     setModalAbierto(true);
                   }}
                   className={styles.primaryBtn}
+                  aria-label={`Abrir dashboard ${prod.nombre}`}
                 >
                   <i className="fas fa-external-link-alt"></i> Abrir Dashboard
                 </button>
                 
-                <label className={styles.importBtn}>
+                <label className={styles.importBtn} aria-label={`Importar datos para ${prod.nombre}`}>
                   <i className="fas fa-file-import"></i> Importar Datos
                   <input 
                     type="file" 
                     accept=".xlsx,.xls" 
                     onChange={(e) => handleArchivo(prod.id, e)} 
+                    hidden
                   />
                 </label>
               </div>
@@ -98,7 +235,6 @@ export const HomeDashboard = () => {
         </div>
       </div>
 
-      {/* Modal optimizado */}
       {modalAbierto && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContainer}>
@@ -107,10 +243,12 @@ export const HomeDashboard = () => {
               className={styles.modalIframe}
               title="Dashboard"
               loading="eager"
+              allowFullScreen
             />
             <button 
               onClick={() => setModalAbierto(false)} 
               className={styles.modalClose}
+              aria-label="Cerrar modal"
             >
               <i className="fas fa-times"></i>
             </button>
@@ -118,7 +256,6 @@ export const HomeDashboard = () => {
         </div>
       )}
 
-      {/* Notificación flotante */}
       {notification && (
         <div className={`${styles.notification} ${styles[notification.type]}`}>
           <div className={styles.notificationIcon}>
