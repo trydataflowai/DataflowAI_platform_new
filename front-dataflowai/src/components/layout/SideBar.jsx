@@ -1,6 +1,7 @@
 import styles from '../../styles/SideBar.module.css';
 import { useNavigate } from 'react-router-dom';
 import { cerrarSesion } from '../../api/Login';
+import logo from '../../assets/Dataflow AI logo ajustado blanco.png';
 
 export const SideBar = () => {
   const navigate = useNavigate();
@@ -13,8 +14,7 @@ export const SideBar = () => {
   return (
     <section className={`${styles.sidebar} ${styles.section}`}>
       <div className={styles.logoContainer}>
-        <span className={styles.logo}>⚡</span>
-        <h2 className={styles.title}>DATA</h2>
+        <img src={logo} alt="DataFlow AI Logo" className={styles.logoImage} />
       </div>
 
       <nav className={styles.nav}>
@@ -58,7 +58,7 @@ export const SideBar = () => {
 
       <div className={styles.footer}>
         <div className={styles.accentLine}></div>
-        <p className={styles.footerText}>Nexus v4.2</p>
+        <p className={styles.footerText}>DataFlowAi</p>
       </div>
     </section>
   );

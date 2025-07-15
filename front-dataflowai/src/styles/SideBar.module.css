@@ -146,3 +146,12 @@
   text-align: center;
   opacity: 0.7;
 }
+
+
+
+.logoImage {
+  width: 100%; /* Ajusta al ancho del contenedor */
+  max-width: 200px; /* Establece un máximo */
+  height: auto; /* Mantiene la proporción */
+  object-fit: contain; /* Asegura que la imagen se ajuste correctamente */
+}
