@@ -114,6 +114,20 @@ from rest_framework.response import Response
 import pandas as pd
 from django.conf import settings
 
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
+import pandas as pd
+from django.db import models
+from .models import DashboardVentasColtrade, DashboardVentasLoop, DashboardVentasDataflow
+
+PRODUCTO_MODELO_MAP = {
+    2525: DashboardVentasColtrade,
+    2626: DashboardVentasLoop,
+    2727: DashboardVentasDataflow,
+    
+}
+
 class ImportarDatosView(APIView):
     parser_classes = [MultiPartParser]
 
@@ -127,20 +141,44 @@ class ImportarDatosView(APIView):
             return Response({'error': 'No se proporcionó archivo'}, status=400)
 
         try:
+            # Leer el archivo Excel
             df = pd.read_excel(archivo)
+            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
 
-            for _, row in df.iterrows():
-                modelo.objects.create(
-                    id_punto_venta=row['id_punto_venta'],
-                    punto_venta=row['punto_venta'],
-                    dinero_entregado=row['dinero_entregado'],
-                    cantidad_entregada=row['cantidad_entregada'],
-                    fecha_entrega=row['fecha_entrega'],
-                )
+            # Obtener nombres de campos del modelo (sin AutoField)
+            campos_modelo = [
+                field.name
+                for field in modelo._meta.fields
+                if not isinstance(field, models.AutoField)
+            ]
 
-            return Response({'mensaje': 'Datos importados correctamente'})
+            columnas_excel = df.columns.tolist()
+
+            # Filtrar campos que existen tanto en el modelo como en el Excel
+            campos_validos = [c for c in campos_modelo if c in columnas_excel]
+
+            if not campos_validos:
+                return Response({'error': 'El archivo no contiene columnas válidas para el modelo'}, status=400)
+
+            registros_creados = 0
+
+            for index, row in df.iterrows():
+                datos = {}
+                for campo in campos_validos:
+                    valor = row[campo]
+                    # Opcional: convertir NaN a None
+                    datos[campo] = None if pd.isna(valor) else valor
+                try:
+                    modelo.objects.create(**datos)
+                    registros_creados += 1
+                except Exception as e:
+                    return Response({'error': f'Error en la fila {index+2}: {str(e)}'}, status=500)
+
+            return Response({'mensaje': f'{registros_creados} registros importados correctamente'})
+
         except Exception as e:
-            return Response({'error': str(e)}, status=500)
+            return Response({'error': f'Error al procesar archivo: {str(e)}'}, status=500)
+
 
 
 
