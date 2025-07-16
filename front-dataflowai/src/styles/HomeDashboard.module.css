@@ -587,3 +587,14 @@
 .cardImage:hover {
   transform: scale(1.05); /* Pequeño zoom al pasar el cursor */
 }
+
+
+/* HomeDashboard.module.css */
+
+.updateTime {
+  font-size: 0.9rem;           /* Un poco más pequeño que el título */
+  color: #666666;              /* Gris medio para no robar protagonismo */
+  margin: 0.25rem 0 0.75rem;   /* Espacio superior e inferior */
+  font-style: italic;          /* Para diferenciarlo visualmente */
+  display: block;              /* Que ocupe toda la línea */
+}

@@ -6,7 +6,6 @@ import { obtenerInfoUsuario } from '../../api/Usuario';
 import { importarArchivoDashboard } from '../../api/Importacion';
 import styles from '../../styles/HomeDashboard.module.css';
 
-// 1) Cargamos todas las JPG de assets al build con Vite
 const images = import.meta.glob('../../assets/*.jpg', { eager: true });
 
 export const HomeDashboard = () => {
@@ -22,6 +21,9 @@ export const HomeDashboard = () => {
   const [selectedDashboards, setSelectedDashboards] = useState([]);
   const searchRef = useRef(null);
 
+  // Always use current date/time for update display
+  const currentDate = new Date().toLocaleString();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -33,7 +35,7 @@ export const HomeDashboard = () => {
         setFilteredProducts(productosData);
         setUsuario(usuarioData);
       } catch (err) {
-        showNotification('Error al cargar datos', 'error');
+        showNotification('Error loading data', 'error');
       }
     };
     fetchData();
@@ -101,9 +103,9 @@ export const HomeDashboard = () => {
     if (!archivo) return;
     try {
       await importarArchivoDashboard(id_producto, archivo);
-      showNotification('Datos importados con éxito', 'success');
+      showNotification('Data successfully imported', 'success');
     } catch (error) {
-      showNotification('Error al importar datos', 'error');
+      showNotification('Error importing data', 'error');
     }
   };
 
@@ -112,7 +114,6 @@ export const HomeDashboard = () => {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // 2) Resolver URL de imagen si existe
   const obtenerImagen = (id) => {
     const key = `../../assets/${id}.jpg`;
     const mod = images[key];
@@ -130,7 +131,7 @@ export const HomeDashboard = () => {
       {usuario && (
         <div className={styles.header}>
           <h1>
-            <span className={styles.greeting}>Bienvenido,</span>
+            <span className={styles.greeting}>Welcome,</span>
             <span className={styles.username}>{usuario.nombres}</span>
           </h1>
           <div className={styles.company}>{usuario.empresa.nombre}</div>
@@ -143,7 +144,7 @@ export const HomeDashboard = () => {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="Buscar dashboards..."
+            placeholder="Search dashboards..."
             value={searchTerm}
             onChange={handleSearchChange}
             onFocus={() => setShowSuggestions(true)}
@@ -153,7 +154,7 @@ export const HomeDashboard = () => {
             <button
               className={styles.clearSearch}
               onClick={() => setSearchTerm('')}
-              aria-label="Limpiar búsqueda"
+              aria-label="Clear search"
             >
               ×
             </button>
@@ -164,15 +165,15 @@ export const HomeDashboard = () => {
           <div className={styles.filterControls}>
             {selectedDashboards.length > 0 && (
               <div className={styles.selectedCount}>
-                {selectedDashboards.length} dashboard(s) seleccionado(s)
+                {selectedDashboards.length} dashboard(s) selected
               </div>
             )}
             <button
               className={styles.clearFilterButton}
               onClick={clearAllFilters}
-              aria-label="Quitar todos los filtros"
+              aria-label="Remove all filters"
             >
-              <i className="fas fa-times"></i> Quitar filtro
+              <i className="fas fa-times"></i> Clear filter
             </button>
           </div>
         )}
@@ -194,13 +195,13 @@ export const HomeDashboard = () => {
                     className={styles.suggestionCheckbox}
                     checked={selectedDashboards.includes(producto.nombre)}
                     readOnly
-                    aria-label={`Seleccionar ${producto.nombre}`}
+                    aria-label={`Select ${producto.nombre}`}
                   />
                   {producto.nombre}
                 </div>
               ))
             ) : (
-              <div className={styles.noResults}>No se encontraron resultados</div>
+              <div className={styles.noResults}>No results found</div>
             )}
           </div>
         )}
@@ -223,6 +224,7 @@ export const HomeDashboard = () => {
                   <i className="fas fa-chart-network"></i>
                 </div>
                 <h3>{prod.nombre}</h3>
+                <p className={styles.updateTime}>Last updated: {currentDate}</p>
                 <div className={styles.cardActions}>
                   <button
                     onClick={() => {
@@ -230,15 +232,15 @@ export const HomeDashboard = () => {
                       setModalAbierto(true);
                     }}
                     className={styles.primaryBtn}
-                    aria-label={`Abrir dashboard ${prod.nombre}`}
+                    aria-label={`Open dashboard ${prod.nombre}`}
                   >
-                    <i className="fas fa-external-link-alt"></i> Abrir Dashboard
+                    <i className="fas fa-external-link-alt"></i> Open Dashboard
                   </button>
                   <label
                     className={styles.importBtn}
-                    aria-label={`Importar datos para ${prod.nombre}`}
+                    aria-label={`Import data for ${prod.nombre}`}
                   >
-                    <i className="fas fa-file-import"></i> Importar Datos
+                    <i className="fas fa-file-import"></i> Import Data
                     <input
                       type="file"
                       accept=".xlsx,.xls"
@@ -267,7 +269,7 @@ export const HomeDashboard = () => {
             <button
               onClick={() => setModalAbierto(false)}
               className={styles.modalClose}
-              aria-label="Cerrar modal"
+              aria-label="Close modal"
             >
               <i className="fas fa-times"></i>
             </button>
@@ -276,8 +278,8 @@ export const HomeDashboard = () => {
       )}
 
       {notification && (
-        <div className={`${styles.notification} ${styles[notification.type]}`}>
-          <div className={styles.notificationIcon}>
+        <div className={`${styles.notification} ${styles[notification.type]}`}>\
+          <div className={styles.notificationIcon}>\
             {notification.type === 'success' ? (
               <i className="fas fa-check-circle"></i>
             ) : (

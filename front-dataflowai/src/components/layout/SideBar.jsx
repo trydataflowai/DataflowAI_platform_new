@@ -1,3 +1,5 @@
+// src/components/SideBar.jsx
+
 import styles from '../../styles/SideBar.module.css';
 import { useNavigate } from 'react-router-dom';
 import { cerrarSesion } from '../../api/Login';
@@ -12,91 +14,97 @@ export const SideBar = () => {
   };
 
   const handleLogoClick = () => {
-    // Opción 1: Usando navigate (React Router)
-    navigate('/homeLogin');
-    window.location.hash = '#home'; // Asegura que el hash se aplique
-    
-    // Opción 2: Alternativa directa (descomenta si la anterior no funciona)
-    // window.location.href = '/homeLogin#home';
+    navigate('/homeLogin#home');
   };
 
   return (
     <section className={`${styles.sidebar} ${styles.section}`}>
-      {/* Contenedor del logo con evento de click */}
+      {/* Logo container with invisible button overlay */}
       <div className={styles.logoContainer}>
-  <a 
-    href="/homeLogin#home" 
-    style={{ display: 'contents' }}
-    onClick={(e) => {
-      e.preventDefault();
-      navigate('/homeLogin#home');
-    }}
-  >
-    <img 
-      src={logo} 
-      alt="DataFlow AI Logo" 
-      className={styles.logoImage}
-    />
-  </a>
-</div>
+        <button
+          className={styles.logoButton}
+          onClick={handleLogoClick}
+          aria-label="View Home"
+        >
+          <img
+            src={logo}
+            alt="DataFlow AI Logo"
+            className={styles.logoImage}
+          />
+        </button>
+      </div>
 
       <nav className={styles.nav}>
-
-
         <button
           className={styles.button}
           onClick={() => navigate('/homeLogin#home')}
-          aria-label="Visualizar Inicio"
+          aria-label="View Home"
         >
-          <span className={`${styles.icon} ${styles.emojiWhite}`}>📥</span>
-            <span className={styles.text}>Inicio</span>
+          <span className={`${styles.icon} ${styles.emojiWhite}`}>🏠</span>
+          <span className={styles.text}>Home</span>
           <span className={styles.highlight}></span>
         </button>
 
-
-
-        <button className={`${styles.button} ${styles.active}`}>
+        <button
+          className={`${styles.button} ${styles.active}`}
+          onClick={() => navigate('/dashboards')}
+          aria-label="View Dashboards"
+        >
           <span className={`${styles.icon} ${styles.emojiWhite}`}>📊</span>
           <span className={styles.text}>Dashboards</span>
           <span className={styles.highlight}></span>
         </button>
 
-        
-
-        <button className={styles.button}>
-          <span className={`${styles.icon} ${styles.emojiWhite}`}>🧠</span>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/marketplace')}
+          aria-label="View Marketplace"
+        >
+          <span className={`${styles.icon} ${styles.emojiWhite}`}>🛒</span>
           <span className={styles.text}>Marketplace</span>
           <span className={styles.highlight}></span>
         </button>
 
-        <button className={styles.button}>
-          <span className={`${styles.icon} ${styles.emojiWhite}`}>🧠</span>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/ai-insights')}
+          aria-label="View AI Insights"
+        >
+          <span className={`${styles.icon} ${styles.emojiWhite}`}>🤖</span>
           <span className={styles.text}>AI Insights</span>
           <span className={styles.highlight}></span>
         </button>
 
-        <button className={styles.button}>
-          <span className={`${styles.icon} ${styles.emojiWhite}`}>🛟</span>
-          <span className={styles.text}>Soporte</span>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/support')}
+          aria-label="View Support"
+        >
+          <span className={`${styles.icon} ${styles.emojiWhite}`}>🆘</span>
+          <span className={styles.text}>Support</span>
           <span className={styles.highlight}></span>
         </button>
 
-        <button className={styles.button}>
+        <button
+          className={styles.button}
+          onClick={() => navigate('/profile')}
+          aria-label="View Profile"
+        >
           <span className={`${styles.icon} ${styles.emojiWhite}`}>👤</span>
           <span className={styles.text}>Profile</span>
           <span className={styles.highlight}></span>
         </button>
 
-        <button className={styles.button} onClick={handleLogout}>
+        <button className={styles.button} onClick={handleLogout} aria-label="Log out">
           <span className={`${styles.icon} ${styles.emojiWhite}`}>🚪</span>
-          <span className={styles.text}>Cerrar sesión</span>
+          <span className={styles.text}>Log out</span>
           <span className={styles.highlight}></span>
         </button>
       </nav>
 
       <div className={styles.footer}>
         <div className={styles.accentLine}></div>
-        <p className={styles.footerText}>DataFlowAi</p>
+        <p className={styles.footerText}>DataFlow AI</p>
       </div>
     </section>
   );

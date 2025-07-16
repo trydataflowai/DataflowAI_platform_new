@@ -30,7 +30,7 @@ export function Navbar() {
   };
 
   if (cargando) {
-    return null; // O puedes mostrar un spinner
+    return null; // Or you can show a spinner
   }
 
   return (
@@ -45,13 +45,13 @@ export function Navbar() {
         </a>
 
         <ul className="nav-links">
-          <li><a href="#home">Inicio</a></li>
-          <li><a href="#features">Características</a></li>
-          <li><a href="#pricing">Planes</a></li>
-          <li><a href="#business">Solución</a></li>
-          <li><a href="#process">Proceso</a></li>
-          <li><a href="#team">Equipo</a></li>
-          <li><a href="#contact">Contacto</a></li>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Plans</a></li>
+          <li><a href="#business">Solution</a></li>
+          <li><a href="#process">Process</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="#contact">Contact</a></li>
           {usuario ? (
             <li className="user-menu">
               <a href="/home" className="user-name">
@@ -59,7 +59,7 @@ export function Navbar() {
               </a>
             </li>
           ) : (
-            <li><a href="/login">Iniciar Sesión</a></li>
+            <li><a href="/login">Sign In</a></li>
           )}
         </ul>
 
