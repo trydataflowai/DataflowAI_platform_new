@@ -1,8 +1,13 @@
+// src/components/HomeDashboard.jsx
+
 import React, { useEffect, useState, useRef } from 'react';
 import { obtenerProductosUsuario } from '../../api/Login';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { importarArchivoDashboard } from '../../api/Importacion';
 import styles from '../../styles/HomeDashboard.module.css';
+
+// 1) Cargamos todas las JPG de assets al build con Vite
+const images = import.meta.glob('../../assets/*.jpg', { eager: true });
 
 export const HomeDashboard = () => {
   const [productos, setProductos] = useState([]);
@@ -49,7 +54,6 @@ export const HomeDashboard = () => {
       setFilteredProducts(productos);
       return;
     }
-
     const filtered = productos.filter(producto =>
       producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -62,13 +66,11 @@ export const HomeDashboard = () => {
   };
 
   const toggleDashboardSelection = (dashboardName) => {
-    setSelectedDashboards(prev => {
-      if (prev.includes(dashboardName)) {
-        return prev.filter(name => name !== dashboardName);
-      } else {
-        return [...prev, dashboardName];
-      }
-    });
+    setSelectedDashboards(prev =>
+      prev.includes(dashboardName)
+        ? prev.filter(name => name !== dashboardName)
+        : [...prev, dashboardName]
+    );
   };
 
   const clearAllFilters = () => {
@@ -80,7 +82,7 @@ export const HomeDashboard = () => {
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex(prev => 
+      setHighlightedIndex(prev =>
         prev < filteredProducts.length - 1 ? prev + 1 : prev
       );
     } else if (e.key === 'ArrowUp') {
@@ -97,7 +99,6 @@ export const HomeDashboard = () => {
   const handleArchivo = async (id_producto, event) => {
     const archivo = event.target.files[0];
     if (!archivo) return;
-
     try {
       await importarArchivoDashboard(id_producto, archivo);
       showNotification('Datos importados con éxito', 'success');
@@ -111,10 +112,21 @@ export const HomeDashboard = () => {
     setTimeout(() => setNotification(null), 4000);
   };
 
+  // 2) Resolver URL de imagen si existe
+  const obtenerImagen = (id) => {
+    const key = `../../assets/${id}.jpg`;
+    const mod = images[key];
+    return mod ? mod.default : null;
+  };
+
+  const productosAMostrar = selectedDashboards.length > 0
+    ? productos.filter(p => selectedDashboards.includes(p.nombre))
+    : productos;
+
   return (
     <div className={styles.dashboardContainer}>
       <div className={styles.particles}></div>
-      
+
       {usuario && (
         <div className={styles.header}>
           <h1>
@@ -138,8 +150,8 @@ export const HomeDashboard = () => {
             onKeyDown={handleKeyDown}
           />
           {searchTerm && (
-            <button 
-              className={styles.clearSearch} 
+            <button
+              className={styles.clearSearch}
               onClick={() => setSearchTerm('')}
               aria-label="Limpiar búsqueda"
             >
@@ -147,7 +159,7 @@ export const HomeDashboard = () => {
             </button>
           )}
         </div>
-        
+
         {(selectedDashboards.length > 0 || searchTerm) && (
           <div className={styles.filterControls}>
             {selectedDashboards.length > 0 && (
@@ -155,7 +167,7 @@ export const HomeDashboard = () => {
                 {selectedDashboards.length} dashboard(s) seleccionado(s)
               </div>
             )}
-            <button 
+            <button
               className={styles.clearFilterButton}
               onClick={clearAllFilters}
               aria-label="Quitar todos los filtros"
@@ -164,7 +176,7 @@ export const HomeDashboard = () => {
             </button>
           </div>
         )}
-        
+
         {showSuggestions && (
           <div className={styles.suggestionsContainer}>
             {filteredProducts.length > 0 ? (
@@ -196,57 +208,64 @@ export const HomeDashboard = () => {
 
       <div className={styles.cardsWrapper}>
         <div className={styles.cardsContainer}>
-          {(selectedDashboards.length > 0
-            ? productos.filter(p => selectedDashboards.includes(p.nombre))
-            : productos
-          ).map((prod) => (
-            <div key={prod.id} className={styles.card}>
-              <div className={styles.cardIcon}>
-                <i className="fas fa-chart-network"></i>
-              </div>
-              <h3>{prod.nombre}</h3>
-              
-              <div className={styles.cardActions}>
-                <button 
-                  onClick={() => {
-                    setUrlActual(prod.url);
-                    setModalAbierto(true);
-                  }}
-                  className={styles.primaryBtn}
-                  aria-label={`Abrir dashboard ${prod.nombre}`}
-                >
-                  <i className="fas fa-external-link-alt"></i> Abrir Dashboard
-                </button>
-                
-                <label className={styles.importBtn} aria-label={`Importar datos para ${prod.nombre}`}>
-                  <i className="fas fa-file-import"></i> Importar Datos
-                  <input 
-                    type="file" 
-                    accept=".xlsx,.xls" 
-                    onChange={(e) => handleArchivo(prod.id, e)} 
-                    hidden
+          {productosAMostrar.map(prod => {
+            const imgSrc = obtenerImagen(prod.id);
+            return (
+              <div key={prod.id} className={styles.card}>
+                {imgSrc && (
+                  <img
+                    src={imgSrc}
+                    alt={prod.nombre}
+                    className={styles.cardImage}
                   />
-                </label>
+                )}
+                <div className={styles.cardIcon}>
+                  <i className="fas fa-chart-network"></i>
+                </div>
+                <h3>{prod.nombre}</h3>
+                <div className={styles.cardActions}>
+                  <button
+                    onClick={() => {
+                      setUrlActual(prod.url);
+                      setModalAbierto(true);
+                    }}
+                    className={styles.primaryBtn}
+                    aria-label={`Abrir dashboard ${prod.nombre}`}
+                  >
+                    <i className="fas fa-external-link-alt"></i> Abrir Dashboard
+                  </button>
+                  <label
+                    className={styles.importBtn}
+                    aria-label={`Importar datos para ${prod.nombre}`}
+                  >
+                    <i className="fas fa-file-import"></i> Importar Datos
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={e => handleArchivo(prod.id, e)}
+                      hidden
+                    />
+                  </label>
+                </div>
+                <div className={styles.cardGlow}></div>
               </div>
-              
-              <div className={styles.cardGlow}></div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {modalAbierto && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContainer}>
-            <iframe 
-              src={urlActual} 
+            <iframe
+              src={urlActual}
               className={styles.modalIframe}
               title="Dashboard"
               loading="eager"
               allowFullScreen
             />
-            <button 
-              onClick={() => setModalAbierto(false)} 
+            <button
+              onClick={() => setModalAbierto(false)}
               className={styles.modalClose}
               aria-label="Cerrar modal"
             >

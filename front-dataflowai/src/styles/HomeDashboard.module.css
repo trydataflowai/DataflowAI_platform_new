@@ -569,3 +569,17 @@
     max-width: none;
   }
 }
+
+.cardImage {
+  width: 100%;           /* Que ocupe todo el ancho de la tarjeta */
+  height: 150px;         /* Altura fija para homogeneidad */
+  object-fit: cover;     /* Recorta sin deformar la imagen */
+  border-radius: 8px;    /* Esquinas redondeadas */
+  margin-bottom: 12px;   /* Separación respecto al título */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sutil sombra */
+  transition: transform 0.2s ease-in-out;
+}
+
+.cardImage:hover {
+  transform: scale(1.05); /* Pequeño zoom al pasar el cursor */
+}
