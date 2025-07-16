@@ -155,3 +155,55 @@
   height: auto; /* Mantiene la proporción */
   object-fit: contain; /* Asegura que la imagen se ajuste correctamente */
 }
+
+
+/* Estilos para el logo clickeable */
+.logoImage {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.logoImage:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* Estilos para los emojis en blanco */
+.emojiWhite {
+  filter: brightness(0) invert(1);
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+.button:hover .emojiWhite {
+  opacity: 0.8;
+}
+
+
+/* Estilos para el logo */
+
+
+
+/* SideBar.module.css */
+.logoContainer {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.logoContainer:hover {
+  transform: scale(1.05);
+}
+
+.logoImage {
+  max-width: 100%;
+  height: auto;
+}
+
+.emojiWhite {
+  filter: brightness(0) invert(1);
+  display: inline-block;
+  margin-right: 8px;
+}

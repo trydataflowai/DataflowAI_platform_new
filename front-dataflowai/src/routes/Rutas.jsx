@@ -8,6 +8,7 @@ import { SideBar } from "../components/layout/SideBar";
 import Index from "../components/pages/Index";
 import Login from "../components/pages/Login";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
+import HomeLogin from '/src/components/pages/HomeLogin.jsx';
 import RutaProtegida from '../components/componentes/RutaProtegida';
 
 
@@ -50,9 +51,20 @@ export const Rutas = () => (
         }
       />
 
-      {/* Ruta pública */}
+      {/* Ruta pública login */}
       <Route path="/login" element={<Login />} />
 
+      {/* Ruta pública homeLogin con solo Navbar */}
+      <Route
+        path="/homeLogin"
+        element={
+          <DefaultLayout>
+            <HomeLogin />
+          </DefaultLayout>
+        }
+      />
+
+      {/* Página principal */}
       <Route
         path="/"
         element={
