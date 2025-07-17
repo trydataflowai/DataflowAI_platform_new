@@ -67,24 +67,35 @@ class LoginView(APIView):
         })
 
 
+# appdataflowai/views.py
+
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Usuario, DetalleProducto
+# Nota: no necesitamos importar Producto aquí porque accedemos vía DetalleProducto.
+
 class UsuarioInfoView(APIView):
     """
     Vista que retorna la información detallada del usuario autenticado,
     incluyendo datos personales, rol, empresa, categoría, plan, estado
-    y los productos asignados, a partir del token JWT.
+    y los productos (dashboards) asignados, a partir del token JWT.
     """
     def get(self, request):
-        # Se extrae y valida el token del header Authorization
+        # 1) Extraer y validar el token del header Authorization
         token = request.headers.get('Authorization', '').split(' ')[-1]
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             id_usuario = payload.get('id_usuario')
         except jwt.ExpiredSignatureError:
-            return Response({'error': 'Token expirado'}, status=401)
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
-            return Response({'error': 'Token inválido'}, status=401)
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Traemos todas las relaciones necesarias en una sola query
+        # 2) Obtener el usuario con sus relaciones necesarias
         try:
             usuario = Usuario.objects.select_related(
                 'id_empresa__id_categoria',
@@ -93,9 +104,22 @@ class UsuarioInfoView(APIView):
                 'id_permiso_acceso'
             ).get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=404)
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Construimos el payload con todo lo que necesitemos exponer
+        # 3) Obtener los dashboards asignados (detalle_producto)
+        detalles = DetalleProducto.objects.filter(id_usuario=usuario)\
+                                         .select_related('id_producto')
+        lista_productos = [
+            {
+                'id_producto': det.id_producto.id_producto,
+                'producto':     det.id_producto.producto,
+                'Url':          det.id_producto.Url,
+                'iframe':       det.id_producto.iframe,
+            }
+            for det in detalles
+        ]
+
+        # 4) Construir el payload completo
         data = {
             'id': usuario.id_usuario,
             'nombres': usuario.nombres,
@@ -122,18 +146,10 @@ class UsuarioInfoView(APIView):
                     'nombre': usuario.id_empresa.id_estado.estado,
                 },
             },
-            'productos': [
-                {
-                    'id': detalle.id_producto.id_producto,
-                    'nombre': detalle.id_producto.producto,
-                    'url': detalle.id_producto.Url,
-                    'iframe': detalle.id_producto.iframe,
-                }
-                for detalle in usuario.detalleproducto_set.select_related('id_producto').all()
-            ]
+            'productos': lista_productos
         }
 
-        return Response(data, status=200)
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ProductosUsuarioView(APIView):
@@ -268,3 +284,70 @@ class ProductoListView(APIView):
         productos = Producto.objects.select_related('id_estado').all()
         serializer = ProductoSerializer(productos, many=True)
         return Response(serializer.data, status=200)
+    
+
+
+
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+
+from .models import Producto, DetalleProducto, Usuario
+from .serializers import DetalleProductoSerializer
+
+# Mapa de límites por id_plan
+PLAN_LIMITES = {
+    1: 1,   # Basic
+    2: 5,   # Professional
+    3: 10,  # Enterprise (o el número que definas)
+}
+
+class AdquirirDashboardView(APIView):
+    """
+    POST: { "id_producto": <int> }
+    Crea un registro en detalle_producto si el usuario no ha excedido su límite.
+    """
+    def post(self, request):
+        # 1) Validar y decodificar token
+        auth = get_authorization_header(request).split()
+        if not auth or auth[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth[1].decode()
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload['id_usuario']
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2) Traer usuario y su plan
+        try:
+            usuario = Usuario.objects.select_related('id_empresa__id_plan').get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        id_plan = usuario.id_empresa.id_plan.id_plan
+        limite = PLAN_LIMITES.get(id_plan, 0)
+
+        # 3) Contar dashboards ya adquiridos
+        actuales = DetalleProducto.objects.filter(id_usuario=usuario).count()
+        if actuales >= limite:
+            return Response(
+                {'error': f'Has alcanzado el límite de {limite} dashboards para tu plan.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 4) Validar que exista el producto
+        id_prod = request.data.get('id_producto')
+        try:
+            producto = Producto.objects.get(id_producto=id_prod)
+        except Producto.DoesNotExist:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 5) Crear el detalle (será único por unique_together)
+        detalle = DetalleProducto.objects.create(id_usuario=usuario, id_producto=producto)
+        serializer = DetalleProductoSerializer(detalle)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

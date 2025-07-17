@@ -15,3 +15,21 @@ export const obtenerTodosLosDashboards = async () => {
 
   return await response.json();
 };
+
+
+export const adquirirDashboard = async (id_producto) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}productos/adquirir/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ id_producto })
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || 'Error al adquirir dashboard');
+  }
+  return await response.json();
+};
