@@ -6,7 +6,8 @@ from .models import (
     Empresa,
     Usuario,
     Producto,
-    DetalleProducto
+    DetalleProducto,
+    TipoPlan
 )
 
 @admin.register(Categoria)
@@ -29,9 +30,20 @@ class PermisoAccesoAdmin(admin.ModelAdmin):
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
-    list_display = ('id_empresa', 'nombre_empresa', 'ciudad', 'pais')
-    search_fields = ('nombre_empresa', 'ciudad', 'pais')
-    list_filter = ('id_categoria', 'id_estado')
+    list_display = (
+        'id_empresa', 
+        'id_categoria', 
+        'id_plan', 
+        'id_estado',
+        'nombre_empresa', 
+        'direccion', 
+        'fecha_registros', 
+        'telefono', 
+        'ciudad', 
+        'pais'
+    )
+    search_fields = ('nombre_empresa', 'ciudad', 'pais', 'direccion')
+    list_filter = ('id_categoria', 'id_estado', 'id_plan', 'ciudad', 'pais')
 
 
 @admin.register(Usuario)
@@ -53,6 +65,14 @@ class DetalleProductoAdmin(admin.ModelAdmin):
     list_display = ('id_producto', 'id_usuario')
     search_fields = ('id_producto__producto', 'id_usuario__nombres')
     list_filter = ('id_producto', 'id_usuario')
+
+
+
+@admin.register(TipoPlan)
+class TipoPlanAdmin(admin.ModelAdmin):
+    list_display = ('id_plan', 'tipo_plan')
+    search_fields = ('tipo_plan',)
+    list_filter = ('tipo_plan',)
 
 
 

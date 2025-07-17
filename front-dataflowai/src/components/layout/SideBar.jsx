@@ -47,7 +47,7 @@ export const SideBar = () => {
 
         <button
           className={`${styles.button} ${styles.active}`}
-          onClick={() => navigate('/dashboards')}
+          onClick={() => navigate('/home')}
           aria-label="View Dashboards"
         >
           <span className={`${styles.icon} ${styles.emojiWhite}`}>📊</span>

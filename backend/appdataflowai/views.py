@@ -70,7 +70,8 @@ class LoginView(APIView):
 class UsuarioInfoView(APIView):
     """
     Vista que retorna la información detallada del usuario autenticado,
-    incluyendo datos personales, rol y empresa, a partir del token JWT.
+    incluyendo datos personales, rol, empresa, categoría, plan, estado
+    y los productos asignados, a partir del token JWT.
     """
     def get(self, request):
         # Se extrae y valida el token del header Authorization
@@ -83,12 +84,18 @@ class UsuarioInfoView(APIView):
         except jwt.InvalidTokenError:
             return Response({'error': 'Token inválido'}, status=401)
 
+        # Traemos todas las relaciones necesarias en una sola query
         try:
-            usuario = Usuario.objects.select_related('id_empresa', 'id_permiso_acceso').get(id_usuario=id_usuario)
+            usuario = Usuario.objects.select_related(
+                'id_empresa__id_categoria',
+                'id_empresa__id_plan',
+                'id_empresa__id_estado',
+                'id_permiso_acceso'
+            ).get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
 
-        # Estructura la respuesta con información detallada del usuario
+        # Construimos el payload con todo lo que necesitemos exponer
         data = {
             'id': usuario.id_usuario,
             'nombres': usuario.nombres,
@@ -97,9 +104,33 @@ class UsuarioInfoView(APIView):
             'empresa': {
                 'id': usuario.id_empresa.id_empresa,
                 'nombre': usuario.id_empresa.nombre_empresa,
+                'direccion': usuario.id_empresa.direccion,
+                'fecha_registro': usuario.id_empresa.fecha_registros.isoformat(),
+                'telefono': usuario.id_empresa.telefono,
                 'ciudad': usuario.id_empresa.ciudad,
-                'pais': usuario.id_empresa.pais
-            }
+                'pais': usuario.id_empresa.pais,
+                'categoria': {
+                    'id': usuario.id_empresa.id_categoria.id_categoria,
+                    'descripcion': usuario.id_empresa.id_categoria.descripcion_categoria,
+                },
+                'plan': {
+                    'id': usuario.id_empresa.id_plan.id_plan,
+                    'tipo': usuario.id_empresa.id_plan.tipo_plan,
+                },
+                'estado': {
+                    'id': usuario.id_empresa.id_estado.id_estado,
+                    'nombre': usuario.id_empresa.id_estado.estado,
+                },
+            },
+            'productos': [
+                {
+                    'id': detalle.id_producto.id_producto,
+                    'nombre': detalle.id_producto.producto,
+                    'url': detalle.id_producto.Url,
+                    'iframe': detalle.id_producto.iframe,
+                }
+                for detalle in usuario.detalleproducto_set.select_related('id_producto').all()
+            ]
         }
 
         return Response(data, status=200)

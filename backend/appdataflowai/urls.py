@@ -8,6 +8,4 @@ urlpatterns = [
     # urls.py
     path('importar/<int:id_producto>/', ImportarDatosView.as_view(), name='importar-datos'),
     path('usuario/info/', UsuarioInfoView.as_view(), name='usuario-info'),
-
-
 ]

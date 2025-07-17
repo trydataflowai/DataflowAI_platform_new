@@ -36,15 +36,30 @@ class PermisoAcceso(models.Model):
         return self.rol
 
 
+
+class TipoPlan(models.Model):
+    id_plan = models.IntegerField(primary_key=True, db_column='id_plan')
+    tipo_plan = models.CharField(max_length=50, db_column='producto')
+
+    class Meta:
+        db_table = 'planes'
+        verbose_name_plural = 'Planes'
+
+    def __str__(self):
+        return self.tipo_plan
+
+
+
 class Empresa(models.Model):
     id_empresa = models.IntegerField(primary_key=True, db_column='id_empresa')
-    id_categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, db_column='id_categoria')
+    id_categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, db_column='id_categoria') 
+    id_plan = models.ForeignKey(TipoPlan, on_delete=models.PROTECT, db_column='id_plan')
+    id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
     nombre_empresa = models.CharField(max_length=200, db_column='nombre_empresa')
     direccion = models.CharField(max_length=200, db_column='Direccion')
     fecha_registros = models.DateField(db_column='Fecha_registros')
     telefono = models.CharField(max_length=20, db_column='Telefono')
     ciudad = models.CharField(max_length=100, db_column='Ciudad')
-    id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
     pais = models.CharField(max_length=100, db_column='pais')
 
     class Meta:
@@ -61,7 +76,7 @@ class Usuario(models.Model):
     id_permiso_acceso = models.ForeignKey(PermisoAcceso, on_delete=models.PROTECT, db_column='id_permiso_acceso')
     nombres = models.CharField(max_length=200, db_column='nombres')
     correo = models.EmailField(max_length=255, db_column='correo', unique=True)
-    contrasena = models.CharField(max_length=255, db_column='contrasena')  # Sin encriptar
+    contrasena = models.CharField(max_length=255, db_column='contrasena')  
     estado = models.BooleanField(default=True)
 
     class Meta:
@@ -98,6 +113,13 @@ class DetalleProducto(models.Model):
 
     def __str__(self):
         return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
+
+
+
+
+
+
+
 
 
 

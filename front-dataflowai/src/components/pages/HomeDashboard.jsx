@@ -1,7 +1,7 @@
 // src/components/HomeDashboard.jsx
 
 import React, { useEffect, useState, useRef } from 'react';
-import { obtenerProductosUsuario } from '../../api/Login';
+import { obtenerProductosUsuario } from '../../api/ProductoUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { importarArchivoDashboard } from '../../api/Importacion';
 import styles from '../../styles/HomeDashboard.module.css';
