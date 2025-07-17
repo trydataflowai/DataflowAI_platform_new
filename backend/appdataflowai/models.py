@@ -90,6 +90,7 @@ class Usuario(models.Model):
 class Producto(models.Model):
     id_producto = models.IntegerField(primary_key=True, db_column='id_producto')
     producto = models.CharField(max_length=200, db_column='producto')
+    tipo_producto = models.CharField(max_length=30, db_column='tipo_producto', null=True, blank=True)
     id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
     Url = models.URLField(max_length=500, db_column='Url')
     iframe = models.CharField(max_length=500, db_column='iframe')
@@ -114,6 +115,18 @@ class DetalleProducto(models.Model):
     def __str__(self):
         return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
 
+
+class DetalleProductoVendido(models.Model):
+    id_producto = models.ForeignKey(Producto, on_delete=models.PROTECT, db_column='id_producto')
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.PROTECT, db_column='id_usuario')
+
+    class Meta:
+        db_table = 'detalle_producto_vendido'
+        verbose_name_plural = 'Detalle Producto Vendido'
+        unique_together = (('id_producto', 'id_usuario'),)
+
+    def __str__(self):
+        return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
 
 
 

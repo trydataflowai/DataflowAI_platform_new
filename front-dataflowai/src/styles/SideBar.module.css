@@ -1,46 +1,64 @@
+/* src/styles/SideBar.module.css */
+
+/* Sidebar fijo y a todo lo alto */
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 280px;
   height: 100vh;
+  z-index: 1000;
   background: linear-gradient(160deg, var(--black-deep) 0%, var(--black-cosmos) 100%);
   padding: 2rem 1.5rem;
   border-right: 1px solid rgba(0, 199, 255, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   transition: var(--transition);
 }
 
-.logoContainer {
-  margin-bottom: 2rem;
-  position: relative;
+/* Estado colapsado */
+.collapsed {
+  width: 120px;             /* Más espacio para los emojis */
+}
+.collapsed .text {
+  display: none;            /* Oculta etiquetas */
+}
+.collapsed .logoImage {
+  display: none;            /* Oculta logo */
+}
+.collapsed .footerText,
+.collapsed .accentLine {
+  display: none;            /* Oculta footer colapsado */
 }
 
+/* Logo */
+.logoContainer {
+  position: relative;
+  z-index: 1001;
+  margin-bottom: 0;
+}
 .logoButton {
   background: none;
   border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: block;
   width: 100%;
+  cursor: pointer;
+  padding: 0;
 }
-
 .logoImage {
-  display: block;
   width: 100%;
   height: auto;
-  user-select: none;
-  pointer-events: auto;
+  display: block;
+  transition: var(--transition);
 }
 
+/* Navegación */
 .nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-top: 0.5rem;
 }
-
 .button {
   position: relative;
   display: flex;
@@ -53,91 +71,95 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: var(--transition);
   overflow: hidden;
-  z-index: 1;
+  z-index: 1002;
+  transition: var(--transition);
 }
-
 .button::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
   background: linear-gradient(to bottom, var(--accent-neon), var(--accent-dark));
-  transition: var(--transition);
   opacity: 0;
+  transition: var(--transition);
 }
-
 .button:hover {
   color: var(--text-primary);
   background: rgba(0, 199, 255, 0.05);
   transform: translateX(8px);
 }
-
 .button:hover::before {
   opacity: 1;
 }
 
-.button:hover .highlight {
-  opacity: 0.1;
-}
-
+/* Icon y texto */
 .icon {
   font-size: 1.2rem;
   transition: var(--transition);
 }
-
 .button:hover .icon {
   transform: scale(1.2);
   color: var(--accent-neon);
 }
-
 .text {
   transition: var(--transition);
 }
 
+/* Radial highlight */
 .highlight {
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 200%;
+  top: -50%; right: -50%;
+  width: 100%; height: 200%;
   background: radial-gradient(circle, var(--accent-neon) 0%, transparent 70%);
   opacity: 0;
   transition: var(--transition);
-  z-index: -1;
+  z-index: 1000;
+}
+.button:hover .highlight {
+  opacity: 0.1;
 }
 
+/* Estado activo */
 .active {
   color: var(--text-primary) !important;
   background: rgba(0, 199, 255, 0.08) !important;
 }
-
+.active::before {
+  opacity: 1 !important;
+}
 .active .icon {
   color: var(--accent-neon);
 }
 
-.active::before {
-  opacity: 1 !important;
+/* Toggle collapse */
+.toggleContainer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 0;
+}
+.toggleButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+.toggleButton:hover {
+  transform: scale(1.2);
 }
 
+/* Footer */
 .footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 1.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
 }
-
 .accentLine {
   height: 1px;
   width: 100%;
   background: linear-gradient(to right, transparent, var(--accent-dark), transparent);
   margin-bottom: 1rem;
 }
-
 .footerText {
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -145,13 +167,12 @@
   opacity: 0.7;
 }
 
+/* Iconos en blanco */
 .emojiWhite {
   filter: brightness(0) invert(1);
-  display: inline-block;
-  margin-right: 8px;
   font-size: 1.2em;
+  transition: var(--transition);
 }
-
 .button:hover .emojiWhite {
   opacity: 0.8;
 }

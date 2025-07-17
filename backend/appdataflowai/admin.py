@@ -7,7 +7,8 @@ from .models import (
     Usuario,
     Producto,
     DetalleProducto,
-    TipoPlan
+    TipoPlan,
+    DetalleProductoVendido
 )
 
 @admin.register(Categoria)
@@ -55,13 +56,20 @@ class UsuarioAdmin(admin.ModelAdmin):
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('id_producto', 'producto', 'id_estado')
+    list_display = ('id_producto', 'producto', 'tipo_producto','id_estado')
     search_fields = ('producto',)
     list_filter = ('id_estado',)
 
 
 @admin.register(DetalleProducto)
 class DetalleProductoAdmin(admin.ModelAdmin):
+    list_display = ('id_producto', 'id_usuario')
+    search_fields = ('id_producto__producto', 'id_usuario__nombres')
+    list_filter = ('id_producto', 'id_usuario')
+
+
+@admin.register(DetalleProductoVendido)
+class DetalleProductoVendidoAdmin(admin.ModelAdmin):
     list_display = ('id_producto', 'id_usuario')
     search_fields = ('id_producto__producto', 'id_usuario__nombres')
     list_filter = ('id_producto', 'id_usuario')

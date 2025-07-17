@@ -1,98 +1,168 @@
-/* Marketplace.module.css */
-
-/* Fondo general */
 .container {
-  padding: 2rem;
-  background-color: #f0f0f0;
-  min-height: 100vh;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: sans-serif;
 }
 
-/* Título y descripción */
 .title {
-  font-size: 2rem;
+  text-align: center;
   margin-bottom: 0.5rem;
-  color: #333;
 }
+
 .description {
-  font-size: 1rem;
+  text-align: center;
   margin-bottom: 1.5rem;
   color: #555;
 }
 
-/* Grid de tarjetas */
 .cardContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
+  justify-content: center;
 }
 
-/* Tarjeta */
 .card {
-  background-color: #fff;       /* Blanca para que resalte */
-  border: 1px solid #ddd;       /* Ligeramente delimitada */
-  border-radius: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   padding: 1rem;
-  box-shadow: none;             /* Sin sombra para simplificar */
+  width: 220px;
+  text-align: center;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Título dentro de la tarjeta */
 .cardTitle {
   font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  color: #222;
+  margin-bottom: 0.3rem;
 }
 
-/* Estado */
 .cardStatus {
   font-size: 0.9rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.8rem;
   color: #666;
 }
 
-/* Botones y etiquetas */
-.button {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem;
-  font-size: 0.9rem;
-  cursor: pointer;
+.cardImage {
   width: 100%;
-  margin-bottom: 0.5rem;
+  height: 120px;
+  object-fit: cover;
+  margin-bottom: 0.8rem;
 }
-.button[disabled] {
-  background-color: #aaa;
-  cursor: not-allowed;
+
+.noImage {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2f2;
+  color: #999;
+  margin-bottom: 0.8rem;
 }
 
 .adquiridoLabel {
-  display: inline-block;
-  background-color: #28a745;
-  color: #fff;
+  display: block;
+  margin-bottom: 0.5rem;
+  color: green;
+  font-weight: bold;
+}
+
+.downloadButton,
+.button,
+.linkButton {
+  display: block;
+  margin: 0.4rem auto;
+  padding: 0.4rem 0.8rem;
   border-radius: 4px;
-  padding: 0.5rem;
+  text-decoration: none;
   font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.downloadButton {
+  background: #007bff;
+  color: white;
+  border: none;
+}
+
+.button {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.linkButton {
+  background: none;
+  color: #007bff;
+  border: 1px solid #007bff;
   width: 100%;
-  text-align: center;
+}
+
+.linkButton:hover {
+  background-color: #f0f7ff;
+}
+
+.noFile {
+  font-size: 0.9rem;
+  color: #999;
   margin-bottom: 0.5rem;
 }
 
-/* Enlace */
-.link {
-  display: block;
-  font-size: 0.9rem;
-  color: #007bff;
-  text-decoration: none;
-  text-align: center;
-}
-.link:hover {
-  text-decoration: underline;
-}
-
-/* Mensaje de error */
 .error {
-  color: #c00;
+  color: red;
   text-align: center;
   margin-top: 2rem;
+}
+
+/* Estilos para el modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  position: relative;
+  width: 95%;
+  height: 90%;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+  z-index: 1001;
+}
+
+.closeButton:hover {
+  color: #000;
+}
+
+.dashboardFrame {
+  width: 100%;
+  height: calc(100% - 20px);
+  border: none;
+  border-radius: 4px;
+  margin-top: 20px;
 }
