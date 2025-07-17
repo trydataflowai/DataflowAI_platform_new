@@ -232,3 +232,39 @@ class ImportarDatosView(APIView):
 
         except Exception as e:
             return Response({'error': f'Error al procesar archivo: {str(e)}'}, status=500)
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import get_authorization_header
+from .models import Producto
+from .serializers import ProductoSerializer
+import jwt
+from django.conf import settings
+
+#Retornar todos los productos para el Marketplace
+
+class ProductoListView(APIView):
+    """
+    Vista protegida que retorna todos los productos del sistema.
+    El usuario debe estar autenticado mediante token JWT.
+    """
+
+    def get(self, request):
+        # Validar el token manualmente
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=401)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except (jwt.ExpiredSignatureError, jwt.DecodeError):
+            return Response({'error': 'Token inválido o expirado'}, status=401)
+
+        # Obtener y serializar productos
+        productos = Producto.objects.select_related('id_estado').all()
+        serializer = ProductoSerializer(productos, many=True)
+        return Response(serializer.data, status=200)

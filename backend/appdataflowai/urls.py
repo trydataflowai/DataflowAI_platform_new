@@ -1,6 +1,6 @@
 # urls.py
 from django.urls import path
-from .views import LoginView, ProductosUsuarioView, ImportarDatosView, UsuarioInfoView
+from .views import LoginView, ProductosUsuarioView, ImportarDatosView, UsuarioInfoView, ProductoListView
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -8,4 +8,5 @@ urlpatterns = [
     # urls.py
     path('importar/<int:id_producto>/', ImportarDatosView.as_view(), name='importar-datos'),
     path('usuario/info/', UsuarioInfoView.as_view(), name='usuario-info'),
+    path('productos/', ProductoListView.as_view(), name='producto-list'),
 ]
