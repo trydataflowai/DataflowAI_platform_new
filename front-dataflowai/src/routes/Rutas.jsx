@@ -12,13 +12,16 @@ import Login from "../components/pages/Login";
 import HomeLogin from "../components/pages/HomeLogin";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import { Marketplace } from "../components/pages/Marketplace";
+import CreacionUsuario from "../components/pages/CreacionUsuario";
+import CreacionEmpresa from "../components/pages/CreacionEmpresa";
 
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
 
-const NO_LAYOUT_PATHS = ["/login"];
+// Paths sin Navbar ni Footer
+const NO_LAYOUT_PATHS = ["/login", "/crear-usuario", "/crear-empresa"];
 
-// Layout con Navbar + Footer (salta en /login)
+// Layout con Navbar + Footer (se omite si el path está en NO_LAYOUT_PATHS)
 const DefaultLayout = ({ children }) => {
   const { pathname } = useLocation();
   const hide = NO_LAYOUT_PATHS.includes(pathname);
@@ -31,32 +34,33 @@ const DefaultLayout = ({ children }) => {
   );
 };
 
-// Layout con Sidebar (fijo) + main desplazado
+// Layout con Sidebar
 const SideBarLayout = ({ children }) => (
   <div style={{ display: "flex", minHeight: "100vh" }}>
     <SideBar />
-    <main style={{ flexGrow: 1, marginLeft: "280px" }}>
-      {children}
-    </main>
+    <main style={{ flexGrow: 1, marginLeft: "280px" }}>{children}</main>
   </div>
 );
 
 export const Rutas = () => (
   <BrowserRouter>
     <Routes>
-      {/* Inicio público */}
+      {/* Página de inicio pública */}
       <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
 
       {/* Login (sin Navbar ni Footer) */}
       <Route path="/login" element={<Login />} />
 
-      {/* HomeLogin (Navbar + Footer) */}
-      <Route
-        path="/homeLogin"
-        element={<DefaultLayout><HomeLogin /></DefaultLayout>}
-      />
+      {/* Creación de usuario (sin Navbar ni Footer) */}
+      <Route path="/crear-usuario" element={<CreacionUsuario />} />
 
-      {/* Dashboard protegido (con Sidebar) */}
+      {/* Creación de empresa (sin Navbar ni Footer) */}
+      <Route path="/crear-empresa" element={<CreacionEmpresa />} />
+
+      {/* HomeLogin (con Navbar y Footer) */}
+      <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
+
+      {/* Dashboard (protegido, con Sidebar) */}
       <Route
         path="/home"
         element={
@@ -66,7 +70,7 @@ export const Rutas = () => (
         }
       />
 
-      {/* Marketplace protegido (con Sidebar) */}
+      {/* Marketplace (protegido, con Sidebar) */}
       <Route
         path="/marketplace"
         element={

@@ -22,21 +22,7 @@ class Estado(models.Model):
 
     def __str__(self):
         return self.estado
-
-
-class PermisoAcceso(models.Model):
-    id_permiso_acceso = models.IntegerField(primary_key=True, db_column='id_permiso_acceso')
-    rol = models.CharField(max_length=50, db_column='Rol')
-
-    class Meta:
-        db_table = 'permisos_acceso'
-        verbose_name_plural = 'Permisos Acceso'
-
-    def __str__(self):
-        return self.rol
-
-
-
+    
 class TipoPlan(models.Model):
     id_plan = models.IntegerField(primary_key=True, db_column='id_plan')
     tipo_plan = models.CharField(max_length=50, db_column='producto')
@@ -47,6 +33,22 @@ class TipoPlan(models.Model):
 
     def __str__(self):
         return self.tipo_plan
+
+
+
+class PermisoAcceso(models.Model):
+        id_permiso_acceso = models.IntegerField(primary_key=True, db_column='id_permiso_acceso')
+        rol = models.CharField(max_length=50, db_column='Rol')
+
+        class Meta:
+            db_table = 'permisos_acceso'
+            verbose_name_plural = 'Permisos Acceso'
+
+        def __str__(self):
+            return self.rol
+
+
+
 
 
 
@@ -62,6 +64,12 @@ class Empresa(models.Model):
     ciudad = models.CharField(max_length=100, db_column='Ciudad')
     pais = models.CharField(max_length=100, db_column='pais')
 
+    # Nuevos campos
+    prefijo_pais = models.CharField(max_length=5, null=True, blank=True, db_column='Prefijo_pais')
+    correo = models.EmailField(max_length=255, null=True, blank=True, db_column='Correo')
+    pagina_web = models.URLField(max_length=255, null=True, blank=True, db_column='Pagina_web')
+    fecha_hora_pago = models.DateTimeField(null=True, blank=True, db_column='Fecha_hora_pago')
+
     class Meta:
         db_table = 'empresas'
         verbose_name_plural = 'Empresas'
@@ -70,11 +78,25 @@ class Empresa(models.Model):
         return self.nombre_empresa
 
 
+class Pagos(models.Model):
+    id_pago = models.AutoField(primary_key=True, db_column='id_pago')
+    id_empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, db_column='id_empresa', related_name='pagos')
+    ingreso = models.DecimalField(max_digits=50, decimal_places=2, db_column='ingreso')
+    fecha_hora_pago = models.DateTimeField(db_column='fecha_hora_pago')
+
+    class Meta:
+        db_table = 'pagos'
+        verbose_name_plural = 'Pagos'
+
+    def __str__(self):
+        return f'Pago #{self.id_pago} - {self.id_empresa.nombre_empresa}'
+
 class Usuario(models.Model):
     id_usuario = models.BigIntegerField(primary_key=True, db_column='id_usuario')
     id_empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, db_column='id_empresa')
     id_permiso_acceso = models.ForeignKey(PermisoAcceso, on_delete=models.PROTECT, db_column='id_permiso_acceso')
     nombres = models.CharField(max_length=200, db_column='nombres')
+    apellidos = models.CharField(max_length=200, null=True, blank=True, db_column='apellidos')
     correo = models.EmailField(max_length=255, db_column='correo', unique=True)
     contrasena = models.CharField(max_length=255, db_column='contrasena')  
     estado = models.BooleanField(default=True)
@@ -127,13 +149,6 @@ class DetalleProductoVendido(models.Model):
 
     def __str__(self):
         return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
-
-
-
-
-
-
-
 
 
 class DashboardVentasLoop(models.Model):

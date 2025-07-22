@@ -351,3 +351,50 @@ class AdquirirDashboardView(APIView):
         detalle = DetalleProducto.objects.create(id_usuario=usuario, id_producto=producto)
         serializer = DetalleProductoSerializer(detalle)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
+
+# backend/appdataflowai/views.py
+from rest_framework import generics
+from .models import (
+    Empresa,
+    Categoria,
+    Estado,
+    TipoPlan,
+    Usuario,
+    PermisoAcceso
+)
+from .serializers import (
+    EmpresaSerializer,
+    UsuarioSerializer,
+    CategoriaSerializer,
+    EstadoSerializer,
+    TipoPlanSerializer,
+    PermisoAccesoSerializer
+)
+
+class EmpresaCreateAPIView(generics.CreateAPIView):
+    queryset = Empresa.objects.all()
+    serializer_class = EmpresaSerializer
+
+class UsuarioCreateAPIView(generics.CreateAPIView):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+
+class CategoriaListAPIView(generics.ListAPIView):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+
+class EstadoListAPIView(generics.ListAPIView):
+    queryset = Estado.objects.all()
+    serializer_class = EstadoSerializer
+
+class TipoPlanListAPIView(generics.ListAPIView):
+    queryset = TipoPlan.objects.all()
+    serializer_class = TipoPlanSerializer
+
+class PermisoAccesoListAPIView(generics.ListAPIView):
+    queryset = PermisoAcceso.objects.all()
+    serializer_class = PermisoAccesoSerializer

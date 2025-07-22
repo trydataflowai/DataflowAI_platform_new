@@ -14,7 +14,7 @@ const Index = () => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add(styles.visible);
                         setActiveSection(entry.target.id);
-                        
+
                         // Update URL with hash without scrolling
                         if (entry.target.id) {
                             window.history.replaceState(null, null, `#${entry.target.id}`);
@@ -75,7 +75,7 @@ const Index = () => {
     return (
         <div className={styles.inicio}>
             {/* Hero Section */}
-             <section className={`${styles.hero} ${styles.section}`} id="home" ref={addToRefs}>
+            <section className={`${styles.hero} ${styles.section}`} id="home" ref={addToRefs}>
                 <div className={`${styles.container} ${styles['hero-content']}`}>
                     <div className={styles['hero-text']}>
                         <h1>Transforming <span>Data</span> into Smart Decisions</h1>
@@ -104,7 +104,7 @@ const Index = () => {
 
             {/* Features Section */}
             <section className={`${styles.features} ${styles.section}`} id="features" ref={addToRefs}>
-                
+
                 <div className={styles.container}>
                     <div className={styles['section-title']}>
                         <h2>Advanced <span>Features</span></h2>
@@ -172,7 +172,7 @@ const Index = () => {
             </section>
 
             {/* Pricing Section */}
-             <section className={`${styles.pricing} ${styles.section}`} id="pricing" ref={addToRefs}>
+            <section className={`${styles.pricing} ${styles.section}`} id="pricing" ref={addToRefs}>
                 <div className={styles.container}>
                     <div className={styles['section-title']}>
                         <h2>Plans for Teams of <span>All Sizes</span></h2>
@@ -219,6 +219,7 @@ const Index = () => {
                             </div>
                         </div>
 
+
                         <div className={`${styles['pricing-card']} ${styles.enterprise}`}>
                             <div className={styles['pricing-header']}>
                                 <div className={styles['pricing-name']}>Enterprise</div>
@@ -237,9 +238,23 @@ const Index = () => {
                                 </ul>
                             </div>
                             <div className={styles['pricing-button']}>
-                                <a href="#" className={`${styles.btn} ${styles['btn-outline']}`}>Contact Sales</a>
+                                <a
+                                    href="https://wa.me/17373439051?text=Hola%2C%20buenas%20tardes.%20Estoy%20interesado%20en%20el%20plan%20Enterprise."
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`${styles.btn} ${styles['btn-outline']}`}
+                                >
+                                    Contact Sales
+                                </a>
                             </div>
                         </div>
+
+
+
+
+
+
+
                     </div>
                 </div>
             </section>

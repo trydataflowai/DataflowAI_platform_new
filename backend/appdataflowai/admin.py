@@ -8,13 +8,21 @@ from .models import (
     Producto,
     DetalleProducto,
     TipoPlan,
-    DetalleProductoVendido
+    DetalleProductoVendido, 
+    Pagos
 )
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
     list_display = ('id_categoria', 'descripcion_categoria')
     search_fields = ('descripcion_categoria',)
+
+
+@admin.register(Pagos)
+class PagosAdmin(admin.ModelAdmin):
+    list_display = ('id_pago', 'id_empresa', 'fecha_hora_pago', 'ingreso')
+    search_fields = ('id_empresa__nombre_empresa',)
+    list_filter = ('fecha_hora_pago',)
 
 
 @admin.register(Estado)
@@ -39,18 +47,36 @@ class EmpresaAdmin(admin.ModelAdmin):
         'nombre_empresa', 
         'direccion', 
         'fecha_registros', 
+        'prefijo_pais',
         'telefono', 
+        'correo',
+        'pagina_web',
+        'fecha_hora_pago',
         'ciudad', 
         'pais'
     )
-    search_fields = ('nombre_empresa', 'ciudad', 'pais', 'direccion')
-    list_filter = ('id_categoria', 'id_estado', 'id_plan', 'ciudad', 'pais')
+    search_fields = (
+        'nombre_empresa', 
+        'ciudad', 
+        'pais', 
+        'direccion', 
+        'correo', 
+        'pagina_web'
+    )
+    list_filter = (
+        'id_categoria', 
+        'id_estado', 
+        'id_plan', 
+        'ciudad', 
+        'pais'
+    )
+
 
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('id_usuario', 'nombres', 'correo', 'id_empresa', 'id_permiso_acceso', 'estado')
-    search_fields = ('nombres', 'correo')
+    list_display = ('id_usuario', 'nombres', 'apellidos', 'correo', 'id_empresa', 'id_permiso_acceso', 'estado')
+    search_fields = ('nombres', 'apellidos', 'correo')
     list_filter = ('id_empresa', 'id_permiso_acceso', 'estado')
 
 
