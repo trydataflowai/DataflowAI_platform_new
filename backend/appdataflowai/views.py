@@ -21,9 +21,9 @@ from .models import (
 
 # Diccionario que mapea el ID del producto con el modelo correspondiente en base de datos.
 PRODUCTO_MODELO_MAP = {
-    2525: DashboardVentasColtrade,
-    2626: DashboardVentasLoop,
-    2727: DashboardVentasDataflow,
+    1: DashboardVentasColtrade,
+    2: DashboardVentasLoop,
+    3: DashboardVentasDataflow,
     # Se pueden agregar más productos en el futuro si es necesario.
 }
 
@@ -358,14 +358,7 @@ class AdquirirDashboardView(APIView):
 
 # backend/appdataflowai/views.py
 from rest_framework import generics
-from .models import (
-    Empresa,
-    Categoria,
-    Estado,
-    TipoPlan,
-    Usuario,
-    PermisoAcceso
-)
+from .models import Empresa, Categoria, Estado, TipoPlan, Usuario, PermisoAcceso
 from .serializers import (
     EmpresaSerializer,
     UsuarioSerializer,
@@ -375,26 +368,32 @@ from .serializers import (
     PermisoAccesoSerializer
 )
 
+# Crear Empresa
 class EmpresaCreateAPIView(generics.CreateAPIView):
     queryset = Empresa.objects.all()
     serializer_class = EmpresaSerializer
 
+# Crear Usuario
 class UsuarioCreateAPIView(generics.CreateAPIView):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
+# Listar Categorías
 class CategoriaListAPIView(generics.ListAPIView):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
 
+# Listar Estados
 class EstadoListAPIView(generics.ListAPIView):
     queryset = Estado.objects.all()
     serializer_class = EstadoSerializer
 
+# Listar Planes
 class TipoPlanListAPIView(generics.ListAPIView):
     queryset = TipoPlan.objects.all()
     serializer_class = TipoPlanSerializer
 
+# Listar Permisos de Acceso
 class PermisoAccesoListAPIView(generics.ListAPIView):
     queryset = PermisoAcceso.objects.all()
     serializer_class = PermisoAccesoSerializer

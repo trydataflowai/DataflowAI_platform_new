@@ -1,84 +1,52 @@
 import React, { useEffect, useState } from 'react';
 import {
   fetchCategorias,
-  fetchEstados,
   fetchPlanes,
-  fetchPermisos,
   crearEmpresa,
   crearUsuario
 } from '../../api/CrearUsuario';
 import styles from '../../styles/CreacionEmpresa.module.css';
 
 const CreacionEmpresa = () => {
-  // Catálogos para empresa
   const [categorias, setCategorias] = useState([]);
-  const [estados, setEstados]       = useState([]);
   const [planes, setPlanes]         = useState([]);
-  // Catálogo permisos para usuario
-  const [permisos, setPermisos]     = useState([]);
+  const [error, setError]           = useState(null);
+  const [successE, setSuccessE]     = useState(false);
+  const [successU, setSuccessU]     = useState(false);
 
-  // Formulario empresa
+  // Inicializamos sólo los campos que el usuario verá
   const [formE, setFormE] = useState({
-    id_empresa: '',
     id_categoria: '',
     id_plan: '',
-    id_estado: '',
     nombre_empresa: '',
     direccion: '',
-    fecha_registros: '',
     telefono: '',
     ciudad: '',
     pais: '',
     prefijo_pais: '',
     correo: '',
     pagina_web: '',
-    fecha_hora_pago: '',
   });
 
-  // Formulario usuario
   const [formU, setFormU] = useState({
-    id_usuario: '',
-    id_permiso_acceso: '',
     nombres: '',
     apellidos: '',
     correo: '',
     contrasena: '',
-    estado: true,
   });
-
-  const [error, setError]     = useState(null);
-  const [successE, setSuccessE] = useState(false);
-  const [successU, setSuccessU] = useState(false);
 
   useEffect(() => {
     fetchCategorias().then(setCategorias);
-    fetchEstados().then(setEstados);
     fetchPlanes().then(setPlanes);
-    fetchPermisos().then(setPermisos);
   }, []);
 
   const handleChangeE = e => {
-    let { name, value } = e.target;
-    // IDs como números
-    if (['id_empresa', 'id_categoria', 'id_plan', 'id_estado'].includes(name)) {
-      value = value === '' ? '' : Number(value);
-    }
-    // Añadir segundos al datetime-local
-    if (name === 'fecha_hora_pago' && value && !value.endsWith(':00')) {
-      value = `${value}:00`;
-    }
+    const { name, value } = e.target;
     setFormE(prev => ({ ...prev, [name]: value }));
   };
 
   const handleChangeU = e => {
-    let { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
-      return setFormU(prev => ({ ...prev, [name]: checked }));
-    }
-    // IDs como números
-    if (['id_usuario', 'id_permiso_acceso'].includes(name)) {
-      value = value === '' ? '' : Number(value);
-    }
+    const { name, value } = e.target;
     setFormU(prev => ({ ...prev, [name]: value }));
   };
 
@@ -89,18 +57,15 @@ const CreacionEmpresa = () => {
     setSuccessU(false);
 
     try {
-      // 1) Crear la empresa
+      // 1) Crear empresa
       const empresa = await crearEmpresa(formE);
       setSuccessE(true);
 
-      // 2) Inyectar FK id_empresa al formulario usuario
-      const payloadU = {
+      // 2) Crear usuario con FK id_empresa y backend infiere el resto
+      await crearUsuario({
         ...formU,
         id_empresa: empresa.id_empresa
-      };
-
-      // 3) Crear el usuario
-      await crearUsuario(payloadU);
+      });
       setSuccessU(true);
     } catch (err) {
       setError(err);
@@ -112,19 +77,7 @@ const CreacionEmpresa = () => {
       <h1>Crear Empresa y Usuario</h1>
       <form onSubmit={handleSubmit} className={styles.form}>
 
-        {/* ===== SECCIÓN EMPRESA ===== */}
         <h2>Datos de la Empresa</h2>
-
-        <label>ID Empresa
-          <input
-            type="number"
-            name="id_empresa"
-            value={formE.id_empresa}
-            onChange={handleChangeE}
-            required
-          />
-        </label>
-
         <label>Categoría
           <select
             name="id_categoria"
@@ -157,22 +110,6 @@ const CreacionEmpresa = () => {
           </select>
         </label>
 
-        <label>Estado
-          <select
-            name="id_estado"
-            value={formE.id_estado}
-            onChange={handleChangeE}
-            required
-          >
-            <option value="">-- Selecciona --</option>
-            {estados.map(e => (
-              <option key={e.id_estado} value={e.id_estado}>
-                {e.estado}
-              </option>
-            ))}
-          </select>
-        </label>
-
         <label>Nombre Empresa
           <input
             name="nombre_empresa"
@@ -186,16 +123,6 @@ const CreacionEmpresa = () => {
           <input
             name="direccion"
             value={formE.direccion}
-            onChange={handleChangeE}
-            required
-          />
-        </label>
-
-        <label>Fecha Registro
-          <input
-            type="date"
-            name="fecha_registros"
-            value={formE.fecha_registros}
             onChange={handleChangeE}
             required
           />
@@ -254,45 +181,7 @@ const CreacionEmpresa = () => {
           />
         </label>
 
-        <label>Fecha y Hora de Pago
-          <input
-            type="datetime-local"
-            name="fecha_hora_pago"
-            value={formE.fecha_hora_pago}
-            onChange={handleChangeE}
-          />
-        </label>
-
-
-        {/* ===== SECCIÓN USUARIO ===== */}
         <h2>Datos del Usuario</h2>
-
-        <label>ID Usuario
-          <input
-            type="number"
-            name="id_usuario"
-            value={formU.id_usuario}
-            onChange={handleChangeU}
-            required
-          />
-        </label>
-
-        <label>Permiso de Acceso
-          <select
-            name="id_permiso_acceso"
-            value={formU.id_permiso_acceso}
-            onChange={handleChangeU}
-            required
-          >
-            <option value="">-- Selecciona --</option>
-            {permisos.map(p => (
-              <option key={p.id_permiso_acceso} value={p.id_permiso_acceso}>
-                {p.descripcion || p.codigo || JSON.stringify(p)}
-              </option>
-            ))}
-          </select>
-        </label>
-
         <label>Nombres
           <input
             name="nombres"
@@ -328,16 +217,6 @@ const CreacionEmpresa = () => {
             onChange={handleChangeU}
             required
           />
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            name="estado"
-            checked={formU.estado}
-            onChange={handleChangeU}
-          />
-          Usuario activo
         </label>
 
         <button type="submit">Guardar Todo</button>

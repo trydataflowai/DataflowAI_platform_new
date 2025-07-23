@@ -5,18 +5,8 @@ export async function fetchCategorias() {
   return res.json();
 }
 
-export async function fetchEstados() {
-  const res = await fetch(`${API_BASE_URL}estados/`);
-  return res.json();
-}
-
 export async function fetchPlanes() {
   const res = await fetch(`${API_BASE_URL}planes/`);
-  return res.json();
-}
-
-export async function fetchPermisos() {
-  const res = await fetch(`${API_BASE_URL}permisos/`);
   return res.json();
 }
 

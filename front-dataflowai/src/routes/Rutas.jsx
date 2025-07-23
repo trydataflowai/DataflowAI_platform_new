@@ -14,6 +14,7 @@ import { HomeDashboard } from "../components/pages/HomeDashboard";
 import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
 import CreacionEmpresa from "../components/pages/CreacionEmpresa";
+import PagosStripe from "../components/pages/PagosStripe";
 
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
@@ -57,6 +58,9 @@ export const Rutas = () => (
       {/* Creación de empresa (sin Navbar ni Footer) */}
       <Route path="/crear-empresa" element={<CreacionEmpresa />} />
 
+      {/* Pagos con Stripe (sin Navbar ni Footer) */}
+      <Route path="/pagos" element={<PagosStripe />} />
+      
       {/* HomeLogin (con Navbar y Footer) */}
       <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 

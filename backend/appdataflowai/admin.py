@@ -72,12 +72,10 @@ class EmpresaAdmin(admin.ModelAdmin):
     )
 
 
-
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('id_usuario', 'nombres', 'apellidos', 'correo', 'id_empresa', 'id_permiso_acceso', 'estado')
-    search_fields = ('nombres', 'apellidos', 'correo')
-    list_filter = ('id_empresa', 'id_permiso_acceso', 'estado')
+    list_display = ('id_usuario', 'nombres', 'apellidos', 'correo', 'id_empresa', 'id_permiso_acceso', 'id_estado')
+    list_filter = ('id_empresa', 'id_permiso_acceso', 'id_estado')
 
 
 @admin.register(Producto)
@@ -104,7 +102,7 @@ class DetalleProductoVendidoAdmin(admin.ModelAdmin):
 
 @admin.register(TipoPlan)
 class TipoPlanAdmin(admin.ModelAdmin):
-    list_display = ('id_plan', 'tipo_plan')
+    list_display = ('id_plan', 'tipo_plan', 'valor_plan')
     search_fields = ('tipo_plan',)
     list_filter = ('tipo_plan',)
 

@@ -26,15 +26,29 @@ class DetalleProductoSerializer(serializers.ModelSerializer):
 
 # backend/appdataflowai/serializers.py
 # backend/appdataflowai/serializers.py
+from datetime import date
 from rest_framework import serializers
-from .models import (
-    Empresa,
-    Categoria,
-    Estado,
-    TipoPlan,
-    Usuario,
-    PermisoAcceso
-)
+from .models import Empresa, Usuario, Categoria, Estado, TipoPlan, PermisoAcceso
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = ['id_categoria', 'descripcion_categoria']
+
+class EstadoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Estado
+        fields = ['id_estado', 'estado']
+
+class TipoPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoPlan
+        fields = ['id_plan', 'tipo_plan']
+
+class PermisoAccesoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PermisoAcceso
+        fields = ['id_permiso_acceso', 'rol']
 
 class EmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,6 +69,16 @@ class EmpresaSerializer(serializers.ModelSerializer):
             'pagina_web',
             'fecha_hora_pago',
         ]
+        read_only_fields = ['id_empresa', 'id_estado', 'fecha_registros', 'fecha_hora_pago']
+
+    def create(self, validated_data):
+        estado_activo = Estado.objects.get(pk=1)
+        return Empresa.objects.create(
+            id_estado=estado_activo,
+            fecha_registros=date.today(),
+            fecha_hora_pago=None,
+            **validated_data
+        )
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,25 +91,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'apellidos',
             'correo',
             'contrasena',
-            'estado',
+            'id_estado',
         ]
+        read_only_fields = ['id_usuario', 'id_permiso_acceso', 'id_estado']
 
-class CategoriaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Categoria
-        fields = ['id_categoria', 'descripcion_categoria']
-
-class EstadoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Estado
-        fields = ['id_estado', 'estado']
-
-class TipoPlanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoPlan
-        fields = ['id_plan', 'tipo_plan']
-
-class PermisoAccesoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PermisoAcceso
-        fields = '__all__'
+    def create(self, validated_data):
+        permiso_admin = PermisoAcceso.objects.get(pk=1)
+        estado_activo = Estado.objects.get(pk=1)
+        return Usuario.objects.create(
+            id_permiso_acceso=permiso_admin,
+            id_estado=estado_activo,
+            **validated_data
+        )

@@ -1,7 +1,7 @@
 from django.db import models
 
 class Categoria(models.Model):
-    id_categoria = models.IntegerField(primary_key=True, db_column='id_categoria')
+    id_categoria = models.AutoField(primary_key=True, db_column='id_categoria')
     descripcion_categoria = models.CharField(max_length=150, db_column='descripcion_categoria')
 
     class Meta:
@@ -13,7 +13,7 @@ class Categoria(models.Model):
 
 
 class Estado(models.Model):
-    id_estado = models.IntegerField(primary_key=True, db_column='id_estado')
+    id_estado = models.AutoField(primary_key=True, db_column='id_estado')
     estado = models.CharField(max_length=50, db_column='estado')
 
     class Meta:
@@ -22,10 +22,12 @@ class Estado(models.Model):
 
     def __str__(self):
         return self.estado
-    
+
+
 class TipoPlan(models.Model):
-    id_plan = models.IntegerField(primary_key=True, db_column='id_plan')
+    id_plan = models.AutoField(primary_key=True, db_column='id_plan')
     tipo_plan = models.CharField(max_length=50, db_column='producto')
+    valor_plan = models.DecimalField(max_digits=10, decimal_places=2, db_column='valor_plan', null=True, blank=True)
 
     class Meta:
         db_table = 'planes'
@@ -35,25 +37,20 @@ class TipoPlan(models.Model):
         return self.tipo_plan
 
 
-
 class PermisoAcceso(models.Model):
-        id_permiso_acceso = models.IntegerField(primary_key=True, db_column='id_permiso_acceso')
-        rol = models.CharField(max_length=50, db_column='Rol')
+    id_permiso_acceso = models.AutoField(primary_key=True, db_column='id_permiso_acceso')
+    rol = models.CharField(max_length=50, db_column='Rol')
 
-        class Meta:
-            db_table = 'permisos_acceso'
-            verbose_name_plural = 'Permisos Acceso'
+    class Meta:
+        db_table = 'permisos_acceso'
+        verbose_name_plural = 'Permisos Acceso'
 
-        def __str__(self):
-            return self.rol
-
-
-
-
+    def __str__(self):
+        return self.rol
 
 
 class Empresa(models.Model):
-    id_empresa = models.IntegerField(primary_key=True, db_column='id_empresa')
+    id_empresa = models.AutoField(primary_key=True, db_column='id_empresa')
     id_categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, db_column='id_categoria') 
     id_plan = models.ForeignKey(TipoPlan, on_delete=models.PROTECT, db_column='id_plan')
     id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
@@ -63,8 +60,6 @@ class Empresa(models.Model):
     telefono = models.CharField(max_length=20, db_column='Telefono')
     ciudad = models.CharField(max_length=100, db_column='Ciudad')
     pais = models.CharField(max_length=100, db_column='pais')
-
-    # Nuevos campos
     prefijo_pais = models.CharField(max_length=5, null=True, blank=True, db_column='Prefijo_pais')
     correo = models.EmailField(max_length=255, null=True, blank=True, db_column='Correo')
     pagina_web = models.URLField(max_length=255, null=True, blank=True, db_column='Pagina_web')
@@ -80,7 +75,7 @@ class Empresa(models.Model):
 
 class Pagos(models.Model):
     id_pago = models.AutoField(primary_key=True, db_column='id_pago')
-    id_empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, db_column='id_empresa', related_name='pagos')
+    id_empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, db_column='id_empresa', related_name='pagos')
     ingreso = models.DecimalField(max_digits=50, decimal_places=2, db_column='ingreso')
     fecha_hora_pago = models.DateTimeField(db_column='fecha_hora_pago')
 
@@ -91,16 +86,17 @@ class Pagos(models.Model):
     def __str__(self):
         return f'Pago #{self.id_pago} - {self.id_empresa.nombre_empresa}'
 
+
 class Usuario(models.Model):
-    id_usuario = models.BigIntegerField(primary_key=True, db_column='id_usuario')
+    id_usuario = models.AutoField(primary_key=True, db_column='id_usuario')
     id_empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, db_column='id_empresa')
     id_permiso_acceso = models.ForeignKey(PermisoAcceso, on_delete=models.PROTECT, db_column='id_permiso_acceso')
     nombres = models.CharField(max_length=200, db_column='nombres')
     apellidos = models.CharField(max_length=200, null=True, blank=True, db_column='apellidos')
     correo = models.EmailField(max_length=255, db_column='correo', unique=True)
     contrasena = models.CharField(max_length=255, db_column='contrasena')  
-    estado = models.BooleanField(default=True)
-
+    id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
+    
     class Meta:
         db_table = 'usuarios'
         verbose_name_plural = 'Usuarios'
@@ -110,9 +106,36 @@ class Usuario(models.Model):
 
 
 class Producto(models.Model):
-    id_producto = models.IntegerField(primary_key=True, db_column='id_producto')
+    CATEGORIA_CHOICES = [
+        ('software', 'Software'),
+        ('servicio', 'Servicio'),
+        ('herramienta', 'Herramienta'),
+    ]
+
+    TIPO_PRODUCTO_CHOICES = [
+        ('suscripcion', 'Suscripción'),
+        ('pago_unico', 'Pago Único'),
+        ('demo', 'Versión Demo'),
+    ]
+
+    id_producto = models.AutoField(primary_key=True, db_column='id_producto')
     producto = models.CharField(max_length=200, db_column='producto')
-    tipo_producto = models.CharField(max_length=30, db_column='tipo_producto', null=True, blank=True)
+    
+    categoria_producto = models.CharField(
+        max_length=30,
+        choices=CATEGORIA_CHOICES,
+        default='software',
+        db_column='categoria_producto'
+    )
+
+    tipo_producto = models.CharField(
+        max_length=30,
+        choices=TIPO_PRODUCTO_CHOICES,
+        null=True,
+        blank=True,
+        db_column='tipo_producto'
+    )
+
     id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
     Url = models.URLField(max_length=500, db_column='Url')
     iframe = models.CharField(max_length=500, db_column='iframe')
@@ -149,6 +172,7 @@ class DetalleProductoVendido(models.Model):
 
     def __str__(self):
         return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
+
 
 
 class DashboardVentasLoop(models.Model):
