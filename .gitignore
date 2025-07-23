@@ -6,8 +6,6 @@ env/
 venv/
 *.env
 *.log
-.env
-/staticfiles/
 
 # === FRONTEND ===
 node_modules/
