@@ -20,7 +20,7 @@ class CategoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Pagos)
 class PagosAdmin(admin.ModelAdmin):
-    list_display = ('id_pago', 'id_empresa', 'fecha_hora_pago', 'ingreso')
+    list_display = ('id_pago', 'id_empresa', 'id_plan', 'fecha_hora_pago', 'ingreso')
     search_fields = ('id_empresa__nombre_empresa',)
     list_filter = ('fecha_hora_pago',)
 

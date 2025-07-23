@@ -76,7 +76,8 @@ class Empresa(models.Model):
 class Pagos(models.Model):
     id_pago = models.AutoField(primary_key=True, db_column='id_pago')
     id_empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, db_column='id_empresa', related_name='pagos')
-    ingreso = models.DecimalField(max_digits=50, decimal_places=2, db_column='ingreso')
+    id_plan = models.ForeignKey(TipoPlan, on_delete=models.PROTECT, db_column='id_plan')
+    ingreso = models.DecimalField(max_digits=10, decimal_places=2, db_column='ingreso')
     fecha_hora_pago = models.DateTimeField(db_column='fecha_hora_pago')
 
     class Meta:
