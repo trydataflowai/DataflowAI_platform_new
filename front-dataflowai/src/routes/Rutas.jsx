@@ -52,15 +52,26 @@ export const Rutas = () => (
       {/* Login (sin Navbar ni Footer) */}
       <Route path="/login" element={<Login />} />
 
-      {/* Creación de usuario (sin Navbar ni Footer) */}
-      <Route path="/crear-usuario" element={<CreacionUsuario />} />
+    
+
+
+
+
+
 
       {/* Creación de empresa (sin Navbar ni Footer) */}
       <Route path="/crear-empresa" element={<CreacionEmpresa />} />
 
+        {/* Creación de usuario (sin Navbar ni Footer) */}
+      <Route path="/crear-usuario" element={<CreacionUsuario />} />
+
       {/* Pagos con Stripe (sin Navbar ni Footer) */}
       <Route path="/pagos" element={<PagosStripe />} />
       
+
+
+
+
       {/* HomeLogin (con Navbar y Footer) */}
       <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 

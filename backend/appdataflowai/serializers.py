@@ -103,3 +103,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
             id_estado=estado_activo,
             **validated_data
         )
+
+
+
+"""
+from rest_framework import serializers
+
+class CreatePaymentIntentSerializer(serializers.Serializer):
+    id_empresa = serializers.IntegerField()
+    id_plan = serializers.IntegerField()
+
+"""
+

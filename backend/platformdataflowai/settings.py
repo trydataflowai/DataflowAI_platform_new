@@ -140,4 +140,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+
+
 ]
+
+
+
+
+"""
+
+import stripe
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+# settings.py
+
+STRIPE_SECRET_KEY = 'tu_stripe_secret_key'
+STRIPE_WEBHOOK_SECRET = 'tu_stripe_webhook_secret'
+
+
+"""

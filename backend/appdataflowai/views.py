@@ -397,3 +397,82 @@ class TipoPlanListAPIView(generics.ListAPIView):
 class PermisoAccesoListAPIView(generics.ListAPIView):
     queryset = PermisoAcceso.objects.all()
     serializer_class = PermisoAccesoSerializer
+
+
+
+
+# backend/appdataflowai/views.py
+"""
+
+import stripe
+from datetime import datetime
+from django.conf import settings
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Empresa, TipoPlan, Pagos
+from .serializers import CreatePaymentIntentSerializer
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+class CreatePaymentIntentAPIView(generics.GenericAPIView):
+    serializer_class = CreatePaymentIntentSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        id_empresa = serializer.validated_data['id_empresa']
+        id_plan = serializer.validated_data['id_plan']
+
+        # Obtén empresa y plan
+        empresa = Empresa.objects.get(pk=id_empresa)
+        plan = TipoPlan.objects.get(pk=id_plan)
+
+        amount = int(plan.valor_plan * 100)  # en centavos
+
+        # Crea PaymentIntent con metadata para el webhook
+        intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency='usd',
+            metadata={
+                'id_empresa': str(id_empresa),
+                'id_plan': str(id_plan),
+            },
+        )
+        return Response({'clientSecret': intent.client_secret})
+
+class StripeWebhookAPIView(APIView):
+    # No authentication; Stripe firmará la petición
+    def post(self, request, *args, **kwargs):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+            )
+        except Exception as e:
+            return Response(status=400)
+
+        # Solo maneja el evento de pago exitoso
+        if event['type'] == 'payment_intent.succeeded':
+            intent = event['data']['object']
+            id_empresa = int(intent['metadata']['id_empresa'])
+            id_plan = int(intent['metadata']['id_plan'])
+            amount = intent['amount_received'] / 100.0
+            paid_at = datetime.fromtimestamp(intent['created'])
+
+            # 1) Actualiza Empresa.fecha_hora_pago
+            Empresa.objects.filter(pk=id_empresa).update(fecha_hora_pago=paid_at)
+
+            # 2) Registra en tabla Pagos
+            Pagos.objects.create(
+                id_empresa_id=id_empresa,
+                id_plan_id=id_plan,
+                ingreso=amount,
+                fecha_hora_pago=paid_at
+            )
+
+        return Response(status=200)
+
+
+"""
