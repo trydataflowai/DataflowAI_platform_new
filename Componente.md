@@ -1,4 +1,3 @@
-
 **consola BACKEND**
 
 cd backend
@@ -7,13 +6,11 @@ cd backend
 
 python manage.py runserver
 
-
 **Consola FRONTEND**
 
 cd front-dataflowai
 
 npm run dev
-
 
 **GIT**
 
@@ -22,8 +19,6 @@ git add .
 git commit -m "
 
 git push origin desarrollo
-
-
 
 **Componente de Página JSX**
 
@@ -44,3 +39,8 @@ constCreacionUsuario=()=>{
 };
 
 exportdefaultCreacionUsuario;
+
+
+
+
+pip freeze > requirements.txt
