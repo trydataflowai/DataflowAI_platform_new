@@ -93,9 +93,8 @@ CORS_ALLOW_CREDENTIALS = True
 
 # CSRF para cookies en frontend externo
 CSRF_TRUSTED_ORIGINS = [
-    "https://dataflow-front.onrender.com",
+    "https://dataflowai-platform-new.onrender.com",
 ]
-
 
 """
 
