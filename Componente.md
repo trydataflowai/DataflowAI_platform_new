@@ -20,6 +20,12 @@ git commit -m "
 
 git push origin desarrollo
 
+**MERGE**
+
+git checkout desarrollo --cambiar donde se quiere hacer la actualizacion
+
+git merge main
+
 **Componente de Página JSX**
 
 importReactfrom'react';
@@ -39,8 +45,5 @@ constCreacionUsuario=()=>{
 };
 
 exportdefaultCreacionUsuario;
-
-
-
 
 pip freeze > requirements.txt

@@ -6,6 +6,8 @@ env/
 venv/
 *.env
 *.log
+.env.production
+.env
 
 # === FRONTEND ===
 node_modules/
