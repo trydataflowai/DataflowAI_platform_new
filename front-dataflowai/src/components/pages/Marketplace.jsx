@@ -47,7 +47,7 @@ const DashboardCard = ({ d, isAdq, isLoading, onAdquirir, onOpenDashboard }) => 
       
       <div className={styles.cardHeader}>
         <h3 className={styles.cardTitle}>{d.producto}</h3>
-        <p className={styles.cardDescription}>{d.descripcion || "Dashboard profesional con análisis avanzado"}</p>
+        <p className={styles.cardDescription}>{d.descripcion || "Professional dashboard with advanced analytics"}</p>
       </div>
       <div className={styles.cardImageContainer}>
         {imgUrl ? (
@@ -82,7 +82,7 @@ const DashboardCard = ({ d, isAdq, isLoading, onAdquirir, onOpenDashboard }) => 
             <svg viewBox="0 0 24 24">
               <path fill="currentColor" d="M12 3L1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
             </svg>
-            <span>{d.complejidad || "Avanzado"}</span>
+            <span>{d.complejidad || "Advanced"}</span>
           </div>
         </div>
 
@@ -94,7 +94,7 @@ const DashboardCard = ({ d, isAdq, isLoading, onAdquirir, onOpenDashboard }) => 
             <svg viewBox="0 0 24 24">
               <path fill="currentColor" d="M12 9a3 3 0 013 3 3 3 0 01-3 3 3 3 0 01-3-3 3 3 0 013-3m0-4.5c5 0 9.27 3.11 11 7.5-1.73 4.39-6 7.5-11 7.5S2.73 16.39 1 12c1.73-4.39 6-7.5 11-7.5M3.18 12a9.821 9.821 0 0017.64 0 9.821 9.821 0 00-17.64 0z"/>
             </svg>
-            Ver Dashboard
+            View Dashboard
           </button>
           
           {!isAdq && (
@@ -110,7 +110,7 @@ const DashboardCard = ({ d, isAdq, isLoading, onAdquirir, onOpenDashboard }) => 
                   <svg viewBox="0 0 24 24">
                     <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
-                  Adquirir
+                  Acquire
                 </>
               )}
             </button>
@@ -124,7 +124,7 @@ const DashboardCard = ({ d, isAdq, isLoading, onAdquirir, onOpenDashboard }) => 
               <svg viewBox="0 0 24 24">
                 <path fill="currentColor" d="M5 20h14v-2H5m14-9h-4V3H9v6H5l7 7 7-7z"/>
               </svg>
-              Plantilla
+              Template
             </button>
           )}
         </div>
@@ -138,7 +138,7 @@ const DashboardModal = ({ url, onClose }) => {
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
-          <h3>Vista Previa del Dashboard</h3>
+          <h3>Dashboard Preview</h3>
           <button className={styles.closeButton} onClick={onClose}>
             <svg viewBox="0 0 24 24">
               <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -164,7 +164,7 @@ export const Marketplace = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dashboardUrl, setDashboardUrl] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
     (async () => {
@@ -206,11 +206,11 @@ export const Marketplace = () => {
   const filteredDashboards = dashboards.filter(d => {
     const matchesSearch = d.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          d.descripcion?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todos' || d.categoria === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || d.categoria === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ['Todos', ...new Set(dashboards.map(d => d.categoria).filter(Boolean))];
+  const categories = ['All', ...new Set(dashboards.map(d => d.categoria).filter(Boolean))];
 
   if (error) {
     return (
@@ -219,13 +219,13 @@ export const Marketplace = () => {
           <svg className={styles.errorIcon} viewBox="0 0 24 24">
             <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
-          <h3>Error al cargar el Marketplace</h3>
+          <h3>Error loading Marketplace</h3>
           <p>{error}</p>
           <button 
             className={styles.retryButton}
             onClick={() => window.location.reload()}
           >
-            Reintentar
+            Retry
           </button>
         </div>
       </div>
@@ -236,8 +236,8 @@ export const Marketplace = () => {
     <div className={styles.container}>
       <div className={styles.heroSection}>
         <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>Marketplace Exclusivo</h1>
-          <p className={styles.heroSubtitle}>Descubre dashboards premium diseñados para transformar tus datos en insights poderosos</p>
+          <h1 className={styles.heroTitle}>Exclusive Marketplace</h1>
+          <p className={styles.heroSubtitle}>Discover premium dashboards designed to transform your data into powerful insights</p>
         </div>
       </div>
 
@@ -250,7 +250,7 @@ export const Marketplace = () => {
               </svg>
               <input
                 type="text"
-                placeholder="Buscar dashboards..."
+                placeholder="Search dashboards..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -300,8 +300,8 @@ export const Marketplace = () => {
               <svg className={styles.noResultsIcon} viewBox="0 0 24 24">
                 <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z"/>
               </svg>
-              <h3>No se encontraron dashboards</h3>
-              <p>Intenta ajustar tus filtros de búsqueda</p>
+              <h3>No dashboards found</h3>
+              <p>Try adjusting your search filters</p>
             </div>
           )}
         </div>
