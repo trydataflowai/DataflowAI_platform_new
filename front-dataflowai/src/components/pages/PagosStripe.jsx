@@ -60,69 +60,61 @@ const CheckoutForm = () => {
   };
 
   return (
-    <div className={styles.voidContainer}>
-      <div className={styles.cosmosCard}>
-        <div className={styles.cardHalo}></div>
+    <div className={styles.premiumContainer}>
+      <div className={styles.premiumCard}>
+        <div className={styles.cardGlow}></div>
         
         {success ? (
-          <div className={styles.quantumSuccess}>
-            <div className={styles.successOrbit}>
-              <div className={styles.successCore}></div>
-              <svg className={styles.successCheck} viewBox="0 0 24 24">
-                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+          <div className={styles.successContainer}>
+            <div className={styles.successAnimation}>
+              <svg className={styles.checkmark} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle className={styles.checkmarkCircle} cx="26" cy="26" r="25" fill="none"/>
+                <path className={styles.checkmarkCheck} fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
               </svg>
             </div>
-            <h2 className={styles.successTitle}>Quantum Payment Confirmed</h2>
-            <p className={styles.successMessage}>Your transaction is secured in the blockchain</p>
-            <button 
-              onClick={() => navigate('/login')} 
-              className={styles.neonButton}
-            >
-              Access Quantum Dashboard
-              <span className={styles.buttonGlow}></span>
-            </button>
+            <h2 className={styles.successTitle}>Payment Processed</h2>
+            <p className={styles.successMessage}>Your transaction has been completed successfully. Welcome to our premium service.</p>
+            <div className={styles.buttonGroup}>
+              <button onClick={() => navigate('/login')} className={`${styles.premiumButton} ${styles.primary}`}>
+                Access Dashboard
+              </button>
+              <button className={`${styles.premiumButton} ${styles.secondary}`}>
+                View Receipt
+              </button>
+            </div>
           </div>
         ) : (
           <>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardLogo}>NEXUS</div>
-              <h1 className={styles.cardTitle}>Secure Quantum Payment</h1>
-              <p className={styles.cardSubtitle}>Enter your credentials below</p>
+            <div className={styles.premiumHeader}>
+              <div className={styles.logo}>PREMIUM</div>
+              <h1 className={styles.premiumTitle}>Secure Transaction</h1>
+              <p className={styles.premiumSubtitle}>Enter your payment details below</p>
             </div>
             
-            {error && (
-              <div className={styles.errorPulse}>
-                <svg className={styles.errorIcon} viewBox="0 0 24 24">
-                  <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                {error}
-              </div>
-            )}
+            {error && <div className={styles.premiumError}>{error}</div>}
             
             {!clientSecret ? (
-              <div className={styles.loadingQuantum}>
-                <div className={styles.quantumLoader}>
-                  <div className={styles.quantumDot}></div>
-                  <div className={styles.quantumDot}></div>
-                  <div className={styles.quantumDot}></div>
+              <div className={styles.loadingContainer}>
+                <div className={styles.loadingAnimation}>
+                  <div className={styles.loadingBar}></div>
                 </div>
-                <p>Initializing quantum encryption...</p>
+                <p className={styles.loadingText}>Initializing secure connection...</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className={styles.quantumForm}>
-                <div className={styles.inputField}>
-                  <label>Card Information</label>
-                  <div className={styles.cardMatrix}>
+              <form onSubmit={handleSubmit} className={styles.premiumForm}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.inputLabel}>Card Information</label>
+                  <div className={styles.cardElementWrapper}>
                     <CardElement 
                       options={{
                         style: {
                           base: {
                             fontSize: '16px',
-                            color: '#e0e0e0',
+                            color: '#ffffff',
                             '::placeholder': {
                               color: '#6b7280',
                             },
-                            iconColor: '#3b82f6',
+                            iconColor: '#9ca3af',
                           },
                           invalid: {
                             color: '#ef4444',
@@ -137,26 +129,25 @@ const CheckoutForm = () => {
                 <button 
                   type="submit" 
                   disabled={!stripe || processing}
-                  className={styles.neonButton}
+                  className={`${styles.premiumButton} ${styles.primary} ${processing ? styles.processing : ''}`}
                 >
                   {processing ? (
                     <>
-                      <span className={styles.buttonSpinner}></span>
-                      Processing Quantum Transaction
+                      <span className={styles.spinner}></span>
+                      Authorizing Payment
                     </>
                   ) : (
-                    <>
-                      Confirm Payment - $99.00
-                      <span className={styles.buttonGlow}></span>
-                    </>
+                    'Complete Transaction — $99.00'
                   )}
                 </button>
                 
-                <div className={styles.securityShield}>
-                  <svg className={styles.shieldIcon} viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                  </svg>
-                  <span>256-bit Quantum Encryption</span>
+                <div className={styles.securityAssurance}>
+                  <div className={styles.securityBadge}>
+                    <svg className={styles.lockIcon} viewBox="0 0 24 24">
+                      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v2h8z"/>
+                    </svg>
+                    <span>256-bit SSL Encryption</span>
+                  </div>
                 </div>
               </form>
             )}
@@ -164,8 +155,8 @@ const CheckoutForm = () => {
         )}
       </div>
       
-      <div className={styles.cyberFooter}>
-        <p>© 2023 QUANTUM PAYMENTS SYSTEM | All rights reserved</p>
+      <div className={styles.footerNote}>
+        <p>© 2023 PREMIUM SERVICES. All transactions are secured and encrypted.</p>
       </div>
     </div>
   );

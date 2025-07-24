@@ -22,9 +22,9 @@ git push origin main
 
 **MERGE**
 
-git checkout desarrollo --cambiar donde se quiere hacer la actualizacion
+git checkout main --cambiar donde se quiere hacer la actualizacion
 
-git merge main
+git merge desarrollo
 
 **Componente de Página JSX**
 
