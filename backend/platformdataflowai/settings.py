@@ -96,18 +96,12 @@ CSRF_TRUSTED_ORIGINS = [
     "https://dataflowai-platform-new.onrender.com",
 ]
 
-"""
+
+
+# Stripe Settings
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 
 import stripe
-from django.conf import settings
+stripe.api_key = STRIPE_SECRET_KEY
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
-
-# settings.py
-
-STRIPE_SECRET_KEY = 'tu_stripe_secret_key'
-STRIPE_WEBHOOK_SECRET = 'tu_stripe_webhook_secret'
-
-
-"""

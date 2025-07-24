@@ -402,7 +402,9 @@ class PermisoAccesoListAPIView(generics.ListAPIView):
 
 
 # backend/appdataflowai/views.py
-"""
+
+
+# backend/appdataflowai/views.py
 
 import stripe
 from datetime import datetime
@@ -410,27 +412,34 @@ from django.conf import settings
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from .models import Empresa, TipoPlan, Pagos
 from .serializers import CreatePaymentIntentSerializer
 
+# Inicializa la API de Stripe con tu clave secreta
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 class CreatePaymentIntentAPIView(generics.GenericAPIView):
+    """
+    POST /api/create-payment-intent/
+    Recibe { id_empresa, id_plan } y devuelve clientSecret para el frontend.
+    """
     serializer_class = CreatePaymentIntentSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         id_empresa = serializer.validated_data['id_empresa']
         id_plan = serializer.validated_data['id_plan']
 
-        # Obtén empresa y plan
+        # Obtiene empresa y plan de la base
         empresa = Empresa.objects.get(pk=id_empresa)
         plan = TipoPlan.objects.get(pk=id_plan)
-
         amount = int(plan.valor_plan * 100)  # en centavos
 
-        # Crea PaymentIntent con metadata para el webhook
+        # Crea el PaymentIntent en Stripe, añadiendo metadata para el webhook
         intent = stripe.PaymentIntent.create(
             amount=amount,
             currency='usd',
@@ -441,30 +450,35 @@ class CreatePaymentIntentAPIView(generics.GenericAPIView):
         )
         return Response({'clientSecret': intent.client_secret})
 
+
 class StripeWebhookAPIView(APIView):
-    # No authentication; Stripe firmará la petición
+    """
+    POST /api/stripe-webhook/
+    Endpoint público para recibir eventos de Stripe.
+    """
     def post(self, request, *args, **kwargs):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
         try:
-            event = stripe.Webhook.construct_event(
+            evt = stripe.Webhook.construct_event(
                 payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
             )
-        except Exception as e:
+        except Exception:
             return Response(status=400)
 
-        # Solo maneja el evento de pago exitoso
-        if event['type'] == 'payment_intent.succeeded':
-            intent = event['data']['object']
+        # Solo nos interesa el pago exitoso
+        if evt['type'] == 'payment_intent.succeeded':
+            intent = evt['data']['object']
             id_empresa = int(intent['metadata']['id_empresa'])
             id_plan = int(intent['metadata']['id_plan'])
             amount = intent['amount_received'] / 100.0
+            # Stripe devuelve 'created' en timestamp en segundos
             paid_at = datetime.fromtimestamp(intent['created'])
 
-            # 1) Actualiza Empresa.fecha_hora_pago
+            # 1) Actualizar la fecha de pago en Empresa
             Empresa.objects.filter(pk=id_empresa).update(fecha_hora_pago=paid_at)
 
-            # 2) Registra en tabla Pagos
+            # 2) Crear registro en tabla Pagos
             Pagos.objects.create(
                 id_empresa_id=id_empresa,
                 id_plan_id=id_plan,
@@ -473,6 +487,3 @@ class StripeWebhookAPIView(APIView):
             )
 
         return Response(status=200)
-
-
-"""

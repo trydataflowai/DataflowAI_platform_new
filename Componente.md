@@ -18,7 +18,7 @@ git add .
 
 git commit -m "
 
-git push origin desarrollo
+git push origin main
 
 **MERGE**
 

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from '../../styles/Index.module.css';
-
-
+import { Link } from 'react-router-dom'; // Asegúrate de importar esto arriba
 //Funcion de index
 const Index = () => {
     const sectionRefs = useRef([]);
@@ -180,6 +179,11 @@ const Index = () => {
                     </div>
 
                     <div className={styles['pricing-grid']}>
+
+
+
+
+
                         <div className={`${styles['pricing-card']} ${styles.basic}`}>
                             <div className={styles['pricing-header']}>
                                 <div className={styles['pricing-name']}>Basic</div>
@@ -194,7 +198,7 @@ const Index = () => {
                                 </ul>
                             </div>
                             <div className={styles['pricing-button']}>
-                                <a href="#" className={`${styles.btn} ${styles['btn-outline']}`}>Get Started</a>
+                                <Link to="/crear-empresa" className={`${styles.btn} ${styles['btn-outline']}`}>Get Started</Link>
                             </div>
                         </div>
 
@@ -215,7 +219,7 @@ const Index = () => {
                                 </ul>
                             </div>
                             <div className={styles['pricing-button']}>
-                                <a href="#" className={`${styles.btn} ${styles['btn-primary']}`}>Get Started</a>
+                                <Link to="/crear-empresa" className={`${styles.btn} ${styles['btn-primary']}`}>Get Started</Link>
                             </div>
                         </div>
 

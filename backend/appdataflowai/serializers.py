@@ -106,12 +106,12 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 
-"""
+
 from rest_framework import serializers
 
 class CreatePaymentIntentSerializer(serializers.Serializer):
     id_empresa = serializers.IntegerField()
     id_plan = serializers.IntegerField()
 
-"""
+
 

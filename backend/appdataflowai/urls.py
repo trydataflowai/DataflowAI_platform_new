@@ -13,8 +13,8 @@ from .views import (
     TipoPlanListAPIView,
     PermisoAccesoListAPIView,
     
-    #CreatePaymentIntentAPIView,
-    #StripeWebhookAPIView
+    CreatePaymentIntentAPIView,
+    StripeWebhookAPIView
 )
 
 urlpatterns = [
@@ -40,8 +40,8 @@ urlpatterns = [
 
 
     # --- Url para crear Payment Intent ---
-    #path('create-payment-intent/', CreatePaymentIntentAPIView.as_view(), name='create-payment-intent'),
-    #path('stripe-webhook/', StripeWebhookAPIView.as_view(), name='stripe-webhook'),
+    path('create-payment-intent/', CreatePaymentIntentAPIView.as_view(), name='create-payment-intent'),
+    path('stripe-webhook/', StripeWebhookAPIView.as_view(), name='stripe-webhook'),
 
 
 ]
