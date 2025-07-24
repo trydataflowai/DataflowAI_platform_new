@@ -1,5 +1,3 @@
-// front-dataflowai/src/components/pages/PagosStripe.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
@@ -23,8 +21,9 @@ const CheckoutForm = () => {
   const id_plan    = Number(searchParams.get('id_plan'));
 
   const [clientSecret, setClientSecret] = useState('');
-  const [error, setError]             = useState('');
-  const [processing, setProcessing]   = useState(false);
+  const [error, setError]               = useState('');
+  const [processing, setProcessing]     = useState(false);
+  const [success, setSuccess]           = useState(false);  // 🟢 nuevo estado
 
   useEffect(() => {
     createPaymentIntent({ id_empresa, id_plan })
@@ -44,26 +43,47 @@ const CheckoutForm = () => {
       setError(stripeError.message);
       setProcessing(false);
     } else if (paymentIntent.status === 'succeeded') {
-      const pending = JSON.parse(localStorage.getItem('pendingUser') || '{}');
-      await crearUsuario({ ...pending, id_empresa });
-      localStorage.removeItem('pendingUser');
-      navigate('/login');
+      try {
+        const pending = JSON.parse(localStorage.getItem('pendingUser') || '{}');
+        await crearUsuario({ ...pending, id_empresa });
+        localStorage.removeItem('pendingUser');
+        setSuccess(true); // 🟢 Mostrar mensaje de éxito
+      } catch (err) {
+        setError('El pago fue exitoso, pero no se pudo crear el usuario. Intenta más tarde.');
+      } finally {
+        setProcessing(false);
+      }
+    } else {
+      setError('No se ha realizado el pago, intenta más tarde.');
+      setProcessing(false);
     }
   };
 
   return (
     <div className={styles.container}>
-      <h1>Completa tu pago</h1>
-      {error && <div className={styles.error}>{error}</div>}
-      {!clientSecret ? (
-        <p>Cargando pasarela…</p>
-      ) : (
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <CardElement className={styles.cardElement} />
-          <button type="submit" disabled={!stripe || processing}>
-            {processing ? 'Procesando…' : 'Pagar'}
+      {success ? (
+        <div className={styles.successBox}>
+          <h2>✅ Pago realizado con éxito</h2>
+          <p>Gracias por tu compra. ¿Deseas iniciar sesión ahora?</p>
+          <button onClick={() => navigate('/login')} className={styles.loginButton}>
+            Ir a login
           </button>
-        </form>
+        </div>
+      ) : (
+        <>
+          <h1>Completa tu pago</h1>
+          {error && <div className={styles.error}>{error}</div>}
+          {!clientSecret ? (
+            <p>Cargando pasarela…</p>
+          ) : (
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <CardElement className={styles.cardElement} />
+              <button type="submit" disabled={!stripe || processing}>
+                {processing ? 'Procesando…' : 'Pagar'}
+              </button>
+            </form>
+          )}
+        </>
       )}
     </div>
   );
