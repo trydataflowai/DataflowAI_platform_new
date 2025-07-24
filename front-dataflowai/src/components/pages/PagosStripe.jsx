@@ -146,7 +146,7 @@ const CheckoutForm = () => {
                     <svg className={styles.lockIcon} viewBox="0 0 24 24">
                       <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v2h8z"/>
                     </svg>
-                    <span>256-bit SSL Encryption</span>
+                    <span>256-bit SSL Encryption Stripe Pay</span>
                   </div>
                 </div>
               </form>
@@ -156,7 +156,7 @@ const CheckoutForm = () => {
       </div>
       
       <div className={styles.footerNote}>
-        <p>© 2023 PREMIUM SERVICES. All transactions are secured and encrypted.</p>
+        <p>© 2023 DATAFLOW AI. All transactions are secured and encrypted.</p>
       </div>
     </div>
   );
