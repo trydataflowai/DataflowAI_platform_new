@@ -16,6 +16,12 @@ import CreacionUsuario from "../components/pages/CreacionUsuario";
 import CreacionEmpresa from "../components/pages/CreacionEmpresa";
 import PagosStripe from "../components/pages/PagosStripe";
 
+
+
+import { DashboardPrueba } from '../components/pages/DashboardPrueba';
+
+
+
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
 
@@ -94,6 +100,20 @@ export const Rutas = () => (
           </RutaProtegida>
         }
       />
+
+
+
+      <Route
+        path="/dashboard-prueba"
+        element={
+          <RutaProtegida>
+            <SideBarLayout><DashboardPrueba /></SideBarLayout>
+          </RutaProtegida>
+        }
+      />
+
+
+
     </Routes>
   </BrowserRouter>
 );

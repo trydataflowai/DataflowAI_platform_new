@@ -489,3 +489,55 @@ class StripeWebhookAPIView(APIView):
             )
 
         return Response(status=200)
+
+
+
+
+
+
+#DashboardVentasDataflow de PRUEBA
+# appdataflowai/views.py
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+import jwt
+from django.conf import settings
+from django.utils.dateparse import parse_date
+
+from .models import DashboardVentasDataflow
+from .serializers import DashboardVentasDataflowSerializer
+
+class DashboardVentasDataflowView(APIView):
+    """
+    Vista protegida que retorna todos los registros de DashboardVentasDataflow.
+    La autenticación se realiza manualmente con JWT en la cabecera Authorization.
+    """
+    def get(self, request):
+        # 1) Extraer y validar el token del header Authorization
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            # Esto lanzará ExpiredSignatureError o InvalidTokenError si no es válido
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2) Consultar datos (opcional: filtrar por fecha con ?start=&end=)
+        qs = DashboardVentasDataflow.objects.all().order_by('fecha_entrega')
+        start = request.query_params.get('start')
+        end   = request.query_params.get('end')
+        if start:
+            qs = qs.filter(fecha_entrega__gte=parse_date(start))
+        if end:
+            qs = qs.filter(fecha_entrega__lte=parse_date(end))
+
+        # 3) Serializar y devolver
+        serializer = DashboardVentasDataflowSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

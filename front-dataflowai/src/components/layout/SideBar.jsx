@@ -5,12 +5,13 @@ import logo from '../../assets/Dataflow AI logo ajustado blanco.png';
 import styles from '../../styles/SideBar.module.css';
 
 const links = [
-  { to: "/homeLogin#home", icon: "🏠", label: "Home" },
-  { to: "/home",        icon: "📊", label: "Dashboards" },
-  { to: "/marketplace", icon: "🛒", label: "Marketplace" },
-  { to: "/ai-insights", icon: "🤖", label: "AI Insights" },
-  { to: "/support",     icon: "🆘", label: "Support" },
-  { to: "/profile",     icon: "👤", label: "Profile" },
+  { to: "/homeLogin#home",    icon: "🏠", label: "Home" },
+  { to: "/dashboard-prueba",  icon: "📊", label: "Dashboard Prueba" },  // ← añadido
+  { to: "/home",              icon: "📊", label: "Dashboards" },
+  { to: "/marketplace",       icon: "🛒", label: "Marketplace" },
+  { to: "/ai-insights",       icon: "🤖", label: "AI Insights" },
+  { to: "/support",           icon: "🆘", label: "Support" },
+  { to: "/profile",           icon: "👤", label: "Profile" },
 ];
 
 export const SideBar = () => {
@@ -88,5 +89,5 @@ export const SideBar = () => {
         <p className={styles.footerText}>DataFlow AI</p>
       </div>
     </aside>
-);
+  );
 };

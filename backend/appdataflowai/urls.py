@@ -14,7 +14,9 @@ from .views import (
     PermisoAccesoListAPIView,
     
     CreatePaymentIntentAPIView,
-    StripeWebhookAPIView
+    StripeWebhookAPIView,
+
+    DashboardVentasDataflowView,
 )
 
 urlpatterns = [
@@ -43,5 +45,7 @@ urlpatterns = [
     path('create-payment-intent/', CreatePaymentIntentAPIView.as_view(), name='create-payment-intent'),
     path('stripe-webhook/', StripeWebhookAPIView.as_view(), name='stripe-webhook'),
 
+
+     path('dashboard-dataflow/', DashboardVentasDataflowView.as_view(), name='dashboard-dataflow'),
 
 ]

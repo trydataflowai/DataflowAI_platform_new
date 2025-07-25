@@ -23,12 +23,12 @@ const CheckoutForm = () => {
   const [clientSecret, setClientSecret] = useState('');
   const [error, setError]               = useState('');
   const [processing, setProcessing]     = useState(false);
-  const [success, setSuccess]           = useState(false);
+  const [success, setSuccess]           = useState(false);  // 🟢 nuevo estado
 
   useEffect(() => {
     createPaymentIntent({ id_empresa, id_plan })
       .then(data => setClientSecret(data.clientSecret))
-      .catch(err => setError(err.detail || 'Error processing payment'));
+      .catch(err => setError(err.detail || 'Error al iniciar el pago'));
   }, [id_empresa, id_plan]);
 
   const handleSubmit = async e => {
@@ -47,117 +47,44 @@ const CheckoutForm = () => {
         const pending = JSON.parse(localStorage.getItem('pendingUser') || '{}');
         await crearUsuario({ ...pending, id_empresa });
         localStorage.removeItem('pendingUser');
-        setSuccess(true);
+        setSuccess(true); // 🟢 Mostrar mensaje de éxito
       } catch (err) {
-        setError('Payment was successful but we couldn\'t create your account. Please try again later.');
+        setError('El pago fue exitoso, pero no se pudo crear el usuario. Intenta más tarde.');
       } finally {
         setProcessing(false);
       }
     } else {
-      setError('Payment was not completed. Please try again.');
+      setError('No se ha realizado el pago, intenta más tarde.');
       setProcessing(false);
     }
   };
 
   return (
-    <div className={styles.premiumContainer}>
-      <div className={styles.premiumCard}>
-        <div className={styles.cardGlow}></div>
-        
-        {success ? (
-          <div className={styles.successContainer}>
-            <div className={styles.successAnimation}>
-              <svg className={styles.checkmark} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                <circle className={styles.checkmarkCircle} cx="26" cy="26" r="25" fill="none"/>
-                <path className={styles.checkmarkCheck} fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-              </svg>
-            </div>
-            <h2 className={styles.successTitle}>Payment Processed</h2>
-            <p className={styles.successMessage}>Your transaction has been completed successfully. Welcome to our premium service.</p>
-            <div className={styles.buttonGroup}>
-              <button onClick={() => navigate('/login')} className={`${styles.premiumButton} ${styles.primary}`}>
-                Access Dashboard
+    <div className={styles.container}>
+      {success ? (
+        <div className={styles.successBox}>
+          <h2>✅ Pago realizado con éxito</h2>
+          <p>Gracias por tu compra. ¿Deseas iniciar sesión ahora?</p>
+          <button onClick={() => navigate('/login')} className={styles.loginButton}>
+            Ir a login
+          </button>
+        </div>
+      ) : (
+        <>
+          <h1>Completa tu pago</h1>
+          {error && <div className={styles.error}>{error}</div>}
+          {!clientSecret ? (
+            <p>Cargando pasarela…</p>
+          ) : (
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <CardElement className={styles.cardElement} />
+              <button type="submit" disabled={!stripe || processing}>
+                {processing ? 'Procesando…' : 'Pagar'}
               </button>
-              <button className={`${styles.premiumButton} ${styles.secondary}`}>
-                View Receipt
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className={styles.premiumHeader}>
-              <div className={styles.logo}>PREMIUM</div>
-              <h1 className={styles.premiumTitle}>Secure Transaction</h1>
-              <p className={styles.premiumSubtitle}>Enter your payment details below</p>
-            </div>
-            
-            {error && <div className={styles.premiumError}>{error}</div>}
-            
-            {!clientSecret ? (
-              <div className={styles.loadingContainer}>
-                <div className={styles.loadingAnimation}>
-                  <div className={styles.loadingBar}></div>
-                </div>
-                <p className={styles.loadingText}>Initializing secure connection...</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className={styles.premiumForm}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.inputLabel}>Card Information</label>
-                  <div className={styles.cardElementWrapper}>
-                    <CardElement 
-                      options={{
-                        style: {
-                          base: {
-                            fontSize: '16px',
-                            color: '#ffffff',
-                            '::placeholder': {
-                              color: '#6b7280',
-                            },
-                            iconColor: '#9ca3af',
-                          },
-                          invalid: {
-                            color: '#ef4444',
-                            iconColor: '#ef4444',
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                </div>
-                
-                <button 
-                  type="submit" 
-                  disabled={!stripe || processing}
-                  className={`${styles.premiumButton} ${styles.primary} ${processing ? styles.processing : ''}`}
-                >
-                  {processing ? (
-                    <>
-                      <span className={styles.spinner}></span>
-                      Authorizing Payment
-                    </>
-                  ) : (
-                    'Complete Transaction — $99.00'
-                  )}
-                </button>
-                
-                <div className={styles.securityAssurance}>
-                  <div className={styles.securityBadge}>
-                    <svg className={styles.lockIcon} viewBox="0 0 24 24">
-                      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v2h8z"/>
-                    </svg>
-                    <span>256-bit SSL Encryption Stripe Pay</span>
-                  </div>
-                </div>
-              </form>
-            )}
-          </>
-        )}
-      </div>
-      
-      <div className={styles.footerNote}>
-        <p>© 2023 DATAFLOW AI. All transactions are secured and encrypted.</p>
-      </div>
+            </form>
+          )}
+        </>
+      )}
     </div>
   );
 };

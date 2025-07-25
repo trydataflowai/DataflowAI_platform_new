@@ -115,3 +115,19 @@ class CreatePaymentIntentSerializer(serializers.Serializer):
 
 
 
+
+#DashboardVentasDataflow de PRUEBA
+from rest_framework import serializers
+from .models import DashboardVentasDataflow
+
+class DashboardVentasDataflowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardVentasDataflow
+        fields = [
+            'id_registro',
+            'id_punto_venta',
+            'punto_venta',
+            'dinero_entregado',
+            'cantidad_entregada',
+            'fecha_entrega',
+        ]
