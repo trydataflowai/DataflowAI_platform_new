@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // p.ej. http://127.0.0.1:8000/api/
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; 
 
 export async function fetchDashboardData(startDate, endDate) {
   // lee el token con la misma clave que lo guardaste
@@ -19,7 +19,7 @@ export async function fetchDashboardData(startDate, endDate) {
   });
 
   if (!res.ok) {
-    // opcional: lee la respuesta JSON para más detalles
+  
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || `Error ${res.status}`);
   }

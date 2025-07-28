@@ -131,4 +131,4 @@ class DashboardVentasColtradeAdmin(admin.ModelAdmin):
 class DashboardVentasDataflowAdmin(admin.ModelAdmin):
     list_display = ('id_registro', 'punto_venta', 'dinero_entregado', 'cantidad_entregada', 'fecha_entrega')
     search_fields = ('punto_venta',)
-    list_filter = ('fecha_entrega',)
+    list_filter = ('fecha_entrega', 'punto_venta')  # ✅ Filtro por punto de venta
