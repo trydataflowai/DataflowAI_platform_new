@@ -43,7 +43,7 @@ class EstadoSerializer(serializers.ModelSerializer):
 class TipoPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoPlan
-        fields = ['id_plan', 'tipo_plan']
+        fields = ['id_plan', 'tipo_plan', 'valor_plan' ]
 
 class PermisoAccesoSerializer(serializers.ModelSerializer):
     class Meta:

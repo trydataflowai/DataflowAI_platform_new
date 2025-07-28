@@ -1,0 +1,610 @@
+/* Base Styles with Enhanced Variables */
+:root {
+  --black-void: #000000;
+  --black-cosmos: #050505;
+  --black-deep: #0a0a0a;
+  --accent-neon: #00f7ff;
+  --accent-turquoise: #00e1ff;
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00c7ff;
+  --accent-dark: #0077b6;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --gradient-dark: linear-gradient(145deg, #0a0a12 0%, #12121d 100%);
+  --gradient-accent: linear-gradient(90deg, #00c7ff 0%, #0077b6 100%);
+  --gradient-accent-vertical: linear-gradient(180deg, #00c7ff 0%, #0077b6 100%);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-slow: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modern Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main Container with Glow Effect */
+.paymentContainer {
+  min-height: 100vh;
+  background: var(--black-deep);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+.glowEffect {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(0, 199, 255, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.paymentWrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+}
+
+/* Brand Header */
+.brandHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding: 0 1rem;
+}
+
+.logo {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
+  margin-right: 1rem;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandTitle {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+
+.brandHighlight {
+  color: var(--accent-neon);
+}
+
+.brandTagline {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
+  opacity: 0.8;
+}
+
+/* Payment Card */
+.paymentCard {
+  background: var(--black-cosmos);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 199, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.cardGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--gradient-accent);
+}
+
+/* Payment Header */
+.paymentHeader {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.paymentTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  letter-spacing: -0.25px;
+}
+
+.paymentSubtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 80%;
+  margin: 0 auto;
+  opacity: 0.9;
+}
+
+/* Plan Summary */
+.planSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 199, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(0, 199, 255, 0.1);
+}
+
+.planDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.planName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.planDescription {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.planPrice {
+  display: flex;
+  align-items: baseline;
+}
+
+.priceCurrency {
+  font-size: 1rem;
+  color: var(--accent-neon);
+  margin-right: 0.15rem;
+  font-weight: 600;
+}
+
+.priceAmount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-right: 0.25rem;
+}
+
+.priceFrequency {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Card Section */
+.cardSection {
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cardIcons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cardIcon {
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+/* Card Element Styling - Fixed Visibility */
+.cardElementWrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(18, 18, 29, 0.8);
+  border: 1px solid rgba(0, 199, 255, 0.2);
+  transition: var(--transition);
+}
+
+.cardElementWrapper:hover {
+  border-color: var(--accent-neon);
+}
+
+.cardElement {
+  padding: 1.25rem 1rem;
+  color: white !important;
+}
+
+/* Stripe Card Element Overrides */
+.StripeElement {
+  color: white !important;
+}
+
+.StripeElement--focus {
+  border-color: var(--accent-neon) !important;
+}
+
+.StripeElement--invalid {
+  border-color: #ff6b6b !important;
+}
+
+/* Payment Footer */
+.paymentFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.securityAssurance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.lockIcon {
+  font-size: 1rem;
+}
+
+/* Pay Button */
+.payButton {
+  width: 100%;
+  padding: 1.1rem;
+  border: none;
+  border-radius: 12px;
+  background: var(--gradient-accent);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.payButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-accent-vertical);
+  opacity: 0;
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.payButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 199, 255, 0.3);
+}
+
+.payButton:hover::before {
+  opacity: 1;
+}
+
+.payButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.buttonIcon {
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.payButton:hover .buttonIcon {
+  transform: translateX(3px);
+}
+
+.buttonSpinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Success State */
+.successContainer {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.successAnimation {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: var(--accent-neon);
+  z-index: 2;
+}
+
+.circlePulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 199, 255, 0.1);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  70% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+.successTitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.successMessage {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.planHighlight {
+  color: var(--accent-neon);
+  font-weight: 600;
+}
+
+.securityBadges {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 199, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badgeIcon {
+  font-size: 0.9rem;
+}
+
+.loginButton {
+  padding: 1.1rem 2rem;
+  background: var(--gradient-accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.loginButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 199, 255, 0.3);
+}
+
+.arrowIcon {
+  transition: var(--transition);
+}
+
+.loginButton:hover .arrowIcon {
+  transform: translateX(3px);
+}
+
+/* Error Message */
+.errorMessage {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #ff6b6b;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.errorIcon {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.loadingAnimation {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.loadingDot {
+  width: 10px;
+  height: 10px;
+  background: var(--accent-neon);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.loadingDot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loadingDot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Features Grid */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 900px;
+  margin-top: 3rem;
+}
+
+.featureCard {
+  background: rgba(18, 18, 29, 0.6);
+  border-radius: 16px;
+  padding: 1.75rem;
+  border: 1px solid rgba(0, 199, 255, 0.1);
+  transition: var(--transition);
+}
+
+.featureCard:hover {
+  transform: translateY(-5px);
+  background: rgba(18, 18, 29, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.featureIcon {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  color: var(--accent-neon);
+}
+
+.featureCard h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.featureCard p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .paymentContainer {
+    padding: 1.5rem;
+  }
+  
+  .paymentCard {
+    padding: 1.75rem;
+  }
+  
+  .brandHeader {
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .logo {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .paymentSubtitle {
+    max-width: 100%;
+  }
+  
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .planSummary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .planPrice {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0, 199, 255, 0.1);
+  }
+}
