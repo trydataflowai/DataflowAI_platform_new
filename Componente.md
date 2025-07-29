@@ -26,6 +26,12 @@ git checkout main --cambiar donde se quiere hacer la actualizacion
 
 git merge desarrollo
 
+**CANCELAR CAMBIOS**
+
+Cancelar cambios git restore .
+
+Borrar archivos: git clean -fd
+
 **Componente de Página JSX**
 
 importReactfrom'react';
