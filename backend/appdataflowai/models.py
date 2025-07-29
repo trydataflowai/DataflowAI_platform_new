@@ -106,6 +106,9 @@ class Usuario(models.Model):
         return self.nombres
 
 
+from django.utils.text import slugify
+from django.db import models
+
 class Producto(models.Model):
     CATEGORIA_CHOICES = [
         ('software', 'Software'),
@@ -122,6 +125,14 @@ class Producto(models.Model):
     id_producto = models.AutoField(primary_key=True, db_column='id_producto')
     producto = models.CharField(max_length=200, db_column='producto')
     
+    slug = models.SlugField(
+        max_length=250,
+        unique=True,
+        db_column='slug',
+        blank=True,
+        null=True
+    )
+
     categoria_producto = models.CharField(
         max_length=30,
         choices=CATEGORIA_CHOICES,
@@ -138,7 +149,7 @@ class Producto(models.Model):
     )
 
     id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
-    Url = models.URLField(max_length=500, db_column='Url')
+
     iframe = models.CharField(max_length=500, db_column='iframe')
 
     class Meta:
@@ -147,6 +158,12 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.producto
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.producto)
+        super().save(*args, **kwargs)
+
 
 
 class DetalleProducto(models.Model):
@@ -268,3 +285,69 @@ class DashboardVentasDataflow(models.Model):
 
     def __str__(self):
         return f"{self.punto_venta} - {self.fecha_entrega}"
+    
+
+
+#DASHBOARD VENTAS para implementación usando React y Django, sin usar Power BI
+# Este modelo es una versión simplificada y adaptada para el uso de Django ORM y React
+
+from django.db import models
+
+class DashboardVentas(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores clave obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # Información general
+    id_punto_venta = models.CharField(max_length=150, db_column='id_punto_venta', null=True, blank=True)
+    punto_venta = models.CharField(max_length=150, db_column='punto_venta', null=True, blank=True)
+    canal = models.CharField(max_length=100, db_column='canal', null=True, blank=True)  # Online, tienda física, etc.
+    ciudad = models.CharField(max_length=100, db_column='ciudad', null=True, blank=True)
+    region = models.CharField(max_length=100, db_column='region', null=True, blank=True)
+
+    # Métricas comerciales
+    cantidad_vendida = models.IntegerField(db_column='cantidad_vendida', null=True, blank=True)
+    dinero_vendido = models.DecimalField(db_column='dinero_vendido', max_digits=15, decimal_places=2, null=True, blank=True)
+    ticket_promedio = models.DecimalField(db_column='ticket_promedio', max_digits=10, decimal_places=2, null=True, blank=True)
+    unidades_promocionadas = models.IntegerField(db_column='unidades_promocionadas', null=True, blank=True)
+    descuento_total = models.DecimalField(db_column='descuento_total', max_digits=12, decimal_places=2, null=True, blank=True)
+    numero_transacciones = models.IntegerField(db_column='numero_transacciones', null=True, blank=True)
+    devoluciones = models.IntegerField(db_column='devoluciones', null=True, blank=True)
+    dinero_devoluciones = models.DecimalField(db_column='dinero_devoluciones', max_digits=12, decimal_places=2, null=True, blank=True)
+
+    # Tiempos
+    fecha_venta = models.DateField(db_column='fecha_venta', null=True, blank=True)
+    mes = models.IntegerField(db_column='mes', null=True, blank=True)
+    anio = models.IntegerField(db_column='anio', null=True, blank=True)
+    dia_semana = models.CharField(max_length=20, db_column='dia_semana', null=True, blank=True)
+    hora = models.TimeField(db_column='hora', null=True, blank=True)
+
+    # Productos
+    sku = models.CharField(max_length=100, db_column='sku', null=True, blank=True)
+    nombre_producto = models.CharField(max_length=255, db_column='nombre_producto', null=True, blank=True)
+    categoria = models.CharField(max_length=100, db_column='categoria', null=True, blank=True)
+    subcategoria = models.CharField(max_length=100, db_column='subcategoria', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+
+    # Cliente (si aplica)
+    tipo_cliente = models.CharField(max_length=100, db_column='tipo_cliente', null=True, blank=True)  # minorista, mayorista, etc.
+    segmento_cliente = models.CharField(max_length=100, db_column='segmento_cliente', null=True, blank=True)
+    genero_cliente = models.CharField(max_length=20, db_column='genero_cliente', null=True, blank=True)
+    edad_cliente = models.IntegerField(db_column='edad_cliente', null=True, blank=True)
+
+    # Indicadores adicionales
+    utilidad_bruta = models.DecimalField(db_column='utilidad_bruta', max_digits=15, decimal_places=2, null=True, blank=True)
+    costo_total = models.DecimalField(db_column='costo_total', max_digits=15, decimal_places=2, null=True, blank=True)
+    margen_utilidad = models.DecimalField(db_column='margen_utilidad', max_digits=5, decimal_places=2, null=True, blank=True)  # En porcentaje
+
+    # Observaciones
+    observaciones = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_ventas'
+        verbose_name_plural = 'Dashboard Ventas'
+
+    def __str__(self):
+        return f"Empresa {self.id_empresa_id} - Producto {self.id_producto_id} - Venta #{self.id_registro}"

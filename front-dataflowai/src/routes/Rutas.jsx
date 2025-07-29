@@ -19,6 +19,7 @@ import PagosStripe from "../components/pages/PagosStripe";
 
 
 import { DashboardPrueba } from '../components/pages/DashboardPrueba';
+import  DashboardVentas  from '../components/dashboards/DashboardVentas';
 
 
 
@@ -73,7 +74,8 @@ export const Rutas = () => (
 
       {/* Pagos con Stripe (sin Navbar ni Footer) */}
       <Route path="/pagos" element={<PagosStripe />} />
-      
+
+    
 
 
 
@@ -111,6 +113,20 @@ export const Rutas = () => (
           </RutaProtegida>
         }
       />
+
+
+
+      <Route
+        path="/dashboard-ventas"
+        element={
+          <RutaProtegida>
+            <SideBarLayout><DashboardVentas /></SideBarLayout>
+          </RutaProtegida>
+        }
+      />
+
+
+      
 
 
 

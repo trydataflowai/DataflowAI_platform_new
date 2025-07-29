@@ -17,6 +17,8 @@ from .views import (
     StripeWebhookAPIView,
 
     DashboardVentasDataflowView,
+
+    DashboardVentasView,
 )
 
 urlpatterns = [
@@ -46,6 +48,9 @@ urlpatterns = [
     path('stripe-webhook/', StripeWebhookAPIView.as_view(), name='stripe-webhook'),
 
 
-     path('dashboard-dataflow/', DashboardVentasDataflowView.as_view(), name='dashboard-dataflow'),
+    path('dashboard-dataflow/', DashboardVentasDataflowView.as_view(), name='dashboard-dataflow'),
+
+    path('dashboard-ventas/', DashboardVentasView.as_view(), name='dashboard-ventas'),
 
 ]
+    

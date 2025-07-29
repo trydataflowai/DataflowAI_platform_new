@@ -9,7 +9,8 @@ from .models import (
     DetalleProducto,
     TipoPlan,
     DetalleProductoVendido, 
-    Pagos
+    Pagos,
+    DashboardVentas
 )
 
 @admin.register(Categoria)
@@ -132,3 +133,67 @@ class DashboardVentasDataflowAdmin(admin.ModelAdmin):
     list_display = ('id_registro', 'punto_venta', 'dinero_entregado', 'cantidad_entregada', 'fecha_entrega')
     search_fields = ('punto_venta',)
     list_filter = ('fecha_entrega', 'punto_venta')  # ✅ Filtro por punto de venta
+
+
+
+
+
+
+from django.contrib import admin
+
+@admin.register(DashboardVentas)
+class DashboardVentasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro', 'id_empresa', 'id_producto',
+        'punto_venta', 'canal', 'ciudad', 'region',
+        'fecha_venta', 'cantidad_vendida', 'dinero_vendido', 'ticket_promedio',
+        'numero_transacciones', 'devoluciones', 'dinero_devoluciones',
+        'sku', 'nombre_producto', 'categoria', 'marca'
+    )
+
+    list_filter = (
+        'id_empresa', 'fecha_venta', 'canal', 'ciudad', 'region', 
+        'categoria', 'marca', 'tipo_cliente', 'segmento_cliente'
+    )
+
+    search_fields = (
+        'punto_venta', 'sku', 'nombre_producto', 'categoria',
+        'marca', 'tipo_cliente', 'segmento_cliente'
+    )
+
+    readonly_fields = ('id_registro',)
+
+    ordering = ('-fecha_venta',)
+
+    date_hierarchy = 'fecha_venta'
+
+    fieldsets = (
+        ('Identificación', {
+            'fields': ('id_registro', 'id_empresa', 'id_producto')
+        }),
+        ('Ubicación y Canal', {
+            'fields': ('punto_venta', 'id_punto_venta', 'canal', 'ciudad', 'region')
+        }),
+        ('Detalles de la Venta', {
+            'fields': (
+                'cantidad_vendida', 'dinero_vendido', 'ticket_promedio',
+                'unidades_promocionadas', 'descuento_total',
+                'numero_transacciones', 'devoluciones', 'dinero_devoluciones'
+            )
+        }),
+        ('Tiempos', {
+            'fields': ('fecha_venta', 'mes', 'anio', 'dia_semana', 'hora')
+        }),
+        ('Producto', {
+            'fields': ('sku', 'nombre_producto', 'categoria', 'subcategoria', 'marca')
+        }),
+        ('Cliente', {
+            'fields': ('tipo_cliente', 'segmento_cliente', 'genero_cliente', 'edad_cliente')
+        }),
+        ('Indicadores Económicos', {
+            'fields': ('utilidad_bruta', 'costo_total', 'margen_utilidad')
+        }),
+        ('Observaciones', {
+            'fields': ('observaciones',)
+        }),
+    )

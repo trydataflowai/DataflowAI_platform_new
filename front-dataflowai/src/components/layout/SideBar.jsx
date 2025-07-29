@@ -6,7 +6,6 @@ import styles from '../../styles/SideBar.module.css';
 
 const links = [
   { to: "/homeLogin#home",    icon: "🏠", label: "Home" },
-  { to: "/dashboard-prueba",  icon: "📊", label: "Dashboard Prueba" },  // ← añadido
   { to: "/home",              icon: "📊", label: "Dashboards" },
   { to: "/marketplace",       icon: "🛒", label: "Marketplace" },
   { to: "/ai-insights",       icon: "🤖", label: "AI Insights" },

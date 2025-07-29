@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { obtenerProductosUsuario } from '../../api/ProductoUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
-import { importarArchivoDashboard } from '../../api/Importacion';
 import styles from '../../styles/HomeDashboard.module.css';
 
 const images = import.meta.glob('../../assets/*.jpg', { eager: true });
@@ -10,15 +10,13 @@ export const HomeDashboard = () => {
   const [productos, setProductos] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [usuario, setUsuario] = useState(null);
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [urlActual, setUrlActual] = useState('');
-  const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [selectedDashboards, setSelectedDashboards] = useState([]);
+  const [notification, setNotification] = useState(null);
   const searchRef = useRef(null);
-
+  const navigate = useNavigate();
   const currentDate = new Date().toLocaleString();
 
   useEffect(() => {
@@ -95,17 +93,6 @@ export const HomeDashboard = () => {
     }
   };
 
-  const handleArchivo = async (id_producto, event) => {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    try {
-      await importarArchivoDashboard(id_producto, archivo);
-      showNotification('Data successfully imported', 'success');
-    } catch (error) {
-      showNotification('Error importing data', 'error');
-    }
-  };
-
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
@@ -134,8 +121,6 @@ export const HomeDashboard = () => {
           </div>
         )}
       </div>
-
-      
 
       <div className={styles.mainContent}>
         <div className={styles.searchContainer} ref={searchRef}>
@@ -219,12 +204,9 @@ export const HomeDashboard = () => {
             return (
               <div key={prod.id} className={styles.card}>
                 <div className={styles.cardGlow}></div>
-                
                 <div className={styles.cardHeader}>
-                
                   <h3 className={styles.cardTitle}>{prod.nombre}</h3>
                 </div>
-
                 <div className={styles.cardImageContainer}>
                   {imgSrc ? (
                     <>
@@ -243,7 +225,6 @@ export const HomeDashboard = () => {
                     </div>
                   )}
                 </div>
-
                 <div className={styles.cardContent}>
                   <div className={styles.cardStats}>
                     <div className={styles.statItem}>
@@ -253,13 +234,9 @@ export const HomeDashboard = () => {
                       <span>Last updated: {currentDate}</span>
                     </div>
                   </div>
-
                   <div className={styles.cardActions}>
                     <button
-                      onClick={() => {
-                        setUrlActual(prod.url);
-                        setModalAbierto(true);
-                      }}
+                      onClick={() => navigate(`/${prod.slug}`)}
                       className={styles.previewButton}
                       aria-label={`Open dashboard ${prod.nombre}`}
                     >
@@ -268,21 +245,6 @@ export const HomeDashboard = () => {
                       </svg>
                       Open Dashboard
                     </button>
-                    <label
-                      className={styles.importButton}
-                      aria-label={`Import data for ${prod.nombre}`}
-                    >
-                      <svg viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-                      </svg>
-                      Import Data
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={e => handleArchivo(prod.id, e)}
-                        hidden
-                      />
-                    </label>
                   </div>
                 </div>
               </div>
@@ -290,32 +252,6 @@ export const HomeDashboard = () => {
           })}
         </div>
       </div>
-
-      {modalAbierto && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <h3>Dashboard Preview</h3>
-              <button
-                onClick={() => setModalAbierto(false)}
-                className={styles.closeButton}
-                aria-label="Close modal"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg>
-              </button>
-            </div>
-            <iframe
-              src={urlActual}
-              className={styles.dashboardFrame}
-              title="Dashboard"
-              loading="eager"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
 
       {notification && (
         <div className={`${styles.notification} ${styles[notification.type]}`}>

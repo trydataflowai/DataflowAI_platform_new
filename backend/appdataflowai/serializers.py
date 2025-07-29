@@ -7,7 +7,7 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['id_producto', 'producto', 'estado', 'Url', 'iframe']
+        fields = ['id_producto', 'producto', 'estado', 'slug', 'iframe']
 
 
 
@@ -130,4 +130,36 @@ class DashboardVentasDataflowSerializer(serializers.ModelSerializer):
             'dinero_entregado',
             'cantidad_entregada',
             'fecha_entrega',
+        ]
+
+
+
+#Serializer para DashboardVentas
+# Este serializer es para el modelo DashboardVentas, que se usa en la implementación de React y
+from .models import DashboardVentas
+from rest_framework import serializers
+
+class DashboardVentasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardVentas
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_producto',
+
+            'id_punto_venta', 'punto_venta', 'canal', 'ciudad', 'region',
+
+            'cantidad_vendida', 'dinero_vendido', 'ticket_promedio',
+            'unidades_promocionadas', 'descuento_total',
+            'numero_transacciones', 'devoluciones', 'dinero_devoluciones',
+
+            'fecha_venta', 'mes', 'anio', 'dia_semana', 'hora',
+
+            'sku', 'nombre_producto', 'categoria', 'subcategoria', 'marca',
+
+            'tipo_cliente', 'segmento_cliente', 'genero_cliente', 'edad_cliente',
+
+            'utilidad_bruta', 'costo_total', 'margen_utilidad',
+
+            'observaciones'
         ]
