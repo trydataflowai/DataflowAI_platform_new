@@ -1,23 +1,26 @@
-/* Marketplace.module.css - Dark Theme */
+/* MarketplaceLight.module.css - Light Theme */
 :root {
-  --black-void: #000000;
-  --black-cosmos: #050505;
-  --black-deep: #0a0a0a;
-  --accent-neon: #00f7ff;
-  --accent-turquoise: #00e1ff;
-  --accent-cyan: #00c2ff;
-  --accent-dark: #0099cc;
-  --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --success: #00ffaa;
-  --warning: #ffcc00;
-  --danger: #ff3366;
+  /* Light theme colors */
+  --white-pure: #ffffff;
+  --white-soft: #fafafa;
+  --gray-light: #f5f5f5;
+  --gray-medium: #e0e0e0;
+  --gray-border: #d0d0d0;
+  --accent-blue: #0066cc;
+  --accent-turquoise: #00a8b8;
+  --accent-cyan: #00b4d8;
+  --accent-dark: #004d99;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --success: #00b366;
+  --warning: #ff9500;
+  --danger: #e63946;
   --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .marketplace {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--black-void) 0%, var(--black-cosmos) 50%, var(--black-deep) 100%);
+  background: linear-gradient(135deg, var(--white-pure) 0%, var(--white-soft) 50%, var(--gray-light) 100%);
   background-attachment: fixed;
   color: var(--text-primary);
   position: relative;
@@ -32,9 +35,9 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 20%, var(--accent-neon)10 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, var(--accent-turquoise)08 0%, transparent 50%),
-    radial-gradient(circle at 40% 60%, var(--accent-cyan)06 0%, transparent 50%);
+    radial-gradient(circle at 20% 20%, rgba(0, 102, 204, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 168, 184, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(0, 180, 216, 0.03) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -62,7 +65,7 @@
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
   margin: 0 0 20px 0;
-  background: linear-gradient(135deg, var(--accent-neon), var(--accent-turquoise), var(--accent-cyan));
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-turquoise), var(--accent-cyan));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -75,7 +78,7 @@
 
 .titleIcon {
   font-size: 0.8em;
-  filter: drop-shadow(0 0 10px var(--accent-neon));
+  filter: drop-shadow(0 0 10px var(--accent-blue));
   animation: float 3s ease-in-out infinite;
 }
 
@@ -86,7 +89,7 @@
   transform: translate(-50%, -50%);
   width: 120%;
   height: 120%;
-  background: radial-gradient(circle, var(--accent-neon)20 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 102, 204, 0.1) 0%, transparent 70%);
   z-index: -1;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -109,9 +112,8 @@
 }
 
 .statCard {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 247, 255, 0.2);
+  background: var(--white-pure);
+  border: 2px solid var(--gray-medium);
   border-radius: 16px;
   padding: 24px 32px;
   text-align: center;
@@ -119,6 +121,7 @@
   overflow: hidden;
   transition: var(--transition);
   min-width: 120px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .statCard::before {
@@ -128,7 +131,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 247, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 102, 204, 0.1), transparent);
   transition: left 0.8s ease;
 }
 
@@ -138,8 +141,8 @@
 
 .statCard:hover {
   transform: translateY(-5px);
-  border-color: var(--accent-neon);
-  box-shadow: 0 20px 40px rgba(0, 247, 255, 0.2);
+  border-color: var(--accent-blue);
+  box-shadow: 0 20px 40px rgba(0, 102, 204, 0.15);
 }
 
 .statNumber {
@@ -147,7 +150,7 @@
   font-weight: 700;
   color: var(--accent-turquoise);
   margin-bottom: 8px;
-  text-shadow: 0 0 20px var(--accent-neon);
+  text-shadow: 0 0 20px rgba(0, 168, 184, 0.3);
 }
 
 .statLabel {
@@ -167,15 +170,15 @@
 
 /* Card Styles */
 .card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 247, 255, 0.2);
+  background: var(--white-pure);
+  border: 2px solid var(--gray-medium);
   border-radius: 20px;
   padding: 0;
   position: relative;
   overflow: hidden;
   transition: var(--transition);
   cursor: pointer;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .card::before {
@@ -185,7 +188,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent-neon), var(--accent-turquoise), var(--accent-cyan));
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-turquoise), var(--accent-cyan));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -196,8 +199,8 @@
 
 .card:hover {
   transform: translateY(-10px);
-  border-color: var(--accent-neon);
-  box-shadow: 0 30px 60px rgba(0, 247, 255, 0.3);
+  border-color: var(--accent-blue);
+  box-shadow: 0 30px 60px rgba(0, 102, 204, 0.2);
 }
 
 .cardGlow {
@@ -206,7 +209,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, var(--accent-neon)05 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 102, 204, 0.03) 0%, transparent 70%);
   opacity: 0;
   transition: opacity 0.5s ease;
   z-index: 0;
@@ -240,15 +243,15 @@
 }
 
 .cardBadge {
-  background: linear-gradient(135deg, var(--accent-neon), var(--accent-turquoise));
-  color: var(--black-void);
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-turquoise));
+  color: var(--white-pure);
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(0, 247, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
   flex-shrink: 0;
 }
 
@@ -270,13 +273,13 @@
 }
 
 .slugValue {
-  background: rgba(0, 247, 255, 0.1);
+  background: rgba(0, 102, 204, 0.1);
   color: var(--accent-turquoise);
   padding: 4px 8px;
   border-radius: 6px;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
-  border: 1px solid rgba(0, 247, 255, 0.2);
+  border: 1px solid rgba(0, 102, 204, 0.2);
 }
 
 .cardDescription {
@@ -319,32 +322,32 @@
 }
 
 .buttonPrimary {
-  background: linear-gradient(135deg, var(--accent-neon), var(--accent-turquoise));
-  color: var(--black-void);
-  box-shadow: 0 8px 25px rgba(0, 247, 255, 0.4);
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-turquoise));
+  color: var(--white-pure);
+  box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
 }
 
 .buttonPrimary:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(0, 247, 255, 0.6);
+  box-shadow: 0 15px 35px rgba(0, 102, 204, 0.4);
 }
 
 .buttonSecondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--white-pure);
   color: var(--text-primary);
-  border: 1px solid rgba(0, 247, 255, 0.3);
+  border: 2px solid var(--gray-border);
 }
 
 .buttonSecondary:hover {
-  background: rgba(0, 247, 255, 0.1);
-  border-color: var(--accent-neon);
+  background: var(--gray-light);
+  border-color: var(--accent-blue);
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 247, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 102, 204, 0.15);
 }
 
 .buttonIcon {
   font-size: 1.1em;
-  filter: drop-shadow(0 0 5px currentColor);
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
 }
 
 .buttonText {
@@ -360,7 +363,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid transparent;
-  border-top: 2px solid var(--black-void);
+  border-top: 2px solid var(--white-pure);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-left: 8px;
@@ -394,8 +397,8 @@
 
 /* Animations */
 @keyframes titleGlow {
-  0% { text-shadow: 0 0 20px var(--accent-neon); }
-  100% { text-shadow: 0 0 30px var(--accent-turquoise), 0 0 40px var(--accent-cyan); }
+  0% { text-shadow: 0 0 20px rgba(0, 102, 204, 0.3); }
+  100% { text-shadow: 0 0 30px rgba(0, 168, 184, 0.4), 0 0 40px rgba(0, 180, 216, 0.3); }
 }
 
 @keyframes float {
