@@ -1,4 +1,4 @@
-En mi pagina las personas pueden hacer LOGIN y eso tiene un token
+**En mi pagina las personas pueden hacer LOGIN y eso tiene un token**
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const iniciarSesion = async ({ correo, contrasena }) => {
@@ -30,7 +30,10 @@ export const cerrarSesion = () => {
   localStorage.removeItem('token');
 };
 
-y aparte tengo esta: C:\Users\Julian Herreño\OneDrive - Colombian Trade Company SAS\DATA\02. AREAS\DATA\Julian Estif Herreno Palacios\09-DataFlow-WebSite\front-dataflowai\src\api\Usuario.js
+
+**y aparte tengo esta:** 
+
+**C:\Users\Julian Herreño\OneDrive - Colombian Trade Company SAS\DATA\02. AREAS\DATA\Julian Estif Herreno Palacios\09-DataFlow-WebSite\front-dataflowai\src\api\Usuario.js**
 
 ENV: VITE_API_BASE_URL=http://127.0.0.1:8000/api/
 http://localhost:8000/api/usuario/info/
@@ -53,7 +56,8 @@ export const obtenerInfoUsuario = async () => {
   return await response.json();
 };
 
-que retorna este JSON
+
+**que retorna este JSON**
 {
   "id": 56,
   "nombres": "Celulares",
@@ -89,5 +93,3 @@ que retorna este JSON
     }
   ]
 }}
-
-entonces lo que quiero hacer es que aca en el SIDE BAR si el plan es id 6 o 3 que es interprase les muestre el nombre de su empresa y sino muestre el nombre DATAFLOW AI, pero entonces actualmente hay una imagen entonces quiero quitar la imagen ty que se coloque un texto super lindo
