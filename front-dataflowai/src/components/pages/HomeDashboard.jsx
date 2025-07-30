@@ -1,4 +1,4 @@
-// src/components/layout/HomeDashboard.jsx
+// src/components/pages/HomeDashboard.jsx
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,13 +9,20 @@ import { obtenerInfoUsuario } from '../../api/Usuario';
 import darkStyles from '../../styles/HomeDashboard.module.css';
 import lightStyles from '../../styles/HomeDashboardLight.module.css';
 
+// IMPORTAR EL HOOK DE TEMA
+import { useTheme } from '../componentes/ThemeContext';
+
 const images = import.meta.glob('../../assets/*.jpg', { eager: true });
 
 export const HomeDashboard = () => {
+  // USAR EL HOOK DE TEMA
+  const { theme } = useTheme();
+  
   const [styles, setStyles] = useState(darkStyles);
   const [productos, setProductos] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [usuario, setUsuario] = useState(null);
+  const [planId, setPlanId] = useState(null); // Agregar estado para planId
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -35,10 +42,7 @@ export const HomeDashboard = () => {
         setProductos(prodData);
         setFilteredProducts(prodData);
         setUsuario(userData);
-
-        // Selecciona tema claro si el plan es 3 o 6
-        const planId = userData.empresa.plan.id;
-        setStyles(planId === 3 || planId === 6 ? lightStyles : darkStyles);
+        setPlanId(userData.empresa.plan.id); // Guardar planId en estado
       } catch (err) {
         showNotification('Error loading data', 'error');
       }
@@ -56,6 +60,17 @@ export const HomeDashboard = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // NUEVO useEffect para manejar el tema basado en planId y theme del contexto
+  useEffect(() => {
+    if (planId === 3 || planId === 6) {
+      // Planes que permiten toggle de tema: usar el tema del contexto
+      setStyles(theme === 'dark' ? darkStyles : lightStyles);
+    } else {
+      // Otros planes: siempre tema oscuro
+      setStyles(darkStyles);
+    }
+  }, [theme, planId]);
 
   useEffect(() => {
     if (!searchTerm.trim()) {
