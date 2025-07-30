@@ -6,6 +6,10 @@ Agregar
 
 .\env\Scripts\Activate
 
+python manage.py runserver
+
+npm run dev
+
 .\ngrok.exe http 8000
 
 cd front-dataflowai
