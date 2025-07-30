@@ -299,6 +299,7 @@ PLAN_LIMITES = {
     3: 10,  # Enterprise (o el número que definas)
     4: 1,
     5: 5,   # Dataflow (o el número que definas)
+    6:10,
 }
 
 class AdquirirDashboardView(APIView):

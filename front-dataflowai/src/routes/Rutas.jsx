@@ -18,7 +18,7 @@ import CreacionUsuario from "../components/pages/CreacionUsuario";
 import CreacionEmpresa from "../components/pages/CreacionEmpresa";
 import PagosStripe from "../components/pages/PagosStripe";
 
-import { DashboardPrueba } from "../components/pages/DashboardPrueba";
+import { DashboardPrueba } from "../components/dashboards/DashboardPrueba";
 import DashboardVentas from "../components/dashboards/DashboardVentas";
 
 // Protección de rutas

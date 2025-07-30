@@ -16,8 +16,8 @@ import { fetchDashboardVentas } from '../../api/DashboardApi';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { useTheme } from '../componentes/ThemeContext';
 
-import darkStyles from '../../styles/DashboardVentas.module.css';
-import lightStyles from '../../styles/DashboardVentasLight.module.css';
+import darkStyles from '../../styles/Dashboards/DashboardVentas.module.css';
+import lightStyles from '../../styles/Dashboards/DashboardVentasLight.module.css';
 
 const DashboardVentas = () => {
   const { theme } = useTheme();
