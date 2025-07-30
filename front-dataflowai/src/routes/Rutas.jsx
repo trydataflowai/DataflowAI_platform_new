@@ -1,3 +1,5 @@
+// src/routes/Rutas.jsx
+
 import React from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
@@ -16,15 +18,14 @@ import CreacionUsuario from "../components/pages/CreacionUsuario";
 import CreacionEmpresa from "../components/pages/CreacionEmpresa";
 import PagosStripe from "../components/pages/PagosStripe";
 
-
-
-import { DashboardPrueba } from '../components/pages/DashboardPrueba';
-import  DashboardVentas  from '../components/dashboards/DashboardVentas';
-
-
+import { DashboardPrueba } from "../components/pages/DashboardPrueba";
+import DashboardVentas from "../components/dashboards/DashboardVentas";
 
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
+
+// Contexto de tema
+import { ThemeProvider } from "../components/componentes/ThemeContext";
 
 // Paths sin Navbar ni Footer
 const NO_LAYOUT_PATHS = ["/login", "/crear-usuario", "/crear-empresa"];
@@ -52,84 +53,69 @@ const SideBarLayout = ({ children }) => (
 
 export const Rutas = () => (
   <BrowserRouter>
-    <Routes>
-      {/* Página de inicio pública */}
-      <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
+    {/* THEME PROVIDER al nivel más alto */}
+    <ThemeProvider>
+      <Routes>
+        {/* Página de inicio pública */}
+        <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
 
-      {/* Login (sin Navbar ni Footer) */}
-      <Route path="/login" element={<Login />} />
+        {/* Rutas sin layout */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/crear-empresa" element={<CreacionEmpresa />} />
+        <Route path="/crear-usuario" element={<CreacionUsuario />} />
+        <Route path="/pagos" element={<PagosStripe />} />
 
-    
+        {/* HomeLogin (con Navbar y Footer) */}
+        <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 
+        {/* Dashboard (protegido, con Sidebar y tema) */}
+        <Route
+          path="/home"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <HomeDashboard />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
 
+        {/* Marketplace (protegido, con Sidebar y tema) */}
+        <Route
+          path="/marketplace"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <Marketplace />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
 
+        {/* Otros dashboards */}
+        <Route
+          path="/dashboard-prueba"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <DashboardPrueba />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
 
+        <Route
+          path="/dashboard-ventas"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <DashboardVentas />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
 
-
-      {/* Creación de empresa (sin Navbar ni Footer) */}
-      <Route path="/crear-empresa" element={<CreacionEmpresa />} />
-
-        {/* Creación de usuario (sin Navbar ni Footer) */}
-      <Route path="/crear-usuario" element={<CreacionUsuario />} />
-
-      {/* Pagos con Stripe (sin Navbar ni Footer) */}
-      <Route path="/pagos" element={<PagosStripe />} />
-
-    
-
-
-
-
-      {/* HomeLogin (con Navbar y Footer) */}
-      <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
-
-      {/* Dashboard (protegido, con Sidebar) */}
-      <Route
-        path="/home"
-        element={
-          <RutaProtegida>
-            <SideBarLayout><HomeDashboard /></SideBarLayout>
-          </RutaProtegida>
-        }
-      />
-
-      {/* Marketplace (protegido, con Sidebar) */}
-      <Route
-        path="/marketplace"
-        element={
-          <RutaProtegida>
-            <SideBarLayout><Marketplace /></SideBarLayout>
-          </RutaProtegida>
-        }
-      />
-
-
-
-      <Route
-        path="/dashboard-prueba"
-        element={
-          <RutaProtegida>
-            <SideBarLayout><DashboardPrueba /></SideBarLayout>
-          </RutaProtegida>
-        }
-      />
-
-
-
-      <Route
-        path="/dashboard-ventas"
-        element={
-          <RutaProtegida>
-            <SideBarLayout><DashboardVentas /></SideBarLayout>
-          </RutaProtegida>
-        }
-      />
-
-
-      
-
-
-
-    </Routes>
+      </Routes>
+    </ThemeProvider>
   </BrowserRouter>
 );

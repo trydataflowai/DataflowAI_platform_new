@@ -1,4 +1,4 @@
-/* src/styles/SideBar.module.css */
+/* src/styles/SideBarLight.module.css */
 
 /* Sidebar fijo y a todo lo alto */
 .sidebar {
@@ -8,12 +8,13 @@
   width: 280px;
   height: 100vh;
   z-index: 1000;
-  background: linear-gradient(160deg, var(--black-deep) 0%, var(--black-cosmos) 100%);
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
   padding: 2rem 1.5rem;
-  border-right: 1px solid rgba(0, 199, 255, 0.1);
   display: flex;
   flex-direction: column;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 
 /* Estado colapsado */
@@ -40,11 +41,11 @@
   padding: 0;
 }
 .logoText {
-  color: #ffffff; /* Texto blanco */
+  color: #0a66c2;            /* Azul LinkedIn */
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 
 /* Navegación */
@@ -61,78 +62,65 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: transparent;
-  color: var(--text-secondary);
+  color: #333;               /* Texto oscuro */
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 .button::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
-  width: 3px; height: 100%;
-  background: linear-gradient(to bottom, var(--accent-neon), var(--accent-dark));
+  width: 4px; height: 100%;
+  background-color: #0a66c2;
   opacity: 0;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 .button:hover {
-  color: var(--text-primary);
-  background: rgba(0, 199, 255, 0.05);
-  transform: translateX(8px);
+  background-color: #f0f8ff;
+  color: #0a66c2;
 }
 .button:hover::before {
   opacity: 1;
 }
 
-/* Iconos y emojis blancos */
-.icon {
-  font-size: 1.2rem;
-  transition: var(--transition);
-}
+/* Iconos y emojis azules */
+/* Iconos en blanco */
 .emojiWhite {
-  filter: brightness(0) invert(1);
+  filter: invert(32%) sepia(95%) saturate(500%) hue-rotate(180deg) brightness(90%) contrast(90%);
   font-size: 1.2em;
   transition: var(--transition);
 }
 .button:hover .emojiWhite {
   opacity: 0.8;
 }
+.button:hover .emojiWhite {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
 .button:hover .icon {
-  transform: scale(1.2);
-  color: var(--accent-neon);
+  transform: scale(1.1);
+  color: #0a66c2;
 }
 
 /* Texto de botón */
 .text {
-  transition: var(--transition);
-}
-
-/* Radial highlight */
-.highlight {
-  position: absolute;
-  top: -50%; right: -50%;
-  width: 100%; height: 200%;
-  background: radial-gradient(circle, var(--accent-neon) 0%, transparent 70%);
-  opacity: 0;
-  transition: var(--transition);
-  z-index: 1000;
-}
-.button:hover .highlight {
-  opacity: 0.1;
+  transition: all 0.3s ease;
 }
 
 /* Estado activo */
 .active {
-  color: var(--text-primary) !important;
-  background: rgba(0, 199, 255, 0.08) !important;
+  background-color: #e3f0ff !important;
+  color: #0a66c2 !important;
+  font-weight: 600;
 }
 .active::before {
   opacity: 1 !important;
 }
 .active .icon {
-  color: var(--accent-neon);
+  color: #0a66c2;
 }
 
 /* Toggle collapse */
@@ -146,10 +134,11 @@
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
-  transition: var(--transition);
+  color: #0a66c2;
+  transition: all 0.3s ease;
 }
 .toggleButton:hover {
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 /* Footer */
@@ -158,20 +147,20 @@
   padding-top: 1rem;
 }
 .planText {
-  color: var(--text-primary);
+  color: #0a66c2;           /* Azul también para el plan */
   font-size: 0.85rem;
   text-align: center;
   margin-bottom: 0.25rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
 }
 .accentLine {
   height: 1px;
   width: 100%;
-  background: linear-gradient(to right, transparent, var(--accent-dark), transparent);
+  background: linear-gradient(to right, transparent, #0a66c2, transparent);
   margin-bottom: 0.5rem;
 }
 .footerText {
-  color: var(--text-secondary);
+  color: #666;
   font-size: 0.8rem;
   text-align: center;
   opacity: 0.7;
