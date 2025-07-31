@@ -261,6 +261,7 @@ class DashboardVentasDataflow(models.Model):
     primary_key=True,
     db_column='id_registro'
     )
+
     id_punto_venta = models.CharField(
         max_length=150,
         db_column='id_punto_venta'
