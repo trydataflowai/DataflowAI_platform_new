@@ -529,10 +529,98 @@ class DashboardVentasView(APIView):
         serializer = DashboardVentasSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+# Vista para retornar registros de DashboardFinanzas
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+from django.utils.dateparse import parse_date
+from django.conf import settings
+import jwt
+
+from .models import DashboardFinanzas
+from .serializers import DashboardFinanzasSerializer
+
+class DashboardFinanzasView(APIView):
+    """
+    Vista protegida que retorna los registros de DashboardFinanzas,
+    con filtrado opcional por rango de fechas (?start=YYYY-MM-DD&end=YYYY-MM-DD)
+    """
+
+    def get(self, request):
+        # 1. Autenticación JWT (manual)
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Consulta y filtros por fecha_registro
+        queryset = DashboardFinanzas.objects.all().order_by('fecha_registro')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        if start:
+            queryset = queryset.filter(fecha_registro__gte=parse_date(start))
+        if end:
+            queryset = queryset.filter(fecha_registro__lte=parse_date(end))
+
+        # 3. Serializar
+        serializer = DashboardFinanzasSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+from django.utils.dateparse import parse_date
+from django.conf import settings
+import jwt
+
+from .models import DashboardCompras
+from .serializers import DashboardComprasSerializer
+
+class DashboardComprasView(APIView):
+    """
+    Vista protegida que retorna los registros de DashboardCompras,
+    con filtrado opcional por rango de fechas (?start=YYYY-MM-DD&end=YYYY-MM-DD)
+    """
+
+    def get(self, request):
+        # 1. Autenticación JWT manual
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Consulta y filtros por fecha_compra
+        queryset = DashboardCompras.objects.all().order_by('fecha_compra')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        if start:
+            queryset = queryset.filter(fecha_compra__gte=parse_date(start))
+        if end:
+            queryset = queryset.filter(fecha_compra__lte=parse_date(end))
+
+        # 3. Serialización
+        serializer = DashboardComprasSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
@@ -651,6 +739,7 @@ from django.db import models
 from .models import (
     DashboardVentasDataflow,
     DashboardVentas,
+    DashboardFinanzas,
     DashboardVentasColtrade,
     DashboardVentasLoop,
     Usuario,
@@ -663,9 +752,10 @@ logger = logging.getLogger(__name__)
 PRODUCTO_MODELO_MAP = {
     5: DashboardVentasDataflow,
     4: DashboardVentas,
+    6: DashboardFinanzas,
+    7: DashboardCompras,
     #  ...otros productos si los hubiera
 }
-
 
 class ImportarDatosView(APIView):
     """

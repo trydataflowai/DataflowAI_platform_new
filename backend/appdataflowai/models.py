@@ -350,3 +350,102 @@ class DashboardVentas(models.Model):
 
     def __str__(self):
         return f"Empresa {self.id_empresa_id} - Producto {self.id_producto_id} - Venta #{self.id_registro}"
+
+
+
+
+
+from django.db import models
+
+class DashboardFinanzas(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Claves foráneas requeridas
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # Periodo contable
+    fecha_registro = models.DateField(db_column='fecha_registro', null=True, blank=True)
+    mes = models.IntegerField(db_column='mes', null=True, blank=True)
+    anio = models.IntegerField(db_column='anio', null=True, blank=True)
+
+    # Ingresos
+    ingresos_operacionales = models.DecimalField(max_digits=15, decimal_places=2, db_column='ingresos_operacionales', null=True, blank=True)
+    ingresos_no_operacionales = models.DecimalField(max_digits=15, decimal_places=2, db_column='ingresos_no_operacionales', null=True, blank=True)
+    ingresos_totales = models.DecimalField(max_digits=15, decimal_places=2, db_column='ingresos_totales', null=True, blank=True)
+
+    # Costos y gastos
+    costo_ventas = models.DecimalField(max_digits=15, decimal_places=2, db_column='costo_ventas', null=True, blank=True)
+    gastos_operacionales = models.DecimalField(max_digits=15, decimal_places=2, db_column='gastos_operacionales', null=True, blank=True)
+    otros_gastos = models.DecimalField(max_digits=15, decimal_places=2, db_column='otros_gastos', null=True, blank=True)
+    total_egresos = models.DecimalField(max_digits=15, decimal_places=2, db_column='total_egresos', null=True, blank=True)
+
+    # Resultados
+    utilidad_bruta = models.DecimalField(max_digits=15, decimal_places=2, db_column='utilidad_bruta', null=True, blank=True)
+    utilidad_neta = models.DecimalField(max_digits=15, decimal_places=2, db_column='utilidad_neta', null=True, blank=True)
+    margen_neto = models.DecimalField(max_digits=5, decimal_places=2, db_column='margen_neto', null=True, blank=True)  # %
+
+    # Flujo de caja
+    flujo_efectivo_operaciones = models.DecimalField(max_digits=15, decimal_places=2, db_column='flujo_efectivo_operaciones', null=True, blank=True)
+    flujo_efectivo_inversion = models.DecimalField(max_digits=15, decimal_places=2, db_column='flujo_efectivo_inversion', null=True, blank=True)
+    flujo_efectivo_financiacion = models.DecimalField(max_digits=15, decimal_places=2, db_column='flujo_efectivo_financiacion', null=True, blank=True)
+    flujo_efectivo_total = models.DecimalField(max_digits=15, decimal_places=2, db_column='flujo_efectivo_total', null=True, blank=True)
+
+    # Activos y pasivos
+    activos_totales = models.DecimalField(max_digits=18, decimal_places=2, db_column='activos_totales', null=True, blank=True)
+    pasivos_totales = models.DecimalField(max_digits=18, decimal_places=2, db_column='pasivos_totales', null=True, blank=True)
+    patrimonio = models.DecimalField(max_digits=18, decimal_places=2, db_column='patrimonio', null=True, blank=True)
+
+    # Observaciones
+    observaciones = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_finanzas'
+        verbose_name_plural = 'Dashboard Finanzas'
+
+    def __str__(self):
+        return f"Empresa {self.id_empresa_id} - Producto {self.id_producto_id} - Registro #{self.id_registro}"
+
+
+
+
+from django.db import models
+
+class DashboardCompras(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Claves foráneas
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # Periodo
+    fecha_compra = models.DateField(db_column='fecha_compra', null=True, blank=True)
+    mes = models.IntegerField(db_column='mes', null=True, blank=True)
+    anio = models.IntegerField(db_column='anio', null=True, blank=True)
+
+    # Información de proveedor
+    proveedor = models.CharField(max_length=255, db_column='proveedor', null=True, blank=True)
+    tipo_proveedor = models.CharField(max_length=100, db_column='tipo_proveedor', null=True, blank=True)  # nacional, internacional, etc.
+
+    # Detalle de compra
+    cantidad_comprada = models.IntegerField(db_column='cantidad_comprada', null=True, blank=True)
+    valor_unitario = models.DecimalField(max_digits=15, decimal_places=2, db_column='valor_unitario', null=True, blank=True)
+    valor_total = models.DecimalField(max_digits=18, decimal_places=2, db_column='valor_total', null=True, blank=True)
+
+    # Categoría y producto
+    nombre_producto = models.CharField(max_length=255, db_column='nombre_producto', null=True, blank=True)
+    categoria = models.CharField(max_length=100, db_column='categoria', null=True, blank=True)
+    subcategoria = models.CharField(max_length=100, db_column='subcategoria', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+
+    # Condiciones y observaciones
+    condiciones_pago = models.CharField(max_length=100, db_column='condiciones_pago', null=True, blank=True)  # crédito, contado, etc.
+    tiempo_entrega_dias = models.IntegerField(db_column='tiempo_entrega_dias', null=True, blank=True)
+    observaciones = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_compras'
+        verbose_name_plural = 'Dashboard Compras'
+
+    def __str__(self):
+        return f"Compra #{self.id_registro} - Empresa {self.id_empresa_id} - Producto {self.id_producto_id}"

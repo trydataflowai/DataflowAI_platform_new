@@ -17,8 +17,9 @@ from .views import (
     StripeWebhookAPIView,
 
     DashboardVentasDataflowView,
-
     DashboardVentasView,
+    DashboardFinanzasView,
+    DashboardComprasView,
 
 
     ImportarDatosView,
@@ -53,8 +54,9 @@ urlpatterns = [
 
 
     path('dashboard-dataflow/', DashboardVentasDataflowView.as_view(), name='dashboard-dataflow'),
-
     path('dashboard-ventas/', DashboardVentasView.as_view(), name='dashboard-ventas'),
+    path('dashboard-finanzas/', DashboardFinanzasView.as_view(), name='dashboard-finanzas'),
+    path('dashboard-compras/', DashboardComprasView.as_view(), name='dashboard-compras'),
 
 
 

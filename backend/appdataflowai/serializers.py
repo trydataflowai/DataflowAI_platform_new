@@ -163,3 +163,65 @@ class DashboardVentasSerializer(serializers.ModelSerializer):
 
             'observaciones'
         ]
+
+
+
+from rest_framework import serializers
+from .models import DashboardFinanzas
+
+class DashboardFinanzasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardFinanzas
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_producto',
+
+            'fecha_registro', 'mes', 'anio',
+
+            'ingresos_operacionales', 'ingresos_no_operacionales', 'ingresos_totales',
+
+            'costo_ventas', 'gastos_operacionales', 'otros_gastos', 'total_egresos',
+
+            'utilidad_bruta', 'utilidad_neta', 'margen_neto',
+
+            'flujo_efectivo_operaciones', 'flujo_efectivo_inversion',
+            'flujo_efectivo_financiacion', 'flujo_efectivo_total',
+
+            'activos_totales', 'pasivos_totales', 'patrimonio',
+
+            'observaciones'
+        ]
+
+
+from rest_framework import serializers
+from .models import DashboardCompras
+
+class DashboardComprasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardCompras
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_producto',
+
+            'fecha_compra',
+            'mes',
+            'anio',
+
+            'proveedor',
+            'tipo_proveedor',
+
+            'cantidad_comprada',
+            'valor_unitario',
+            'valor_total',
+
+            'nombre_producto',
+            'categoria',
+            'subcategoria',
+            'marca',
+
+            'condiciones_pago',
+            'tiempo_entrega_dias',
+            'observaciones'
+        ]

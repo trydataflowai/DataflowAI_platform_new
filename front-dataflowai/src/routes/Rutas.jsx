@@ -23,6 +23,8 @@ import PagosStripe from "../components/pages/PagosStripe";
 
 import { DashboardPrueba } from "../components/dashboards/DashboardPrueba";
 import DashboardVentas from "../components/dashboards/DashboardVentas";
+import DashboardFinanzas from "../components/dashboards/DashboardFinanzas";
+import DashboardCompras from "../components/dashboards/DashboardCompras";
 
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
@@ -113,6 +115,28 @@ export const Rutas = () => (
             <RutaProtegida>
               <SideBarLayout>
                 <DashboardVentas />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/dashboard-finanzas"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <DashboardFinanzas />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/dashboard-compras"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <DashboardCompras />
               </SideBarLayout>
             </RutaProtegida>
           }

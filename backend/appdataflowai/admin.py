@@ -197,3 +197,128 @@ class DashboardVentasAdmin(admin.ModelAdmin):
             'fields': ('observaciones',)
         }),
     )
+
+
+
+
+from django.contrib import admin
+from .models import DashboardFinanzas
+
+@admin.register(DashboardFinanzas)
+class DashboardFinanzasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro', 'id_empresa', 'id_producto',
+        'fecha_registro', 'mes', 'anio',
+        'ingresos_totales', 'total_egresos',
+        'utilidad_neta', 'margen_neto',
+        'flujo_efectivo_total', 'activos_totales', 'pasivos_totales', 'patrimonio'
+    )
+
+    list_filter = (
+        'id_empresa', 'anio', 'mes',
+    )
+
+    search_fields = (
+        'id_empresa__nombre', 'id_producto__nombre',
+    )
+
+    readonly_fields = ('id_registro',)
+
+    ordering = ('-fecha_registro',)
+
+    date_hierarchy = 'fecha_registro'
+
+    fieldsets = (
+        ('Identificación', {
+            'fields': ('id_registro', 'id_empresa', 'id_producto')
+        }),
+        ('Periodo Contable', {
+            'fields': ('fecha_registro', 'mes', 'anio')
+        }),
+        ('Ingresos', {
+            'fields': (
+                'ingresos_operacionales',
+                'ingresos_no_operacionales',
+                'ingresos_totales'
+            )
+        }),
+        ('Egresos', {
+            'fields': (
+                'costo_ventas',
+                'gastos_operacionales',
+                'otros_gastos',
+                'total_egresos'
+            )
+        }),
+        ('Resultados', {
+            'fields': (
+                'utilidad_bruta',
+                'utilidad_neta',
+                'margen_neto'
+            )
+        }),
+        ('Flujo de Efectivo', {
+            'fields': (
+                'flujo_efectivo_operaciones',
+                'flujo_efectivo_inversion',
+                'flujo_efectivo_financiacion',
+                'flujo_efectivo_total'
+            )
+        }),
+        ('Balance General', {
+            'fields': (
+                'activos_totales',
+                'pasivos_totales',
+                'patrimonio'
+            )
+        }),
+        ('Observaciones', {
+            'fields': ('observaciones',)
+        }),
+    )
+
+
+from django.contrib import admin
+from .models import DashboardCompras
+
+@admin.register(DashboardCompras)
+class DashboardComprasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro', 'id_empresa', 'id_producto',
+        'fecha_compra', 'mes', 'anio',
+        'proveedor', 'cantidad_comprada', 'valor_unitario', 'valor_total'
+    )
+
+    list_filter = (
+        'id_empresa', 'anio', 'mes', 'proveedor', 'categoria', 'subcategoria'
+    )
+
+    search_fields = (
+        'id_empresa__nombre', 'id_producto__nombre', 'proveedor',
+        'nombre_producto', 'categoria', 'subcategoria'
+    )
+
+    readonly_fields = ('id_registro',)
+
+    ordering = ('-fecha_compra',)
+
+    date_hierarchy = 'fecha_compra'
+
+    fieldsets = (
+        ('Identificación', {
+            'fields': ('id_registro', 'id_empresa', 'id_producto')
+        }),
+        ('Periodo Contable', {
+            'fields': ('fecha_compra', 'mes', 'anio')
+        }),
+        ('Detalle de Compra', {
+            'fields': (
+                'proveedor', 'tipo_proveedor', 'cantidad_comprada',
+                'valor_unitario', 'valor_total',
+                'nombre_producto', 'categoria', 'subcategoria', 'marca'
+            )
+        }),
+        ('Condiciones y Observaciones', {
+            'fields': ('condiciones_pago', 'tiempo_entrega_dias', 'observaciones')
+        }),
+    )
