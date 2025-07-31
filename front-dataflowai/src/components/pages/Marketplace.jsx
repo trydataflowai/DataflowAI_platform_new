@@ -10,6 +10,41 @@ import { obtenerInfoUsuario } from '../../api/Usuario';
 import darkStyles from '../../styles/Marketplace.module.css';
 import lightStyles from '../../styles/MarketplaceLight.module.css';
 
+// Componente de confirmación
+const ConfirmationModal = ({ isOpen, onConfirm, onCancel, dashboardName, styles }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onCancel}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>Confirmar Adquisición</h3>
+        </div>
+        <div className={styles.modalBody}>
+          <p className={styles.modalText}>
+            ¿Estás seguro de que quieres adquirir el dashboard <strong>"{dashboardName}"</strong>?
+          </p>
+        </div>
+        <div className={styles.modalActions}>
+          <button 
+            onClick={onCancel}
+            className={`${styles.button} ${styles.buttonSecondary}`}
+          >
+            <span className={styles.buttonText}>Cancelar</span>
+          </button>
+          <button 
+            onClick={onConfirm}
+            className={`${styles.button} ${styles.buttonPrimary}`}
+          >
+            <span className={styles.buttonIcon}>💎</span>
+            <span className={styles.buttonText}>Sí, Adquirir</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Componente de tarjeta mejorado
 const DashboardCard = ({ dash, adquirido, loading, onAcquire, onView, styles }) => (
   <div className={styles.card}>
@@ -36,7 +71,7 @@ const DashboardCard = ({ dash, adquirido, loading, onAcquire, onView, styles }) 
       <div className={styles.cardActions}>
         {!adquirido && (
           <button 
-            onClick={() => onAcquire(dash.id_producto)} 
+            onClick={() => onAcquire(dash.id_producto, dash.producto)} 
             disabled={loading}
             className={`${styles.button} ${styles.buttonPrimary} ${loading ? styles.buttonLoading : ''}`}
           >
@@ -68,15 +103,15 @@ export const Marketplace = () => {
   const [adquiridos, setAdquiridos] = useState([]);
   const [loadingIds, setLoadingIds] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
+  const [planId, setPlanId] = useState(null);
+  
+  // Estados para el modal de confirmación
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedDashboard, setSelectedDashboard] = useState(null);
+  
   const navigate = useNavigate();
 
-  // Actualizar estilos basado en tema
-  useEffect(() => {
-    // Si necesitas lógica específica por plan, puedes obtener planId aquí
-    // Por ahora usamos theme directamente
-    setStyles(theme === 'dark' ? darkStyles : lightStyles);
-  }, [theme]);
-
+  // 1) Traer info de usuario y plan al montar (igual que en SideBar)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -84,6 +119,10 @@ export const Marketplace = () => {
           obtenerInfoUsuario(),
           obtenerTodosLosDashboards()
         ]);
+        
+        // Extraer planId correctamente de la estructura de datos
+        const pid = userInfoData.empresa.plan.id;
+        setPlanId(pid);
         setUserInfo(userInfoData);
         setAdquiridos(userInfoData.productos.map(p => p.id_producto));
         setDashboards(allDashboards);
@@ -95,8 +134,31 @@ export const Marketplace = () => {
     loadData();
   }, []);
 
-  const handleAcquire = async (id) => {
+  // 2) Actualizar estilos cuando cambie planId o theme (igual que en SideBar)
+  useEffect(() => {
+    if (planId === 3 || planId === 6) {
+      // planes que permiten toggle
+      setStyles(theme === 'dark' ? darkStyles : lightStyles);
+    } else {
+      // otros planes: siempre dark
+      setStyles(darkStyles);
+    }
+  }, [theme, planId]);
+
+  // Función para mostrar confirmación
+  const handleAcquireClick = (id, productName) => {
+    setSelectedDashboard({ id, name: productName });
+    setShowConfirmation(true);
+  };
+
+  // Función para confirmar adquisición
+  const handleConfirmAcquire = async () => {
+    if (!selectedDashboard) return;
+    
+    const { id } = selectedDashboard;
     setLoadingIds(ids => [...ids, id]);
+    setShowConfirmation(false);
+    
     try {
       await adquirirDashboard(id);
       setAdquiridos(ids => [...ids, id]);
@@ -106,7 +168,14 @@ export const Marketplace = () => {
       alert(err.message);
     } finally {
       setLoadingIds(ids => ids.filter(x => x !== id));
+      setSelectedDashboard(null);
     }
+  };
+
+  // Función para cancelar confirmación
+  const handleCancelAcquire = () => {
+    setShowConfirmation(false);
+    setSelectedDashboard(null);
   };
 
   const handleView = (slug) => {
@@ -124,7 +193,7 @@ export const Marketplace = () => {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1 className={styles.title}>
-              <span className={styles.titleIcon}>🚀</span>
+              <span className={styles.titleIcon}></span>
               Marketplace
               <span className={styles.titleGlow}></span>
             </h1>
@@ -157,7 +226,7 @@ export const Marketplace = () => {
               dash={dash}
               adquirido={adquiridos.includes(dash.id_producto)}
               loading={loadingIds.includes(dash.id_producto)}
-              onAcquire={handleAcquire}
+              onAcquire={handleAcquireClick}
               onView={handleView}
               styles={styles}
             />
@@ -174,6 +243,15 @@ export const Marketplace = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Confirmación */}
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        onConfirm={handleConfirmAcquire}
+        onCancel={handleCancelAcquire}
+        dashboardName={selectedDashboard?.name || ''}
+        styles={styles}
+      />
     </div>
   );
 };

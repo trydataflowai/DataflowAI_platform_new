@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from '../../styles/Index.module.css';
-import { Link } from 'react-router-dom'; // Asegúrate de importar esto arriba
-//Funcion de index
+import { Link } from 'react-router-dom';
+
 const Index = () => {
     const sectionRefs = useRef([]);
     const [activeSection, setActiveSection] = useState(null);
@@ -22,8 +22,8 @@ const Index = () => {
                 });
             },
             {
-                threshold: 0.5, // Triggers when 50% of section is visible
-                rootMargin: '0px'
+                threshold: 0.3, // Reducido para mejor detección
+                rootMargin: '-80px 0px -80px 0px' // Ajuste para navbar fijo
             }
         );
 
@@ -35,31 +35,32 @@ const Index = () => {
         const handleSmoothScroll = (e) => {
             if (e.target.hash && e.target.getAttribute('href').startsWith('#')) {
                 e.preventDefault();
-                const target = document.querySelector(e.target.hash);
+                const targetId = e.target.hash.substring(1);
+                const target = document.getElementById(targetId);
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+                    const navbarHeight = 80; // Altura del navbar
+                    const targetPosition = target.offsetTop - navbarHeight;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
                     });
                 }
             }
         };
 
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        // Agregar event listeners a todos los enlaces de ancla
+        const anchors = document.querySelectorAll('a[href^="#"]');
+        anchors.forEach(anchor => {
             anchor.addEventListener('click', handleSmoothScroll);
         });
 
-        // Configure scroll snapping
-        document.documentElement.style.scrollSnapType = 'y mandatory';
-        document.querySelectorAll('section').forEach(section => {
-            section.style.scrollSnapAlign = 'start';
-        });
-
+        // Cleanup
         return () => {
             sectionRefs.current.forEach((ref) => {
                 if (ref) observer.unobserve(ref);
             });
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchors.forEach(anchor => {
                 anchor.removeEventListener('click', handleSmoothScroll);
             });
         };
@@ -103,7 +104,6 @@ const Index = () => {
 
             {/* Features Section */}
             <section className={`${styles.features} ${styles.section}`} id="features" ref={addToRefs}>
-
                 <div className={styles.container}>
                     <div className={styles['section-title']}>
                         <h2>Advanced <span>Features</span></h2>
@@ -179,11 +179,6 @@ const Index = () => {
                     </div>
 
                     <div className={styles['pricing-grid']}>
-
-
-
-
-
                         <div className={`${styles['pricing-card']} ${styles.basic}`}>
                             <div className={styles['pricing-header']}>
                                 <div className={styles['pricing-name']}>Basic</div>
@@ -223,7 +218,6 @@ const Index = () => {
                             </div>
                         </div>
 
-
                         <div className={`${styles['pricing-card']} ${styles.enterprise}`}>
                             <div className={styles['pricing-header']}>
                                 <div className={styles['pricing-name']}>Enterprise</div>
@@ -252,13 +246,6 @@ const Index = () => {
                                 </a>
                             </div>
                         </div>
-
-
-
-
-
-
-
                     </div>
                 </div>
             </section>
@@ -282,7 +269,6 @@ const Index = () => {
 
                     <div className={styles['business-image']}>
                         <div className={styles['solution-image-container']}>
-
                             <div className={styles['dynamic-dashboard']}>
                                 <div className={styles['dashboard-header']}>
                                     <div className={styles['dashboard-title']}>Performance Dashboard</div>
@@ -290,7 +276,6 @@ const Index = () => {
                                 </div>
 
                                 <div className={styles['dashboard-grid']}>
-
                                     <div className={styles['main-chart']}>
                                         <div className={styles['chart-title']}>Revenue vs Expenses</div>
                                         <div className={styles['chart-container']}>
@@ -317,7 +302,6 @@ const Index = () => {
                                         </div>
                                     </div>
 
-
                                     <div className={styles['kpi-card']}>
                                         <div className={styles['kpi-icon']}><i className="fas fa-user-plus"></i></div>
                                         <div className={styles['kpi-title']}>New Customers</div>
@@ -339,7 +323,6 @@ const Index = () => {
                                         <div className={styles['kpi-unit']}>%</div>
                                         <div className={`${styles['kpi-trend']} ${styles.down}`}>-1.2%</div>
                                     </div>
-
 
                                     <div className={styles.heatmap}>
                                         <div className={styles['heatmap-title']}>Activity by Region</div>
@@ -369,7 +352,6 @@ const Index = () => {
                                     </div>
                                 </div>
                             </div>
-
 
                             <div className={styles['data-streams']}>
                                 <div className={styles['data-stream']}></div>

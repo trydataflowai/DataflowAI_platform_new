@@ -1,4 +1,4 @@
-**Ejemplo donde si id del plab es 3 o 6 se cambia de color sino no.**
+**Ejemplo donde si id del plan es 3 o 6 se cambia de color sino no.**
 
 **EJEMPLO DE UN JSX:**
 
@@ -21,7 +21,6 @@ useEffect(() => {
     setStyles(darkStyles);
   }
 }, [theme, planId]);
-
 
 **Id del plan lo obtiene de acá:**
 
@@ -155,6 +154,233 @@ export const ThemeToggle = () => {
   --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-En el siguiente JSX damelo completo donde integres la funcionalidad de color y los dos css, por favor. Los tres códigos completos
+
+**Ejemplo del Sidebar**
+
+// src/components/layout/SideBar.jsx
+
+importReact,{useState,useEffect}from"react";
+
+import{useNavigate,useLocation}from"react-router-dom";
+
+import{cerrarSesion}from"../../api/Login";
+
+import{obtenerInfoUsuario}from"../../api/Usuario";
+
+importdarkStylesfrom"../../styles/SideBar.module.css";
+
+importlightStylesfrom"../../styles/SideBarLight.module.css";
+
+import{useTheme}from"../componentes/ThemeContext";
+
+import{ThemeToggle}from"../componentes/ThemeToggle";
+
+exportconstSideBar=()=>{
+
+  constnavigate=useNavigate();
+
+  const{pathname}=useLocation();
+
+  const{theme}=useTheme();
+
+  const[collapsed,setCollapsed]=useState(false);
+
+  const[companyName,setCompanyName]=useState("DataFlow AI");
+
+  const[planId,setPlanId]=useState(null);
+
+  const[planName,setPlanName]=useState("");
+
+  const[styles,setStyles]=useState(darkStyles);
+
+  // 1) Traer info de usuario y plan al montar
+
+  useEffect(()=>{
+
+    asyncfunctionfetchUsuario(){
+
+    constuser=awaitobtenerInfoUsuario();
+
+    constpid=user.empresa.plan.id;
+
+    setPlanId(pid);
+
+    setPlanName(user.empresa.plan.tipo);
+
+    setCompanyName((pid===3||pid===6)?user.empresa.nombre:"DataFlow AI");
+
+    }
+
+    fetchUsuario();
+
+  },[]);
+
+  // 2) Actualizar estilos cuando cambie planId o theme
+
+  useEffect(()=>{
+
+    if(planId===3||planId===6){
+
+    // planes que permiten toggle
+
+    setStyles(theme==="dark"?darkStyles:lightStyles);
+
+    }else{
+
+    // otros planes: siempre dark
+
+    setStyles(darkStyles);
+
+    }
+
+  },[theme,planId]);
+
+  consthandleLogout=()=>{
+
+    cerrarSesion();
+
+    navigate("/");
+
+  };
+
+  consthandleLogoClick=()=>navigate("/homeLogin#home");
+
+  consttoggleCollapsed=()=>setCollapsed(c=>!c);
+
+  constlinks=[
+
+    {to:"/homeLogin#home",icon:"🏠",label:"Home"},
+
+    {to:"/home",        icon:"📊",label:"Dashboards"},
+
+    {to:"/marketplace",icon:"🛒",label:"Marketplace"},
+
+    {to:"/ai-insights",icon:"🤖",label:"AI Insights"},
+
+    {to:"/support",     icon:"🆘",label:"Support"},
+
+    {to:"/profile",     icon:"👤",label:"Profile"},
+
+  ];
+
+  return(
+
+    [asideclassName={`${styles.sidebar}${collapsed?styles.collapsed:&#34;&#34;}`}](asideclassName=%7B%60$%7Bstyles.sidebar%7D$%7Bcollapsed?styles.collapsed:%22%22%7D%60%7D)
+
+    <divclassName={styles.logoContainer}>
+
+    <button
+
+    className={styles.logoButton}
+
+    onClick={handleLogoClick}
+
+    aria-label="View Home"
+
+    >
+
+    <pclassName={styles.logoText}>{companyName}`</p>`
+
+    `</button>`
+
+    `</div>`
+
+    {/* Solo en planes 3 y 6 */}
+
+    {(planId===3||planId===6)&&(
+
+    <divclassName={styles.toggleThemeWrapper}>
+
+    `<ThemeToggle/>`
+
+    `</div>`
+
+    )}
+
+    <navclassName={styles.nav}>
+
+    {links.map(({to,icon,label})=>(
+
+    <button
+
+    key={to}
+
+    className={`${styles.button}${
+
+    pathname===to?styles.active:""
+
+    }`}
+
+    onClick={()=>navigate(to)}
+
+    aria-label={`View ${label}`}
+
+    >
+
+    <spanclassName={`${styles.icon}${styles.emojiWhite}`}>{icon}
+
+    <spanclassName={styles.text}>{label}
+
+    <spanclassName={styles.highlight}/>
+
+    `</button>`
+
+    ))}
+
+    <button
+
+    className={styles.button}
+
+    onClick={handleLogout}
+
+    aria-label="Log out"
+
+    >
+
+    <spanclassName={`${styles.icon}${styles.emojiWhite}`}>🚪
+
+    <spanclassName={styles.text}>Log out
+
+    <spanclassName={styles.highlight}/>
+
+    `</button>`
+
+    `</nav>`
+
+    <divclassName={styles.toggleContainer}>
+
+    <button
+
+    className={styles.toggleButton}
+
+    onClick={toggleCollapsed}
+
+    aria-label={collapsed?"Expand sidebar":"Collapse sidebar"}
+
+    >
+
+    {collapsed?"➡️":"⬅️"}
+
+    `</button>`
+
+    `</div>`
+
+    <divclassName={styles.footer}>
+
+    {planName&&<pclassName={styles.planText}>{planName}`</p>`}
+
+    <divclassName={styles.accentLine}/>
+
+    <pclassName={styles.footerText}>By DataFlow AI`</p>`
+
+    `</div>`
+
+    `</aside>`
+
+  );
+
+};
+
+**En el siguiente JSX damelo completo donde integres la funcionalidad de color y los dos css, por favor. Los tres códigos completos**
 
 PEGAR ACÁ EL JSX A CONVERTIR
