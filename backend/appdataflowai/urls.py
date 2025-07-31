@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     LoginView,
     ProductosUsuarioView,
-    ImportarDatosView,
+    
     UsuarioInfoView,
     ProductoListView,
     AdquirirDashboardView,
@@ -19,6 +19,10 @@ from .views import (
     DashboardVentasDataflowView,
 
     DashboardVentasView,
+
+
+    ImportarDatosView,
+    EstadoImportacionView,
 )
 
 urlpatterns = [
@@ -30,7 +34,7 @@ urlpatterns = [
     # --- Productos ---
     path('productos/', ProductoListView.as_view(), name='producto-list'),
     path('productos/adquirir/', AdquirirDashboardView.as_view(), name='producto-adquirir'),
-    path('importar/<int:id_producto>/', ImportarDatosView.as_view(), name='importar-datos'),
+  
 
     # --- Empresa & Catálogos ---
     path('empresas/', EmpresaCreateAPIView.as_view(), name='empresa-create'),
@@ -51,6 +55,11 @@ urlpatterns = [
     path('dashboard-dataflow/', DashboardVentasDataflowView.as_view(), name='dashboard-dataflow'),
 
     path('dashboard-ventas/', DashboardVentasView.as_view(), name='dashboard-ventas'),
+
+
+
+    path('importar/<int:id_producto>/', ImportarDatosView.as_view(), name='importar-datos'),
+    path('estado-importacion/<int:id_producto>/', EstadoImportacionView.as_view(), name='estado-importacion'),
 
 ]
     

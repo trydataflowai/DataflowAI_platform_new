@@ -15,6 +15,9 @@ import HomeLogin from "../components/pages/HomeLogin";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
+
+import ConfiguracionesDashboard from "../components/pages/ConfiguracionesDashboard";
+
 import CreacionEmpresa from "../components/pages/CreacionEmpresa";
 import PagosStripe from "../components/pages/PagosStripe";
 
@@ -114,6 +117,19 @@ export const Rutas = () => (
             </RutaProtegida>
           }
         />
+
+
+        <Route
+          path="/configuraciones-dashboard"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <ConfiguracionesDashboard />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
 
       </Routes>
     </ThemeProvider>

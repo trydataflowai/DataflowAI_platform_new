@@ -19,13 +19,7 @@ from .models import (
     DashboardVentasDataflow
 )
 
-# Diccionario que mapea el ID del producto con el modelo correspondiente en base de datos.
-PRODUCTO_MODELO_MAP = {
-    1: DashboardVentasColtrade,
-    2: DashboardVentasLoop,
-    3: DashboardVentasDataflow,
-    # Se pueden agregar más productos en el futuro si es necesario.
-}
+
 
 
 class LoginView(APIView):
@@ -191,57 +185,7 @@ class ProductosUsuarioView(APIView):
 
 
 
-class ImportarDatosView(APIView):
-    """
-    Vista que permite importar datos desde un archivo Excel (.xlsx),
-    asociándolos al modelo correspondiente según el ID del producto.
-    Solo se importan columnas que coinciden con los campos del modelo.
-    """
-    parser_classes = [MultiPartParser]
 
-    def post(self, request, id_producto):
-        modelo = PRODUCTO_MODELO_MAP.get(int(id_producto))
-        if not modelo:
-            return Response({'error': 'ID de producto no válido'}, status=400)
-
-        archivo = request.FILES.get('archivo')
-        if not archivo:
-            return Response({'error': 'No se proporcionó archivo'}, status=400)
-
-        try:
-            # Carga del archivo Excel y normalización de nombres de columnas
-            df = pd.read_excel(archivo)
-            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
-
-            # Obtención de los campos válidos del modelo (excluyendo el ID autogenerado)
-            campos_modelo = [
-                field.name for field in modelo._meta.fields
-                if not isinstance(field, models.AutoField)
-            ]
-            columnas_excel = df.columns.tolist()
-            campos_validos = [c for c in campos_modelo if c in columnas_excel]
-
-            if not campos_validos:
-                return Response({'error': 'El archivo no contiene columnas válidas para el modelo'}, status=400)
-
-            registros_creados = 0
-
-            # Iteración por cada fila del Excel para insertar en la base de datos
-            for index, row in df.iterrows():
-                datos = {
-                    campo: None if pd.isna(row[campo]) else row[campo]
-                    for campo in campos_validos
-                }
-                try:
-                    modelo.objects.create(**datos)
-                    registros_creados += 1
-                except Exception as e:
-                    return Response({'error': f'Error en la fila {index+2}: {str(e)}'}, status=500)
-
-            return Response({'mensaje': f'{registros_creados} registros importados correctamente'})
-
-        except Exception as e:
-            return Response({'error': f'Error al procesar archivo: {str(e)}'}, status=500)
 
 
 
@@ -500,7 +444,6 @@ from rest_framework.authentication import get_authorization_header
 import jwt
 from django.conf import settings
 from django.utils.dateparse import parse_date
-
 from .models import DashboardVentasDataflow
 from .serializers import DashboardVentasDataflowSerializer
 
@@ -585,3 +528,260 @@ class DashboardVentasView(APIView):
         # 3. Serializar
         serializer = DashboardVentasSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+# appdataflowai/views.py
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser
+from rest_framework.authentication import get_authorization_header
+import jwt
+from django.conf import settings
+import pandas as pd
+from django.db import models
+import logging
+
+# Importar los modelos
+from .models import (
+    DashboardVentasDataflow, 
+    DashboardVentas, 
+    DashboardVentasColtrade, 
+    DashboardVentasLoop
+)
+
+# Configurar logging
+logger = logging.getLogger(__name__)
+
+# Mapeo de productos a modelos
+PRODUCTO_MODELO_MAP = {
+
+    5: DashboardVentasDataflow,
+    4: DashboardVentas,  # Agregado el nuevo modelo
+    # Se pueden agregar más productos en el futuro si es necesario.
+}
+
+class ImportarDatosView(APIView):
+    """
+    Vista que permite importar datos desde un archivo Excel (.xlsx),
+    asociándolos al modelo correspondiente según el ID del producto.
+    Solo se importan columnas que coinciden con los campos del modelo.
+    Incluye autenticación JWT y manejo mejorado de errores.
+    """
+    parser_classes = [MultiPartParser]
+
+    def post(self, request, id_producto):
+        # 1. Autenticación JWT
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Validar modelo
+        modelo = PRODUCTO_MODELO_MAP.get(int(id_producto))
+        if not modelo:
+            logger.warning(f"ID de producto no válido: {id_producto}")
+            return Response({
+                'error': f'ID de producto no válido: {id_producto}. IDs válidos: {list(PRODUCTO_MODELO_MAP.keys())}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. Validar archivo
+        archivo = request.FILES.get('archivo')
+        if not archivo:
+            return Response({'error': 'No se proporcionó archivo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar extensión del archivo
+        if not archivo.name.lower().endswith(('.xlsx', '.xls')):
+            return Response({
+                'error': 'Formato de archivo no válido. Solo se permiten archivos Excel (.xlsx, .xls)'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar tamaño del archivo (máximo 10MB)
+        max_size = 10 * 1024 * 1024  # 10MB
+        if archivo.size > max_size:
+            return Response({
+                'error': f'El archivo es demasiado grande. Máximo permitido: 10MB'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # 4. Procesar archivo Excel
+            logger.info(f"Iniciando importación para producto {id_producto}, archivo: {archivo.name}")
+            
+            # Leer el archivo Excel
+            df = pd.read_excel(archivo)
+            
+            # Validar que el archivo no esté vacío
+            if df.empty:
+                return Response({'error': 'El archivo Excel está vacío'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Normalizar nombres de columnas
+            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('-', '_')
+
+            # 5. Obtener campos válidos del modelo
+            campos_modelo = []
+            campos_foraneos = {}
+            
+            for field in modelo._meta.fields:
+                if not isinstance(field, models.AutoField):
+                    campo_nombre = field.name
+                    campos_modelo.append(campo_nombre)
+                    
+                    # Si es una clave foránea, guardar información
+                    if isinstance(field, models.ForeignKey):
+                        campos_foraneos[campo_nombre] = field.related_model
+
+            # 6. Identificar columnas válidas
+            columnas_excel = df.columns.tolist()
+            campos_validos = [c for c in campos_modelo if c in columnas_excel]
+
+            if not campos_validos:
+                return Response({
+                    'error': 'El archivo no contiene columnas válidas para el modelo',
+                    'campos_esperados': campos_modelo,
+                    'columnas_encontradas': columnas_excel
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # 7. Procesar y crear registros
+            registros_creados = 0
+            errores = []
+            
+            logger.info(f"Procesando {len(df)} filas...")
+
+            for index, row in df.iterrows():
+                try:
+                    # Preparar datos para inserción
+                    datos = {}
+                    for campo in campos_validos:
+                        valor = row[campo]
+                        
+                        # Manejar valores nulos/NaN
+                        if pd.isna(valor):
+                            datos[campo] = None
+                        else:
+                            # Procesar según el tipo de campo
+                            field = modelo._meta.get_field(campo)
+                            
+                            if isinstance(field, models.DateField):
+                                # Convertir a fecha si es necesario
+                                if isinstance(valor, str):
+                                    try:
+                                        datos[campo] = pd.to_datetime(valor).date()
+                                    except:
+                                        datos[campo] = valor
+                                else:
+                                    datos[campo] = valor
+                            elif isinstance(field, models.TimeField):
+                                # Convertir a tiempo si es necesario
+                                if isinstance(valor, str):
+                                    try:
+                                        datos[campo] = pd.to_datetime(valor).time()
+                                    except:
+                                        datos[campo] = valor
+                                else:
+                                    datos[campo] = valor
+                            elif isinstance(field, models.DecimalField):
+                                # Asegurar que sea numérico
+                                try:
+                                    datos[campo] = float(valor) if valor != '' else None
+                                except:
+                                    datos[campo] = None
+                            elif isinstance(field, models.IntegerField):
+                                # Asegurar que sea entero
+                                try:
+                                    datos[campo] = int(float(valor)) if valor != '' else None
+                                except:
+                                    datos[campo] = None
+                            else:
+                                datos[campo] = valor
+
+                    # Crear el registro
+                    modelo.objects.create(**datos)
+                    registros_creados += 1
+
+                except Exception as e:
+                    error_msg = f'Error en la fila {index + 2}: {str(e)}'
+                    errores.append(error_msg)
+                    logger.error(error_msg)
+                    
+                    # Si hay demasiados errores, detener el proceso
+                    if len(errores) > 50:  # Máximo 50 errores
+                        errores.append('Se detuvieron las importaciones debido a demasiados errores')
+                        break
+
+            # 8. Preparar respuesta
+            respuesta = {
+                'mensaje': f'{registros_creados} registros importados correctamente',
+                'registros_creados': registros_creados,
+                'total_filas': len(df),
+                'campos_importados': campos_validos
+            }
+
+            if errores:
+                respuesta['errores'] = errores[:10]  # Solo mostrar primeros 10 errores
+                respuesta['total_errores'] = len(errores)
+
+            logger.info(f"Importación completada: {registros_creados} registros creados, {len(errores)} errores")
+            
+            return Response(respuesta, status=status.HTTP_200_OK)
+
+        except pd.errors.EmptyDataError:
+            return Response({'error': 'El archivo Excel está vacío o corrupto'}, status=status.HTTP_400_BAD_REQUEST)
+        except pd.errors.ParserError as e:
+            return Response({'error': f'Error al leer el archivo Excel: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error inesperado en importación: {str(e)}")
+            return Response({'error': f'Error interno del servidor: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EstadoImportacionView(APIView):
+    """
+    Vista opcional para obtener estadísticas de importación de un producto específico
+    """
+    def get(self, request, id_producto):
+        # Autenticación JWT
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Validar modelo
+        modelo = PRODUCTO_MODELO_MAP.get(int(id_producto))
+        if not modelo:
+            return Response({'error': 'ID de producto no válido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Obtener estadísticas
+            total_registros = modelo.objects.count()
+            
+            # Obtener información del modelo
+            campos_modelo = [field.name for field in modelo._meta.fields if not isinstance(field, models.AutoField)]
+            
+            return Response({
+                'id_producto': id_producto,
+                'modelo': modelo.__name__,
+                'total_registros': total_registros,
+                'campos_disponibles': campos_modelo,
+                'tabla_bd': modelo._meta.db_table
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error al obtener estado de importación: {str(e)}")
+            return Response({'error': f'Error interno: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
