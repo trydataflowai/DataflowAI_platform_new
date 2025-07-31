@@ -258,10 +258,9 @@ class DashboardVentasColtrade(models.Model):
 
 class DashboardVentasDataflow(models.Model):
     id_registro = models.AutoField(
-    primary_key=True,
-    db_column='id_registro'
+        primary_key=True,
+        db_column='id_registro'
     )
-
     id_punto_venta = models.CharField(
         max_length=150,
         db_column='id_punto_venta'
@@ -286,7 +285,6 @@ class DashboardVentasDataflow(models.Model):
 
     def __str__(self):
         return f"{self.punto_venta} - {self.fecha_entrega}"
-    
 
 
 #DASHBOARD VENTAS para implementación usando React y Django, sin usar Power BI
