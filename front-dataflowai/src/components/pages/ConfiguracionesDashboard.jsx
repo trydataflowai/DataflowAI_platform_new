@@ -11,7 +11,7 @@ const ConfiguracionesDashboard = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   
-  // Estados
+  // States
   const [archivoSeleccionado, setArchivoSeleccionado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
@@ -20,7 +20,7 @@ const ConfiguracionesDashboard = () => {
   const [planId, setPlanId] = useState(null);
   const [styles, setStyles] = useState(darkStyles);
 
-  // Obtener información del usuario y plan
+  // Get user and plan information
   useEffect(() => {
     const fetchUsuario = async () => {
       try {
@@ -28,19 +28,19 @@ const ConfiguracionesDashboard = () => {
         const pid = user.empresa.plan.id;
         setPlanId(pid);
       } catch (error) {
-        console.error('Error al obtener info del usuario:', error);
+        console.error('Error getting user info:', error);
       }
     };
     fetchUsuario();
   }, []);
 
-  // Actualizar estilos según el plan y el tema
+  // Update styles according to plan and theme
   useEffect(() => {
     if (planId === 3 || planId === 6) {
-      // Planes que permiten cambiar el tema
+      // Plans that allow theme change
       setStyles(theme === 'dark' ? darkStyles : lightStyles);
     } else {
-      // Otros planes: siempre modo oscuro
+      // Other plans: always dark mode
       setStyles(darkStyles);
     }
   }, [theme, planId]);
@@ -63,7 +63,7 @@ const ConfiguracionesDashboard = () => {
         setArchivoSeleccionado(archivo);
         setMensaje('');
       } else {
-        setMensaje('Por favor selecciona un archivo Excel (.xlsx o .xls)');
+        setMensaje('Please select an Excel file (.xlsx or .xls)');
         setTipoMensaje('error');
         setArchivoSeleccionado(null);
       }
@@ -72,7 +72,7 @@ const ConfiguracionesDashboard = () => {
 
   const handleImportar = async () => {
     if (!archivoSeleccionado || !idProducto) {
-      setMensaje('Debe seleccionar un archivo y tener un producto válido');
+      setMensaje('You must select a file and have a valid product');
       setTipoMensaje('error');
       return;
     }
@@ -82,7 +82,7 @@ const ConfiguracionesDashboard = () => {
 
     try {
       const respuesta = await importarArchivoDashboard(idProducto, archivoSeleccionado);
-      setMensaje(respuesta.mensaje || 'Archivo importado correctamente');
+      setMensaje(respuesta.mensaje || 'File imported successfully');
       setTipoMensaje('success');
       setArchivoSeleccionado(null);
       const fileInput = document.getElementById('archivo-input');
@@ -90,7 +90,7 @@ const ConfiguracionesDashboard = () => {
         fileInput.value = '';
       }
     } catch (error) {
-      setMensaje(error.message || 'Error al importar el archivo');
+      setMensaje(error.message || 'Error importing file');
       setTipoMensaje('error');
     } finally {
       setCargando(false);
@@ -117,15 +117,15 @@ const ConfiguracionesDashboard = () => {
               </svg>
             </div>
             <div>
-              <h1 className={styles.title}>Configuraciones del Dashboard</h1>
-              <p className={styles.subtitle}>Gestiona e importa tus datos de manera eficiente</p>
+              <h1 className={styles.title}>Dashboard Settings</h1>
+              <p className={styles.subtitle}>Manage and import your data efficiently</p>
             </div>
           </div>
-          <button onClick={handleVolver} className={styles.backButton} aria-label="Volver al inicio">
+          <button onClick={handleVolver} className={styles.backButton} aria-label="Back to home">
             <svg viewBox="0 0 24 24" className={styles.backIcon}>
               <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
             </svg>
-            <span>Volver</span>
+            <span>Back</span>
           </button>
         </div>
       </div>
@@ -138,10 +138,10 @@ const ConfiguracionesDashboard = () => {
                 <svg viewBox="0 0 24 24" className={styles.cardIcon}>
                   <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
                 </svg>
-                <h2>Importar Datos</h2>
+                <h2>Import Data</h2>
               </div>
               <p className={styles.cardDescription}>
-                Selecciona un archivo Excel para importar datos al dashboard. El archivo debe contener columnas que correspondan a los campos del modelo.
+                Select an Excel file to import data to the dashboard. The file must contain columns that correspond to the model fields.
               </p>
             </div>
 
@@ -156,10 +156,10 @@ const ConfiguracionesDashboard = () => {
                     </div>
                     <div className={styles.uploadText}>
                       <span className={styles.uploadTitle}>
-                        {archivoSeleccionado ? archivoSeleccionado.name : 'Arrastra tu archivo aquí'}
+                        {archivoSeleccionado ? archivoSeleccionado.name : 'Drag your file here'}
                       </span>
                       <span className={styles.uploadSubtitle}>
-                        o haz clic para seleccionar un archivo Excel (.xlsx, .xls)
+                        or click to select an Excel file (.xlsx, .xls)
                       </span>
                     </div>
                   </div>
@@ -195,7 +195,7 @@ const ConfiguracionesDashboard = () => {
                         document.getElementById('archivo-input').value = '';
                       }}
                       className={styles.removeFile}
-                      aria-label="Remover archivo"
+                      aria-label="Remove file"
                     >
                       <svg viewBox="0 0 24 24">
                         <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
@@ -214,14 +214,14 @@ const ConfiguracionesDashboard = () => {
                   {cargando ? (
                     <>
                       <div className={styles.spinner}></div>
-                      <span>Importando...</span>
+                      <span>Importing...</span>
                     </>
                   ) : (
                     <>
                       <svg viewBox="0 0 24 24" className={styles.buttonIcon}>
                         <path fill="currentColor" d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
                       </svg>
-                      <span>Importar Datos</span>
+                      <span>Import Data</span>
                     </>
                   )}
                 </button>
@@ -235,7 +235,7 @@ const ConfiguracionesDashboard = () => {
                     <svg viewBox="0 0 24 24" className={styles.buttonIcon}>
                       <path fill="currentColor" d="M5,20H19V18H5V20M9,4V14H15V4H19L12,0L5,4H9Z" />
                     </svg>
-                    <span>Descargar Plantilla</span>
+                    <span>Download Template</span>
                   </a>
                 )}
               </div>
@@ -255,7 +255,7 @@ const ConfiguracionesDashboard = () => {
                       )}
                     </div>
                     <span className={styles.mensajeText}>{mensaje}</span>
-                    <button onClick={limpiarMensaje} className={styles.mensajeClose} aria-label="Cerrar mensaje">
+                    <button onClick={limpiarMensaje} className={styles.mensajeClose} aria-label="Close message">
                       <svg viewBox="0 0 24 24">
                         <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
                       </svg>
@@ -273,35 +273,35 @@ const ConfiguracionesDashboard = () => {
               <svg viewBox="0 0 24 24" className={styles.infoIcon}>
                 <path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
               </svg>
-              <h3>Proceso de Importación</h3>
+              <h3>Import Process</h3>
             </div>
             <div className={styles.processSteps}>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>1</div>
                 <div className={styles.stepContent}>
-                  <div className={styles.stepTitle}>Validación</div>
-                  <div className={styles.stepDescription}>El sistema validará que el archivo sea de formato Excel</div>
+                  <div className={styles.stepTitle}>Validation</div>
+                  <div className={styles.stepDescription}>The system will validate that the file is in Excel format</div>
                 </div>
               </div>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>2</div>
                 <div className={styles.stepContent}>
-                  <div className={styles.stepTitle}>Normalización</div>
-                  <div className={styles.stepDescription}>Se normalizarán los nombres de las columnas</div>
+                  <div className={styles.stepTitle}>Normalization</div>
+                  <div className={styles.stepDescription}>Column names will be normalized</div>
                 </div>
               </div>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>3</div>
                 <div className={styles.stepContent}>
-                  <div className={styles.stepTitle}>Coincidencias</div>
-                  <div className={styles.stepDescription}>Solo se importarán las columnas que coincidan con el modelo</div>
+                  <div className={styles.stepTitle}>Matching</div>
+                  <div className={styles.stepDescription}>Only columns that match the model will be imported</div>
                 </div>
               </div>
               <div className={styles.step}>
                 <div className={styles.stepNumber}>4</div>
                 <div className={styles.stepContent}>
-                  <div className={styles.stepTitle}>Creación</div>
-                  <div className={styles.stepDescription}>Se creará un registro por cada fila del archivo</div>
+                  <div className={styles.stepTitle}>Creation</div>
+                  <div className={styles.stepDescription}>A record will be created for each row in the file</div>
                 </div>
               </div>
             </div>
@@ -312,7 +312,7 @@ const ConfiguracionesDashboard = () => {
               <svg viewBox="0 0 24 24" className={styles.tipsIcon}>
                 <path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z" />
               </svg>
-              <h3>Consejos Útiles</h3>
+              <h3>Useful Tips</h3>
             </div>
             <div className={styles.tipsList}>
               <div className={styles.tip}>
@@ -321,7 +321,7 @@ const ConfiguracionesDashboard = () => {
                     <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" />
                   </svg>
                 </div>
-                <span>Revisa que tu archivo no tenga filas vacías</span>
+                <span>Check that your file doesn't have empty rows</span>
               </div>
               <div className={styles.tip}>
                 <div className={styles.tipIcon}>
@@ -329,7 +329,7 @@ const ConfiguracionesDashboard = () => {
                     <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" />
                   </svg>
                 </div>
-                <span>Asegúrate de que las fechas estén en formato correcto</span>
+                <span>Make sure dates are in the correct format</span>
               </div>
               <div className={styles.tip}>
                 <div className={styles.tipIcon}>
@@ -337,7 +337,7 @@ const ConfiguracionesDashboard = () => {
                     <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" />
                   </svg>
                 </div>
-                <span>Los campos numéricos no deben contener texto</span>
+                <span>Numeric fields shouldn't contain text</span>
               </div>
               <div className={styles.tip}>
                 <div className={styles.tipIcon}>
@@ -345,7 +345,7 @@ const ConfiguracionesDashboard = () => {
                     <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" />
                   </svg>
                 </div>
-                <span>Haz una copia de seguridad antes de importar</span>
+                <span>Make a backup before importing</span>
               </div>
             </div>
           </div>
