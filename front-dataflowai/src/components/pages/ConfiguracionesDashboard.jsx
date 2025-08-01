@@ -98,7 +98,7 @@ const ConfiguracionesDashboard = () => {
   };
 
   const handleVolver = () => {
-    navigate('/home-dashboard');
+    navigate('/home');
   };
 
   const limpiarMensaje = () => {

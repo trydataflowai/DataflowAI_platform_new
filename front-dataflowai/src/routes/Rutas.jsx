@@ -26,6 +26,7 @@ import DashboardVentas from "../components/dashboards/DashboardVentas";
 import DashboardFinanzas from "../components/dashboards/DashboardFinanzas";
 import DashboardCompras from "../components/dashboards/DashboardCompras";
 
+
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
 
@@ -141,6 +142,7 @@ export const Rutas = () => (
             </RutaProtegida>
           }
         />
+
 
 
         <Route
