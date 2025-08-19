@@ -111,15 +111,14 @@ from django.db import models
 
 class Producto(models.Model):
     CATEGORIA_CHOICES = [
-        ('software', 'Software'),
-        ('servicio', 'Servicio'),
-        ('herramienta', 'Herramienta'),
+        ('javascript', 'Javascript'),
+        ('power', 'Power'),
     ]
 
     TIPO_PRODUCTO_CHOICES = [
-        ('suscripcion', 'Suscripción'),
-        ('pago_unico', 'Pago Único'),
-        ('demo', 'Versión Demo'),
+        ('publico', 'Publico'),
+        ('privado', 'Privado'),
+
     ]
 
     id_producto = models.AutoField(primary_key=True, db_column='id_producto')
@@ -148,9 +147,21 @@ class Producto(models.Model):
         db_column='tipo_producto'
     )
 
-    id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
+    id_estado = models.ForeignKey(
+        Estado, 
+        on_delete=models.PROTECT, 
+        db_column='id_estado'
+    )
 
     iframe = models.CharField(max_length=500, db_column='iframe')
+
+    # Nuevo campo para links Power BI u otros
+    link_pb = models.URLField(
+        max_length=500,
+        db_column='link_pb',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         db_table = 'productos'

@@ -10,10 +10,9 @@ import { obtenerInfoUsuario } from '../../api/Usuario';
 import darkStyles from '../../styles/Marketplace.module.css';
 import lightStyles from '../../styles/MarketplaceLight.module.css';
 
-// Confirmation component
+// Confirmation modal
 const ConfirmationModal = ({ isOpen, onConfirm, onCancel, dashboardName, styles }) => {
   if (!isOpen) return null;
-
   return (
     <div className={styles.modalOverlay} onClick={onCancel}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -45,7 +44,7 @@ const ConfirmationModal = ({ isOpen, onConfirm, onCancel, dashboardName, styles 
   );
 };
 
-// Enhanced card component
+// Dashboard card
 const DashboardCard = ({ dash, adquirido, loading, onAcquire, onView, styles }) => (
   <div className={styles.card}>
     <div className={styles.cardGlow}></div>
@@ -95,7 +94,7 @@ const DashboardCard = ({ dash, adquirido, loading, onAcquire, onView, styles }) 
   </div>
 );
 
-// Main Marketplace page
+// Main Marketplace component
 export const Marketplace = () => {
   const { theme, isInitialized } = useTheme();
   const [styles, setStyles] = useState(darkStyles);
@@ -104,14 +103,10 @@ export const Marketplace = () => {
   const [loadingIds, setLoadingIds] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [planId, setPlanId] = useState(null);
-  
-  // States for confirmation modal
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedDashboard, setSelectedDashboard] = useState(null);
-  
   const navigate = useNavigate();
 
-  // 1) Get user and plan info on mount (same as in SideBar)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -119,13 +114,29 @@ export const Marketplace = () => {
           obtenerInfoUsuario(),
           obtenerTodosLosDashboards()
         ]);
-        
-        // Extract planId correctly from data structure
-        const pid = userInfoData.empresa.plan.id;
+
+        const pid = userInfoData?.empresa?.plan?.id;
         setPlanId(pid);
         setUserInfo(userInfoData);
-        setAdquiridos(userInfoData.productos.map(p => p.id_producto));
-        setDashboards(allDashboards);
+        setAdquiridos((userInfoData?.productos || []).map(p => p.id_producto));
+
+        // ------------------------
+        // FILTRADO: EXCLUIR "enterprise" Y "privado"
+        // - No mostrar productos cuyo tipo sea "enterprise" ni "privado".
+        // - Compara en minúsculas y revisa campos alternativos por si acaso.
+        // ------------------------
+        const filtered = (allDashboards || []).filter(d => {
+          const tipo = (d.tipo_producto || '').toString().trim().toLowerCase();
+          const tipoAlt = (d.tipo_producto_display || d.tipo_producto_label || '').toString().trim().toLowerCase();
+
+          // Excluir si es "enterprise" o "privado"
+          if (tipo === 'enterprise' || tipo === 'privado') return false;
+          if (tipoAlt === 'enterprise' || tipoAlt === 'privado') return false;
+
+          return true;
+        });
+
+        setDashboards(filtered);
       } catch (error) {
         console.error('Error loading marketplace data:', error);
       }
@@ -134,48 +145,38 @@ export const Marketplace = () => {
     loadData();
   }, []);
 
-  // 2) Update styles when theme is initialized and planId changes
   useEffect(() => {
-    // Solo actualizar estilos cuando el tema esté inicializado
     if (!isInitialized) return;
-    
     if (planId === 3 || planId === 6) {
-      // plans that allow toggle
       setStyles(theme === 'dark' ? darkStyles : lightStyles);
     } else {
-      // other plans: always dark
       setStyles(darkStyles);
     }
   }, [theme, planId, isInitialized]);
 
-  // Function to show confirmation
   const handleAcquireClick = (id, productName) => {
     setSelectedDashboard({ id, name: productName });
     setShowConfirmation(true);
   };
 
-  // Function to confirm acquisition
   const handleConfirmAcquire = async () => {
     if (!selectedDashboard) return;
-    
     const { id } = selectedDashboard;
     setLoadingIds(ids => [...ids, id]);
     setShowConfirmation(false);
-    
     try {
       await adquirirDashboard(id);
       setAdquiridos(ids => [...ids, id]);
       const dash = dashboards.find(d => d.id_producto === id);
-      navigate(`/${dash.slug}`);
+      if (dash) navigate(`/${dash.slug}`);
     } catch (err) {
-      alert(err.message);
+      alert(err.message || 'Error acquiring dashboard');
     } finally {
       setLoadingIds(ids => ids.filter(x => x !== id));
       setSelectedDashboard(null);
     }
   };
 
-  // Function to cancel confirmation
   const handleCancelAcquire = () => {
     setShowConfirmation(false);
     setSelectedDashboard(null);
@@ -189,7 +190,6 @@ export const Marketplace = () => {
   const adquiridosCount = adquiridos.length;
   const availableCount = dashboards.length - adquiridosCount;
 
-  // Mostrar un loading mínimo mientras se inicializa el tema
   if (!isInitialized) {
     return (
       <div style={{ 
@@ -208,7 +208,6 @@ export const Marketplace = () => {
   return (
     <div className={`${styles.marketplace} ${isInitialized ? 'theme-loaded' : 'theme-loading'}`}>
       <div className={styles.container}>
-        {/* Marketplace Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1 className={styles.title}>
@@ -237,7 +236,6 @@ export const Marketplace = () => {
           </div>
         </div>
 
-        {/* Dashboards Grid */}
         <div className={styles.grid}>
           {dashboards.map(dash => (
             <DashboardCard
@@ -263,7 +261,6 @@ export const Marketplace = () => {
         )}
       </div>
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={showConfirmation}
         onConfirm={handleConfirmAcquire}

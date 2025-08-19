@@ -4,10 +4,21 @@ from .models import Producto
 
 class ProductoSerializer(serializers.ModelSerializer):
     estado = serializers.CharField(source='id_estado.estado')  # Mostrar nombre del estado
+    categoria_producto = serializers.CharField(source='get_categoria_producto_display')
+    tipo_producto = serializers.CharField(source='get_tipo_producto_display')
 
     class Meta:
         model = Producto
-        fields = ['id_producto', 'producto', 'estado', 'slug', 'iframe']
+        fields = [
+            'id_producto',
+            'producto',
+            'estado',
+            'slug',
+            'iframe',
+            'link_pb',
+            'categoria_producto',
+            'tipo_producto',
+        ]
 
 
 
