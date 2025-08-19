@@ -97,7 +97,7 @@ const DashboardCard = ({ dash, adquirido, loading, onAcquire, onView, styles }) 
 
 // Main Marketplace page
 export const Marketplace = () => {
-  const { theme } = useTheme();
+  const { theme, isInitialized } = useTheme();
   const [styles, setStyles] = useState(darkStyles);
   const [dashboards, setDashboards] = useState([]);
   const [adquiridos, setAdquiridos] = useState([]);
@@ -134,8 +134,11 @@ export const Marketplace = () => {
     loadData();
   }, []);
 
-  // 2) Update styles when planId or theme changes (same as in SideBar)
+  // 2) Update styles when theme is initialized and planId changes
   useEffect(() => {
+    // Solo actualizar estilos cuando el tema esté inicializado
+    if (!isInitialized) return;
+    
     if (planId === 3 || planId === 6) {
       // plans that allow toggle
       setStyles(theme === 'dark' ? darkStyles : lightStyles);
@@ -143,7 +146,7 @@ export const Marketplace = () => {
       // other plans: always dark
       setStyles(darkStyles);
     }
-  }, [theme, planId]);
+  }, [theme, planId, isInitialized]);
 
   // Function to show confirmation
   const handleAcquireClick = (id, productName) => {
@@ -186,8 +189,24 @@ export const Marketplace = () => {
   const adquiridosCount = adquiridos.length;
   const availableCount = dashboards.length - adquiridosCount;
 
+  // Mostrar un loading mínimo mientras se inicializa el tema
+  if (!isInitialized) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: 'var(--bg-primary)',
+        color: 'var(--text-primary)'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
   return (
-    <div className={styles.marketplace}>
+    <div className={`${styles.marketplace} ${isInitialized ? 'theme-loaded' : 'theme-loading'}`}>
       <div className={styles.container}>
         {/* Marketplace Header */}
         <div className={styles.header}>

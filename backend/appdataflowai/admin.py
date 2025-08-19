@@ -322,3 +322,66 @@ class DashboardComprasAdmin(admin.ModelAdmin):
             'fields': ('condiciones_pago', 'tiempo_entrega_dias', 'observaciones')
         }),
     )
+
+
+
+from django.contrib import admin
+from .models import DashboardSales
+
+
+@admin.register(DashboardSales)
+class DashboardSalesAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro', 'id_empresa', 'id_producto',
+        'point_of_sale', 'channel', 'city', 'region',
+        'sale_date', 'quantity_sold', 'sales_amount', 'average_ticket',
+        'number_transactions', 'returns', 'return_amount',
+        'sku', 'product_name', 'category', 'brand'
+    )
+
+    list_filter = (
+        'id_empresa', 'sale_date', 'channel', 'city', 'region',
+        'category', 'brand', 'customer_type', 'customer_segment'
+    )
+
+    search_fields = (
+        'point_of_sale', 'sku', 'product_name', 'category',
+        'brand', 'customer_type', 'customer_segment'
+    )
+
+    readonly_fields = ('id_registro',)
+
+    ordering = ('-sale_date',)
+
+    date_hierarchy = 'sale_date'
+
+    fieldsets = (
+        ('Identificación', {
+            'fields': ('id_registro', 'id_empresa', 'id_producto')
+        }),
+        ('Ubicación y Canal', {
+            'fields': ('point_of_sale_id', 'point_of_sale', 'channel', 'city', 'region')
+        }),
+        ('Detalles de la Venta', {
+            'fields': (
+                'quantity_sold', 'sales_amount', 'average_ticket',
+                'promoted_units', 'total_discount',
+                'number_transactions', 'returns', 'return_amount'
+            )
+        }),
+        ('Tiempos', {
+            'fields': ('sale_date', 'month', 'year', 'weekday', 'hour')
+        }),
+        ('Producto', {
+            'fields': ('sku', 'product_name', 'category', 'subcategory', 'brand')
+        }),
+        ('Cliente', {
+            'fields': ('customer_type', 'customer_segment', 'customer_gender', 'customer_age')
+        }),
+        ('Indicadores Económicos', {
+            'fields': ('gross_profit', 'total_cost', 'profit_margin')
+        }),
+        ('Notas', {
+            'fields': ('notes',)
+        }),
+    )

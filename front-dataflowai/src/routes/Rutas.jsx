@@ -27,6 +27,12 @@ import DashboardFinanzas from "../components/dashboards/DashboardFinanzas";
 import DashboardCompras from "../components/dashboards/DashboardCompras";
 
 
+import SalesDashboard from "../components/dashboards/SalesDashboard";
+
+
+import ApacheEcharts from "../components/dashboards/00Echarts";
+
+
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
 
@@ -146,11 +152,36 @@ export const Rutas = () => (
 
 
         <Route
+          path="/Apache"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <ApacheEcharts />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+
+        <Route
           path="/configuraciones-dashboard"
           element={
             <RutaProtegida>
               <SideBarLayout>
                 <ConfiguracionesDashboard />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+
+
+         <Route
+          path="/sales-dashboard"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <SalesDashboard />
               </SideBarLayout>
             </RutaProtegida>
           }

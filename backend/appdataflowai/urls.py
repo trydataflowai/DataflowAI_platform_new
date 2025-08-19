@@ -22,6 +22,9 @@ from .views import (
     DashboardComprasView,
 
 
+    DashboardSalesView,
+
+
     ImportarDatosView,
     EstadoImportacionView,
 )
@@ -57,6 +60,14 @@ urlpatterns = [
     path('dashboard-ventas/', DashboardVentasView.as_view(), name='dashboard-ventas'),
     path('dashboard-finanzas/', DashboardFinanzasView.as_view(), name='dashboard-finanzas'),
     path('dashboard-compras/', DashboardComprasView.as_view(), name='dashboard-compras'),
+    
+
+
+
+
+    path('dashboard-sales/', DashboardSalesView.as_view(), name='dashboard-sales'),
+
+
 
 
 

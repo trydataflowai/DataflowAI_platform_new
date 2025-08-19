@@ -225,3 +225,38 @@ class DashboardComprasSerializer(serializers.ModelSerializer):
             'tiempo_entrega_dias',
             'observaciones'
         ]
+
+
+
+
+"""
+Serialización de los dashboard OFICIALES.
+"""
+
+from .models import DashboardSales
+from rest_framework import serializers
+
+class DashboardSalesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardSales
+        fields = [  
+            'id_registro',
+            'id_empresa',
+            'id_producto',
+
+            'point_of_sale_id', 'point_of_sale', 'channel', 'city', 'region',
+
+            'quantity_sold', 'sales_amount', 'average_ticket',
+            'promoted_units', 'total_discount',
+            'number_transactions', 'returns', 'return_amount',
+
+            'sale_date', 'month', 'year', 'weekday', 'hour',
+
+            'sku', 'product_name', 'category', 'subcategory', 'brand',
+
+            'customer_type', 'customer_segment', 'customer_gender', 'customer_age',
+
+            'gross_profit', 'total_cost', 'profit_margin',
+
+            'notes'
+        ]

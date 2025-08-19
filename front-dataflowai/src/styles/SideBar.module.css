@@ -16,7 +16,6 @@
   transition: var(--transition);
 }
 
-/* Estado colapsado */
 .collapsed {
   width: 120px;
 }
@@ -28,7 +27,6 @@
   display: none;
 }
 
-/* Logo (texto en lugar de imagen) */
 .logoContainer {
   margin-bottom: 1.5rem;
 }
@@ -40,20 +38,20 @@
   padding: 0;
 }
 .logoText {
-  color: #ffffff; /* Texto blanco */
+  color: #ffffff;
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
   transition: var(--transition);
 }
 
-/* Navegación */
 .nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   flex-grow: 1;
 }
+
 .button {
   position: relative;
   display: flex;
@@ -67,7 +65,9 @@
   cursor: pointer;
   font-size: 1rem;
   transition: var(--transition);
+  overflow: hidden; /* Evita que el hover se salga del botón */
 }
+
 .button::before {
   content: '';
   position: absolute;
@@ -76,17 +76,18 @@
   background: linear-gradient(to bottom, var(--accent-neon), var(--accent-dark));
   opacity: 0;
   transition: var(--transition);
+  pointer-events: none; /* Evita que el borde capture el clic */
 }
+
 .button:hover {
   color: var(--text-primary);
   background: rgba(0, 199, 255, 0.05);
-  transform: translateX(8px);
+  transform: none; /* Elimina el desplazamiento brusco */
 }
 .button:hover::before {
   opacity: 1;
 }
 
-/* Iconos y emojis blancos */
 .icon {
   font-size: 1.2rem;
   transition: var(--transition);
@@ -104,12 +105,10 @@
   color: var(--accent-neon);
 }
 
-/* Texto de botón */
 .text {
   transition: var(--transition);
 }
 
-/* Radial highlight */
 .highlight {
   position: absolute;
   top: -50%; right: -50%;
@@ -117,13 +116,13 @@
   background: radial-gradient(circle, var(--accent-neon) 0%, transparent 70%);
   opacity: 0;
   transition: var(--transition);
-  z-index: 1000;
+  z-index: 0; /* Evita que cubra elementos clicables */
+  pointer-events: none;
 }
 .button:hover .highlight {
   opacity: 0.1;
 }
 
-/* Estado activo */
 .active {
   color: var(--text-primary) !important;
   background: rgba(0, 199, 255, 0.08) !important;
@@ -135,7 +134,6 @@
   color: var(--accent-neon);
 }
 
-/* Toggle collapse */
 .toggleContainer {
   display: flex;
   justify-content: flex-end;
@@ -152,7 +150,6 @@
   transform: scale(1.2);
 }
 
-/* Footer */
 .footer {
   margin-top: auto;
   padding-top: 1rem;

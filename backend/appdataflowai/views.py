@@ -1,5 +1,4 @@
 # views.py
-
 import jwt
 import pandas as pd
 from datetime import datetime, timedelta
@@ -14,13 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import (
     Usuario,
     DetalleProducto,
-    DashboardVentasColtrade,
-    DashboardVentasLoop,
     DashboardVentasDataflow
 )
-
-
-
 
 class LoginView(APIView):
     """
@@ -44,7 +38,7 @@ class LoginView(APIView):
         payload = {
             'id_usuario': usuario.id_usuario,
             'correo': usuario.correo,
-            'exp': datetime.utcnow() + timedelta(hours=2),
+            'exp': datetime.utcnow() + timedelta(hours=1),
             'iat': datetime.utcnow()
         }
 
@@ -528,6 +522,66 @@ class DashboardVentasView(APIView):
         # 3. Serializar
         serializer = DashboardVentasSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+from django.utils.dateparse import parse_date
+from django.conf import settings
+import jwt
+
+from .models import DashboardSales
+from .serializers import DashboardSalesSerializer
+
+
+class DashboardSalesView(APIView):
+    """
+    Protected view that returns DashboardSales records,
+    with optional filtering by date range (?start=YYYY-MM-DD&end=YYYY-MM-DD)
+    """
+
+    def get(self, request):
+        # 1. Manual JWT authentication
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token not provided'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Query and filters
+        queryset = DashboardSales.objects.all().order_by('sale_date')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        if start:
+            queryset = queryset.filter(sale_date__gte=parse_date(start))
+        if end:
+            queryset = queryset.filter(sale_date__lte=parse_date(end))
+
+        # 3. Serialize
+        serializer = DashboardSalesSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Vista para retornar registros de DashboardFinanzas
 from rest_framework.views import APIView
@@ -625,102 +679,6 @@ class DashboardComprasView(APIView):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # appdataflowai/views.py
 
 from rest_framework.views import APIView
@@ -750,10 +708,10 @@ logger = logging.getLogger(__name__)
 
 # Mapeo de producto-ID a modelo de dashboard
 PRODUCTO_MODELO_MAP = {
-    5: DashboardVentasDataflow,
-    4: DashboardVentas,
-    6: DashboardFinanzas,
-    7: DashboardCompras,
+    3: DashboardVentasDataflow,
+    2: DashboardVentas,
+    4: DashboardFinanzas,
+    1: DashboardCompras,
     #  ...otros productos si los hubiera
 }
 
