@@ -42,7 +42,10 @@ export const HomeDashboard = () => {
         setProductos(prodData);
         setFilteredProducts(prodData);
         setUsuario(userData);
-        setPlanId(userData.empresa.plan.id); // Guardar planId en estado
+        // defensivo: algunos payloads pueden no tener empresa.plan
+        if (userData && userData.empresa && userData.empresa.plan && userData.empresa.plan.id) {
+          setPlanId(userData.empresa.plan.id); // Guardar planId en estado
+        }
       } catch (err) {
         showNotification('Error loading data', 'error');
       }
@@ -77,9 +80,11 @@ export const HomeDashboard = () => {
       setFilteredProducts(productos);
     } else {
       setFilteredProducts(
-        productos.filter(p =>
-          p.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        productos.filter(p => {
+          // Soportar distintas claves para el nombre: nombre, producto, name
+          const name = (p.nombre || p.producto || p.name || '').toString();
+          return name.toLowerCase().includes(searchTerm.toLowerCase());
+        })
       );
     }
   }, [searchTerm, productos]);
@@ -115,7 +120,9 @@ export const HomeDashboard = () => {
       setHighlightedIndex(i => (i > 0 ? i - 1 : -1));
     } else if (e.key === 'Enter' && highlightedIndex >= 0) {
       e.preventDefault();
-      toggleDashboardSelection(filteredProducts[highlightedIndex].nombre);
+      const selected = filteredProducts[highlightedIndex];
+      const selectedName = (selected?.nombre || selected?.producto || selected?.name || '');
+      toggleDashboardSelection(selectedName);
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
@@ -127,8 +134,10 @@ export const HomeDashboard = () => {
   };
 
   const obtenerImagen = id => {
-    const key = `../../assets/${id}.jpg`;
-    const mod = images[key];
+    // intenta soportar id y id_producto
+    const keyId = id || id === 0 ? id : null;
+    const key = keyId ? `../../assets/${keyId}.jpg` : null;
+    const mod = key ? images[key] : null;
     return mod ? mod.default : null;
   };
 
@@ -137,9 +146,47 @@ export const HomeDashboard = () => {
     navigate(`/configuraciones-dashboard?id_producto=${productoId}`);
   };
 
+  // NUEVA función que abre el dashboard correctamente según categoria:
+  // - si categoria contiene 'power' -> abre link_pb en nueva pestaña
+  // - si categoria contiene 'javascript' -> navega al slug (ruta interna)
+  // - fallback: si slug no existe pero link_pb sí, abre link_pb; si nada, notifica
+  const handleOpenDashboard = (prod) => {
+    const slug = prod.slug;
+    const linkPb = prod.link_pb || prod.linkPb || prod.link;
+    const categoria = (prod.categoria_producto || prod.categoria || '').toString().toLowerCase();
+
+    if (categoria.includes('power')) {
+      if (linkPb) {
+        // abrir en nueva pestaña
+        window.open(linkPb, '_blank', 'noopener,noreferrer');
+      } else {
+        showNotification('No existe link_pb para este dashboard', 'error');
+      }
+      return;
+    }
+
+    // para javascript y otros: usar slug si está
+    if ((categoria.includes('javascript') || !categoria) && slug) {
+      // navegar internamente al slug (preservando tu patrón actual)
+      navigate(`/${slug}`);
+      return;
+    }
+
+    // fallback: si no hay slug pero existe linkPb, abrirlo
+    if (linkPb) {
+      window.open(linkPb, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    showNotification('No hay ruta disponible para abrir este dashboard', 'error');
+  };
+
   const productosAMostrar =
     selectedDashboards.length > 0
-      ? productos.filter(p => selectedDashboards.includes(p.nombre))
+      ? productos.filter(p => {
+          const name = (p.nombre || p.producto || p.name || '');
+          return selectedDashboards.includes(name);
+        })
       : filteredProducts;
 
   return (
@@ -222,26 +269,29 @@ export const HomeDashboard = () => {
           {showSuggestions && (
             <div className={styles.suggestionsContainer}>
               {filteredProducts.length > 0 ? (
-                filteredProducts.map((prod, idx) => (
-                  <div
-                    key={prod.id}
-                    className={`${styles.suggestionItem} ${
-                      highlightedIndex === idx ? styles.highlighted : ''
-                    }`}
-                    onClick={() =>
-                      toggleDashboardSelection(prod.nombre)
-                    }
-                    onMouseEnter={() => setHighlightedIndex(idx)}
-                  >
-                    <input
-                      type="checkbox"
-                      className={styles.suggestionCheckbox}
-                      checked={selectedDashboards.includes(prod.nombre)}
-                      readOnly
-                    />
-                    {prod.nombre}
-                  </div>
-                ))
+                filteredProducts.map((prod, idx) => {
+                  const displayName = (prod.nombre || prod.producto || prod.name || '');
+                  return (
+                    <div
+                      key={prod.id || prod.id_producto || idx}
+                      className={`${styles.suggestionItem} ${
+                        highlightedIndex === idx ? styles.highlighted : ''
+                      }`}
+                      onClick={() =>
+                        toggleDashboardSelection(displayName)
+                      }
+                      onMouseEnter={() => setHighlightedIndex(idx)}
+                    >
+                      <input
+                        type="checkbox"
+                        className={styles.suggestionCheckbox}
+                        checked={selectedDashboards.includes(displayName)}
+                        readOnly
+                      />
+                      {displayName}
+                    </div>
+                  );
+                })
               ) : (
                 <div className={styles.noResults}>No results found</div>
               )}
@@ -252,19 +302,26 @@ export const HomeDashboard = () => {
         {/* Cards grid */}
         <div className={styles.cardGrid}>
           {productosAMostrar.map(prod => {
-            const imgSrc = obtenerImagen(prod.id);
+            const prodId = prod.id || prod.id_producto || prod.idProducto;
+            const prodName = prod.nombre || prod.producto || prod.name || 'Unnamed';
+            const prodSlug = prod.slug;
+            const prodLinkPb = prod.link_pb || prod.linkPb || prod.link;
+            const prodCategoria = (prod.categoria_producto || prod.categoria || '').toString().toLowerCase();
+
+            const imgSrc = obtenerImagen(prodId);
+
             return (
-              <div key={prod.id} className={styles.card}>
+              <div key={prodId || prodSlug || prodName} className={styles.card}>
                 <div className={styles.cardGlow} />
                 <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>{prod.nombre}</h3>
+                  <h3 className={styles.cardTitle}>{prodName}</h3>
                 </div>
                 <div className={styles.cardImageContainer}>
                   {imgSrc ? (
                     <>
                       <img
                         src={imgSrc}
-                        alt={prod.nombre}
+                        alt={prodName}
                         className={styles.cardImage}
                       />
                       <div className={styles.imageOverlay} />
@@ -310,9 +367,9 @@ export const HomeDashboard = () => {
                   </div>
                   <div className={styles.cardActions}>
                     <button
-                      onClick={() => navigate(`/${prod.slug}`)}
+                      onClick={() => handleOpenDashboard(prod)}
                       className={styles.previewButton}
-                      aria-label={`Open dashboard ${prod.nombre}`}
+                      aria-label={`Open dashboard ${prodName}`}
                     >
                       <svg viewBox="0 0 24 24">
                         <path
@@ -330,20 +387,22 @@ export const HomeDashboard = () => {
                       Open Dashboard
                     </button>
                     
-                    {/* NUEVO BOTÓN DE CONFIGURACIONES */}
-                    <button
-                      onClick={() => handleConfiguraciones(prod.id)}
-                      className={styles.configButton}
-                      aria-label={`Configuration for ${prod.nombre}`}
-                    >
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
-                        />
-                      </svg>
-                      Settings
-                    </button>
+                    {/* NUEVO BOTÓN DE CONFIGURACIONES: se oculta si la categoria es 'power' */}
+                    { !prodCategoria.includes('power') && (
+                      <button
+                        onClick={() => handleConfiguraciones(prodId)}
+                        className={styles.configButton}
+                        aria-label={`Configuration for ${prodName}`}
+                      >
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+                          />
+                        </svg>
+                        Settings
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

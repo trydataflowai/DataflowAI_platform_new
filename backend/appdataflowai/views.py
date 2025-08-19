@@ -135,7 +135,6 @@ class UsuarioInfoView(APIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
-
 class ProductosUsuarioView(APIView):
     """
     Vista que retorna todos los productos asociados al usuario autenticado,
@@ -156,16 +155,25 @@ class ProductosUsuarioView(APIView):
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
 
-        detalles = DetalleProducto.objects.select_related('id_producto').filter(id_usuario=usuario)
+        # traer detalle con id_producto ya relacionado para evitar N+1
+        detalles = DetalleProducto.objects.select_related('id_producto', 'id_producto__id_estado').filter(id_usuario=usuario)
 
         productos = []
         for dp in detalles:
+            prod = dp.id_producto  # instancia Producto
+
             productos.append({
-                'id': dp.id_producto.id_producto,
-                'nombre': dp.id_producto.producto,
-                'slug': dp.id_producto.slug,  # <-- usamos slug
-                'iframe': dp.id_producto.iframe,
-                'estado': dp.id_producto.id_estado.estado,
+                # uso nombres explícitos como en tu ejemplo JSON
+                'id_producto': getattr(prod, 'id_producto', None),
+                'producto': getattr(prod, 'producto', None),
+                'slug': getattr(prod, 'slug', None),
+                'iframe': getattr(prod, 'iframe', None),
+                'estado': getattr(prod.id_estado, 'estado', None) if getattr(prod, 'id_estado', None) else None,
+                # <-- campos añadidos
+                'link_pb': getattr(prod, 'link_pb', None),
+                'categoria_producto': getattr(prod, 'categoria_producto', None),
+                # opcional: si quieres devolver tipo también, descomenta la línea siguiente
+                # 'tipo_producto': getattr(prod, 'tipo_producto', None),
                 'usuario': {
                     'id': usuario.id_usuario,
                     'nombres': usuario.nombres,
@@ -176,8 +184,6 @@ class ProductosUsuarioView(APIView):
             })
 
         return JsonResponse(productos, safe=False)
-
-
 
 
 
