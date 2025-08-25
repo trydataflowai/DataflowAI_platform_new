@@ -173,3 +173,35 @@
   text-align: center;
   opacity: 0.7;
 }
+
+
+
+/* Logo como imagen: se adapta al contenedor, conserva proporción */
+.logoImg {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 160px;   /* ancho máximo en estado expandido */
+  height: 56px;       /* altura fija para mantener consistencia visual */
+  object-fit: contain; /* preserva proporción y "no recorta" */
+  border-radius: 8px;
+  background: transparent;
+  transition: var(--transition);
+}
+
+/* Ajustes cuando el sidebar está colapsado (si tu .collapsed aplica sobre .sidebar) */
+.collapsed .logoImg {
+  max-width: 48px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+/* En caso de que quieras centrar el fallback textual mejor */
+.logoText {
+  color: #ffffff; /* o el color que ya tenías */
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  transition: var(--transition);
+  margin: 6px 0;
+}
