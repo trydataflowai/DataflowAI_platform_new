@@ -122,10 +122,11 @@ export const SideBar = () => {
   const links = [
     { to: "/homeLogin#home", icon: "🏠", label: "Home" },
     { to: "/home",        icon: "📊", label: "Dashboards" },
+    { to: "/configuracion-perfil",     icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/ai-insights", icon: "🤖", label: "AI Insights" },
     { to: "/support",     icon: "🆘", label: "Support" },
-    { to: "/profile",     icon: "👤", label: "Profile" },
+    
   ];
 
   return (

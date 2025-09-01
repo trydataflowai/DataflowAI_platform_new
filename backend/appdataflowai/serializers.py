@@ -271,3 +271,40 @@ class DashboardSalesSerializer(serializers.ModelSerializer):
 
             'notes'
         ]
+
+
+
+
+
+
+
+# your_app/serializers.py  SERLIAZIZADORES PARA EDITAR PERFIL
+# your_app/serializers.py
+# your_app/serializers.py
+from rest_framework import serializers
+
+class PasswordChangeSerializer(serializers.Serializer):
+    contrasena_actual = serializers.CharField(write_only=True)
+    contrasena_nueva  = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        usuario = self.context.get('user')
+        if usuario is None:
+            raise serializers.ValidationError('Usuario no provisto en contexto')
+
+        almacenada = usuario.contrasena or ''
+        ingresada = data.get('contrasena_actual', '')
+
+        # Comparación directa en texto plano (sin hashing)
+        if ingresada != almacenada:
+            raise serializers.ValidationError({'contrasena_actual': 'Contraseña actual incorrecta'})
+
+        return data
+
+    def save(self, **kwargs):
+        usuario = self.context.get('user')
+        nueva = self.validated_data['contrasena_nueva']
+        # Almacena tal cual la cadena enviada (texto plano)
+        usuario.contrasena = nueva
+        usuario.save()
+        return usuario

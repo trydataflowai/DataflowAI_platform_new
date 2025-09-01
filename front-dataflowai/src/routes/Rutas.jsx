@@ -15,6 +15,9 @@ import HomeLogin from "../components/pages/HomeLogin";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
+import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
+import ConfiguracionUsuarios from "../components/pages/Pefil";
+
 
 import ConfiguracionesDashboard from "../components/pages/ConfiguracionesDashboard";
 
@@ -187,6 +190,29 @@ export const Rutas = () => (
           }
         />
 
+
+
+         <Route
+          path="/cambiar-contrasena"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <AppCambiarContrasena />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+         <Route
+          path="/configuracion-perfil"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <ConfiguracionUsuarios />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
 
       </Routes>
     </ThemeProvider>

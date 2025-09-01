@@ -135,6 +135,9 @@ class UsuarioInfoView(APIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
+
+
+
 class ProductosUsuarioView(APIView):
     """
     Vista que retorna todos los productos asociados al usuario autenticado,
@@ -880,3 +883,67 @@ class EstadoImportacionView(APIView):
             'campos': campos,
             'tabla': modelo._meta.db_table
         }, status=status.HTTP_200_OK)
+
+
+
+
+"""
+
+Endpoints para página de perfil
+
+"""
+# your_app/views.py
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from .models import Usuario
+from .serializers import PasswordChangeSerializer
+
+class CambiarContrasenaView(APIView):
+    """
+    PATCH: Cambia la contraseña del usuario autenticado por JWT.
+    Body JSON:
+    {
+      "contrasena_actual": "laActual",
+      "contrasena_nueva": "laNueva"
+    }
+    (ATENCIÓN: guarda la contraseña en texto plano tal cual se recibe)
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token inválido')
+
+        try:
+            usuario = Usuario.objects.get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def patch(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = PasswordChangeSerializer(data=request.data, context={'user': usuario})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'detail': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

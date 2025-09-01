@@ -27,6 +27,9 @@ from .views import (
 
     ImportarDatosView,
     EstadoImportacionView,
+
+
+    CambiarContrasenaView,
 )
 
 urlpatterns = [
@@ -73,6 +76,10 @@ urlpatterns = [
 
     path('importar/<int:id_producto>/', ImportarDatosView.as_view(), name='importar-datos'),
     path('estado-importacion/<int:id_producto>/', EstadoImportacionView.as_view(), name='estado-importacion'),
+
+
+
+    path('editar/perfil/contrasena', CambiarContrasenaView.as_view(), name='editar_perfil_contrasena'),
 
 ]
     
