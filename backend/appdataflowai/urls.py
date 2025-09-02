@@ -30,8 +30,9 @@ from .views import (
 
 
     CambiarContrasenaView,
-    UsuarioEstadoChangeView,
     UsuariosEmpresaView,
+    UsuarioEstadoChangeView,
+    UsuarioRolChangeView,
     UsuarioDeleteView,
     PermisosListView,
     PerfilMeView,
@@ -87,7 +88,9 @@ urlpatterns = [
 
     path('perfil/usuarios/', UsuariosEmpresaView.as_view(), name='usuarios_empresa'),                     # GET, POST
     path('perfil/usuarios/<int:id_usuario>/', UsuarioDeleteView.as_view(), name='usuario_eliminar'),     # DELETE
-    path('perfil/usuarios/<int:id_usuario>/estado/', UsuarioEstadoChangeView.as_view(), name='usuario_cambiar_estado'),  # PATCH
+    path('perfil/usuarios/<int:id_usuario>/estado/', UsuarioEstadoChangeView.as_view(), name='usuario_cambiar_estado'),  # PATCH estado
+    path('perfil/usuarios/<int:id_usuario>/rol/', UsuarioRolChangeView.as_view(), name='usuario_cambiar_rol'),          # PATCH rol
+    path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'),                         # GET permisos/roles
 
 
     

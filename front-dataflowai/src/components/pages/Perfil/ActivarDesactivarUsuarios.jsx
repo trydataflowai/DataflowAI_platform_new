@@ -1,4 +1,4 @@
-// src/components/pages/Perfil/ActivarDesactivarUsuarios.jsx
+// ActivarDesactivarUsuarios.jsx
 import React, { useEffect, useState } from 'react';
 import styles from '../../../styles/CreacionUsuario.module.css';
 import {
@@ -6,11 +6,15 @@ import {
   cambiarEstadoUsuario,
   crearUsuario,
   eliminarUsuario,
-  obtenerPermisos
+  obtenerPermisos,
+  cambiarRolUsuario,
+  obtenerMiPerfil
 } from '../../../api/Profile';
 
 const INACTIVE_STATE_ID = 2; // Ajusta si en tu BD el id de "inactivo" es otro
 const ACTIVE_STATE_ID = 1;
+const ADMIN_ROLE_ID = 1;
+const USER_ROLE_ID = 2;
 
 const ActivarDesactivarUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -27,6 +31,7 @@ const ActivarDesactivarUsuarios = () => {
   const [confirmContrasena, setConfirmContrasena] = useState('');
   const [nuevoRolId, setNuevoRolId] = useState(''); // opcional
   const [permisos, setPermisos] = useState([]);
+  const [miPermisoId, setMiPermisoId] = useState(null); // para saber si soy admin
 
   const fetchUsuarios = async () => {
     setLoading(true);
@@ -46,14 +51,24 @@ const ActivarDesactivarUsuarios = () => {
       const res = await obtenerPermisos();
       setPermisos(res.permisos || []);
     } catch (err) {
-      // Si falla, permitimos creación sin listado (campo seguirá existiendo)
       console.error('Error al cargar permisos:', err);
+    }
+  };
+
+  const fetchMiPerfil = async () => {
+    try {
+      const res = await obtenerMiPerfil();
+      const u = res.usuario || {};
+      setMiPermisoId(u.id_permiso_acceso || null);
+    } catch (err) {
+      console.error('No se pudo obtener perfil:', err);
     }
   };
 
   useEffect(() => {
     fetchUsuarios();
     fetchPermisos();
+    fetchMiPerfil();
   }, []);
 
   const toggleEstado = async (usuario) => {
@@ -71,6 +86,46 @@ const ActivarDesactivarUsuarios = () => {
       setUsuarios(prev => prev.map(u => u.id_usuario === usuario.id_usuario ? { ...u, id_estado: res.id_estado, estado: res.estado } : u));
     } catch (err) {
       setError(err.message || 'Error al actualizar estado');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleRol = async (usuario) => {
+    // Solo admin puede realizar este cambio
+    if (miPermisoId !== ADMIN_ROLE_ID) {
+      setError('No autorizado para cambiar roles');
+      return;
+    }
+
+    // No permitir cambiar rol de uno mismo
+    // (Server también lo evita; aquí hacemos UX)
+    try {
+      const miPerfil = await obtenerMiPerfil();
+      if (miPerfil.usuario && miPerfil.usuario.id_usuario === usuario.id_usuario) {
+        setError('No puedes cambiar tu propio rol');
+        return;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const nuevoRol = (usuario.id_permiso_acceso === ADMIN_ROLE_ID) ? USER_ROLE_ID : ADMIN_ROLE_ID;
+    const confirmMsg = (nuevoRol === ADMIN_ROLE_ID)
+      ? `¿Deseas dar privilegios de administrador a ${usuario.nombres} (${usuario.correo})?`
+      : `¿Deseas revocar privilegios de administrador y volver a usuario a ${usuario.nombres} (${usuario.correo})?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setActionLoading(usuario.id_usuario);
+    setError('');
+    try {
+      const res = await cambiarRolUsuario(usuario.id_usuario, nuevoRol);
+      // Actualizar en la lista
+      setUsuarios(prev => prev.map(u => u.id_usuario === usuario.id_usuario ? { ...u, id_permiso_acceso: res.id_permiso_acceso, rol: res.rol } : u));
+      alert('Rol actualizado correctamente');
+    } catch (err) {
+      setError(err.message || 'Error al actualizar rol');
     } finally {
       setActionLoading(null);
     }
@@ -98,8 +153,8 @@ const ActivarDesactivarUsuarios = () => {
       };
       if (nuevoRolId) payload.id_permiso_acceso = Number(nuevoRolId);
 
-      const res = await crearUsuario(payload);
-      // recargar lista o insertar nuevo
+      await crearUsuario(payload);
+      // recargar lista
       await fetchUsuarios();
       // limpiar form
       setNuevoNombre('');
@@ -133,7 +188,7 @@ const ActivarDesactivarUsuarios = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Administrar Usuarios (Activar / Desactivar / Crear / Eliminar)</h1>
+      <h1>Administrar Usuarios (Activar / Desactivar / Crear / Eliminar / Rol)</h1>
 
       {error && <div className={styles.error}>{error}</div>}
 
@@ -211,6 +266,19 @@ const ActivarDesactivarUsuarios = () => {
                     >
                       {actionLoading === u.id_usuario ? 'Procesando...' : (u.id_estado === ACTIVE_STATE_ID ? 'Desactivar' : 'Activar')}
                     </button>
+
+                    {/* Botón para cambiar rol (solo visible/activo si soy admin) */}
+                    {miPermisoId === ADMIN_ROLE_ID && (
+                      <button
+                        className={styles.roleButton}
+                        disabled={actionLoading === u.id_usuario}
+                        onClick={() => handleToggleRol(u)}
+                        style={{ marginLeft: 8 }}
+                      >
+                        {actionLoading === u.id_usuario ? 'Procesando...' : (u.id_permiso_acceso === ADMIN_ROLE_ID ? 'Volver Usuario' : 'Volver Administrador')}
+                      </button>
+                    )}
+
                     <button
                       className={styles.deleteButton}
                       disabled={actionLoading === u.id_usuario}

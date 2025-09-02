@@ -972,7 +972,6 @@ class CambiarContrasenaView(APIView):
 
 
 # views.py
-# views.py
 import jwt
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -1024,6 +1023,8 @@ def _get_usuario_from_token(request):
         raise AuthenticationFailed('Usuario no encontrado')
 
 
+# Serializers
+
 class EstadoChangeSerializer(serializers.Serializer):
     id_estado = serializers.IntegerField()
 
@@ -1056,6 +1057,17 @@ class CreateUserSerializer(serializers.Serializer):
         if data.get('contrasena') != data.get('contrasena_confirm'):
             raise serializers.ValidationError({'contrasena_confirm': 'Las contraseñas no coinciden'})
         return data
+
+
+class RoleChangeSerializer(serializers.Serializer):
+    id_permiso_acceso = serializers.IntegerField()
+
+    def validate_id_permiso_acceso(self, value):
+        try:
+            PermisoAcceso.objects.get(id_permiso_acceso=value)
+        except PermisoAcceso.DoesNotExist:
+            raise serializers.ValidationError('PermisoAcceso no existe')
+        return value
 
 
 class UsuariosEmpresaView(APIView):
@@ -1227,6 +1239,64 @@ class UsuarioEstadoChangeView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class UsuarioRolChangeView(APIView):
+    """
+    PATCH: Cambia el rol (id_permiso_acceso) de un usuario objetivo (Usuario <-> Administrador).
+    Reglas:
+      - Solo administradores (id_permiso_acceso == 1) pueden cambiar roles.
+      - Solo se pueden cambiar roles de usuarios de la misma empresa.
+      - No se permite que un admin cambie su propio rol (para evitar bloquear la administración).
+    Ruta: PATCH /perfil/usuarios/<id_usuario>/rol/
+    Body JSON: { "id_permiso_acceso": 1 }
+    """
+    def patch(self, request, id_usuario):
+        try:
+            usuario_autenticado = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # permiso del que hace la petición
+        permiso_act = getattr(usuario_autenticado.id_permiso_acceso, 'id_permiso_acceso', None)
+        if permiso_act != 1:
+            return Response({'error': 'No autorizado. Se requiere permiso administrativo para cambiar roles.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Buscar usuario objetivo
+        try:
+            usuario_obj = Usuario.objects.select_related('id_empresa', 'id_permiso_acceso').get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario objetivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Solo permitimos administrar usuarios de la misma empresa
+        if usuario_obj.id_empresa.id_empresa != usuario_autenticado.id_empresa.id_empresa:
+            return Response({'error': 'No autorizado para modificar usuarios de otra empresa'}, status=status.HTTP_403_FORBIDDEN)
+
+        # No permitir cambiar el rol de uno mismo
+        if usuario_obj.id_usuario == usuario_autenticado.id_usuario:
+            return Response({'error': 'No puedes cambiar tu propio rol'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar body
+        serializer = RoleChangeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        nuevo_rol_id = serializer.validated_data['id_permiso_acceso']
+        try:
+            nuevo_rol = PermisoAcceso.objects.get(id_permiso_acceso=nuevo_rol_id)
+        except PermisoAcceso.DoesNotExist:
+            return Response({'error': 'PermisoAcceso no existe'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Actualizamos
+        usuario_obj.id_permiso_acceso = nuevo_rol
+        usuario_obj.save()
+
+        return Response({
+            'detail': 'Rol actualizado correctamente',
+            'id_usuario': usuario_obj.id_usuario,
+            'id_permiso_acceso': nuevo_rol.id_permiso_acceso,
+            'rol': nuevo_rol.rol
+        }, status=status.HTTP_200_OK)
+
+
 class UsuarioDeleteView(APIView):
     """
     DELETE: Elimina un usuario (solo si pertenece a la misma empresa).
@@ -1270,6 +1340,7 @@ class PermisosListView(APIView):
                 'rol': p.rol
             })
         return Response({'permisos': permisos}, status=status.HTTP_200_OK)
+
 
 
 

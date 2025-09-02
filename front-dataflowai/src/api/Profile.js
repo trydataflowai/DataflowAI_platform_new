@@ -88,8 +88,7 @@ export const actualizarEmpresa = async (payload) => {
 };
 
 /**
- * Resto de funciones previas (usuarios, permisos, crear, eliminar, cambiar estado)...
- * (incluye las que ya tenías en el archivo anterior)
+ * Usuarios / administración
  */
 export const obtenerUsuariosEmpresa = async () => {
   return await requestWithToken('perfil/usuarios/', {
@@ -114,6 +113,17 @@ export const cambiarEstadoUsuario = async (id_usuario, id_estado) => {
   return await requestWithToken(`perfil/usuarios/${id_usuario}/estado/`, {
     method: 'PATCH',
     body: JSON.stringify({ id_estado })
+  });
+};
+
+/**
+ * Cambiar rol de usuario (PATCH /perfil/usuarios/<id>/rol/)
+ * body: { id_permiso_acceso }
+ */
+export const cambiarRolUsuario = async (id_usuario, id_permiso_acceso) => {
+  return await requestWithToken(`perfil/usuarios/${id_usuario}/rol/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ id_permiso_acceso })
   });
 };
 
