@@ -19,6 +19,9 @@ import CreacionUsuario from "../components/pages/CreacionUsuario";
 import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
 import ActivarDesactivarUsuario from "../components/pages/Perfil/ActivarDesactivarUsuarios";
+import ModificarInformacionPersonal from "../components/pages/Perfil/ModificarInformacionPersonal";
+
+
 
 
 import ConfiguracionesDashboard from "../components/pages/ConfiguracionesDashboard";
@@ -225,6 +228,18 @@ export const Rutas = () => (
             <RutaProtegida>
               <SideBarLayout>
                 <ActivarDesactivarUsuario />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+
+         <Route
+          path="/ModificarInformacionPersonal"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <ModificarInformacionPersonal />
               </SideBarLayout>
             </RutaProtegida>
           }

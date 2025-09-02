@@ -1270,3 +1270,260 @@ class PermisosListView(APIView):
                 'rol': p.rol
             })
         return Response({'permisos': permisos}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+#modificar usuario y empresa
+
+
+# views.py
+import jwt
+from django.conf import settings
+from django.db import IntegrityError, transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, serializers
+from rest_framework.exceptions import AuthenticationFailed
+
+from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso
+
+
+def _get_usuario_from_token(request):
+    """
+    Extrae y valida el token JWT del header Authorization y devuelve la instancia Usuario.
+    Lanza AuthenticationFailed si algo falla.
+    """
+    auth = request.headers.get('Authorization', '')
+    token = ''
+    if auth:
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1]
+
+    if not token:
+        raise AuthenticationFailed('No se proporcionó token')
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        id_usuario = payload.get('id_usuario')
+        if not id_usuario:
+            raise AuthenticationFailed('Token inválido')
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Token expirado')
+    except jwt.InvalidTokenError:
+        raise AuthenticationFailed('Token inválido')
+
+    try:
+        usuario = Usuario.objects.select_related('id_empresa__id_plan', 'id_estado', 'id_permiso_acceso').get(id_usuario=id_usuario)
+        return usuario
+    except Usuario.DoesNotExist:
+        raise AuthenticationFailed('Usuario no encontrado')
+
+
+# Serializers para actualización
+
+class UsuarioUpdateSerializer(serializers.Serializer):
+    # Campos permitidos para editar en Usuario (NO se incluyen los campos bloqueados)
+    nombres = serializers.CharField(max_length=200, required=False)
+    apellidos = serializers.CharField(max_length=200, allow_blank=True, required=False)
+    correo = serializers.EmailField(required=False)
+
+    def validate_correo(self, value):
+        # La vista debe pasar el usuario actual en context para comparar
+        usuario_actual = self.context.get('usuario_actual')
+        if usuario_actual and usuario_actual.correo == value:
+            return value
+        # Verificar unicidad
+        if Usuario.objects.filter(correo=value).exists():
+            raise serializers.ValidationError('El correo ya está en uso')
+        return value
+
+
+class EmpresaUpdateSerializer(serializers.Serializer):
+    # Campos permitidos para editar en Empresa (los campos bloqueados NO están aquí)
+    nombre_empresa = serializers.CharField(max_length=200, required=False)
+    direccion = serializers.CharField(max_length=200, required=False)
+    telefono = serializers.CharField(max_length=20, required=False)
+    ciudad = serializers.CharField(max_length=100, required=False)
+    pais = serializers.CharField(max_length=100, required=False)
+    prefijo_pais = serializers.CharField(max_length=5, allow_blank=True, required=False)
+    correo = serializers.EmailField(required=False, allow_null=True)
+    pagina_web = serializers.URLField(required=False, allow_null=True)
+
+    # validaciones adicionales si se requieren se pueden agregar aquí
+
+
+class PerfilMeView(APIView):
+    """
+    GET: devuelve info del usuario autenticado y la empresa asociada (lectura).
+    PATCH: actualiza la información del usuario autenticado (solo campos permitidos).
+    Ruta: GET/PATCH /perfil/me/
+    """
+    def get(self, request):
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = usuario.id_empresa
+
+        resp = {
+            'usuario': {
+                'id_usuario': usuario.id_usuario,
+                'nombres': usuario.nombres,
+                'apellidos': usuario.apellidos,
+                'correo': usuario.correo,
+                'id_permiso_acceso': getattr(usuario.id_permiso_acceso, 'id_permiso_acceso', None),
+                'rol': getattr(usuario.id_permiso_acceso, 'rol', None),
+                'id_estado': getattr(usuario.id_estado, 'id_estado', None),
+                'estado': getattr(usuario.id_estado, 'estado', None),
+            },
+            'empresa': {
+                'id_empresa': empresa.id_empresa,
+                'id_plan': getattr(empresa.id_plan, 'id_plan', None),
+                'nombre_empresa': empresa.nombre_empresa,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'ciudad': empresa.ciudad,
+                'pais': empresa.pais,
+                'prefijo_pais': empresa.prefijo_pais,
+                'correo': empresa.correo,
+                'pagina_web': empresa.pagina_web,
+                'id_estado': getattr(empresa.id_estado, 'id_estado', None),
+                'fecha_registros': empresa.fecha_registros.isoformat() if empresa.fecha_registros else None,
+                'fecha_hora_pago': empresa.fecha_hora_pago.isoformat() if empresa.fecha_hora_pago else None,
+            }
+        }
+        return Response(resp, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        """
+        Actualiza los campos permitidos del usuario autenticado.
+        NO permite actualizar: id_usuario, id_empresa, id_permiso_acceso, id_estado, contrasena.
+        """
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = UsuarioUpdateSerializer(data=request.data, context={'usuario_actual': usuario})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        # Actualizar
+        try:
+            with transaction.atomic():
+                if 'nombres' in data:
+                    usuario.nombres = data['nombres']
+                if 'apellidos' in data:
+                    usuario.apellidos = data['apellidos']
+                if 'correo' in data:
+                    usuario.correo = data['correo']
+                usuario.save()
+        except IntegrityError:
+            return Response({'error': 'No se pudo actualizar usuario. Posible conflicto de datos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'detail': 'Usuario actualizado correctamente',
+            'usuario': {
+                'id_usuario': usuario.id_usuario,
+                'nombres': usuario.nombres,
+                'apellidos': usuario.apellidos,
+                'correo': usuario.correo
+            }
+        }, status=status.HTTP_200_OK)
+
+
+class EmpresaView(APIView):
+    """
+    GET: devuelve los datos de la empresa del usuario autenticado.
+    PATCH: actualiza los campos permitidos de la empresa (solo si el usuario es admin: id_permiso_acceso == 1)
+    Ruta: GET/PATCH /perfil/empresa/
+    """
+    def get(self, request):
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = usuario.id_empresa
+        resp = {
+            'empresa': {
+                'id_empresa': empresa.id_empresa,
+                'id_plan': getattr(empresa.id_plan, 'id_plan', None),
+                'nombre_empresa': empresa.nombre_empresa,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'ciudad': empresa.ciudad,
+                'pais': empresa.pais,
+                'prefijo_pais': empresa.prefijo_pais,
+                'correo': empresa.correo,
+                'pagina_web': empresa.pagina_web,
+                'id_estado': getattr(empresa.id_estado, 'id_estado', None),
+                'fecha_registros': empresa.fecha_registros.isoformat() if empresa.fecha_registros else None,
+                'fecha_hora_pago': empresa.fecha_hora_pago.isoformat() if empresa.fecha_hora_pago else None,
+            }
+        }
+        return Response(resp, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        """
+        Actualizar empresa: SOLO si el usuario autenticado tiene id_permiso_acceso == 1
+        Campos NO editables: id_empresa, id_plan, id_estado, fecha_registros, fecha_hora_pago
+        Campos editables: nombre_empresa, direccion, telefono, ciudad, pais, prefijo_pais, correo, pagina_web
+        """
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # comprobación de permiso (solo rol con id_permiso_acceso == 1 puede editar empresa)
+        permiso_id = getattr(usuario.id_permiso_acceso, 'id_permiso_acceso', None)
+        if permiso_id != 1:
+            return Response({'error': 'No autorizado. Se requiere permiso administrativo para editar la empresa.'}, status=status.HTTP_403_FORBIDDEN)
+
+        empresa = usuario.id_empresa
+
+        serializer = EmpresaUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        try:
+            with transaction.atomic():
+                if 'nombre_empresa' in data:
+                    empresa.nombre_empresa = data['nombre_empresa']
+                if 'direccion' in data:
+                    empresa.direccion = data['direccion']
+                if 'telefono' in data:
+                    empresa.telefono = data['telefono']
+                if 'ciudad' in data:
+                    empresa.ciudad = data['ciudad']
+                if 'pais' in data:
+                    empresa.pais = data['pais']
+                if 'prefijo_pais' in data:
+                    empresa.prefijo_pais = data['prefijo_pais']
+                if 'correo' in data:
+                    empresa.correo = data['correo']
+                if 'pagina_web' in data:
+                    empresa.pagina_web = data['pagina_web']
+                empresa.save()
+        except IntegrityError:
+            return Response({'error': 'No se pudo actualizar la empresa. Posible conflicto de datos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'detail': 'Empresa actualizada correctamente',
+            'empresa': {
+                'id_empresa': empresa.id_empresa,
+                'nombre_empresa': empresa.nombre_empresa,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'ciudad': empresa.ciudad,
+                'pais': empresa.pais,
+                'prefijo_pais': empresa.prefijo_pais,
+                'correo': empresa.correo,
+                'pagina_web': empresa.pagina_web,
+            }
+        }, status=status.HTTP_200_OK)

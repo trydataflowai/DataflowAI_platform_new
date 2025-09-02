@@ -54,8 +54,42 @@ export const cambiarContrasena = async (contrasena_actual, contrasena_nueva) => 
 };
 
 /**
- * Obtiene todos los usuarios que pertenecen a la misma empresa del usuario autenticado
- * GET /perfil/usuarios/
+ * Perfil (usuario + empresa)
+ * GET /perfil/me/
+ * PATCH /perfil/me/
+ */
+export const obtenerMiPerfil = async () => {
+  return await requestWithToken('perfil/me/', { method: 'GET' });
+};
+
+export const actualizarMiUsuario = async (payload) => {
+  // payload: { nombres?, apellidos?, correo? }
+  return await requestWithToken('perfil/me/', {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
+  });
+};
+
+/**
+ * Empresa del usuario
+ * GET /perfil/empresa/
+ * PATCH /perfil/empresa/
+ */
+export const obtenerEmpresa = async () => {
+  return await requestWithToken('perfil/empresa/', { method: 'GET' });
+};
+
+export const actualizarEmpresa = async (payload) => {
+  // payload: { nombre_empresa?, direccion?, telefono?, ciudad?, pais?, prefijo_pais?, correo?, pagina_web? }
+  return await requestWithToken('perfil/empresa/', {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
+  });
+};
+
+/**
+ * Resto de funciones previas (usuarios, permisos, crear, eliminar, cambiar estado)...
+ * (incluye las que ya tenías en el archivo anterior)
  */
 export const obtenerUsuariosEmpresa = async () => {
   return await requestWithToken('perfil/usuarios/', {
@@ -63,11 +97,6 @@ export const obtenerUsuariosEmpresa = async () => {
   });
 };
 
-/**
- * Crea un usuario en la misma empresa (respeta limites del plan)
- * POST /perfil/usuarios/
- * Body: { nombres, apellidos, correo, contrasena, contrasena_confirm, id_permiso_acceso?, id_estado? }
- */
 export const crearUsuario = async (payload) => {
   return await requestWithToken('perfil/usuarios/', {
     method: 'POST',
@@ -75,21 +104,12 @@ export const crearUsuario = async (payload) => {
   });
 };
 
-/**
- * Elimina un usuario (solo si pertenece a la misma empresa)
- * DELETE /perfil/usuarios/<id_usuario>/
- */
 export const eliminarUsuario = async (id_usuario) => {
   return await requestWithToken(`perfil/usuarios/${id_usuario}/`, {
     method: 'DELETE'
   });
 };
 
-/**
- * Cambia el estado de un usuario (solo si pertenece a la misma empresa)
- * PATCH /perfil/usuarios/<id_usuario>/estado/
- * body: { id_estado }
- */
 export const cambiarEstadoUsuario = async (id_usuario, id_estado) => {
   return await requestWithToken(`perfil/usuarios/${id_usuario}/estado/`, {
     method: 'PATCH',
@@ -97,10 +117,6 @@ export const cambiarEstadoUsuario = async (id_usuario, id_estado) => {
   });
 };
 
-/**
- * Obtiene la lista de permisos/roles
- * GET /perfil/permisos/
- */
 export const obtenerPermisos = async () => {
   return await requestWithToken('perfil/permisos/', {
     method: 'GET'
