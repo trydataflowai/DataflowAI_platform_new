@@ -19,30 +19,45 @@ from .models import (
 class LoginView(APIView):
     """
     Vista para autenticación de usuarios.
-    Recibe un correo y una contraseña, valida las credenciales,
-    y si son correctas, genera un token JWT con datos del usuario.
+    Ahora valida además que el usuario esté activo (id_estado == 1).
+    Si el usuario no está activo devuelve {'error': 'usuario inactivo'} con status 403.
     """
     def post(self, request):
         correo = request.data.get('correo', '').strip()
         contrasena = request.data.get('contrasena', '').strip()
 
         if not correo or not contrasena:
-            return Response({'error': 'Correo y contraseña son requeridos'}, status=400)
+            return Response({'error': 'Correo y contraseña son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Busca usuario por correo y contraseña (manteniendo tu enfoque actual de contraseñas en texto plano)
             usuario = Usuario.objects.get(correo=correo, contrasena=contrasena)
         except Usuario.DoesNotExist:
-            return Response({'error': 'Credenciales inválidas'}, status=401)
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Genera el token con duración de 2 horas
+        # Verifica que el estado sea activo (id_estado == 1)
+        # id_estado es FK a Estado; comparamos la PK
+        try:
+            estado_id = usuario.id_estado.id_estado
+        except Exception:
+            estado_id = None
+
+        if estado_id != 1:
+            # Usuario existe pero no está activo
+            return Response({'error': 'usuario inactivo'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Usuario activo: generamos token JWT
         payload = {
             'id_usuario': usuario.id_usuario,
             'correo': usuario.correo,
-            'exp': datetime.utcnow() + timedelta(hours=1),
+            'exp': datetime.utcnow() + timedelta(hours=1),  # mantiene 1 hora; ajusta si quieres
             'iat': datetime.utcnow()
         }
 
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        # jwt.encode puede devolver bytes en algunas versiones; aseguramos string
+        if isinstance(token, bytes):
+            token = token.decode('utf-8')
 
         return Response({
             'token': token,
@@ -50,10 +65,10 @@ class LoginView(APIView):
                 'id': usuario.id_usuario,
                 'nombre': usuario.nombres,
                 'correo': usuario.correo,
-                'rol': usuario.id_permiso_acceso.rol
+                'rol': getattr(usuario.id_permiso_acceso, 'rol', None),
+                'estado': getattr(usuario.id_estado, 'estado', None)
             }
-        })
-
+        }, status=status.HTTP_200_OK)
 
 # appdataflowai/views.py
 
@@ -947,3 +962,311 @@ class CambiarContrasenaView(APIView):
             return Response({'detail': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+#ACTIVAR O DESACTIVAR USUARIOS
+
+
+# views.py
+# views.py
+import jwt
+from django.conf import settings
+from django.db import IntegrityError, transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, serializers
+from rest_framework.exceptions import AuthenticationFailed
+
+from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso
+
+# Map de límites por plan: None = ilimitado
+PLAN_LIMITES = {
+    1: 1,    # Basic
+    2: 3,    # Professional
+    3: None, # Enterprise -> ilimitado
+    4: 1,
+    5: 3,
+    6: None, # Unlimited
+}
+
+
+def _get_usuario_from_token(request):
+    """
+    Extrae y valida el token JWT del header Authorization y devuelve la instancia Usuario.
+    Lanza AuthenticationFailed si algo falla.
+    """
+    auth = request.headers.get('Authorization', '')
+    token = ''
+    if auth:
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1]
+
+    if not token:
+        raise AuthenticationFailed('No se proporcionó token')
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        id_usuario = payload.get('id_usuario')
+        if not id_usuario:
+            raise AuthenticationFailed('Token inválido')
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Token expirado')
+    except jwt.InvalidTokenError:
+        raise AuthenticationFailed('Token inválido')
+
+    try:
+        usuario = Usuario.objects.select_related('id_empresa__id_plan', 'id_estado', 'id_permiso_acceso').get(id_usuario=id_usuario)
+        return usuario
+    except Usuario.DoesNotExist:
+        raise AuthenticationFailed('Usuario no encontrado')
+
+
+class EstadoChangeSerializer(serializers.Serializer):
+    id_estado = serializers.IntegerField()
+
+
+class CreateUserSerializer(serializers.Serializer):
+    nombres = serializers.CharField(max_length=200)
+    apellidos = serializers.CharField(max_length=200, allow_blank=True, required=False)
+    correo = serializers.EmailField()
+    contrasena = serializers.CharField(max_length=255)
+    contrasena_confirm = serializers.CharField(max_length=255, write_only=True)
+    id_permiso_acceso = serializers.IntegerField(required=False)  # opcional: id del permiso/rol
+    id_estado = serializers.IntegerField(required=False)  # opcional: id del estado
+
+    def validate_id_permiso_acceso(self, value):
+        try:
+            PermisoAcceso.objects.get(id_permiso_acceso=value)
+        except PermisoAcceso.DoesNotExist:
+            raise serializers.ValidationError('PermisoAcceso no existe')
+        return value
+
+    def validate_id_estado(self, value):
+        try:
+            Estado.objects.get(id_estado=value)
+        except Estado.DoesNotExist:
+            raise serializers.ValidationError('Estado no existe')
+        return value
+
+    def validate(self, data):
+        # validar que las contraseñas coincidan
+        if data.get('contrasena') != data.get('contrasena_confirm'):
+            raise serializers.ValidationError({'contrasena_confirm': 'Las contraseñas no coinciden'})
+        return data
+
+
+class UsuariosEmpresaView(APIView):
+    """
+    GET: lista usuarios de la misma empresa del usuario autenticado.
+    POST: crea un usuario en la misma empresa (respectando limites del plan).
+    Ruta: /perfil/usuarios/
+    """
+    def get(self, request):
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = usuario.id_empresa
+        usuarios_qs = Usuario.objects.filter(id_empresa=empresa).select_related('id_estado', 'id_permiso_acceso')
+
+        usuarios = []
+        for u in usuarios_qs:
+            usuarios.append({
+                'id_usuario': u.id_usuario,
+                'nombres': u.nombres,
+                'apellidos': u.apellidos,
+                'correo': u.correo,
+                'id_permiso_acceso': getattr(u.id_permiso_acceso, 'id_permiso_acceso', None),
+                'rol': getattr(u.id_permiso_acceso, 'rol', None),
+                'id_estado': getattr(u.id_estado, 'id_estado', None),
+                'estado': getattr(u.id_estado, 'estado', None),
+            })
+
+        return Response({'usuarios': usuarios}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        Crear un usuario dentro de la misma empresa del usuario autenticado, respetando límites del plan.
+        Body esperado (JSON):
+        {
+          "nombres": "...",
+          "apellidos": "...",           // opcional
+          "correo": "...",
+          "contrasena": "...",
+          "contrasena_confirm": "...",
+          "id_permiso_acceso": 2,       // opcional
+          "id_estado": 1                // opcional (por defecto activo)
+        }
+        """
+        try:
+            usuario_aut = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = CreateUserSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        empresa = usuario_aut.id_empresa
+        # Obtener limite según plan
+        try:
+            plan_id = empresa.id_plan.id_plan
+        except Exception:
+            plan_id = None
+
+        limite = PLAN_LIMITES.get(plan_id, None)  # None => ilimitado
+
+        # Contamos usuarios actuales de la empresa (incluye activos/inactivos)
+        usuarios_count = Usuario.objects.filter(id_empresa=empresa).count()
+
+        if limite is not None and usuarios_count >= limite:
+            return Response({
+                'error': 'Límite de usuarios alcanzado para el plan de la empresa',
+                'limit': limite,
+                'current': usuarios_count
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Preparar campos para creación
+        id_permiso_acceso = data.get('id_permiso_acceso', None)
+        if id_permiso_acceso is None:
+            # por defecto usamos el permiso del usuario autenticado
+            id_permiso_acceso = getattr(usuario_aut.id_permiso_acceso, 'id_permiso_acceso', None)
+
+        # Buscar objetos FK
+        try:
+            permiso_obj = PermisoAcceso.objects.get(id_permiso_acceso=id_permiso_acceso)
+        except PermisoAcceso.DoesNotExist:
+            permiso_obj = usuario_aut.id_permiso_acceso
+
+        id_estado = data.get('id_estado', None)
+        if id_estado is None:
+            # por defecto activo (1)
+            id_estado = 1
+        try:
+            estado_obj = Estado.objects.get(id_estado=id_estado)
+        except Estado.DoesNotExist:
+            return Response({'error': 'Estado no existe'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Crear usuario (con contrasena en texto plano por requisito)
+        try:
+            with transaction.atomic():
+                nuevo = Usuario.objects.create(
+                    id_empresa=empresa,
+                    id_permiso_acceso=permiso_obj,
+                    nombres=data['nombres'],
+                    apellidos=data.get('apellidos', '') or '',
+                    correo=data['correo'],
+                    contrasena=data['contrasena'],  # guardado en texto plano por requerimiento
+                    id_estado=estado_obj
+                )
+        except IntegrityError as e:
+            # Probablemente correo duplicado u otra restricción
+            return Response({'error': 'No se pudo crear usuario. Posible correo duplicado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'detail': 'Usuario creado correctamente',
+            'usuario': {
+                'id_usuario': nuevo.id_usuario,
+                'nombres': nuevo.nombres,
+                'apellidos': nuevo.apellidos,
+                'correo': nuevo.correo,
+                'id_estado': nuevo.id_estado.id_estado,
+                'estado': nuevo.id_estado.estado
+            }
+        }, status=status.HTTP_201_CREATED)
+
+
+class UsuarioEstadoChangeView(APIView):
+    """
+    PATCH: Cambia el estado (id_estado) de un usuario objetivo.
+    Solo permite cambiar usuarios que pertenezcan a la misma empresa que el usuario autenticado.
+    Ruta: PATCH /perfil/usuarios/<id_usuario>/estado/
+    Body JSON: { "id_estado": 1 }
+    """
+    def patch(self, request, id_usuario):
+        try:
+            usuario_autenticado = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Buscar usuario objetivo
+        try:
+            usuario_obj = Usuario.objects.select_related('id_empresa', 'id_estado').get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario objetivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Solo permitimos administrar usuarios de la misma empresa
+        if usuario_obj.id_empresa.id_empresa != usuario_autenticado.id_empresa.id_empresa:
+            return Response({'error': 'No autorizado para modificar usuarios de otra empresa'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Validar body
+        serializer = EstadoChangeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        nuevo_estado_id = serializer.validated_data['id_estado']
+        try:
+            nuevo_estado = Estado.objects.get(id_estado=nuevo_estado_id)
+        except Estado.DoesNotExist:
+            return Response({'error': 'Estado no existe'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Actualizamos
+        usuario_obj.id_estado = nuevo_estado
+        usuario_obj.save()
+
+        return Response({
+            'detail': 'Estado actualizado correctamente',
+            'id_usuario': usuario_obj.id_usuario,
+            'id_estado': nuevo_estado.id_estado,
+            'estado': nuevo_estado.estado
+        }, status=status.HTTP_200_OK)
+
+
+class UsuarioDeleteView(APIView):
+    """
+    DELETE: Elimina un usuario (solo si pertenece a la misma empresa).
+    Ruta: DELETE /perfil/usuarios/<id_usuario>/
+    """
+    def delete(self, request, id_usuario):
+        try:
+            usuario_autenticado = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Buscar usuario objetivo
+        try:
+            usuario_obj = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario objetivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Solo permitimos administrar usuarios de la misma empresa
+        if usuario_obj.id_empresa.id_empresa != usuario_autenticado.id_empresa.id_empresa:
+            return Response({'error': 'No autorizado para eliminar usuarios de otra empresa'}, status=status.HTTP_403_FORBIDDEN)
+
+        # (Opcional) evitar que se elimine a sí mismo
+        if usuario_obj.id_usuario == usuario_autenticado.id_usuario:
+            return Response({'error': 'No puedes eliminar tu propio usuario'}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario_obj.delete()
+        return Response({'detail': 'Usuario eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class PermisosListView(APIView):
+    """
+    GET: lista todos los permisos/roles disponibles.
+    Ruta: GET /perfil/permisos/
+    """
+    def get(self, request):
+        permisos_qs = PermisoAcceso.objects.all()
+        permisos = []
+        for p in permisos_qs:
+            permisos.append({
+                'id_permiso_acceso': p.id_permiso_acceso,
+                'rol': p.rol
+            })
+        return Response({'permisos': permisos}, status=status.HTTP_200_OK)

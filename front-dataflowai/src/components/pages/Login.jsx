@@ -1,3 +1,4 @@
+// src/components/Login/Login.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { iniciarSesion } from '../../api/Login';
@@ -39,13 +40,13 @@ const Login = () => {
 
     try {
       const data = await iniciarSesion({ correo, contrasena });
-      
-      // Redirigir después de un pequeño delay para mejor UX
+
+      // Si llega aquí, login OK (usuario activo). Redirigimos.
       setTimeout(() => {
         navigate('/home');
-      }, 1000);
-      
+      }, 400); // pequeño delay UX
     } catch (err) {
+      // err.message contendrá "usuario inactivo" si ese fue el caso
       setError(err.message || 'Credenciales incorrectas');
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -58,7 +59,6 @@ const Login = () => {
     <div className={styles.pageContainer}>
       <div className={styles.loginWrapper}>
         <div className={styles.superPremiumContainer}>
-          {/* Sección izquierda */}
           <div className={styles.brandingSection}>
             <div className={styles.brandingContent}>
               <img
@@ -80,7 +80,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Sección derecha */}
           <div className={`${styles.loginSection} ${shake ? styles.shake : ''}`}>
             <div className={styles.loginCard}>
               <div className={styles.loginHeader}>

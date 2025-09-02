@@ -5,7 +5,7 @@ import styles from '../../styles/CreacionUsuario.module.css';
 const ConfiguracionUsuarios = () => {
   const opciones = [
     { texto: "¿Deseas cambiar la contraseña?", ruta: "/cambiar-contrasena" },
-    { texto: "¿Deseas activar o desactivar un usuario?", ruta: "/activar-usuario" },
+    { texto: "¿Deseas activar o desactivar un usuario?", ruta: "/desactivar-activar-usuarios" },
     { texto: "¿Deseas actualizar información de tu empresa o usuario?", ruta: "/actualizar-usuario" },
     { texto: "¿Deseas conocer los pagos realizados - Facturación?", ruta: "/facturacion" },
     { texto: "¿Deseas crear un usuario?", ruta: "/crear-usuario" },
