@@ -986,10 +986,10 @@ from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso
 PLAN_LIMITES = {
     1: 1,    # Basic
     2: 3,    # Professional
-    3: None, # Enterprise -> ilimitado
+    3: 100, # Enterprise -> ilimitado
     4: 1,
     5: 3,
-    6: None, # Unlimited
+    6: 100, # Unlimited
 }
 
 

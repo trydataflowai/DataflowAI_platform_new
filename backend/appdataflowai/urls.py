@@ -93,7 +93,7 @@ urlpatterns = [
     path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'),                         # GET permisos/roles
 
 
-    
+    path('editar/perfil/contrasena', CambiarContrasenaView.as_view(), name='editar_perfil_contrasena'),    
     path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'), 
     path('perfil/me/', PerfilMeView.as_view(), name='perfil_me'),         # GET, PATCH para usuario
     path('perfil/empresa/', EmpresaView.as_view(), name='perfil_empresa'),# 
