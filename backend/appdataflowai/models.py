@@ -10,6 +10,18 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.descripcion_categoria
+    
+
+class Areas(models.Model):
+    id_area = models.AutoField(primary_key=True, db_column='id_area')
+    area_trabajo = models.CharField(max_length=150, db_column='area_trabajo')
+
+    class Meta:
+        db_table = 'areas'
+        verbose_name_plural = 'Areas'
+
+    def __str__(self):
+        return self.area_trabajo
 
 
 class Estado(models.Model):
@@ -54,6 +66,7 @@ class Empresa(models.Model):
     id_categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, db_column='id_categoria') 
     id_plan = models.ForeignKey(TipoPlan, on_delete=models.PROTECT, db_column='id_plan')
     id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
+
     nombre_empresa = models.CharField(max_length=200, db_column='nombre_empresa')
     direccion = models.CharField(max_length=200, db_column='Direccion')
     fecha_registros = models.DateField(db_column='Fecha_registros')
@@ -92,6 +105,7 @@ class Usuario(models.Model):
     id_usuario = models.AutoField(primary_key=True, db_column='id_usuario')
     id_empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, db_column='id_empresa')
     id_permiso_acceso = models.ForeignKey(PermisoAcceso, on_delete=models.PROTECT, db_column='id_permiso_acceso')
+    id_area = models.ForeignKey(Areas, on_delete=models.PROTECT, db_column='id_area')
     nombres = models.CharField(max_length=200, db_column='nombres')
     apellidos = models.CharField(max_length=200, null=True, blank=True, db_column='apellidos')
     correo = models.EmailField(max_length=255, db_column='correo', unique=True)
@@ -123,6 +137,7 @@ class Producto(models.Model):
 
     id_producto = models.AutoField(primary_key=True, db_column='id_producto')
     producto = models.CharField(max_length=200, db_column='producto')
+    id_area = models.ForeignKey(Areas, on_delete=models.PROTECT, db_column='id_area')
     
     slug = models.SlugField(
         max_length=250,
@@ -201,6 +216,22 @@ class DetalleProductoVendido(models.Model):
 
     def __str__(self):
         return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
+    
+
+
+class EmpresaDashboard(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT, db_column='id_producto')
+    empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT, db_column='id_empresa')
+
+    class Meta:
+        db_table = 'detalle_empresa_dashboard'
+        verbose_name = 'Detalle Empresa Dashboard'
+        verbose_name_plural = 'Detalle Empresa Dashboard'
+        unique_together = (('producto', 'empresa'),)
+
+    def __str__(self):
+        return f"{self.empresa} - {self.producto}"
+
 
 
 

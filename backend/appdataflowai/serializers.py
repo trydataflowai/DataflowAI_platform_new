@@ -308,3 +308,64 @@ class PasswordChangeSerializer(serializers.Serializer):
         usuario.contrasena = nueva
         usuario.save()
         return usuario
+
+
+
+
+
+
+
+#ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+from rest_framework import serializers
+from .models import Usuario, Producto, DetalleProducto, EmpresaDashboard
+from django.conf import settings
+
+
+class AsgDashboardUsuarioListSerializer(serializers.ModelSerializer):
+    area = serializers.CharField(source='id_area.area_trabajo', read_only=True)
+    id_empresa = serializers.IntegerField(source='id_empresa.id_empresa', read_only=True)
+
+    class Meta:
+        model = Usuario
+        fields = ('id_usuario', 'nombres', 'apellidos', 'correo', 'area', 'id_empresa')
+
+
+class AsgDashboardProductoSerializer(serializers.ModelSerializer):
+    area = serializers.CharField(source='id_area.area_trabajo', read_only=True)
+    # Lista de empresas propietarias (si las hay). Puede ser None o lista.
+    owned_by = serializers.SerializerMethodField(method_name='asgdashboard_get_owned_by')
+
+    class Meta:
+        model = Producto
+        fields = (
+            'id_producto',
+            'producto',
+            'area',
+            'slug',
+            'categoria_producto',
+            'tipo_producto',
+            'id_estado',
+            'link_pb',
+            'owned_by',
+        )
+
+    def asgdashboard_get_owned_by(self, obj):
+        qs = EmpresaDashboard.objects.filter(producto=obj)
+        if not qs.exists():
+            return None
+        return [
+            {
+                'id_empresa': e.empresa.id_empresa,
+                'nombre_empresa': e.empresa.nombre_empresa
+            }
+            for e in qs
+        ]
+
+
+class AsgDashboardDetalleProductoSerializer(serializers.ModelSerializer):
+    # Devuelve info simple del producto en la asignación
+    producto = AsgDashboardProductoSerializer(source='id_producto', read_only=True)
+
+    class Meta:
+        model = DetalleProducto
+        fields = ('id_usuario', 'id_producto', 'producto')

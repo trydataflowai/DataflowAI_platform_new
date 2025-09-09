@@ -966,11 +966,271 @@ class CambiarContrasenaView(APIView):
 
 
 
+#modificar usuario y empresa
+# views.py
+import jwt
+from django.conf import settings
+from django.db import IntegrityError, transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, serializers
+from rest_framework.exceptions import AuthenticationFailed
+
+from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso
+
+
+def _get_usuario_from_token(request):
+    """
+    Extrae y valida el token JWT del header Authorization y devuelve la instancia Usuario.
+    Lanza AuthenticationFailed si algo falla.
+    """
+    auth = request.headers.get('Authorization', '')
+    token = ''
+    if auth:
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1]
+
+    if not token:
+        raise AuthenticationFailed('No se proporcionó token')
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        id_usuario = payload.get('id_usuario')
+        if not id_usuario:
+            raise AuthenticationFailed('Token inválido')
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Token expirado')
+    except jwt.InvalidTokenError:
+        raise AuthenticationFailed('Token inválido')
+
+    try:
+        usuario = Usuario.objects.select_related('id_empresa__id_plan', 'id_estado', 'id_permiso_acceso').get(id_usuario=id_usuario)
+        return usuario
+    except Usuario.DoesNotExist:
+        raise AuthenticationFailed('Usuario no encontrado')
+
+
+# Serializers para actualización
+
+class UsuarioUpdateSerializer(serializers.Serializer):
+    # Campos permitidos para editar en Usuario (NO se incluyen los campos bloqueados)
+    nombres = serializers.CharField(max_length=200, required=False)
+    apellidos = serializers.CharField(max_length=200, allow_blank=True, required=False)
+    correo = serializers.EmailField(required=False)
+
+    def validate_correo(self, value):
+        # La vista debe pasar el usuario actual en context para comparar
+        usuario_actual = self.context.get('usuario_actual')
+        if usuario_actual and usuario_actual.correo == value:
+            return value
+        # Verificar unicidad
+        if Usuario.objects.filter(correo=value).exists():
+            raise serializers.ValidationError('El correo ya está en uso')
+        return value
+
+
+class EmpresaUpdateSerializer(serializers.Serializer):
+    # Campos permitidos para editar en Empresa (los campos bloqueados NO están aquí)
+    nombre_empresa = serializers.CharField(max_length=200, required=False)
+    direccion = serializers.CharField(max_length=200, required=False)
+    telefono = serializers.CharField(max_length=20, required=False)
+    ciudad = serializers.CharField(max_length=100, required=False)
+    pais = serializers.CharField(max_length=100, required=False)
+    prefijo_pais = serializers.CharField(max_length=5, allow_blank=True, required=False)
+    correo = serializers.EmailField(required=False, allow_null=True)
+    pagina_web = serializers.URLField(required=False, allow_null=True)
+
+    # validaciones adicionales si se requieren se pueden agregar aquí
+
+
+class PerfilMeView(APIView):
+    """
+    GET: devuelve info del usuario autenticado y la empresa asociada (lectura).
+    PATCH: actualiza la información del usuario autenticado (solo campos permitidos).
+    Ruta: GET/PATCH /perfil/me/
+    """
+    def get(self, request):
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = usuario.id_empresa
+
+        resp = {
+            'usuario': {
+                'id_usuario': usuario.id_usuario,
+                'nombres': usuario.nombres,
+                'apellidos': usuario.apellidos,
+                'correo': usuario.correo,
+                'id_permiso_acceso': getattr(usuario.id_permiso_acceso, 'id_permiso_acceso', None),
+                'rol': getattr(usuario.id_permiso_acceso, 'rol', None),
+                'id_estado': getattr(usuario.id_estado, 'id_estado', None),
+                'estado': getattr(usuario.id_estado, 'estado', None),
+            },
+            'empresa': {
+                'id_empresa': empresa.id_empresa,
+                'id_plan': getattr(empresa.id_plan, 'id_plan', None),
+                'nombre_empresa': empresa.nombre_empresa,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'ciudad': empresa.ciudad,
+                'pais': empresa.pais,
+                'prefijo_pais': empresa.prefijo_pais,
+                'correo': empresa.correo,
+                'pagina_web': empresa.pagina_web,
+                'id_estado': getattr(empresa.id_estado, 'id_estado', None),
+                'fecha_registros': empresa.fecha_registros.isoformat() if empresa.fecha_registros else None,
+                'fecha_hora_pago': empresa.fecha_hora_pago.isoformat() if empresa.fecha_hora_pago else None,
+            }
+        }
+        return Response(resp, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        """
+        Actualiza los campos permitidos del usuario autenticado.
+        NO permite actualizar: id_usuario, id_empresa, id_permiso_acceso, id_estado, contrasena.
+        """
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = UsuarioUpdateSerializer(data=request.data, context={'usuario_actual': usuario})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        # Actualizar
+        try:
+            with transaction.atomic():
+                if 'nombres' in data:
+                    usuario.nombres = data['nombres']
+                if 'apellidos' in data:
+                    usuario.apellidos = data['apellidos']
+                if 'correo' in data:
+                    usuario.correo = data['correo']
+                usuario.save()
+        except IntegrityError:
+            return Response({'error': 'No se pudo actualizar usuario. Posible conflicto de datos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'detail': 'Usuario actualizado correctamente',
+            'usuario': {
+                'id_usuario': usuario.id_usuario,
+                'nombres': usuario.nombres,
+                'apellidos': usuario.apellidos,
+                'correo': usuario.correo
+            }
+        }, status=status.HTTP_200_OK)
+
+
+class EmpresaView(APIView):
+    """
+    GET: devuelve los datos de la empresa del usuario autenticado.
+    PATCH: actualiza los campos permitidos de la empresa (solo si el usuario es admin: id_permiso_acceso == 1)
+    Ruta: GET/PATCH /perfil/empresa/
+    """
+    def get(self, request):
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = usuario.id_empresa
+        resp = {
+            'empresa': {
+                'id_empresa': empresa.id_empresa,
+                'id_plan': getattr(empresa.id_plan, 'id_plan', None),
+                'nombre_empresa': empresa.nombre_empresa,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'ciudad': empresa.ciudad,
+                'pais': empresa.pais,
+                'prefijo_pais': empresa.prefijo_pais,
+                'correo': empresa.correo,
+                'pagina_web': empresa.pagina_web,
+                'id_estado': getattr(empresa.id_estado, 'id_estado', None),
+                'fecha_registros': empresa.fecha_registros.isoformat() if empresa.fecha_registros else None,
+                'fecha_hora_pago': empresa.fecha_hora_pago.isoformat() if empresa.fecha_hora_pago else None,
+            }
+        }
+        return Response(resp, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        """
+        Actualizar empresa: SOLO si el usuario autenticado tiene id_permiso_acceso == 1
+        Campos NO editables: id_empresa, id_plan, id_estado, fecha_registros, fecha_hora_pago
+        Campos editables: nombre_empresa, direccion, telefono, ciudad, pais, prefijo_pais, correo, pagina_web
+        """
+        try:
+            usuario = _get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # comprobación de permiso (solo rol con id_permiso_acceso == 1 puede editar empresa)
+        permiso_id = getattr(usuario.id_permiso_acceso, 'id_permiso_acceso', None)
+        if permiso_id != 1:
+            return Response({'error': 'No autorizado. Se requiere permiso administrativo para editar la empresa.'}, status=status.HTTP_403_FORBIDDEN)
+
+        empresa = usuario.id_empresa
+
+        serializer = EmpresaUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        try:
+            with transaction.atomic():
+                if 'nombre_empresa' in data:
+                    empresa.nombre_empresa = data['nombre_empresa']
+                if 'direccion' in data:
+                    empresa.direccion = data['direccion']
+                if 'telefono' in data:
+                    empresa.telefono = data['telefono']
+                if 'ciudad' in data:
+                    empresa.ciudad = data['ciudad']
+                if 'pais' in data:
+                    empresa.pais = data['pais']
+                if 'prefijo_pais' in data:
+                    empresa.prefijo_pais = data['prefijo_pais']
+                if 'correo' in data:
+                    empresa.correo = data['correo']
+                if 'pagina_web' in data:
+                    empresa.pagina_web = data['pagina_web']
+                empresa.save()
+        except IntegrityError:
+            return Response({'error': 'No se pudo actualizar la empresa. Posible conflicto de datos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'detail': 'Empresa actualizada correctamente',
+            'empresa': {
+                'id_empresa': empresa.id_empresa,
+                'nombre_empresa': empresa.nombre_empresa,
+                'direccion': empresa.direccion,
+                'telefono': empresa.telefono,
+                'ciudad': empresa.ciudad,
+                'pais': empresa.pais,
+                'prefijo_pais': empresa.prefijo_pais,
+                'correo': empresa.correo,
+                'pagina_web': empresa.pagina_web,
+            }
+        }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #ACTIVAR O DESACTIVAR USUARIOS
-
-
 # views.py
 import jwt
 from django.conf import settings
@@ -1347,254 +1607,228 @@ class PermisosListView(APIView):
 
 
 
-#modificar usuario y empresa
 
 
-# views.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
 import jwt
 from django.conf import settings
-from django.db import IntegrityError, transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, serializers
+from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
+from django.db import transaction
 
-from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso
+from .models import Usuario, Producto, DetalleProducto, EmpresaDashboard
+from .serializers import (
+    AsgDashboardUsuarioListSerializer,
+    AsgDashboardProductoSerializer,
+    AsgDashboardDetalleProductoSerializer
+)
+
+# Mapa de límites por id_plan (usa el tuyo)
+PLAN_LIMITES = {
+    1: 1,   # Basic
+    2: 5,   # Professional
+    3: 10,  # Enterprise
+    4: 1,
+    5: 5,   # Dataflow
+    6: 10,
+}
 
 
-def _get_usuario_from_token(request):
+class AsgDashboardBasePerfilView(APIView):
     """
-    Extrae y valida el token JWT del header Authorization y devuelve la instancia Usuario.
-    Lanza AuthenticationFailed si algo falla.
+    Clase base para obtener usuario desde token.
     """
-    auth = request.headers.get('Authorization', '')
-    token = ''
-    if auth:
-        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1]
 
-    if not token:
-        raise AuthenticationFailed('No se proporcionó token')
+    def asgdashboard_get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
 
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        id_usuario = payload.get('id_usuario')
-        if not id_usuario:
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
             raise AuthenticationFailed('Token inválido')
-    except jwt.ExpiredSignatureError:
-        raise AuthenticationFailed('Token expirado')
-    except jwt.InvalidTokenError:
-        raise AuthenticationFailed('Token inválido')
 
-    try:
-        usuario = Usuario.objects.select_related('id_empresa__id_plan', 'id_estado', 'id_permiso_acceso').get(id_usuario=id_usuario)
-        return usuario
-    except Usuario.DoesNotExist:
-        raise AuthenticationFailed('Usuario no encontrado')
+        try:
+            usuario = Usuario.objects.get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
 
 
-# Serializers para actualización
-
-class UsuarioUpdateSerializer(serializers.Serializer):
-    # Campos permitidos para editar en Usuario (NO se incluyen los campos bloqueados)
-    nombres = serializers.CharField(max_length=200, required=False)
-    apellidos = serializers.CharField(max_length=200, allow_blank=True, required=False)
-    correo = serializers.EmailField(required=False)
-
-    def validate_correo(self, value):
-        # La vista debe pasar el usuario actual en context para comparar
-        usuario_actual = self.context.get('usuario_actual')
-        if usuario_actual and usuario_actual.correo == value:
-            return value
-        # Verificar unicidad
-        if Usuario.objects.filter(correo=value).exists():
-            raise serializers.ValidationError('El correo ya está en uso')
-        return value
-
-
-class EmpresaUpdateSerializer(serializers.Serializer):
-    # Campos permitidos para editar en Empresa (los campos bloqueados NO están aquí)
-    nombre_empresa = serializers.CharField(max_length=200, required=False)
-    direccion = serializers.CharField(max_length=200, required=False)
-    telefono = serializers.CharField(max_length=20, required=False)
-    ciudad = serializers.CharField(max_length=100, required=False)
-    pais = serializers.CharField(max_length=100, required=False)
-    prefijo_pais = serializers.CharField(max_length=5, allow_blank=True, required=False)
-    correo = serializers.EmailField(required=False, allow_null=True)
-    pagina_web = serializers.URLField(required=False, allow_null=True)
-
-    # validaciones adicionales si se requieren se pueden agregar aquí
-
-
-class PerfilMeView(APIView):
+class AsgDashboardUsuariosEmpresaView(AsgDashboardBasePerfilView):
     """
-    GET: devuelve info del usuario autenticado y la empresa asociada (lectura).
-    PATCH: actualiza la información del usuario autenticado (solo campos permitidos).
-    Ruta: GET/PATCH /perfil/me/
+    GET /asg/perfil/usuarios/  -> Lista los usuarios que pertenecen a la misma empresa
     """
     def get(self, request):
         try:
-            usuario = _get_usuario_from_token(request)
+            usuario = self.asgdashboard_get_usuario_from_token(request)
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        empresa = usuario.id_empresa
-
-        resp = {
-            'usuario': {
-                'id_usuario': usuario.id_usuario,
-                'nombres': usuario.nombres,
-                'apellidos': usuario.apellidos,
-                'correo': usuario.correo,
-                'id_permiso_acceso': getattr(usuario.id_permiso_acceso, 'id_permiso_acceso', None),
-                'rol': getattr(usuario.id_permiso_acceso, 'rol', None),
-                'id_estado': getattr(usuario.id_estado, 'id_estado', None),
-                'estado': getattr(usuario.id_estado, 'estado', None),
-            },
-            'empresa': {
-                'id_empresa': empresa.id_empresa,
-                'id_plan': getattr(empresa.id_plan, 'id_plan', None),
-                'nombre_empresa': empresa.nombre_empresa,
-                'direccion': empresa.direccion,
-                'telefono': empresa.telefono,
-                'ciudad': empresa.ciudad,
-                'pais': empresa.pais,
-                'prefijo_pais': empresa.prefijo_pais,
-                'correo': empresa.correo,
-                'pagina_web': empresa.pagina_web,
-                'id_estado': getattr(empresa.id_estado, 'id_estado', None),
-                'fecha_registros': empresa.fecha_registros.isoformat() if empresa.fecha_registros else None,
-                'fecha_hora_pago': empresa.fecha_hora_pago.isoformat() if empresa.fecha_hora_pago else None,
-            }
-        }
-        return Response(resp, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        """
-        Actualiza los campos permitidos del usuario autenticado.
-        NO permite actualizar: id_usuario, id_empresa, id_permiso_acceso, id_estado, contrasena.
-        """
-        try:
-            usuario = _get_usuario_from_token(request)
-        except AuthenticationFailed as e:
-            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = UsuarioUpdateSerializer(data=request.data, context={'usuario_actual': usuario})
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
-        # Actualizar
-        try:
-            with transaction.atomic():
-                if 'nombres' in data:
-                    usuario.nombres = data['nombres']
-                if 'apellidos' in data:
-                    usuario.apellidos = data['apellidos']
-                if 'correo' in data:
-                    usuario.correo = data['correo']
-                usuario.save()
-        except IntegrityError:
-            return Response({'error': 'No se pudo actualizar usuario. Posible conflicto de datos.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({
-            'detail': 'Usuario actualizado correctamente',
-            'usuario': {
-                'id_usuario': usuario.id_usuario,
-                'nombres': usuario.nombres,
-                'apellidos': usuario.apellidos,
-                'correo': usuario.correo
-            }
-        }, status=status.HTTP_200_OK)
+        usuarios = Usuario.objects.filter(id_empresa=usuario.id_empresa)
+        serializer = AsgDashboardUsuarioListSerializer(usuarios, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class EmpresaView(APIView):
+class AsgDashboardProductosListView(AsgDashboardBasePerfilView):
     """
-    GET: devuelve los datos de la empresa del usuario autenticado.
-    PATCH: actualiza los campos permitidos de la empresa (solo si el usuario es admin: id_permiso_acceso == 1)
-    Ruta: GET/PATCH /perfil/empresa/
+    GET /asg/perfil/productos/  -> Lista de productos disponibles para la empresa del usuario que hace la petición.
+    Regla: se excluyen productos que estén asociados (en EmpresaDashboard) a otras empresas.
     """
     def get(self, request):
         try:
-            usuario = _get_usuario_from_token(request)
+            requester = self.asgdashboard_get_usuario_from_token(request)
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        empresa = usuario.id_empresa
-        resp = {
-            'empresa': {
-                'id_empresa': empresa.id_empresa,
-                'id_plan': getattr(empresa.id_plan, 'id_plan', None),
-                'nombre_empresa': empresa.nombre_empresa,
-                'direccion': empresa.direccion,
-                'telefono': empresa.telefono,
-                'ciudad': empresa.ciudad,
-                'pais': empresa.pais,
-                'prefijo_pais': empresa.prefijo_pais,
-                'correo': empresa.correo,
-                'pagina_web': empresa.pagina_web,
-                'id_estado': getattr(empresa.id_estado, 'id_estado', None),
-                'fecha_registros': empresa.fecha_registros.isoformat() if empresa.fecha_registros else None,
-                'fecha_hora_pago': empresa.fecha_hora_pago.isoformat() if empresa.fecha_hora_pago else None,
-            }
-        }
-        return Response(resp, status=status.HTTP_200_OK)
+        # Productos que están asociados a OTRAS empresas
+        productos_bloqueados_ids = EmpresaDashboard.objects.exclude(empresa=requester.id_empresa).values_list('producto_id', flat=True)
+        productos = Producto.objects.exclude(id_producto__in=productos_bloqueados_ids).order_by('producto')
+        serializer = AsgDashboardProductoSerializer(productos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request):
-        """
-        Actualizar empresa: SOLO si el usuario autenticado tiene id_permiso_acceso == 1
-        Campos NO editables: id_empresa, id_plan, id_estado, fecha_registros, fecha_hora_pago
-        Campos editables: nombre_empresa, direccion, telefono, ciudad, pais, prefijo_pais, correo, pagina_web
-        """
+
+class AsgDashboardUsuarioAsignacionesView(AsgDashboardBasePerfilView):
+    """
+    GET  /asg/perfil/usuarios/<id_usuario>/asignaciones/  -> devuelve productos asignados a ese usuario
+    POST /asg/perfil/usuarios/<id_usuario>/asignaciones/  -> asigna un producto a ese usuario (body: { "id_producto": <int> })
+    """
+
+    def asgdashboard_get_target_usuario_or_401(self, request, id_usuario):
         try:
-            usuario = _get_usuario_from_token(request)
+            requester = self.asgdashboard_get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            raise AuthenticationFailed(str(e))
+        try:
+            target = Usuario.objects.get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return None, Response({'error': 'Usuario objetivo no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Solo permitir operar sobre usuarios de la misma empresa
+        if target.id_empresa.id_empresa != requester.id_empresa.id_empresa:
+            return None, Response({'error': 'No autorizado para ver/editar usuarios de otra empresa.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return target, None
+
+    def get(self, request, id_usuario):
+        try:
+            target, err_resp = self.asgdashboard_get_target_usuario_or_401(request, id_usuario)
+            if err_resp:
+                return err_resp
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # comprobación de permiso (solo rol con id_permiso_acceso == 1 puede editar empresa)
-        permiso_id = getattr(usuario.id_permiso_acceso, 'id_permiso_acceso', None)
-        if permiso_id != 1:
-            return Response({'error': 'No autorizado. Se requiere permiso administrativo para editar la empresa.'}, status=status.HTTP_403_FORBIDDEN)
+        asignaciones = DetalleProducto.objects.filter(id_usuario=target)
+        serializer = AsgDashboardDetalleProductoSerializer(asignaciones, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        empresa = usuario.id_empresa
-
-        serializer = EmpresaUpdateSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
+    @transaction.atomic
+    def post(self, request, id_usuario):
+        """
+        Body: { "id_producto": <int> }
+        """
         try:
-            with transaction.atomic():
-                if 'nombre_empresa' in data:
-                    empresa.nombre_empresa = data['nombre_empresa']
-                if 'direccion' in data:
-                    empresa.direccion = data['direccion']
-                if 'telefono' in data:
-                    empresa.telefono = data['telefono']
-                if 'ciudad' in data:
-                    empresa.ciudad = data['ciudad']
-                if 'pais' in data:
-                    empresa.pais = data['pais']
-                if 'prefijo_pais' in data:
-                    empresa.prefijo_pais = data['prefijo_pais']
-                if 'correo' in data:
-                    empresa.correo = data['correo']
-                if 'pagina_web' in data:
-                    empresa.pagina_web = data['pagina_web']
-                empresa.save()
-        except IntegrityError:
-            return Response({'error': 'No se pudo actualizar la empresa. Posible conflicto de datos.'}, status=status.HTTP_400_BAD_REQUEST)
+            target, err_resp = self.asgdashboard_get_target_usuario_or_401(request, id_usuario)
+            if err_resp:
+                return err_resp
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response({
-            'detail': 'Empresa actualizada correctamente',
-            'empresa': {
-                'id_empresa': empresa.id_empresa,
-                'nombre_empresa': empresa.nombre_empresa,
-                'direccion': empresa.direccion,
-                'telefono': empresa.telefono,
-                'ciudad': empresa.ciudad,
-                'pais': empresa.pais,
-                'prefijo_pais': empresa.prefijo_pais,
-                'correo': empresa.correo,
-                'pagina_web': empresa.pagina_web,
-            }
-        }, status=status.HTTP_200_OK)
+        id_producto = request.data.get('id_producto')
+        if not id_producto:
+            return Response({'error': 'Se requiere id_producto'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verificar existencia del producto
+        try:
+            producto = Producto.objects.get(id_producto=id_producto)
+        except Producto.DoesNotExist:
+            return Response({'error': 'Producto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # ** NUEVA VALIDACIÓN: si el producto está asociado en EmpresaDashboard a OTRA empresa -> bloquear **
+        pertenece_otra_empresa = EmpresaDashboard.objects.filter(producto=producto).exclude(empresa=target.id_empresa).exists()
+        if pertenece_otra_empresa:
+            return Response({'error': 'Producto pertenece a otra empresa y no puede asignarse.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Límite por plan de la empresa del usuario objetivo
+        plan_obj = target.id_empresa.id_plan  # objeto TipoPlan
+        plan_id = getattr(plan_obj, 'id_plan', None)
+        limite = PLAN_LIMITES.get(plan_id, None)
+        if limite is None:
+            # sin límite por defecto (puedes ajustar)
+            limite = None
+
+        # Conteo actual de asignaciones del usuario objetivo
+        cuenta_actual = DetalleProducto.objects.filter(id_usuario=target).count()
+        if limite is not None and cuenta_actual >= limite:
+            return Response({
+                'error': 'Límite de dashboards alcanzado para este usuario según su plan.',
+                'limite': limite,
+                'asignados': cuenta_actual
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verificar si ya existe la asociación
+        exists = DetalleProducto.objects.filter(id_usuario=target, id_producto=producto).exists()
+        if exists:
+            return Response({'error': 'Producto ya asignado a este usuario.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Crear la asociación
+        detalle = DetalleProducto.objects.create(id_usuario=target, id_producto=producto)
+        serializer = AsgDashboardDetalleProductoSerializer(detalle)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AsgDashboardUsuarioEliminarAsignacionView(AsgDashboardBasePerfilView):
+    """
+    DELETE /asg/perfil/usuarios/<id_usuario>/asignaciones/<id_producto>/  -> elimina la asignación (opcional)
+    """
+    def delete(self, request, id_usuario, id_producto):
+        try:
+            requester = self.asgdashboard_get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            target = Usuario.objects.get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario objetivo no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if target.id_empresa.id_empresa != requester.id_empresa.id_empresa:
+            return Response({'error': 'No autorizado.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            producto = Producto.objects.get(id_producto=id_producto)
+        except Producto.DoesNotExist:
+            return Response({'error': 'Producto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        deleted, _ = DetalleProducto.objects.filter(id_usuario=target, id_producto=producto).delete()
+        if deleted:
+            return Response({'detail': 'Asignación eliminada.'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'Asignación no encontrada.'}, status=status.HTTP_404_NOT_FOUND)

@@ -75,16 +75,46 @@ class EmpresaAdmin(admin.ModelAdmin):
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('id_usuario', 'nombres', 'apellidos', 'correo', 'id_empresa', 'id_permiso_acceso', 'id_estado')
-    list_filter = ('id_empresa', 'id_permiso_acceso', 'id_estado')
+    list_display = (
+        'id_usuario',
+        'nombres',
+        'apellidos',
+        'correo',
+        'id_empresa',
+        'id_permiso_acceso',
+        'id_area',
+        'id_estado',
+    )
+    list_filter = (
+        'id_empresa',
+        'id_permiso_acceso',
+        'id_area',
+        'id_estado',
+    )
+    search_fields = ('nombres', 'apellidos', 'correo')
+    ordering = ('id_usuario',)
+
 
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('id_producto', 'producto', 'tipo_producto','id_estado')
-    search_fields = ('producto',)
-    list_filter = ('id_estado',)
-
+    list_display = (
+        'id_producto',
+        'producto',
+        'categoria_producto',
+        'tipo_producto',
+        'id_area',
+        'id_estado',
+    )
+    search_fields = ('producto', 'slug')
+    list_filter = (
+        'categoria_producto',
+        'tipo_producto',
+        'id_area',
+        'id_estado',
+    )
+    ordering = ('id_producto',)
+    prepopulated_fields = {"slug": ("producto",)}  # autogenera el slug
 
 @admin.register(DetalleProducto)
 class DetalleProductoAdmin(admin.ModelAdmin):
@@ -107,6 +137,17 @@ class TipoPlanAdmin(admin.ModelAdmin):
     search_fields = ('tipo_plan',)
     list_filter = ('tipo_plan',)
 
+
+
+
+from django.contrib import admin
+from .models import EmpresaDashboard
+
+@admin.register(EmpresaDashboard)
+class EmpresaDashboardAdmin(admin.ModelAdmin):
+    list_display = ('producto', 'empresa')
+    search_fields = ('producto__nombre', 'empresa__nombre')
+    list_filter = ('producto', 'empresa')
 
 
 from django.contrib import admin
@@ -385,3 +426,14 @@ class DashboardSalesAdmin(admin.ModelAdmin):
             'fields': ('notes',)
         }),
     )
+
+
+
+from django.contrib import admin
+from .models import Areas
+
+
+@admin.register(Areas)
+class AreasAdmin(admin.ModelAdmin):
+    list_display = ('id_area', 'area_trabajo')  # columnas visibles en el listado
+    search_fields = ('area_trabajo',)           # campo por el cual se puede buscar

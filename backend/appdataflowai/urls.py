@@ -37,6 +37,15 @@ from .views import (
     PermisosListView,
     PerfilMeView,
     EmpresaView,
+
+
+
+
+#ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+    AsgDashboardUsuariosEmpresaView,
+    AsgDashboardProductosListView,
+    AsgDashboardUsuarioAsignacionesView,
+    AsgDashboardUsuarioEliminarAsignacionView,
 )
 
 urlpatterns = [
@@ -72,13 +81,7 @@ urlpatterns = [
     path('dashboard-compras/', DashboardComprasView.as_view(), name='dashboard-compras'),
     
 
-
-
-
     path('dashboard-sales/', DashboardSalesView.as_view(), name='dashboard-sales'),
-
-
-
 
 
     path('importar/<int:id_producto>/', ImportarDatosView.as_view(), name='importar-datos'),
@@ -93,10 +96,19 @@ urlpatterns = [
     path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'),                         # GET permisos/roles
 
 
+
+
     path('editar/perfil/contrasena', CambiarContrasenaView.as_view(), name='editar_perfil_contrasena'),    
     path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'), 
     path('perfil/me/', PerfilMeView.as_view(), name='perfil_me'),         # GET, PATCH para usuario
     path('perfil/empresa/', EmpresaView.as_view(), name='perfil_empresa'),# 
+
+
+#ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+    path('asg/perfil/usuarios/', AsgDashboardUsuariosEmpresaView.as_view(), name='asg_dashboard_perfil_usuarios'),
+    path('asg/perfil/productos/', AsgDashboardProductosListView.as_view(), name='asg_dashboard_perfil_productos'),
+    path('asg/perfil/usuarios/<int:id_usuario>/asignaciones/', AsgDashboardUsuarioAsignacionesView.as_view(), name='asg_dashboard_usuario_asignaciones'),
+    path('asg/perfil/usuarios/<int:id_usuario>/asignaciones/<int:id_producto>/', AsgDashboardUsuarioEliminarAsignacionView.as_view(), name='asg_dashboard_usuario_eliminar_asignacion'),
 
 ]
     
