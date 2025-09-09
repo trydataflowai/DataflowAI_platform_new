@@ -40,51 +40,38 @@ async function requestWithToken(path, options = {}) {
 }
 
 /**
- * Cambia la contraseña (ya lo tenías)
+ * Cambia la contraseña
  */
 export const cambiarContrasena = async (contrasena_actual, contrasena_nueva) => {
-  const body = {
-    contrasena_actual,
-    contrasena_nueva,
-  };
+  const body = { contrasena_actual, contrasena_nueva };
   return await requestWithToken('editar/perfil/contrasena', {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
 };
 
-
 /**
  * Perfil (usuario + empresa)
- * GET /perfil/me/
- * PATCH /perfil/me/
  */
 export const obtenerMiPerfil = async () => {
   return await requestWithToken('perfil/me/', { method: 'GET' });
 };
 
 export const actualizarMiUsuario = async (payload) => {
-  // payload: { nombres?, apellidos?, correo? }
   return await requestWithToken('perfil/me/', {
     method: 'PATCH',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 };
 
-/**
- * Empresa del usuario
- * GET /perfil/empresa/
- * PATCH /perfil/empresa/
- */
 export const obtenerEmpresa = async () => {
   return await requestWithToken('perfil/empresa/', { method: 'GET' });
 };
 
 export const actualizarEmpresa = async (payload) => {
-  // payload: { nombre_empresa?, direccion?, telefono?, ciudad?, pais?, prefijo_pais?, correo?, pagina_web? }
   return await requestWithToken('perfil/empresa/', {
     method: 'PATCH',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 };
 
@@ -92,44 +79,72 @@ export const actualizarEmpresa = async (payload) => {
  * Usuarios / administración
  */
 export const obtenerUsuariosEmpresa = async () => {
-  return await requestWithToken('perfil/usuarios/', {
-    method: 'GET'
-  });
+  return await requestWithToken('perfil/usuarios/', { method: 'GET' });
 };
 
 export const crearUsuario = async (payload) => {
   return await requestWithToken('perfil/usuarios/', {
     method: 'POST',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 };
 
 export const eliminarUsuario = async (id_usuario) => {
   return await requestWithToken(`perfil/usuarios/${id_usuario}/`, {
-    method: 'DELETE'
+    method: 'DELETE',
   });
 };
 
 export const cambiarEstadoUsuario = async (id_usuario, id_estado) => {
   return await requestWithToken(`perfil/usuarios/${id_usuario}/estado/`, {
     method: 'PATCH',
-    body: JSON.stringify({ id_estado })
+    body: JSON.stringify({ id_estado }),
   });
 };
 
-/**
- * Cambiar rol de usuario (PATCH /perfil/usuarios/<id>/rol/)
- * body: { id_permiso_acceso }
- */
 export const cambiarRolUsuario = async (id_usuario, id_permiso_acceso) => {
   return await requestWithToken(`perfil/usuarios/${id_usuario}/rol/`, {
     method: 'PATCH',
-    body: JSON.stringify({ id_permiso_acceso })
+    body: JSON.stringify({ id_permiso_acceso }),
   });
 };
 
 export const obtenerPermisos = async () => {
-  return await requestWithToken('perfil/permisos/', {
-    method: 'GET'
+  return await requestWithToken('perfil/permisos/', { method: 'GET' });
+};
+
+/**
+ * #ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+ */
+
+// GET /asg/perfil/usuarios/
+export const AsgDashboard_obtenerUsuariosEmpresa = async () => {
+  return await requestWithToken('asg/perfil/usuarios/', { method: 'GET' });
+};
+
+// GET /asg/perfil/productos/
+export const AsgDashboard_obtenerProductos = async () => {
+  return await requestWithToken('asg/perfil/productos/', { method: 'GET' });
+};
+
+// GET /asg/perfil/usuarios/<id_usuario>/asignaciones/
+export const AsgDashboard_obtenerAsignacionesUsuario = async (id_usuario) => {
+  return await requestWithToken(`asg/perfil/usuarios/${id_usuario}/asignaciones/`, {
+    method: 'GET',
+  });
+};
+
+// POST /asg/perfil/usuarios/<id_usuario>/asignaciones/
+export const AsgDashboard_asignarProductoUsuario = async (id_usuario, id_producto) => {
+  return await requestWithToken(`asg/perfil/usuarios/${id_usuario}/asignaciones/`, {
+    method: 'POST',
+    body: JSON.stringify({ id_producto }),
+  });
+};
+
+// DELETE /asg/perfil/usuarios/<id_usuario>/asignaciones/<id_producto>/
+export const AsgDashboard_eliminarAsignacionUsuario = async (id_usuario, id_producto) => {
+  return await requestWithToken(`asg/perfil/usuarios/${id_usuario}/asignaciones/${id_producto}/`, {
+    method: 'DELETE',
   });
 };

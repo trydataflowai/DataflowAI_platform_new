@@ -20,6 +20,7 @@ import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
 import ActivarDesactivarUsuario from "../components/pages/Perfil/ActivarDesactivarUsuarios";
 import ModificarInformacionPersonal from "../components/pages/Perfil/ModificarInformacionPersonal";
+import AsgDashboardAsignarDashboards from "../components/pages/Perfil/AsignarDashboards";
 
 
 
@@ -244,6 +245,18 @@ export const Rutas = () => (
             </RutaProtegida>
           }
         />
+         <Route
+          path="/AsignarDashboards"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <AsgDashboardAsignarDashboards />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+        
 
       </Routes>
     </ThemeProvider>
