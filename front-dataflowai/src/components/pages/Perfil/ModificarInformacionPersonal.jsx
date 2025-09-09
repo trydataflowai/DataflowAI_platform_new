@@ -1,6 +1,6 @@
 // ModificarInformacionPersonal.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CreacionUsuario.module.css';
+import styles from '../../../styles/Profile/ModInfoPersonalLight.module.css';
 import { obtenerMiPerfil, actualizarMiUsuario, obtenerEmpresa, actualizarEmpresa } from '../../../api/Profile';
 
 const ModificarInformacionPersonal = () => {

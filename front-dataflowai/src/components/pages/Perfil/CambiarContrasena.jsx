@@ -1,6 +1,6 @@
 // src/components/pages/Perfil/CambiarContrasena.jsx
 import React, { useState } from 'react';
-import styles from '../../../styles/CreacionUsuario.module.css';
+import styles from '../../../styles/Profile/ModInfoPersonalLight.module.css';
 import { cambiarContrasena } from '../../../api/Profile';
 
 const AppCambiarContrasena = () => {

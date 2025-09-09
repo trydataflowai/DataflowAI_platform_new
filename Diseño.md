@@ -382,4 +382,9 @@ exportconstSideBar=()=>{
 
 **En el siguiente JSX damelo completo donde integres la funcionalidad de color y los dos css, por favor. Los tres códigos completos**
 
+ACÁ ESTÁN MIS CSS:
+
+import darkStyles from '../../styles/ConfiguracionesDashboard.module.css';
+import lightStyles from '../../styles/ConfiguracionesDashboardLight.module.css';
+
 PEGAR ACÁ EL JSX A CONVERTIR
