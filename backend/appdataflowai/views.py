@@ -1,3 +1,6 @@
+#HOLA DANI, ESTO ES POR PARTE DE JULIAN
+
+
 # views.py
 import jwt
 import pandas as pd
@@ -258,10 +261,10 @@ from .serializers import DetalleProductoSerializer
 PLAN_LIMITES = {
     1: 1,   # Basic
     2: 5,   # Professional
-    3: 10,  # Enterprise (o el número que definas)
+    3: 100,  # Enterprise (o el número que definas)
     4: 1,
     5: 5,   # Dataflow (o el número que definas)
-    6:10,
+    6:100,
 }
 
 class AdquirirDashboardView(APIView):
