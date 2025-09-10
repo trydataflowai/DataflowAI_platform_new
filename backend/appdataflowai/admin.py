@@ -437,3 +437,53 @@ from .models import Areas
 class AreasAdmin(admin.ModelAdmin):
     list_display = ('id_area', 'area_trabajo')  # columnas visibles en el listado
     search_fields = ('area_trabajo',)           # campo por el cual se puede buscar
+
+
+from django.contrib import admin
+from .models import DashboardSalesreview
+
+@admin.register(DashboardSalesreview)
+class DashboardSalesreviewAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro', 
+        'id_empresa', 
+        'id_producto', 
+        'mes', 
+        'mes_numero', 
+        'semana',
+        'dia_compra', 
+        'fecha_compra', 
+        'fecha_envio', 
+        'numero_pedido',
+        'numero_oc', 
+        'estado', 
+        'linea', 
+        'fuente', 
+        'sku_enviado', 
+        'categoria', 
+        'producto',
+        'precio_unidad_antes_iva', 
+        'unidades', 
+        'ingresos_antes_iva',
+    )
+
+    list_filter = (
+        'mes', 
+        'estado', 
+        'linea', 
+        'fuente', 
+        'categoria',
+        'fecha_compra', 
+        'fecha_envio',
+    )
+
+    search_fields = (
+        'numero_pedido', 
+        'numero_oc', 
+        'sku_enviado', 
+        'producto',
+    )
+
+    ordering = ('-fecha_compra',)
+
+    date_hierarchy = 'fecha_compra'

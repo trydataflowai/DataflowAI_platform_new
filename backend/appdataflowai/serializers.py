@@ -369,3 +369,39 @@ class AsgDashboardDetalleProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetalleProducto
         fields = ('id_usuario', 'id_producto', 'producto')
+
+
+#Serializador del Dashboard Sales Review
+
+from rest_framework import serializers
+from .models import DashboardSalesreview
+
+class DashboardSalesreviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardSalesreview
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_producto',
+
+            'mes',
+            'mes_numero',
+            'semana',
+            'dia_compra',
+            'fecha_compra',
+            'fecha_envio',
+
+            'numero_pedido',
+            'numero_oc',
+            'estado',
+            'linea',
+            'fuente',
+
+            'sku_enviado',
+            'categoria',
+            'producto',
+
+            'precio_unidad_antes_iva',
+            'unidades',
+            'ingresos_antes_iva',
+        ]

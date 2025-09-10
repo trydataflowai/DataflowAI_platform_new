@@ -1832,3 +1832,55 @@ class AsgDashboardUsuarioEliminarAsignacionView(AsgDashboardBasePerfilView):
             return Response({'detail': 'Asignación eliminada.'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'error': 'Asignación no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+# Vista para retornar registros de DashboardSalesreview
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+from django.utils.dateparse import parse_date
+from django.conf import settings
+import jwt
+
+from .models import DashboardSalesreview
+from .serializers import DashboardSalesreviewSerializer
+
+class DashboardSalesreviewView(APIView):
+    """
+    Vista protegida que retorna los registros de DashboardSalesreview,
+    con filtrado opcional por rango de fechas (?start=YYYY-MM-DD&end=YYYY-MM-DD)
+    """
+
+    def get(self, request):
+        # 1. Autenticacion JWT (manual)
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token invalido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Consulta y filtros por fecha_compra
+        queryset = DashboardSalesreview.objects.all().order_by('fecha_compra')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        if start:
+            date_start = parse_date(start)
+            if date_start:
+                queryset = queryset.filter(fecha_compra__gte=date_start)
+        if end:
+            date_end = parse_date(end)
+            if date_end:
+                queryset = queryset.filter(fecha_compra__lte=date_end)
+
+        # 3. Serializar
+        serializer = DashboardSalesreviewSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

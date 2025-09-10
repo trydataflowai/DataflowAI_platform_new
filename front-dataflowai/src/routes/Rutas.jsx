@@ -34,6 +34,7 @@ import { DashboardPrueba } from "../components/dashboards/DashboardPrueba";
 import DashboardVentas from "../components/dashboards/DashboardVentas";
 import DashboardFinanzas from "../components/dashboards/DashboardFinanzas";
 import DashboardCompras from "../components/dashboards/DashboardCompras";
+import DashboardSalesreview from "../components/dashboards/DashboardSalesreview";
 
 
 import SalesDashboard from "../components/dashboards/SalesDashboard";
@@ -256,9 +257,20 @@ export const Rutas = () => (
           }
         />
 
-        
+
+        <Route
+          path="/DashboardSalesReview"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <DashboardSalesreview />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
 
       </Routes>
     </ThemeProvider>
   </BrowserRouter>
 );
+

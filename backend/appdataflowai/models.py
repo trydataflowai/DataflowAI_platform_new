@@ -496,6 +496,37 @@ class DashboardVentas(models.Model):
 
 
 
+from django.db import models
+
+class DashboardSalesreview(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores clave obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # Campos solicitados (todos obligatorios)
+    mes = models.CharField(max_length=20, db_column='MES', null=False, blank=False)  
+    mes_numero = models.IntegerField(db_column='MES#', null=False, blank=False)  
+    semana = models.CharField(max_length=10, db_column='SEMANA', null=False, blank=False)  
+    dia_compra = models.CharField(max_length=20, db_column='DIA DE COMPRA', null=False, blank=False)  
+    fecha_compra = models.DateField(db_column='FECHA DE COMPRA', null=False, blank=False)  
+    fecha_envio = models.DateField(db_column='FECHA ENVIO', null=False, blank=False)  
+    numero_pedido = models.CharField(max_length=50, db_column='Nº PEDIDO', null=False, blank=False)  
+    numero_oc = models.CharField(max_length=50, db_column='Nº OC', null=False, blank=False)  
+    estado = models.CharField(max_length=50, db_column='ESTADO', null=False, blank=False)  
+    linea = models.CharField(max_length=50, db_column='LINEA', null=False, blank=False)  
+    fuente = models.CharField(max_length=50, db_column='FUENTE', null=False, blank=False)  
+    sku_enviado = models.CharField(max_length=50, db_column='SKU ENVIADO', null=False, blank=False)  
+    categoria = models.CharField(max_length=50, db_column='CATEGORIA', null=False, blank=False)  
+    producto = models.CharField(max_length=100, db_column='PRODUCTO', null=False, blank=False)  
+    precio_unidad_antes_iva = models.DecimalField(max_digits=12, decimal_places=2, db_column='PRECIO DE LA UNIDAD ANTES DE IVA', null=False, blank=False)  
+    unidades = models.IntegerField(db_column='UNIDADES', null=False, blank=False)  
+    ingresos_antes_iva = models.DecimalField(max_digits=100, decimal_places=2, db_column='INGRESOS ANTES DE IVA', null=False, blank=False)  
+
+    class Meta:
+        db_table = 'dashboard_salesreview'
+        verbose_name_plural = 'Dashboard Sales Review'
 
 
 
