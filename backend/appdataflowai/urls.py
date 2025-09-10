@@ -1,3 +1,7 @@
+#HOLA JULI, ESTO ES POR PARTE D DANI
+
+
+
 from django.urls import path
 from .views import (
     LoginView,
