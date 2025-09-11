@@ -1,7 +1,11 @@
-// ModificarInformacionPersonal.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/Profile/ModInfoPersonalLight.module.css';
-import { obtenerMiPerfil, actualizarMiUsuario, obtenerEmpresa, actualizarEmpresa } from '../../../api/Profile';
+import styles from '../../../styles/Profile/ModInfoPersonalDark.module.css';
+import {
+  obtenerMiPerfil,
+  actualizarMiUsuario,
+  obtenerEmpresa,
+  actualizarEmpresa
+} from '../../../api/Profile';
 
 const ModificarInformacionPersonal = () => {
   const [loading, setLoading] = useState(false);
@@ -116,77 +120,130 @@ const ModificarInformacionPersonal = () => {
   };
 
   if (loading) {
-    return <div className={styles.container}><h2>Cargando perfil...</h2></div>;
+    return (
+      <div className={styles.container}>
+        <h2>Cargando perfil...</h2>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
-      <h1>Modificar Información Personal</h1>
+      <h1 className={styles.title}>Modificar Información Personal</h1>
 
       {error && <div className={styles.error}>{error}</div>}
       {success && <div className={styles.success}>{success}</div>}
 
       <section className={styles.card}>
-        <h2>Mi usuario</h2>
+        <h2 className={styles.sectionTitle}>Mi usuario</h2>
         <form onSubmit={handleSaveUser} className={styles.form}>
           <div className={styles.formRow}>
             <label>Nombre</label>
-            <input value={nombres} onChange={e => setNombres(e.target.value)} />
+            <input
+              value={nombres}
+              onChange={(e) => setNombres(e.target.value)}
+            />
           </div>
           <div className={styles.formRow}>
             <label>Apellidos</label>
-            <input value={apellidos} onChange={e => setApellidos(e.target.value)} />
+            <input
+              value={apellidos}
+              onChange={(e) => setApellidos(e.target.value)}
+            />
           </div>
           <div className={styles.formRow}>
             <label>Correo</label>
-            <input type="email" value={correo} onChange={e => setCorreo(e.target.value)} />
+            <input
+              type="email"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+            />
           </div>
 
           <div className={styles.formRow}>
-            <button type="submit" disabled={savingUser}>{savingUser ? 'Guardando...' : 'Guardar usuario'}</button>
+            <button type="submit" disabled={savingUser}>
+              {savingUser ? 'Guardando...' : 'Guardar usuario'}
+            </button>
           </div>
         </form>
       </section>
 
-      <hr />
+      <hr className={styles.divider} />
 
       <section className={styles.card}>
-        <h2>Empresa {empresa ? `- ${empresa.nombre_empresa}` : ''}</h2>
-        {!isAdmin && <div className={styles.info}>Sólo administradores pueden editar la empresa.</div>}
+        <h2 className={styles.sectionTitle}>
+          Empresa {empresa ? `- ${empresa.nombre_empresa}` : ''}
+        </h2>
+        {!isAdmin && (
+          <div className={styles.info}>
+            Sólo administradores pueden editar la empresa.
+          </div>
+        )}
         <form onSubmit={handleSaveCompany} className={styles.form}>
           <div className={styles.formRow}>
             <label>Nombre empresa</label>
-            <input value={nombreEmpresa} onChange={e => setNombreEmpresa(e.target.value)} disabled={!isAdmin} />
+            <input
+              value={nombreEmpresa}
+              onChange={(e) => setNombreEmpresa(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
           <div className={styles.formRow}>
             <label>Dirección</label>
-            <input value={direccion} onChange={e => setDireccion(e.target.value)} disabled={!isAdmin} />
+            <input
+              value={direccion}
+              onChange={(e) => setDireccion(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
           <div className={styles.formRow}>
             <label>Teléfono</label>
-            <input value={telefono} onChange={e => setTelefono(e.target.value)} disabled={!isAdmin} />
+            <input
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
           <div className={styles.formRow}>
             <label>Ciudad</label>
-            <input value={ciudad} onChange={e => setCiudad(e.target.value)} disabled={!isAdmin} />
+            <input
+              value={ciudad}
+              onChange={(e) => setCiudad(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
           <div className={styles.formRow}>
             <label>País</label>
-            <input value={pais} onChange={e => setPais(e.target.value)} disabled={!isAdmin} />
+            <input
+              value={pais}
+              onChange={(e) => setPais(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
 
           <div className={styles.formRow}>
             <label>Correo empresa</label>
-            <input type="email" value={correoEmpresa} onChange={e => setCorreoEmpresa(e.target.value)} disabled={!isAdmin} />
+            <input
+              type="email"
+              value={correoEmpresa}
+              onChange={(e) => setCorreoEmpresa(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
           <div className={styles.formRow}>
             <label>Página web</label>
-            <input value={paginaWeb} onChange={e => setPaginaWeb(e.target.value)} disabled={!isAdmin} />
+            <input
+              value={paginaWeb}
+              onChange={(e) => setPaginaWeb(e.target.value)}
+              disabled={!isAdmin}
+            />
           </div>
 
           <div className={styles.formRow}>
-            <button type="submit" disabled={!isAdmin || savingCompany}>{savingCompany ? 'Guardando...' : 'Guardar empresa'}</button>
-          </div>    
+            <button type="submit" disabled={!isAdmin || savingCompany}>
+              {savingCompany ? 'Guardando...' : 'Guardar empresa'}
+            </button>
+          </div>
         </form>
       </section>
     </div>

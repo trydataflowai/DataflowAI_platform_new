@@ -68,6 +68,7 @@ class Empresa(models.Model):
     id_estado = models.ForeignKey(Estado, on_delete=models.PROTECT, db_column='id_estado')
 
     nombre_empresa = models.CharField(max_length=200, db_column='nombre_empresa')
+    nombre_corto = models.CharField(max_length=100, db_column='nombre_corto')
     direccion = models.CharField(max_length=200, db_column='Direccion')
     fecha_registros = models.DateField(db_column='Fecha_registros')
     telefono = models.CharField(max_length=20, db_column='Telefono')

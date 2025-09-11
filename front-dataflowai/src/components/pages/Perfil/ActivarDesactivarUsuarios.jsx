@@ -1,6 +1,6 @@
-// ActivarDesactivarUsuarios.jsx
+// File: src/components/pages/Perfil/ActivarDesactivarUsuarios.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/Profile/ModInfoPersonalDark.module.css';
+import styles from '../../../styles/Profile/ActivarDesactivarDark.module.css';
 import {
   obtenerUsuariosEmpresa,
   cambiarEstadoUsuario,
@@ -21,6 +21,7 @@ const ActivarDesactivarUsuarios = () => {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null); // id_usuario en curso
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   // Form crear
   const [creando, setCreando] = useState(false);
@@ -81,9 +82,11 @@ const ActivarDesactivarUsuarios = () => {
 
     setActionLoading(usuario.id_usuario);
     setError('');
+    setSuccess('');
     try {
       const res = await cambiarEstadoUsuario(usuario.id_usuario, nuevoEstado);
       setUsuarios(prev => prev.map(u => u.id_usuario === usuario.id_usuario ? { ...u, id_estado: res.id_estado, estado: res.estado } : u));
+      setSuccess('Estado actualizado correctamente.');
     } catch (err) {
       setError(err.message || 'Error al actualizar estado');
     } finally {
@@ -98,8 +101,7 @@ const ActivarDesactivarUsuarios = () => {
       return;
     }
 
-    // No permitir cambiar rol de uno mismo
-    // (Server también lo evita; aquí hacemos UX)
+    // No permitir cambiar rol de uno mismo (UX)
     try {
       const miPerfil = await obtenerMiPerfil();
       if (miPerfil.usuario && miPerfil.usuario.id_usuario === usuario.id_usuario) {
@@ -119,11 +121,11 @@ const ActivarDesactivarUsuarios = () => {
 
     setActionLoading(usuario.id_usuario);
     setError('');
+    setSuccess('');
     try {
       const res = await cambiarRolUsuario(usuario.id_usuario, nuevoRol);
-      // Actualizar en la lista
       setUsuarios(prev => prev.map(u => u.id_usuario === usuario.id_usuario ? { ...u, id_permiso_acceso: res.id_permiso_acceso, rol: res.rol } : u));
-      alert('Rol actualizado correctamente');
+      setSuccess('Rol actualizado correctamente.');
     } catch (err) {
       setError(err.message || 'Error al actualizar rol');
     } finally {
@@ -134,6 +136,7 @@ const ActivarDesactivarUsuarios = () => {
   const handleCrearUsuario = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     if (!nuevoNombre || !nuevoCorreo || !nuevaContrasena || !confirmContrasena) {
       setError('Nombre, correo y ambas contraseñas son obligatorios');
       return;
@@ -154,16 +157,14 @@ const ActivarDesactivarUsuarios = () => {
       if (nuevoRolId) payload.id_permiso_acceso = Number(nuevoRolId);
 
       await crearUsuario(payload);
-      // recargar lista
       await fetchUsuarios();
-      // limpiar form
       setNuevoNombre('');
       setNuevoApellidos('');
       setNuevoCorreo('');
       setNuevaContrasena('');
       setConfirmContrasena('');
       setNuevoRolId('');
-      alert('Usuario creado correctamente');
+      setSuccess('Usuario creado correctamente.');
     } catch (err) {
       setError(err.message || 'Error al crear usuario');
     } finally {
@@ -175,10 +176,11 @@ const ActivarDesactivarUsuarios = () => {
     if (!window.confirm(`¿Eliminar a ${usuario.nombres} (${usuario.correo})? Esta acción no se puede deshacer.`)) return;
     setActionLoading(usuario.id_usuario);
     setError('');
+    setSuccess('');
     try {
       await eliminarUsuario(usuario.id_usuario);
-      // quitar de la lista
       setUsuarios(prev => prev.filter(u => u.id_usuario !== usuario.id_usuario));
+      setSuccess('Usuario eliminado.');
     } catch (err) {
       setError(err.message || 'Error al eliminar usuario');
     } finally {
@@ -188,36 +190,38 @@ const ActivarDesactivarUsuarios = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Administrar Usuarios (Activar / Desactivar / Crear / Eliminar / Rol)</h1>
+      <h1 className={styles.pageTitle}>Administrar Usuarios</h1>
+      <p className={styles.pageSubtitle}>Activa, desactiva, crea usuarios, asigna roles y gestiona acceso.</p>
 
       {error && <div className={styles.error}>{error}</div>}
+      {success && <div className={styles.success}>{success}</div>}
 
       <section className={styles.createSection}>
-        <h2>Crear usuario</h2>
+        <h2 className={styles.sectionTitle}>Crear usuario</h2>
         <form onSubmit={handleCrearUsuario} className={styles.form}>
           <div className={styles.formRow}>
-            <label>Nombre</label>
-            <input value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
+            <label className={styles.label}>Nombre</label>
+            <input className={styles.input} value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
           </div>
           <div className={styles.formRow}>
-            <label>Apellidos</label>
-            <input value={nuevoApellidos} onChange={e => setNuevoApellidos(e.target.value)} />
+            <label className={styles.label}>Apellidos</label>
+            <input className={styles.input} value={nuevoApellidos} onChange={e => setNuevoApellidos(e.target.value)} />
           </div>
           <div className={styles.formRow}>
-            <label>Correo</label>
-            <input type="email" value={nuevoCorreo} onChange={e => setNuevoCorreo(e.target.value)} />
+            <label className={styles.label}>Correo</label>
+            <input className={styles.input} type="email" value={nuevoCorreo} onChange={e => setNuevoCorreo(e.target.value)} />
           </div>
           <div className={styles.formRow}>
-            <label>Contraseña</label>
-            <input type="password" value={nuevaContrasena} onChange={e => setNuevaContrasena(e.target.value)} />
+            <label className={styles.label}>Contraseña</label>
+            <input className={styles.input} type="password" value={nuevaContrasena} onChange={e => setNuevaContrasena(e.target.value)} />
           </div>
           <div className={styles.formRow}>
-            <label>Confirmar Contraseña</label>
-            <input type="password" value={confirmContrasena} onChange={e => setConfirmContrasena(e.target.value)} />
+            <label className={styles.label}>Confirmar Contraseña</label>
+            <input className={styles.input} type="password" value={confirmContrasena} onChange={e => setConfirmContrasena(e.target.value)} />
           </div>
           <div className={styles.formRow}>
-            <label>Rol (opcional)</label>
-            <select value={nuevoRolId} onChange={e => setNuevoRolId(e.target.value)}>
+            <label className={styles.label}>Rol (opcional)</label>
+            <select className={styles.select} value={nuevoRolId} onChange={e => setNuevoRolId(e.target.value)}>
               <option value="">(Usar rol por defecto)</option>
               {permisos.map(p => (
                 <option key={p.id_permiso_acceso} value={p.id_permiso_acceso}>{p.rol}</option>
@@ -225,15 +229,15 @@ const ActivarDesactivarUsuarios = () => {
             </select>
           </div>
           <div className={styles.formRow}>
-            <button type="submit" disabled={creando}>{creando ? 'Creando...' : 'Crear usuario'}</button>
+            <button className={styles.primaryButton} type="submit" disabled={creando}>{creando ? 'Creando...' : 'Crear usuario'}</button>
           </div>
         </form>
       </section>
 
-      <hr />
+      <hr className={styles.divider} />
 
       {loading ? (
-        <div>Cargando usuarios...</div>
+        <div className={styles.loading}>Cargando usuarios...</div>
       ) : (
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
@@ -249,16 +253,20 @@ const ActivarDesactivarUsuarios = () => {
             <tbody>
               {usuarios.length === 0 && (
                 <tr>
-                  <td colSpan="5">No hay usuarios</td>
+                  <td colSpan="5" className={styles.noUsers}>No hay usuarios</td>
                 </tr>
               )}
               {usuarios.map(u => (
                 <tr key={u.id_usuario}>
-                  <td>{u.nombres} {u.apellidos || ''}</td>
-                  <td>{u.correo}</td>
-                  <td>{u.rol || '-'}</td>
-                  <td>{u.estado || (`ID ${u.id_estado}`)}</td>
-                  <td>
+                  <td className={styles.cellName}>{u.nombres} {u.apellidos || ''}</td>
+                  <td className={styles.cellEmail}>{u.correo}</td>
+                  <td className={styles.cellRole}>{u.rol || '-'}</td>
+                  <td className={styles.cellState}>
+                    <span className={u.id_estado === ACTIVE_STATE_ID ? styles.stateActive : styles.stateInactive}>
+                      {u.estado || (`ID ${u.id_estado}`)}
+                    </span>
+                  </td>
+                  <td className={styles.cellActions}>
                     <button
                       className={styles.actionButton}
                       disabled={actionLoading === u.id_usuario}
@@ -267,13 +275,11 @@ const ActivarDesactivarUsuarios = () => {
                       {actionLoading === u.id_usuario ? 'Procesando...' : (u.id_estado === ACTIVE_STATE_ID ? 'Desactivar' : 'Activar')}
                     </button>
 
-                    {/* Botón para cambiar rol (solo visible/activo si soy admin) */}
                     {miPermisoId === ADMIN_ROLE_ID && (
                       <button
                         className={styles.roleButton}
                         disabled={actionLoading === u.id_usuario}
                         onClick={() => handleToggleRol(u)}
-                        style={{ marginLeft: 8 }}
                       >
                         {actionLoading === u.id_usuario ? 'Procesando...' : (u.id_permiso_acceso === ADMIN_ROLE_ID ? 'Volver Usuario' : 'Volver Administrador')}
                       </button>
@@ -283,7 +289,6 @@ const ActivarDesactivarUsuarios = () => {
                       className={styles.deleteButton}
                       disabled={actionLoading === u.id_usuario}
                       onClick={() => handleEliminar(u)}
-                      style={{ marginLeft: 8 }}
                     >
                       {actionLoading === u.id_usuario ? 'Procesando...' : 'Eliminar'}
                     </button>

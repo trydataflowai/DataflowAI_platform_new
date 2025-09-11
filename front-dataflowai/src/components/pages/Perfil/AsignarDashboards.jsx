@@ -1,5 +1,6 @@
+// File: src/components/pages/Perfil/AsignarDashboard.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/Profile/ModInfoPersonalLight.module.css';
+import styles from '../../../styles/Profile/AsignarDashboardDark.module.css';
 import {
   AsgDashboard_obtenerUsuariosEmpresa,
   AsgDashboard_obtenerProductos,
@@ -14,6 +15,7 @@ const AsgDashboardAsignarDashboards = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [asignaciones, setAsignaciones] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null); // id_producto en curso
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState(null);
 
@@ -23,25 +25,27 @@ const AsgDashboardAsignarDashboards = () => {
   }, []);
 
   const cargarUsuarios = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
       const data = await AsgDashboard_obtenerUsuariosEmpresa();
       setUsuarios(data || []);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Error al obtener usuarios');
+      setError(err?.message || 'Error al obtener usuarios');
     } finally {
       setLoading(false);
     }
   };
 
   const cargarProductos = async () => {
+    setError(null);
     try {
       const data = await AsgDashboard_obtenerProductos();
       setProductos(data || []);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Error al obtener productos');
+      setError(err?.message || 'Error al obtener productos');
     }
   };
 
@@ -49,28 +53,38 @@ const AsgDashboardAsignarDashboards = () => {
     setSelectedUser(usuario);
     setMsg(null);
     setError(null);
+    setAsignaciones([]);
     try {
       const data = await AsgDashboard_obtenerAsignacionesUsuario(usuario.id_usuario);
       setAsignaciones(data || []);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'No se pudo cargar asignaciones');
+      setError(err?.message || 'No se pudo cargar asignaciones');
     }
+  };
+
+  const cerrarModal = () => {
+    setSelectedUser(null);
+    setAsignaciones([]);
+    setMsg(null);
+    setError(null);
   };
 
   const handleAsignar = async (producto) => {
     if (!selectedUser) return;
     setMsg(null);
     setError(null);
+    setActionLoading(producto.id_producto);
     try {
       await AsgDashboard_asignarProductoUsuario(selectedUser.id_usuario, producto.id_producto);
       setMsg('Producto asignado correctamente.');
-      // recargar asignaciones
       const data = await AsgDashboard_obtenerAsignacionesUsuario(selectedUser.id_usuario);
       setAsignaciones(data || []);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Error al asignar producto.');
+      setError(err?.message || 'Error al asignar producto.');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -78,6 +92,7 @@ const AsgDashboardAsignarDashboards = () => {
     if (!selectedUser) return;
     setMsg(null);
     setError(null);
+    setActionLoading(producto.id_producto);
     try {
       await AsgDashboard_eliminarAsignacionUsuario(selectedUser.id_usuario, producto.id_producto);
       setMsg('Asignación eliminada.');
@@ -85,7 +100,9 @@ const AsgDashboardAsignarDashboards = () => {
       setAsignaciones(data || []);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Error al eliminar asignación.');
+      setError(err?.message || 'Error al eliminar asignación.');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -99,119 +116,164 @@ const AsgDashboardAsignarDashboards = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Asignar Dashboard</h1>
-
-      {loading && <p>Cargando...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {msg && <p style={{ color: 'green' }}>{msg}</p>}
-
-      <h2>Usuarios de tu empresa</h2>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Apellidos</th>
-            <th>Correo</th>
-            <th>Área</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map(u => (
-            <tr key={u.id_usuario}>
-              <td>{u.nombres}</td>
-              <td>{u.apellidos}</td>
-              <td>{u.correo}</td>
-              <td>{u.area}</td>
-              <td>
-                <button onClick={() => abrirAsignar(u)}>Asignar dashboards</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {selectedUser && (
-        <div className={styles.modal}>
-          <h3>Asignar dashboards a: {selectedUser.nombres} {selectedUser.apellidos}</h3>
-          <button onClick={() => { setSelectedUser(null); setAsignaciones([]); setMsg(null); setError(null); }}>
-            Cerrar
+      <div className={styles.headerRow}>
+        <div>
+          <h1 className={styles.pageTitle}>Asignar Dashboards</h1>
+          <p className={styles.pageSubtitle}>Selecciona un usuario y asigna o quita productos (dashboards).</p>
+        </div>
+        <div>
+          <button className={styles.refreshBtn} onClick={() => { cargarUsuarios(); cargarProductos(); }}>
+            Recargar
           </button>
+        </div>
+      </div>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <div style={{ flex: 1 }}>
-              <h4>Productos disponibles</h4>
-              <div style={{ maxHeight: 300, overflow: 'auto' }}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Área</th>
-                      <th>Propietario</th>
-                      <th>Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {productos.map(p => {
-                      const assigned = isAssigned(p.id_producto);
-                      const propietario = (p.owned_by && p.owned_by.length) ? p.owned_by.map(o => o.nombre_empresa).join(', ') : 'Público';
-                      return (
-                        <tr key={p.id_producto}>
-                          <td>{p.producto}</td>
-                          <td>{p.area}</td>
-                          <td>{propietario}</td>
-                          <td>
-                            <button
-                              onClick={() => handleAsignar(p)}
-                              disabled={assigned}
-                            >
-                              {assigned ? 'Asignado' : 'Asignar'}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+      {loading && <div className={styles.info}>Cargando usuarios...</div>}
+      {error && <div className={styles.error}>{error}</div>}
+      {msg && <div className={styles.success}>{msg}</div>}
+
+      <section className={styles.usersSection}>
+        <h2 className={styles.sectionTitle}>Usuarios de la empresa</h2>
+
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                <th>Correo</th>
+                <th>Área</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usuarios.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className={styles.noData}>No hay usuarios</td>
+                </tr>
+              ) : usuarios.map(u => (
+                <tr key={u.id_usuario}>
+                  <td className={styles.cellBold}>{u.nombres}</td>
+                  <td>{u.apellidos || '-'}</td>
+                  <td className={styles.cellMuted}>{u.correo}</td>
+                  <td className={styles.cellMuted}>{u.area || '-'}</td>
+                  <td>
+                    <button
+                      className={styles.primarySmall}
+                      onClick={() => abrirAsignar(u)}
+                      aria-label={`Asignar dashboards a ${u.nombres}`}
+                    >
+                      Asignar dashboards
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Modal / panel lateral de asignaciones */}
+      {selectedUser && (
+        <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Asignar dashboards a</h3>
+              <div className={styles.userInfo}>
+                <span className={styles.userName}>{selectedUser.nombres} {selectedUser.apellidos || ''}</span>
+                <span className={styles.userEmail}>{selectedUser.correo}</span>
+              </div>
+              <button className={styles.closeBtn} onClick={cerrarModal} aria-label="Cerrar">Cerrar</button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div className={styles.leftColumn}>
+                <h4 className={styles.subTitle}>Productos disponibles</h4>
+                <div className={styles.scrollArea}>
+                  <table className={styles.tableCompact}>
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>Área</th>
+                        <th>Propietario</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productos.length === 0 && (
+                        <tr><td colSpan="4" className={styles.noData}>No hay productos</td></tr>
+                      )}
+                      {productos.map(p => {
+                        const assigned = isAssigned(p.id_producto);
+                        const propietario = (p.owned_by && p.owned_by.length) ? p.owned_by.map(o => o.nombre_empresa).join(', ') : 'Público';
+                        return (
+                          <tr key={p.id_producto}>
+                            <td className={styles.cellBold}>{p.producto}</td>
+                            <td className={styles.cellMuted}>{p.area || '-'}</td>
+                            <td className={styles.cellMuted}>{propietario}</td>
+                            <td>
+                              <button
+                                className={`${styles.smallBtn} ${assigned ? styles.disabledBtn : ''}`}
+                                onClick={() => handleAsignar(p)}
+                                disabled={assigned || actionLoading === p.id_producto}
+                              >
+                                {actionLoading === p.id_producto ? 'Procesando...' : (assigned ? 'Asignado' : 'Asignar')}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className={styles.rightColumn}>
+                <h4 className={styles.subTitle}>Productos asignados</h4>
+                <div className={styles.scrollArea}>
+                  <table className={styles.tableCompact}>
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th>Área</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {asignaciones.length === 0 ? (
+                        <tr><td colSpan="3" className={styles.noData}>No hay asignaciones</td></tr>
+                      ) : asignaciones.map(a => {
+                        const prod = a.producto || (a.id_producto && productos.find(p => p.id_producto === a.id_producto));
+                        if (!prod) return null;
+                        return (
+                          <tr key={prod.id_producto}>
+                            <td className={styles.cellBold}>{prod.producto}</td>
+                            <td className={styles.cellMuted}>{prod.area || '-'}</td>
+                            <td>
+                              <button
+                                className={styles.dangerSmall}
+                                onClick={() => handleEliminar(prod)}
+                                disabled={actionLoading === prod.id_producto}
+                              >
+                                {actionLoading === prod.id_producto ? 'Procesando...' : 'Quitar'}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
-            <div style={{ flex: 1 }}>
-              <h4>Productos asignados</h4>
-              <div style={{ maxHeight: 300, overflow: 'auto' }}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Área</th>
-                      <th>Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {asignaciones.length === 0 && (
-                      <tr><td colSpan={3}>No hay asignaciones</td></tr>
-                    )}
-                    {asignaciones.map(a => {
-                      const prod = a.producto || (a.id_producto && productos.find(p => p.id_producto === a.id_producto));
-                      if (!prod) return null;
-                      return (
-                        <tr key={prod.id_producto}>
-                          <td>{prod.producto}</td>
-                          <td>{prod.area}</td>
-                          <td>
-                            <button onClick={() => handleEliminar(prod)}>Quitar</button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.secondaryBtn} onClick={cerrarModal}>Cerrar</button>
             </div>
           </div>
-
         </div>
       )}
+
     </div>
   );
 };

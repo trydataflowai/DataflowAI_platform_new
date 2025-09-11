@@ -126,8 +126,15 @@ export const SideBar = () => {
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/ai-insights", icon: "🤖", label: "AI Insights" },
     { to: "/support",     icon: "🆘", label: "Support" },
-    
   ];
+
+  // Filtrar marketplace cuando planId sea 3 o 6
+  const filteredLinks = links.filter(link => {
+    if (link.to === "/marketplace" && (planId === 3 || planId === 6)) {
+      return false; // ocultar marketplace para planes 3 y 6
+    }
+    return true;
+  });
 
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
@@ -166,12 +173,10 @@ export const SideBar = () => {
       )}
 
       <nav className={styles.nav}>
-        {links.map(({ to, icon, label }) => (
+        {filteredLinks.map(({ to, icon, label }) => (
           <button
             key={to}
-            className={`${styles.button} ${
-              pathname === to ? styles.active : ""
-            }`}
+            className={`${styles.button} ${pathname === to ? styles.active : ""}`}
             onClick={() => navigate(to)}
             aria-label={`View ${label}`}
           >

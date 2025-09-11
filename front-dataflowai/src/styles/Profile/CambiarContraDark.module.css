@@ -1,0 +1,202 @@
+:root{
+  --black-void: #000000;
+  --black-cosmos: #050505;
+  --black-deep: #0a0a0a;
+  --accent-neon: #00f7ff;
+  --accent-turquoise: #00e1ff;
+  --accent-cyan: #00c2ff;
+  --accent-dark: #0099cc;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --success: #00ffaa;
+  --warning: #ffcc00;
+  --danger: #ff3366;
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 28px 18px;
+  box-sizing: border-box;
+  font-family: 'Inter', Arial, sans-serif;
+  background: transparent;
+}
+
+.card {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,247,255,0.04) inset;
+  color: var(--text-primary);
+}
+
+.header {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 1.4rem;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.errorBox {
+  background: rgba(255,51,102,0.08);
+  color: var(--danger);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 3px solid rgba(255,51,102,0.22);
+}
+
+.successBox {
+  background: rgba(0,255,170,0.06);
+  color: var(--success);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 3px solid rgba(0,255,170,0.14);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.labelText {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.inputRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  color: var(--text-primary);
+  outline: none;
+  font-size: 0.98rem;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5) inset;
+}
+
+.input::placeholder {
+  color: rgba(255,255,255,0.26);
+}
+
+.input:focus {
+  border-color: rgba(0,194,255,0.28);
+  box-shadow: 0 8px 28px rgba(0,194,255,0.06);
+}
+
+.showBtn {
+  min-width: 74px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--accent-neon);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.18s ease;
+}
+
+.showBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,194,255,0.04);
+}
+
+.strengthBar {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.strengthSegment {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  transition: all 0.22s ease;
+}
+
+/* clase 'on' usada desde el JSX (styles.on) */
+.strengthSegment.on,
+.on {
+  background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
+  box-shadow: 0 8px 18px rgba(0,194,255,0.06);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.primaryButton {
+  padding: 12px 18px;
+  background: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+  color: #001018; /* contraste con fondo claro del botón */
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0,194,255,0.08);
+  transition: all 0.22s ease;
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.primaryButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+}
+
+/* pequeños detalles visuales */
+.labelText + .inputRow .input {
+  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+}
+
+.card::after {
+  /* sutil borde superior brillante */
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .card { padding: 18px; }
+  .title { font-size: 1.2rem; }
+  .showBtn { min-width: 64px; font-size: 0.82rem; }
+}

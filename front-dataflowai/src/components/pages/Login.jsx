@@ -1,7 +1,7 @@
-// src/components/Login/Login.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { iniciarSesion } from '../../api/Login';
+import { obtenerInfoUsuario } from '../../api/Usuario';
 import Logo from '../../assets/Dataflow AI logo ajustado blanco.png';
 import styles from '../../styles/Login.module.css';
 
@@ -13,6 +13,8 @@ const Login = () => {
   const [shake, setShake] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [dots, setDots] = useState('');
+  const [welcomeVisible, setWelcomeVisible] = useState(false);
+  const [welcomeData, setWelcomeData] = useState({ nombres: '', empresa: { nombre: '' } });
 
   const navigate = useNavigate();
 
@@ -22,6 +24,8 @@ const Login = () => {
         setDots(prev => (prev.length >= 3 ? '' : prev + '.'));
       }, 500);
       return () => clearInterval(interval);
+    } else {
+      setDots('');
     }
   }, [cargando, error]);
 
@@ -41,12 +45,26 @@ const Login = () => {
     try {
       const data = await iniciarSesion({ correo, contrasena });
 
-      // Si llega aquí, login OK (usuario activo). Redirigimos.
-      setTimeout(() => {
+      try {
+        const info = await obtenerInfoUsuario();
+        const nombres = info?.nombres || info?.first_name || '';
+        const empresaNombre = info?.empresa?.nombre || info?.empresa || '';
+
+        setWelcomeData({ nombres, empresa: { nombre: empresaNombre } });
+        setWelcomeVisible(true);
+
+        // Duración ajustada: 3800ms (3.8s)
+        setTimeout(() => {
+          setWelcomeVisible(false);
+          navigate('/home');
+        }, 3800);
+
+      } catch (errInfo) {
+        console.warn('No se pudo obtener info del usuario tras login:', errInfo);
         navigate('/home');
-      }, 400); // pequeño delay UX
+      }
+
     } catch (err) {
-      // err.message contendrá "usuario inactivo" si ese fue el caso
       setError(err.message || 'Credenciales incorrectas');
       setShake(true);
       setTimeout(() => setShake(false), 500);
@@ -104,7 +122,7 @@ const Login = () => {
                       type="email"
                       value={correo}
                       onChange={(e) => setCorreo(e.target.value)}
-                      className={styles.inputField}
+                      className={`${styles.inputField} ${correo ? styles.typing : ''}`}
                       placeholder="tu@correo.com"
                     />
                     <div className={styles.inputUnderline}></div>
@@ -118,7 +136,7 @@ const Login = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={contrasena}
                       onChange={(e) => setContrasena(e.target.value)}
-                      className={styles.inputField}
+                      className={`${styles.inputField} ${contrasena ? styles.typing : ''}`}
                       placeholder="••••••••"
                     />
                     <div className={styles.inputUnderline}></div>
@@ -126,6 +144,7 @@ const Login = () => {
                       type="button"
                       className={styles.togglePassword}
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
@@ -153,6 +172,35 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {welcomeVisible && (
+        <div className={styles.welcomeOverlay} role="dialog" aria-live="polite">
+          <div className={styles.welcomeCard}>
+
+            <div className={styles.welcomeIcon}>
+              <img src={Logo} alt="" className={styles.welcomeLogo} />
+            </div>
+
+            <h3 className={styles.welcomeTitle}>
+              Bienvenido{welcomeData.nombres ? ` ${welcomeData.nombres}` : ''}
+            </h3>
+
+            <p className={styles.welcomeCompany}>
+              {welcomeData.empresa?.nombre ? `${welcomeData.empresa.nombre}` : ''}
+            </p>
+
+            <p className={styles.welcomeMessage}>
+              Espero que tengas una excelente experiencia en nuestra plataforma.
+            </p>
+
+            <div className={styles.welcomeSparkles}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <span key={i} className={styles.confetti} style={{ left: `${10 + i * 10}%`, animationDelay: `${i * 0.08}s` }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
