@@ -10,7 +10,7 @@ python manage.py runserver
 
 cd front-dataflowai
 
-2
+npm run dev
 
 **GIT**
 
