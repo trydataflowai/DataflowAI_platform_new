@@ -12,9 +12,11 @@ import { SideBar } from "../components/layout/SideBar";
 import Index from "../components/pages/Index";
 import Login from "../components/pages/Login";
 import HomeLogin from "../components/pages/HomeLogin";
+import Home from "../components/pages/Home";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
+
 
 import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
@@ -265,6 +267,16 @@ export const Rutas = () => (
               <SideBarLayout>
                 <DashboardSalesreview />
               </SideBarLayout>
+            </RutaProtegida>
+          }
+        />
+
+
+         <Route
+          path="/WelcomeHome"
+          element={
+            <RutaProtegida>
+                <Home />
             </RutaProtegida>
           }
         />

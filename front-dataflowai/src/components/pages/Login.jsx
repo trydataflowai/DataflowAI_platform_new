@@ -56,7 +56,7 @@ const Login = () => {
         // Duración ajustada: 3800ms (3.8s)
         setTimeout(() => {
           setWelcomeVisible(false);
-          navigate('/home');
+          navigate('/WelcomeHome');
         }, 3800);
 
       } catch (errInfo) {

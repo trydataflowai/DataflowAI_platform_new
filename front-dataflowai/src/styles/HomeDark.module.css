@@ -1,0 +1,170 @@
+.container {
+  padding: 2rem;
+  color: #ffffff;
+  background: linear-gradient(180deg, #0a0a0a, #141414);
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+/* Cabecera: logo + textos */
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.companyLogoWrapper {
+  width: 72px;
+  height: 72px;
+  min-width: 56px;
+  min-height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0,226,255,0.08), rgba(0,226,255,0.03));
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+/* Imagen real del logo */
+.companyLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Placeholder si no hay imagen */
+.companyPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #00e1ff;
+  background: linear-gradient(135deg, rgba(0,0,0,0.25), rgba(255,255,255,0.01));
+}
+
+/* Texto de cabecera junto al logo */
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0; /* para truncar en grid flexible */
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #00e1ff;
+  line-height: 1.05;
+  text-wrap: balance;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #b3b3b3;
+  margin: 0.25rem 0 0;
+}
+
+/* Grid de tarjetas */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Tarjetas */
+.card {
+  background: #1a1a1a;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+/* Hover / foco */
+.card:hover,
+.card:focus {
+  transform: translateY(-6px) scale(1.02);
+  border-color: #00e1ff;
+  box-shadow: 0px 8px 24px rgba(0, 225, 255, 0.12);
+  outline: none;
+}
+.card:focus {
+  box-shadow: 0 0 0 4px rgba(0,226,255,0.06);
+}
+
+/* Icono */
+.icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .icon {
+  transform: rotate(8deg) scale(1.1);
+}
+
+/* Tipografía tarjeta */
+.card h2 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.card p {
+  font-size: 0.95rem;
+  color: #b3b3b3;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 640px) {
+  .headerRow {
+    gap: 0.75rem;
+  }
+  .companyLogoWrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+  }
+  .title {
+    font-size: 1.25rem;
+    white-space: normal;
+  }
+  .subtitle {
+    font-size: 0.95rem;
+  }
+  .card {
+    padding: 1rem;
+    min-height: 140px;
+  }
+}
+
+/* Ajustes visuales opcionales */
+.container a {
+  color: #00e1ff;
+  text-decoration: none;
+}

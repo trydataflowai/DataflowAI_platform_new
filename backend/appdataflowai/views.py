@@ -130,6 +130,7 @@ class UsuarioInfoView(APIView):
             'empresa': {
                 'id': usuario.id_empresa.id_empresa,
                 'nombre': usuario.id_empresa.nombre_empresa,
+                'nombre_corto': usuario.id_empresa.nombre_corto,   # 🔹 agregado
                 'direccion': usuario.id_empresa.direccion,
                 'fecha_registro': usuario.id_empresa.fecha_registros.isoformat(),
                 'telefono': usuario.id_empresa.telefono,
@@ -156,10 +157,11 @@ class UsuarioInfoView(APIView):
 
 
 
+
 class ProductosUsuarioView(APIView):
     """
     Vista que retorna todos los productos asociados al usuario autenticado,
-    junto con información relevante del producto y del usuario.
+    junto con información relevante del producto, área y usuario.
     """
     def get(self, request):
         token = request.headers.get('Authorization', '').split(' ')[-1]
@@ -172,29 +174,37 @@ class ProductosUsuarioView(APIView):
             return Response({'error': 'Token inválido'}, status=401)
 
         try:
-            usuario = Usuario.objects.select_related('id_empresa', 'id_permiso_acceso').get(id_usuario=id_usuario)
+            usuario = Usuario.objects.select_related(
+                'id_empresa',
+                'id_permiso_acceso'
+            ).get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
 
-        # traer detalle con id_producto ya relacionado para evitar N+1
-        detalles = DetalleProducto.objects.select_related('id_producto', 'id_producto__id_estado').filter(id_usuario=usuario)
+        # Traemos productos con relaciones (estado y área) para evitar N+1 queries
+        detalles = DetalleProducto.objects.select_related(
+            'id_producto',
+            'id_producto__id_estado',
+            'id_producto__id_area'
+        ).filter(id_usuario=usuario)
 
         productos = []
         for dp in detalles:
             prod = dp.id_producto  # instancia Producto
 
             productos.append({
-                # uso nombres explícitos como en tu ejemplo JSON
                 'id_producto': getattr(prod, 'id_producto', None),
                 'producto': getattr(prod, 'producto', None),
                 'slug': getattr(prod, 'slug', None),
                 'iframe': getattr(prod, 'iframe', None),
                 'estado': getattr(prod.id_estado, 'estado', None) if getattr(prod, 'id_estado', None) else None,
-                # <-- campos añadidos
                 'link_pb': getattr(prod, 'link_pb', None),
                 'categoria_producto': getattr(prod, 'categoria_producto', None),
-                # opcional: si quieres devolver tipo también, descomenta la línea siguiente
-                # 'tipo_producto': getattr(prod, 'tipo_producto', None),
+                # 🔹 Nueva info del área
+                'area': {
+                    'id_area': getattr(prod.id_area, 'id_area', None),
+                    'nombre': getattr(prod.id_area, 'area_trabajo', None),
+                },
                 'usuario': {
                     'id': usuario.id_usuario,
                     'nombres': usuario.nombres,
