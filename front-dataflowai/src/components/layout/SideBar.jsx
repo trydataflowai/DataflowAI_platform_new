@@ -124,7 +124,7 @@ export const SideBar = () => {
     { to: "/home",        icon: "📊", label: "Dashboards" },
     { to: "/configuracion-perfil",     icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
-    { to: "/ai-insights", icon: "🤖", label: "AI Insights" },
+    { to: "/ChatBot", icon: "🤖", label: "AI Insights" },
     { to: "/SoporteUsuario",     icon: "🆘", label: "Support" },
   ];
 

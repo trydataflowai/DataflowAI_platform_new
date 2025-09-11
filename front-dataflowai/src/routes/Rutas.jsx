@@ -18,6 +18,7 @@ import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
 import SoporteUsuario from "../components/pages/SoporteUsuario";
 import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
+import ChatBot from "../components/pages/ChatBot";
 
 
 import ConfiguracionUsuarios from "../components/pages/Pefil";
@@ -301,6 +302,17 @@ export const Rutas = () => (
             <RutaProtegida>
               <SideBarLayout>
                 <SoporteUsuario />
+              </SideBarLayout>
+            </RutaProtegida>
+          }
+        />  
+
+        <Route
+          path="/ChatBot"
+          element={
+            <RutaProtegida>
+              <SideBarLayout>
+                <ChatBot />
               </SideBarLayout>
             </RutaProtegida>
           }
