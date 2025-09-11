@@ -600,3 +600,34 @@ class DashboardSales(models.Model):
         producto = self.id_producto if self.id_producto else "Sin producto"
         return f"Empresa {empresa} - Producto {producto} - Venta #{self.id_registro}"
 
+
+
+
+
+from django.db import models
+
+class Ticket(models.Model):
+    ESTADOS = [
+        ('creada', 'Creada'),
+        ('solucionada', 'Solucionada'),
+        ('en_solucion', 'Está siendo revisada'),
+    ]
+
+    id_ticket = models.AutoField(primary_key=True, db_column='id_ticket')
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.PROTECT, db_column='id_usuario')
+    correo = models.EmailField(max_length=255, db_column='correo')
+    asunto = models.CharField(max_length=255, db_column='asunto')
+    descripcion = models.TextField(db_column='descripcion', null=True, blank=True)
+    comentario = models.TextField(db_column='comentario', null=True, blank=True)
+
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='creada', db_column='estado')
+
+    fecha_creacion = models.DateTimeField(auto_now_add=True, db_column='fecha_creacion')
+    fecha_cierre = models.DateTimeField(null=True, blank=True, db_column='fecha_cierre')
+
+    class Meta:
+        db_table = 'tickets'
+        verbose_name_plural = 'Tickets'
+
+    def __str__(self):
+        return f"{self.asunto} - {self.estado}"

@@ -487,3 +487,14 @@ class DashboardSalesreviewAdmin(admin.ModelAdmin):
     ordering = ('-fecha_compra',)
 
     date_hierarchy = 'fecha_compra'
+
+
+from django.contrib import admin
+from .models import Ticket
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ('id_ticket', 'id_usuario', 'correo', 'asunto', 'estado', 'fecha_creacion', 'fecha_cierre')
+    search_fields = ('asunto', 'correo', 'id_usuario__nombres')  # ajusta 'nombres' al campo que uses en Usuario
+    list_filter = ('estado', 'fecha_creacion', 'fecha_cierre')
+    ordering = ('-fecha_creacion',)

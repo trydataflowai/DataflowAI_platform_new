@@ -1897,3 +1897,116 @@ class DashboardSalesreviewView(APIView):
         serializer = DashboardSalesreviewSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+
+
+
+
+
+#VISTA PARA SOPORTE DE MODULO
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from .models import Ticket, Usuario
+from .serializers import TicketSerializer
+
+class TokenHelperMixin:
+    """
+    Mixin con el método para obtener el usuario desde el token (misma lógica que tu ejemplo).
+    """
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = ''
+        if 'Bearer ' in auth:
+            token = auth.split('Bearer ')[-1]
+        elif auth:
+            token = auth.split(' ')[-1]
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token inválido')
+
+        try:
+            usuario = Usuario.objects.get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+class TicketListCreateView(TokenHelperMixin, APIView):
+    """
+    GET: Lista todos los tickets del usuario autenticado.
+    POST: Crea un ticket asignado al usuario del token.
+    """
+    def get(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        tickets = Ticket.objects.filter(id_usuario=usuario).order_by('-fecha_creacion')
+        serializer = TicketSerializer(tickets, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Tomamos solo los campos que el usuario debe enviar
+        data = {
+            'correo': request.data.get('correo'),
+            'asunto': request.data.get('asunto'),
+            'descripcion': request.data.get('descripcion', ''),
+            # comentario lo dejamos vacío por ahora; estado se asigna por default en el modelo
+        }
+
+        serializer = TicketSerializer(data=data)
+        if serializer.is_valid():
+            # crear instancia pero asegurando id_usuario
+            ticket = Ticket(
+                id_usuario=usuario,
+                correo=serializer.validated_data['correo'],
+                asunto=serializer.validated_data['asunto'],
+                descripcion=serializer.validated_data.get('descripcion', '')
+            )
+            ticket.save()
+            out_serialized = TicketSerializer(ticket)
+            return Response(out_serialized.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TicketDetailView(TokenHelperMixin, APIView):
+    """
+    GET: Detalle de un ticket (el ticket debe pertenecer al usuario autenticado).
+    """
+    def get(self, request, pk):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            ticket = Ticket.objects.get(pk=pk)
+        except Ticket.DoesNotExist:
+            return Response({'error': 'Ticket no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if ticket.id_usuario != usuario:
+            return Response({'error': 'No autorizado para ver este ticket'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = TicketSerializer(ticket)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

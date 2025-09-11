@@ -50,6 +50,10 @@ from .views import (
     AsgDashboardProductosListView,
     AsgDashboardUsuarioAsignacionesView,
     AsgDashboardUsuarioEliminarAsignacionView,
+
+    #MODULO DE SOPORTE
+    TicketListCreateView, TicketDetailView
+    
 )
 
 urlpatterns = [
@@ -114,5 +118,10 @@ urlpatterns = [
     path('asg/perfil/usuarios/<int:id_usuario>/asignaciones/', AsgDashboardUsuarioAsignacionesView.as_view(), name='asg_dashboard_usuario_asignaciones'),
     path('asg/perfil/usuarios/<int:id_usuario>/asignaciones/<int:id_producto>/', AsgDashboardUsuarioEliminarAsignacionView.as_view(), name='asg_dashboard_usuario_eliminar_asignacion'),
 
+
+    #MODULO DE SOPORTE
+
+    path('tickets/', TicketListCreateView.as_view(), name='tickets-list-create'),
+    path('tickets/<int:pk>/', TicketDetailView.as_view(), name='ticket-detail'),
 ]
     

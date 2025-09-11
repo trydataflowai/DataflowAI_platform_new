@@ -405,3 +405,32 @@ class DashboardSalesreviewSerializer(serializers.ModelSerializer):
             'unidades',
             'ingresos_antes_iva',
         ]
+
+
+
+#SERIALIZADOR PARA MODULO DE SOPORTE
+
+
+from rest_framework import serializers
+from .models import Ticket
+
+class TicketSerializer(serializers.ModelSerializer):
+    id_usuario = serializers.PrimaryKeyRelatedField(read_only=True)
+    fecha_creacion = serializers.DateTimeField(read_only=True)
+    fecha_cierre = serializers.DateTimeField(read_only=True)
+    estado = serializers.CharField(read_only=True)  # siempre 'creada' al crear desde frontend
+
+    class Meta:
+        model = Ticket
+        fields = [
+            'id_ticket',
+            'id_usuario',
+            'correo',
+            'asunto',
+            'descripcion',
+            'comentario',
+            'estado',
+            'fecha_creacion',
+            'fecha_cierre',
+        ]
+        read_only_fields = ['id_ticket', 'id_usuario', 'estado', 'fecha_creacion', 'fecha_cierre']

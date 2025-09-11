@@ -125,7 +125,7 @@ export const SideBar = () => {
     { to: "/configuracion-perfil",     icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/ai-insights", icon: "🤖", label: "AI Insights" },
-    { to: "/support",     icon: "🆘", label: "Support" },
+    { to: "/SoporteUsuario",     icon: "🆘", label: "Support" },
   ];
 
   // Filtrar marketplace cuando planId sea 3 o 6
