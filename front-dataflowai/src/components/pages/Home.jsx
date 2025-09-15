@@ -117,6 +117,8 @@ const HomeDashboard = () => {
     { title: "Dashboard", description: "Visualiza métricas y reportes en tiempo real.", path: "/home", icon: "📊" },
     { title: "Marketplace", description: "Explora y adquiere plantillas y recursos.", path: "/marketplace", icon: "🛒" },
     { title: "Configuración de Perfil", description: "Administra tu información personal y empresa.", path: "/configuracion-perfil", icon: "⚙️" },
+    { title: "Soporte de Usuario", description: "Realiza las solicitudes a nuestro equipo de soporte..", path: "/SoporteUsuario", icon: "🔂" },
+    { title: "Chatbot", description: "Realiza análisis de información con nuestro Chatbot.", path: "/ChatBot", icon: "🤖" },
   ];
 
   const companyName = usuario?.empresa?.nombre_corto || usuario?.empresa?.nombre || usuario?.nombres || '';

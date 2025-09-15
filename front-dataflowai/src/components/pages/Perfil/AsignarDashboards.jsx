@@ -1,4 +1,3 @@
-// File: src/components/pages/Perfil/AsignarDashboard.jsx
 import React, { useEffect, useState } from 'react';
 import styles from '../../../styles/Profile/AsignarDashboardDark.module.css';
 import {
@@ -23,6 +22,19 @@ const AsgDashboardAsignarDashboards = () => {
     cargarUsuarios();
     cargarProductos();
   }, []);
+
+  // Evita scroll de fondo cuando el modal está abierto
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    if (selectedUser) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = original;
+    }
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [selectedUser]);
 
   const cargarUsuarios = async () => {
     setLoading(true);
@@ -175,8 +187,16 @@ const AsgDashboardAsignarDashboards = () => {
 
       {/* Modal / panel lateral de asignaciones */}
       {selectedUser && (
-        <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
-          <div className={styles.modal}>
+        <div
+          className={styles.modalBackdrop}
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            // cerrar si hace click fuera del modal
+            if (e.target === e.currentTarget) cerrarModal();
+          }}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Asignar dashboards a</h3>
               <div className={styles.userInfo}>

@@ -158,7 +158,21 @@
 }
 .primarySmall:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,194,255,0.05); }
 
-/* Modal backdrop y modal */
+/* ---------------------------
+   Modal backdrop y modal (mejorado)
+   --------------------------- */
+
+/* animaciones */
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes zoomInModal {
+  from { transform: translateY(8px) scale(0.985); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Backdrop: oscurece y desenfoca el fondo */
 .modalBackdrop {
   position: fixed;
   inset: 0;
@@ -166,22 +180,32 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.5), rgba(0,0,0,0.78));
+  /* más oscuro y con blur para que todo el fondo se desvanezca */
+  background: rgba(0,0,0,0.70); /* opacidad más alta para mayor oscuridad */
+  /* mejora visual: desenfoque del fondo (soportado en la mayoría de navegadores modernos) */
+  backdrop-filter: blur(6px) brightness(0.45);
+  -webkit-backdrop-filter: blur(6px) brightness(0.45);
   padding: 18px;
   box-sizing: border-box;
+  animation: fadeInOverlay 180ms cubic-bezier(.2,.9,.3,1) both;
 }
 
+/* Modal: más oscuro y contraste */
 .modal {
   width: 100%;
   max-width: 1100px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  /* fondo más oscuro y sólido con sutil borde translúcido */
+  background: linear-gradient(180deg, rgba(6,6,6,0.92), rgba(12,12,12,0.96));
   border-radius: 12px;
   padding: 18px;
-  box-shadow: 0 26px 60px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(0,247,255,0.03);
+  box-shadow: 0 40px 90px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.02);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transform-origin: center;
+  animation: zoomInModal 220ms cubic-bezier(.2,.9,.3,1) both;
+  border: 1px solid rgba(255,255,255,0.02);
 }
 
 /* Modal header */
@@ -231,13 +255,14 @@
 
 /* Column containers */
 .leftColumn, .rightColumn {
-  background: rgba(255,255,255,0.008);
+  background: rgba(255,255,255,0.01);
   padding: 12px;
   border-radius: 10px;
   min-height: 220px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border: 1px solid rgba(255,255,255,0.02);
 }
 
 .subTitle {

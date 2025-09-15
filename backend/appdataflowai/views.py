@@ -1668,10 +1668,10 @@ from .serializers import (
 PLAN_LIMITES = {
     1: 1,   # Basic
     2: 5,   # Professional
-    3: 10,  # Enterprise
+    3: 1000,  # Enterprise
     4: 1,
     5: 5,   # Dataflow
-    6: 10,
+    6: 1000,
 }
 
 
