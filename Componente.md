@@ -32,29 +32,10 @@ Cancelar cambios git restore .
 
 Borrar archivos: git clean -fd
 
-**Componente de Página JSX**
 
-importReactfrom'react';
+**USUARIO:**
 
-constCreacionUsuario=()=>{
-
-  return(
-
-    `<div>`
-
-    `<h1>`Crear Usuario `</h1>`
-
-    `</div>`
-
-  );
-
-};
-
-exportdefaultCreacionUsuario;
-
-pip freeze > requirements.txt
-
-USUARIO:
+C:\Users\Julian Herreño\OneDrive - Colombian Trade Company SAS\DATA\02. AREAS\DATA\Julian Estif Herreno Palacios\09-DataFlow-WebSite\front-dataflowai\src\api\Usuario.js
 {
   "id": 1,
   "nombres": "Julian",
@@ -75,7 +56,7 @@ USUARIO:
     },
     "plan": {
       "id": 3,
-      "tipo": "Enterprise anual"
+      "tipo": "Premium anual"
     },
     "estado": {
       "id": 1,
