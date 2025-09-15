@@ -1246,6 +1246,7 @@ class EmpresaView(APIView):
 #ACTIVAR O DESACTIVAR USUARIOS
 # views.py
 import jwt
+import logging
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from rest_framework.views import APIView
@@ -1253,24 +1254,22 @@ from rest_framework.response import Response
 from rest_framework import status, serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso
+from .models import Usuario, Empresa, Estado, TipoPlan, PermisoAcceso, Areas
+
+logger = logging.getLogger(__name__)
 
 # Map de límites por plan: None = ilimitado
 PLAN_LIMITES = {
     1: 1,    # Basic
     2: 3,    # Professional
-    3: 100, # Enterprise -> ilimitado
+    3: 100,  # Enterprise -> ilimitado
     4: 1,
     5: 3,
-    6: 100, # Unlimited
+    6: 100,  # Unlimited
 }
 
 
 def _get_usuario_from_token(request):
-    """
-    Extrae y valida el token JWT del header Authorization y devuelve la instancia Usuario.
-    Lanza AuthenticationFailed si algo falla.
-    """
     auth = request.headers.get('Authorization', '')
     token = ''
     if auth:
@@ -1290,7 +1289,7 @@ def _get_usuario_from_token(request):
         raise AuthenticationFailed('Token inválido')
 
     try:
-        usuario = Usuario.objects.select_related('id_empresa__id_plan', 'id_estado', 'id_permiso_acceso').get(id_usuario=id_usuario)
+        usuario = Usuario.objects.select_related('id_empresa__id_plan', 'id_estado', 'id_permiso_acceso', 'id_area').get(id_usuario=id_usuario)
         return usuario
     except Usuario.DoesNotExist:
         raise AuthenticationFailed('Usuario no encontrado')
@@ -1308,8 +1307,9 @@ class CreateUserSerializer(serializers.Serializer):
     correo = serializers.EmailField()
     contrasena = serializers.CharField(max_length=255)
     contrasena_confirm = serializers.CharField(max_length=255, write_only=True)
-    id_permiso_acceso = serializers.IntegerField(required=False)  # opcional: id del permiso/rol
-    id_estado = serializers.IntegerField(required=False)  # opcional: id del estado
+    id_permiso_acceso = serializers.IntegerField(required=False)
+    id_estado = serializers.IntegerField(required=False)
+    id_area = serializers.IntegerField(required=True)  # ahora obligatorio desde frontend
 
     def validate_id_permiso_acceso(self, value):
         try:
@@ -1325,10 +1325,19 @@ class CreateUserSerializer(serializers.Serializer):
             raise serializers.ValidationError('Estado no existe')
         return value
 
+    def validate_id_area(self, value):
+        try:
+            Areas.objects.get(id_area=value)
+        except Areas.DoesNotExist:
+            raise serializers.ValidationError('Área no existe')
+        return value
+
     def validate(self, data):
-        # validar que las contraseñas coincidan
         if data.get('contrasena') != data.get('contrasena_confirm'):
             raise serializers.ValidationError({'contrasena_confirm': 'Las contraseñas no coinciden'})
+
+        correo = data.get('correo', '').strip().lower()
+        data['correo'] = correo
         return data
 
 
@@ -1356,7 +1365,7 @@ class UsuariosEmpresaView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
         empresa = usuario.id_empresa
-        usuarios_qs = Usuario.objects.filter(id_empresa=empresa).select_related('id_estado', 'id_permiso_acceso')
+        usuarios_qs = Usuario.objects.filter(id_empresa=empresa).select_related('id_estado', 'id_permiso_acceso', 'id_area')
 
         usuarios = []
         for u in usuarios_qs:
@@ -1369,24 +1378,13 @@ class UsuariosEmpresaView(APIView):
                 'rol': getattr(u.id_permiso_acceso, 'rol', None),
                 'id_estado': getattr(u.id_estado, 'id_estado', None),
                 'estado': getattr(u.id_estado, 'estado', None),
+                'id_area': getattr(u.id_area, 'id_area', None),
+                'area_trabajo': getattr(u.id_area, 'area_trabajo', None),
             })
 
         return Response({'usuarios': usuarios}, status=status.HTTP_200_OK)
 
     def post(self, request):
-        """
-        Crear un usuario dentro de la misma empresa del usuario autenticado, respetando límites del plan.
-        Body esperado (JSON):
-        {
-          "nombres": "...",
-          "apellidos": "...",           // opcional
-          "correo": "...",
-          "contrasena": "...",
-          "contrasena_confirm": "...",
-          "id_permiso_acceso": 2,       // opcional
-          "id_estado": 1                // opcional (por defecto activo)
-        }
-        """
         try:
             usuario_aut = _get_usuario_from_token(request)
         except AuthenticationFailed as e:
@@ -1398,17 +1396,13 @@ class UsuariosEmpresaView(APIView):
 
         data = serializer.validated_data
         empresa = usuario_aut.id_empresa
-        # Obtener limite según plan
         try:
             plan_id = empresa.id_plan.id_plan
         except Exception:
             plan_id = None
+        limite = PLAN_LIMITES.get(plan_id, None)
 
-        limite = PLAN_LIMITES.get(plan_id, None)  # None => ilimitado
-
-        # Contamos usuarios actuales de la empresa (incluye activos/inactivos)
         usuarios_count = Usuario.objects.filter(id_empresa=empresa).count()
-
         if limite is not None and usuarios_count >= limite:
             return Response({
                 'error': 'Límite de usuarios alcanzado para el plan de la empresa',
@@ -1416,13 +1410,14 @@ class UsuariosEmpresaView(APIView):
                 'current': usuarios_count
             }, status=status.HTTP_403_FORBIDDEN)
 
-        # Preparar campos para creación
+        correo_normalizado = data['correo']
+        if Usuario.objects.filter(correo=correo_normalizado).exists():
+            return Response({'error': 'Correo ya registrado'}, status=status.HTTP_400_BAD_REQUEST)
+
         id_permiso_acceso = data.get('id_permiso_acceso', None)
         if id_permiso_acceso is None:
-            # por defecto usamos el permiso del usuario autenticado
             id_permiso_acceso = getattr(usuario_aut.id_permiso_acceso, 'id_permiso_acceso', None)
 
-        # Buscar objetos FK
         try:
             permiso_obj = PermisoAcceso.objects.get(id_permiso_acceso=id_permiso_acceso)
         except PermisoAcceso.DoesNotExist:
@@ -1430,28 +1425,41 @@ class UsuariosEmpresaView(APIView):
 
         id_estado = data.get('id_estado', None)
         if id_estado is None:
-            # por defecto activo (1)
             id_estado = 1
         try:
             estado_obj = Estado.objects.get(id_estado=id_estado)
         except Estado.DoesNotExist:
             return Response({'error': 'Estado no existe'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Crear usuario (con contrasena en texto plano por requisito)
+        # Validar area (ahora obligatorio en serializer)
+        id_area = data.get('id_area')
+        try:
+            area_obj = Areas.objects.get(id_area=id_area)
+        except Areas.DoesNotExist:
+            return Response({'error': 'Área no existe'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Crear usuario
         try:
             with transaction.atomic():
                 nuevo = Usuario.objects.create(
                     id_empresa=empresa,
                     id_permiso_acceso=permiso_obj,
+                    id_area=area_obj,
                     nombres=data['nombres'],
                     apellidos=data.get('apellidos', '') or '',
-                    correo=data['correo'],
-                    contrasena=data['contrasena'],  # guardado en texto plano por requerimiento
+                    correo=correo_normalizado,
+                    contrasena=data['contrasena'],
                     id_estado=estado_obj
                 )
         except IntegrityError as e:
-            # Probablemente correo duplicado u otra restricción
-            return Response({'error': 'No se pudo crear usuario. Posible correo duplicado.'}, status=status.HTTP_400_BAD_REQUEST)
+            msg = str(e)
+            logger.exception("IntegrityError creando usuario: %s", e)
+            if 'unique' in msg.lower() or 'duplicate' in msg.lower() or 'correo' in msg.lower():
+                return Response({'error': 'Correo ya registrado (unique constraint).'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'No se pudo crear usuario. Error de integridad en la base de datos.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception("Error creando usuario: %s", e)
+            return Response({'error': 'Error interno al crear usuario.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             'detail': 'Usuario creado correctamente',
@@ -1461,35 +1469,28 @@ class UsuariosEmpresaView(APIView):
                 'apellidos': nuevo.apellidos,
                 'correo': nuevo.correo,
                 'id_estado': nuevo.id_estado.id_estado,
-                'estado': nuevo.id_estado.estado
+                'estado': nuevo.id_estado.estado,
+                'id_area': nuevo.id_area.id_area,
+                'area_trabajo': nuevo.id_area.area_trabajo
             }
         }, status=status.HTTP_201_CREATED)
 
 
 class UsuarioEstadoChangeView(APIView):
-    """
-    PATCH: Cambia el estado (id_estado) de un usuario objetivo.
-    Solo permite cambiar usuarios que pertenezcan a la misma empresa que el usuario autenticado.
-    Ruta: PATCH /perfil/usuarios/<id_usuario>/estado/
-    Body JSON: { "id_estado": 1 }
-    """
     def patch(self, request, id_usuario):
         try:
             usuario_autenticado = _get_usuario_from_token(request)
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Buscar usuario objetivo
         try:
             usuario_obj = Usuario.objects.select_related('id_empresa', 'id_estado').get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario objetivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Solo permitimos administrar usuarios de la misma empresa
         if usuario_obj.id_empresa.id_empresa != usuario_autenticado.id_empresa.id_empresa:
             return Response({'error': 'No autorizado para modificar usuarios de otra empresa'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Validar body
         serializer = EstadoChangeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1500,7 +1501,6 @@ class UsuarioEstadoChangeView(APIView):
         except Estado.DoesNotExist:
             return Response({'error': 'Estado no existe'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Actualizamos
         usuario_obj.id_estado = nuevo_estado
         usuario_obj.save()
 
@@ -1513,41 +1513,27 @@ class UsuarioEstadoChangeView(APIView):
 
 
 class UsuarioRolChangeView(APIView):
-    """
-    PATCH: Cambia el rol (id_permiso_acceso) de un usuario objetivo (Usuario <-> Administrador).
-    Reglas:
-      - Solo administradores (id_permiso_acceso == 1) pueden cambiar roles.
-      - Solo se pueden cambiar roles de usuarios de la misma empresa.
-      - No se permite que un admin cambie su propio rol (para evitar bloquear la administración).
-    Ruta: PATCH /perfil/usuarios/<id_usuario>/rol/
-    Body JSON: { "id_permiso_acceso": 1 }
-    """
     def patch(self, request, id_usuario):
         try:
             usuario_autenticado = _get_usuario_from_token(request)
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # permiso del que hace la petición
         permiso_act = getattr(usuario_autenticado.id_permiso_acceso, 'id_permiso_acceso', None)
         if permiso_act != 1:
             return Response({'error': 'No autorizado. Se requiere permiso administrativo para cambiar roles.'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Buscar usuario objetivo
         try:
             usuario_obj = Usuario.objects.select_related('id_empresa', 'id_permiso_acceso').get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario objetivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Solo permitimos administrar usuarios de la misma empresa
         if usuario_obj.id_empresa.id_empresa != usuario_autenticado.id_empresa.id_empresa:
             return Response({'error': 'No autorizado para modificar usuarios de otra empresa'}, status=status.HTTP_403_FORBIDDEN)
 
-        # No permitir cambiar el rol de uno mismo
         if usuario_obj.id_usuario == usuario_autenticado.id_usuario:
             return Response({'error': 'No puedes cambiar tu propio rol'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validar body
         serializer = RoleChangeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1558,7 +1544,6 @@ class UsuarioRolChangeView(APIView):
         except PermisoAcceso.DoesNotExist:
             return Response({'error': 'PermisoAcceso no existe'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Actualizamos
         usuario_obj.id_permiso_acceso = nuevo_rol
         usuario_obj.save()
 
@@ -1571,27 +1556,20 @@ class UsuarioRolChangeView(APIView):
 
 
 class UsuarioDeleteView(APIView):
-    """
-    DELETE: Elimina un usuario (solo si pertenece a la misma empresa).
-    Ruta: DELETE /perfil/usuarios/<id_usuario>/
-    """
     def delete(self, request, id_usuario):
         try:
             usuario_autenticado = _get_usuario_from_token(request)
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Buscar usuario objetivo
         try:
             usuario_obj = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario objetivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Solo permitimos administrar usuarios de la misma empresa
         if usuario_obj.id_empresa.id_empresa != usuario_autenticado.id_empresa.id_empresa:
             return Response({'error': 'No autorizado para eliminar usuarios de otra empresa'}, status=status.HTTP_403_FORBIDDEN)
 
-        # (Opcional) evitar que se elimine a sí mismo
         if usuario_obj.id_usuario == usuario_autenticado.id_usuario:
             return Response({'error': 'No puedes eliminar tu propio usuario'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1600,10 +1578,6 @@ class UsuarioDeleteView(APIView):
 
 
 class PermisosListView(APIView):
-    """
-    GET: lista todos los permisos/roles disponibles.
-    Ruta: GET /perfil/permisos/
-    """
     def get(self, request):
         permisos_qs = PermisoAcceso.objects.all()
         permisos = []
@@ -1613,6 +1587,40 @@ class PermisosListView(APIView):
                 'rol': p.rol
             })
         return Response({'permisos': permisos}, status=status.HTTP_200_OK)
+
+
+class AreasListView(APIView):
+    """
+    GET: lista todas las áreas.
+    Ruta: GET /perfil/areas/
+    """
+    def get(self, request):
+        areas_qs = Areas.objects.all()
+        areas = [{'id_area': a.id_area, 'area_trabajo': a.area_trabajo} for a in areas_qs]
+        return Response({'areas': areas}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -32,7 +32,6 @@ Cancelar cambios git restore .
 
 Borrar archivos: git clean -fd
 
-
 **USUARIO:**
 
 C:\Users\Julian Herreño\OneDrive - Colombian Trade Company SAS\DATA\02. AREAS\DATA\Julian Estif Herreno Palacios\09-DataFlow-WebSite\front-dataflowai\src\api\Usuario.js

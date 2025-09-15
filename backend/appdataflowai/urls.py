@@ -41,6 +41,7 @@ from .views import (
     PermisosListView,
     PerfilMeView,
     EmpresaView,
+    AreasListView,
 
 
 
@@ -97,11 +98,12 @@ urlpatterns = [
 
 
 
-    path('perfil/usuarios/', UsuariosEmpresaView.as_view(), name='usuarios_empresa'),                     # GET, POST
-    path('perfil/usuarios/<int:id_usuario>/', UsuarioDeleteView.as_view(), name='usuario_eliminar'),     # DELETE
-    path('perfil/usuarios/<int:id_usuario>/estado/', UsuarioEstadoChangeView.as_view(), name='usuario_cambiar_estado'),  # PATCH estado
-    path('perfil/usuarios/<int:id_usuario>/rol/', UsuarioRolChangeView.as_view(), name='usuario_cambiar_rol'),          # PATCH rol
-    path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'),                         # GET permisos/roles
+    path('perfil/usuarios/', UsuariosEmpresaView.as_view(), name='usuarios_empresa'),
+    path('perfil/usuarios/<int:id_usuario>/estado/', UsuarioEstadoChangeView.as_view(), name='usuario_estado'),
+    path('perfil/usuarios/<int:id_usuario>/rol/', UsuarioRolChangeView.as_view(), name='usuario_rol'),
+    path('perfil/usuarios/<int:id_usuario>/', UsuarioDeleteView.as_view(), name='usuario_delete'),
+    path('perfil/permisos/', PermisosListView.as_view(), name='permisos_list'),
+    path('perfil/areas/', AreasListView.as_view(), name='areas_list'),
 
 
 

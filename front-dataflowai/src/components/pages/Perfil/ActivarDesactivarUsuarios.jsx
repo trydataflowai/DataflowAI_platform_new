@@ -1,4 +1,3 @@
-// File: src/components/pages/Perfil/ActivarDesactivarUsuarios.jsx
 import React, { useEffect, useState } from 'react';
 import styles from '../../../styles/Profile/ActivarDesactivarDark.module.css';
 import {
@@ -8,10 +7,11 @@ import {
   eliminarUsuario,
   obtenerPermisos,
   cambiarRolUsuario,
-  obtenerMiPerfil
+  obtenerMiPerfil,
+  obtenerAreas
 } from '../../../api/Profile';
 
-const INACTIVE_STATE_ID = 2; // Ajusta si en tu BD el id de "inactivo" es otro
+const INACTIVE_STATE_ID = 2;
 const ACTIVE_STATE_ID = 1;
 const ADMIN_ROLE_ID = 1;
 const USER_ROLE_ID = 2;
@@ -19,7 +19,7 @@ const USER_ROLE_ID = 2;
 const ActivarDesactivarUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(null); // id_usuario en curso
+  const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -30,9 +30,11 @@ const ActivarDesactivarUsuarios = () => {
   const [nuevoCorreo, setNuevoCorreo] = useState('');
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [confirmContrasena, setConfirmContrasena] = useState('');
-  const [nuevoRolId, setNuevoRolId] = useState(''); // opcional
+  const [nuevoRolId, setNuevoRolId] = useState('');
   const [permisos, setPermisos] = useState([]);
-  const [miPermisoId, setMiPermisoId] = useState(null); // para saber si soy admin
+  const [miPermisoId, setMiPermisoId] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const [nuevoAreaId, setNuevoAreaId] = useState(''); // <-- campo nuevo
 
   const fetchUsuarios = async () => {
     setLoading(true);
@@ -56,6 +58,15 @@ const ActivarDesactivarUsuarios = () => {
     }
   };
 
+  const fetchAreas = async () => {
+    try {
+      const res = await obtenerAreas();
+      setAreas(res.areas || []);
+    } catch (err) {
+      console.error('Error al cargar áreas:', err);
+    }
+  };
+
   const fetchMiPerfil = async () => {
     try {
       const res = await obtenerMiPerfil();
@@ -69,6 +80,7 @@ const ActivarDesactivarUsuarios = () => {
   useEffect(() => {
     fetchUsuarios();
     fetchPermisos();
+    fetchAreas();
     fetchMiPerfil();
   }, []);
 
@@ -95,29 +107,20 @@ const ActivarDesactivarUsuarios = () => {
   };
 
   const handleToggleRol = async (usuario) => {
-    // Solo admin puede realizar este cambio
     if (miPermisoId !== ADMIN_ROLE_ID) {
       setError('No autorizado para cambiar roles');
       return;
     }
-
-    // No permitir cambiar rol de uno mismo (UX)
     try {
       const miPerfil = await obtenerMiPerfil();
       if (miPerfil.usuario && miPerfil.usuario.id_usuario === usuario.id_usuario) {
         setError('No puedes cambiar tu propio rol');
         return;
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
 
     const nuevoRol = (usuario.id_permiso_acceso === ADMIN_ROLE_ID) ? USER_ROLE_ID : ADMIN_ROLE_ID;
-    const confirmMsg = (nuevoRol === ADMIN_ROLE_ID)
-      ? `¿Deseas dar privilegios de administrador a ${usuario.nombres} (${usuario.correo})?`
-      : `¿Deseas revocar privilegios de administrador y volver a usuario a ${usuario.nombres} (${usuario.correo})?`;
-
-    if (!window.confirm(confirmMsg)) return;
+    if (!window.confirm(`¿Confirmas el cambio de rol para ${usuario.nombres}?`)) return;
 
     setActionLoading(usuario.id_usuario);
     setError('');
@@ -137,8 +140,8 @@ const ActivarDesactivarUsuarios = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    if (!nuevoNombre || !nuevoCorreo || !nuevaContrasena || !confirmContrasena) {
-      setError('Nombre, correo y ambas contraseñas son obligatorios');
+    if (!nuevoNombre || !nuevoCorreo || !nuevaContrasena || !confirmContrasena || !nuevoAreaId) {
+      setError('Nombre, correo, contraseñas y área son obligatorios');
       return;
     }
     if (nuevaContrasena !== confirmContrasena) {
@@ -150,9 +153,10 @@ const ActivarDesactivarUsuarios = () => {
       const payload = {
         nombres: nuevoNombre,
         apellidos: nuevoApellidos,
-        correo: nuevoCorreo,
+        correo: nuevoCorreo.trim().toLowerCase(),
         contrasena: nuevaContrasena,
-        contrasena_confirm: confirmContrasena
+        contrasena_confirm: confirmContrasena,
+        id_area: Number(nuevoAreaId)
       };
       if (nuevoRolId) payload.id_permiso_acceso = Number(nuevoRolId);
 
@@ -164,6 +168,7 @@ const ActivarDesactivarUsuarios = () => {
       setNuevaContrasena('');
       setConfirmContrasena('');
       setNuevoRolId('');
+      setNuevoAreaId('');
       setSuccess('Usuario creado correctamente.');
     } catch (err) {
       setError(err.message || 'Error al crear usuario');
@@ -219,6 +224,17 @@ const ActivarDesactivarUsuarios = () => {
             <label className={styles.label}>Confirmar Contraseña</label>
             <input className={styles.input} type="password" value={confirmContrasena} onChange={e => setConfirmContrasena(e.target.value)} />
           </div>
+
+          <div className={styles.formRow}>
+            <label className={styles.label}>Área</label>
+            <select className={styles.select} value={nuevoAreaId} onChange={e => setNuevoAreaId(e.target.value)}>
+              <option value="">Selecciona un área</option>
+              {areas.map(a => (
+                <option key={a.id_area} value={a.id_area}>{a.area_trabajo}</option>
+              ))}
+            </select>
+          </div>
+
           <div className={styles.formRow}>
             <label className={styles.label}>Rol (opcional)</label>
             <select className={styles.select} value={nuevoRolId} onChange={e => setNuevoRolId(e.target.value)}>
@@ -228,6 +244,7 @@ const ActivarDesactivarUsuarios = () => {
               ))}
             </select>
           </div>
+
           <div className={styles.formRow}>
             <button className={styles.primaryButton} type="submit" disabled={creando}>{creando ? 'Creando...' : 'Crear usuario'}</button>
           </div>
@@ -246,6 +263,7 @@ const ActivarDesactivarUsuarios = () => {
                 <th>Nombre</th>
                 <th>Correo</th>
                 <th>Rol</th>
+                <th>Área</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -253,7 +271,7 @@ const ActivarDesactivarUsuarios = () => {
             <tbody>
               {usuarios.length === 0 && (
                 <tr>
-                  <td colSpan="5" className={styles.noUsers}>No hay usuarios</td>
+                  <td colSpan="6" className={styles.noUsers}>No hay usuarios</td>
                 </tr>
               )}
               {usuarios.map(u => (
@@ -261,6 +279,7 @@ const ActivarDesactivarUsuarios = () => {
                   <td className={styles.cellName}>{u.nombres} {u.apellidos || ''}</td>
                   <td className={styles.cellEmail}>{u.correo}</td>
                   <td className={styles.cellRole}>{u.rol || '-'}</td>
+                  <td className={styles.cellArea}>{u.area_trabajo || '-'}</td>
                   <td className={styles.cellState}>
                     <span className={u.id_estado === ACTIVE_STATE_ID ? styles.stateActive : styles.stateInactive}>
                       {u.estado || (`ID ${u.id_estado}`)}
