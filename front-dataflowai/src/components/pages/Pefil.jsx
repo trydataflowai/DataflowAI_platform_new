@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import styles from '../../styles/Profile/PerfilDark.module.css';
+import darkStyles from '../../styles/Profile/PerfilDark.module.css';
+import lightStyles from '../../styles/Profile/PerfilLight.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
+import { useTheme } from "../componentes/ThemeContext";
+
+/**
+ * ConfiguracionUsuarios.jsx
+ * - cambia entre darkStyles / lightStyles dependiendo del planId y del tema global
+ * - mantiene la misma API de clases CSS para que ambos archivos sean compatibles
+ */
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -15,14 +23,12 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-const Card = ({ texto, ruta, index, buildTo }) => {
+const Card = ({ texto, ruta, index, buildTo, styles }) => {
   const ref = useRef(null);
 
-  // We keep an optional subtle floating animation offset
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    // Initialize CSS vars
     el.style.setProperty("--rx", "0deg");
     el.style.setProperty("--ry", "0deg");
     el.style.setProperty("--s", "1");
@@ -36,15 +42,12 @@ const Card = ({ texto, ruta, index, buildTo }) => {
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const px = (x / rect.width) * 100; // 0 - 100
+    const px = (x / rect.width) * 100;
     const py = (y / rect.height) * 100;
 
-    // rotation intensity
-    const maxDeg = 10; // more = stronger tilt
-    const ry = ((px - 50) / 50) * maxDeg; // left/right
-    const rx = -((py - 50) / 50) * maxDeg; // up/down
-
-    // scale slightly on hover
+    const maxDeg = 10;
+    const ry = ((px - 50) / 50) * maxDeg;
+    const rx = -((py - 50) / 50) * maxDeg;
     const s = 1.06;
 
     el.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
@@ -74,7 +77,6 @@ const Card = ({ texto, ruta, index, buildTo }) => {
       onFocus={() => ref.current && ref.current.style.setProperty("--s", "1.04")}
       onBlur={() => ref.current && handleLeave()}
       style={{
-        // sensible defaults in case CSS vars not set
         ["--rx"]: "0deg",
         ["--ry"]: "0deg",
         ["--s"]: "1",
@@ -107,28 +109,54 @@ const Card = ({ texto, ruta, index, buildTo }) => {
 };
 
 const ConfiguracionUsuarios = () => {
+  const { theme } = useTheme(); // 'dark' o 'light'
   const [companySegment, setCompanySegment] = useState("");
+  const [planId, setPlanId] = useState(null);
+  const [planName, setPlanName] = useState("");
+  const [styles, setStyles] = useState(darkStyles); // por defecto oscuro
 
+  // Obtener info usuario (nombre_corto y plan)
   useEffect(() => {
     let mounted = true;
+
     const fetchUser = async () => {
       try {
         const data = await obtenerInfoUsuario();
         if (!mounted || !data) return;
+
         const nombreCorto = data?.empresa?.nombre_corto ?? "";
-        setCompanySegment(
-          nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : ""
-        );
+        const pid = data?.empresa?.plan?.id ?? null;
+        const pName = data?.empresa?.plan?.tipo ?? "";
+
+        setCompanySegment(normalizeSegment(nombreCorto));
+        setPlanId(pid);
+        setPlanName(pName);
       } catch (err) {
-        console.error("No se pudo obtener nombre_corto:", err);
-        if (mounted) setCompanySegment("");
+        console.error("No se pudo obtener info de usuario:", err);
+        if (mounted) {
+          setCompanySegment("");
+          setPlanId(null);
+          setPlanName("");
+        }
       }
     };
+
     fetchUser();
     return () => {
       mounted = false;
     };
   }, []);
+
+  // Actualizar estilos cuando cambie planId o theme
+  useEffect(() => {
+    if (planId === 3 || planId === 6) {
+      // planes que permiten toggle entre dark/light
+      setStyles(theme === "dark" ? darkStyles : lightStyles);
+    } else {
+      // fuerzo dark para planes que no permiten cambio
+      setStyles(darkStyles);
+    }
+  }, [theme, planId]);
 
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
@@ -172,12 +200,15 @@ const ConfiguracionUsuarios = () => {
             ruta={opcion.ruta}
             index={index}
             buildTo={buildTo}
+            styles={styles}
           />
         ))}
       </section>
 
       <footer className={styles.footer}>
-        <small>Seguridad • Permisos • Auditoría</small>
+        <small className={styles.footerSmall}>
+          {planName ? `Plan: ${planName}` : "Seguridad • Permisos • Auditoría"}
+        </small>
       </footer>
     </main>
   );
