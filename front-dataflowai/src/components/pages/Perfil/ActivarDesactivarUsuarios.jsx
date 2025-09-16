@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styles from '../../../styles/Profile/ActivarDesactivarDark.module.css';
 import {
   obtenerUsuariosEmpresa,
@@ -193,6 +193,62 @@ const ActivarDesactivarUsuarios = () => {
     }
   };
 
+  /* -----------------------
+     CustomSelect component
+     ----------------------- */
+  const CustomSelect = ({ options = [], value, onChange, placeholder = 'Selecciona...' }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+      const handler = (e) => {
+        if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      };
+      document.addEventListener('mousedown', handler);
+      return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const selected = options.find(opt => String(opt.value) === String(value));
+
+    return (
+      <div className={styles.customSelect} ref={ref}>
+        <button
+          type="button"
+          className={styles.customSelectButton}
+          onClick={() => setOpen(o => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+        >
+          <span className={styles.customSelectValue}>
+            {selected ? selected.label : placeholder}
+          </span>
+          <span className={styles.customSelectArrow} aria-hidden />
+        </button>
+
+        {open && (
+          <ul role="listbox" className={styles.customSelectList}>
+            {options.length === 0 && <li className={styles.customSelectEmpty}>No hay opciones</li>}
+            {options.map(opt => (
+              <li
+                key={opt.value}
+                role="option"
+                aria-selected={String(opt.value) === String(value)}
+                className={`${styles.customSelectItem} ${String(opt.value) === String(value) ? styles.customSelectItemSelected : ''}`}
+                onClick={() => { onChange(String(opt.value)); setOpen(false); }}
+              >
+                {opt.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
+  /* build options for custom selects */
+  const areaOptions = areas.map(a => ({ value: a.id_area, label: a.area_trabajo }));
+  const permisoOptions = permisos.map(p => ({ value: p.id_permiso_acceso, label: p.rol }));
+
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>Administrar Usuarios</h1>
@@ -227,22 +283,22 @@ const ActivarDesactivarUsuarios = () => {
 
           <div className={styles.formRow}>
             <label className={styles.label}>Área</label>
-            <select className={styles.select} value={nuevoAreaId} onChange={e => setNuevoAreaId(e.target.value)}>
-              <option value="">Selecciona un área</option>
-              {areas.map(a => (
-                <option key={a.id_area} value={a.id_area}>{a.area_trabajo}</option>
-              ))}
-            </select>
+            <CustomSelect
+              options={areaOptions}
+              value={nuevoAreaId}
+              onChange={val => setNuevoAreaId(val)}
+              placeholder="Selecciona un área"
+            />
           </div>
 
           <div className={styles.formRow}>
             <label className={styles.label}>Rol (opcional)</label>
-            <select className={styles.select} value={nuevoRolId} onChange={e => setNuevoRolId(e.target.value)}>
-              <option value="">(Usar rol por defecto)</option>
-              {permisos.map(p => (
-                <option key={p.id_permiso_acceso} value={p.id_permiso_acceso}>{p.rol}</option>
-              ))}
-            </select>
+            <CustomSelect
+              options={permisoOptions}
+              value={nuevoRolId}
+              onChange={val => setNuevoRolId(val)}
+              placeholder="(Usar rol por defecto)"
+            />
           </div>
 
           <div className={styles.formRow}>
