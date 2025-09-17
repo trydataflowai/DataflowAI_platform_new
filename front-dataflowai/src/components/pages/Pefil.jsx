@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import darkStyles from '../../styles/Profile/PerfilDark.module.css';
 import lightStyles from '../../styles/Profile/PerfilLight.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
@@ -7,8 +7,9 @@ import { useTheme } from "../componentes/ThemeContext";
 
 /**
  * ConfiguracionUsuarios.jsx
- * - cambia entre darkStyles / lightStyles dependiendo del planId y del tema global
- * - mantiene la misma API de clases CSS para que ambos archivos sean compatibles
+ * - muestra tarjetas (siempre)
+ * - controla acceso: si rol !== 'Administrador' muestra modal al intentar acceder a rutas restringidas
+ * - mantiene los efectos 3D / tilt
  */
 
 const NO_PREFIX = [
@@ -23,7 +24,7 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-const Card = ({ texto, ruta, index, buildTo, styles }) => {
+const Card = ({ texto, ruta, index, buildTo, styles, onCardClick }) => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -67,15 +68,26 @@ const Card = ({ texto, ruta, index, buildTo, styles }) => {
     el.style.setProperty("--my", `50%`);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onCardClick(ruta);
+    }
+  };
+
   return (
-    <Link
+    <div
       ref={ref}
-      to={buildTo(ruta)}
       className={styles.card}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       onFocus={() => ref.current && ref.current.style.setProperty("--s", "1.04")}
       onBlur={() => ref.current && handleLeave()}
+      onClick={() => onCardClick(ruta)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={texto}
       style={{
         ["--rx"]: "0deg",
         ["--ry"]: "0deg",
@@ -83,8 +95,6 @@ const Card = ({ texto, ruta, index, buildTo, styles }) => {
         ["--mx"]: "50%",
         ["--my"]: "50%",
       }}
-      aria-label={texto}
-      role="button"
     >
       <div className={styles.cardInner}>
         <div className={styles.cardHeader}>
@@ -104,7 +114,7 @@ const Card = ({ texto, ruta, index, buildTo, styles }) => {
           <span className={styles.cta}>Ir a la configuración →</span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
@@ -114,8 +124,12 @@ const ConfiguracionUsuarios = () => {
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
   const [styles, setStyles] = useState(darkStyles); // por defecto oscuro
+  const [rol, setRol] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const navigate = useNavigate();
 
-  // Obtener info usuario (nombre_corto y plan)
+  // Obtener info usuario (nombre_corto, plan y rol)
   useEffect(() => {
     let mounted = true;
 
@@ -127,16 +141,19 @@ const ConfiguracionUsuarios = () => {
         const nombreCorto = data?.empresa?.nombre_corto ?? "";
         const pid = data?.empresa?.plan?.id ?? null;
         const pName = data?.empresa?.plan?.tipo ?? "";
+        const r = data?.rol ?? data?.role ?? null; // soporte por si cambia la clave
 
         setCompanySegment(normalizeSegment(nombreCorto));
         setPlanId(pid);
         setPlanName(pName);
+        setRol(r);
       } catch (err) {
         console.error("No se pudo obtener info de usuario:", err);
         if (mounted) {
           setCompanySegment("");
           setPlanId(null);
           setPlanName("");
+          setRol(null);
         }
       }
     };
@@ -174,12 +191,42 @@ const ConfiguracionUsuarios = () => {
     return hash ? `${fullBase}#${hash}` : fullBase;
   };
 
+  // Opciones (igual que antes)
   const opciones = [
     { texto: "¿Deseas cambiar la contraseña?", ruta: "/cambiar-contrasena" },
     { texto: "¿Deseas activar o desactivar un usuario?", ruta: "/desactivar-activar-usuarios" },
     { texto: "¿Deseas actualizar información de tu empresa o usuario?", ruta: "/ModificarInformacionPersonal" },
     { texto: "¿Deseas asignar los dashboards?", ruta: "/AsignarDashboards" },
   ];
+
+  // Rutas permitidas para rol 'Usuario' (según tu comentario)
+  const rutasPermitidasUsuario = [
+    "/cambiar-contrasena",
+    "/ModificarInformacionPersonal",
+  ];
+
+  const handleCardClick = (ruta) => {
+    // Si es Admin => navegar sin restricciones
+    if (String(rol).toLowerCase() === "administrador") {
+      navigate(buildTo(ruta));
+      return;
+    }
+
+    // Si está entre las permitidas para 'Usuario' => navegar
+    if (rutasPermitidasUsuario.includes(ruta)) {
+      navigate(buildTo(ruta));
+      return;
+    }
+
+    // Si no: mostrar modal de restricción
+    setModalMessage("Acceso restringido: solo pueden acceder administradores a esta opción.");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalMessage("");
+  };
 
   return (
     <main className={styles.container} aria-labelledby="config-usuarios-title">
@@ -201,6 +248,7 @@ const ConfiguracionUsuarios = () => {
             index={index}
             buildTo={buildTo}
             styles={styles}
+            onCardClick={handleCardClick}
           />
         ))}
       </section>
@@ -210,6 +258,42 @@ const ConfiguracionUsuarios = () => {
           {planName ? `Plan: ${planName}` : "Seguridad • Permisos • Auditoría"}
         </small>
       </footer>
+
+      {/* Modal de acceso restringido (compartido dark/light según styles importado) */}
+      {showModal && (
+        <div
+          className={styles.modalOverlay}
+          onMouseDown={(e) => {
+            // click fuera cierra modal
+            if (e.target === e.currentTarget) closeModal();
+          }}
+        >
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            aria-describedby="modal-desc"
+          >
+            <h2 id="modal-title" className={styles.modalTitle}>
+              Acceso restringido
+            </h2>
+            <p id="modal-desc" className={styles.modalDesc}>
+              {modalMessage}
+            </p>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.btnPrimary}
+                onClick={closeModal}
+                autoFocus
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

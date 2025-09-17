@@ -289,3 +289,87 @@
   .badge { min-width: 36px; height: 36px; font-size: 0.9rem; }
   .cta { font-size: 0.88rem; }
 }
+
+/* -------------------- MODAL (Light) -------------------- */
+/* mismas clases usadas en dark para swap simple */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 35, 59, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 24px;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 10px;
+  padding: 20px;
+  background: linear-gradient(180deg, var(--surface), rgba(246,248,251,0.95));
+  border: 1px solid rgba(10,102,194,0.06);
+  box-shadow: 0 18px 48px rgba(18,35,59,0.06);
+  color: var(--text-default);
+  transform-origin: center;
+  animation: modalPopLight 160ms cubic-bezier(.2,.9,.3,1);
+}
+
+@keyframes modalPopLight {
+  from { transform: translateY(6px) scale(0.995); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modalTitle {
+  margin: 0 0 8px 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-default);
+}
+
+.modalDesc {
+  margin: 0 0 18px 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* primary button (light) */
+.btnPrimary {
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-blue-2));
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(10,102,194,0.08);
+  transition: transform 120ms ease, box-shadow 160ms ease, opacity 120ms ease;
+}
+.btnPrimary:active { transform: translateY(1px) scale(0.997); }
+.btnPrimary:focus { outline: 3px solid rgba(10,102,194,0.08); }
+
+/* secondary (if needed) */
+.btnSecondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid rgba(18,35,59,0.04);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* mobile tweaks */
+@media (max-width: 520px) {
+  .modal { padding: 14px; border-radius: 8px; }
+  .modalTitle { font-size: 1rem; }
+  .modalDesc { font-size: 0.94rem; }
+}
