@@ -224,10 +224,10 @@ const LoginColtrade = () => {
                 src={Logo}
                 alt="Dataflow AI"
                 className={styles.logoImg}
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/Coltrade/login')}
                 style={{ cursor: 'pointer' }}
               />
-              <p className={styles.brandingText}>Inteligencia artificial para flujos de datos avanzados</p>
+              <p className={styles.brandingText}>Business Intelligence</p>
               <div className={styles.animatedGrid}>
                 {Array.from({ length: 16 }).map((_, i) => (
                   <div key={i} className={styles.gridCell} style={{ animationDelay: `${i * 0.05}s` }} />
@@ -350,7 +350,7 @@ const LoginColtrade = () => {
               </form>
 
               <div className={styles.loginFooter}>
-                <p>¿Primera vez en Dataflow? <Link to="/crear-usuario">Crea una cuenta</Link></p>
+                
               </div>
             </div>
           </div>

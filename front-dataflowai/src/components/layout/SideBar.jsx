@@ -142,7 +142,7 @@ export const SideBar = () => {
   const toggleCollapsed = () => setCollapsed((c) => !c);
 
   const links = [
-    { to: "/homeLogin#home", icon: "🏠", label: "Home" },
+    { to: "/WelcomeHome", icon: "🏠", label: "Home" },
     { to: "/home",        icon: "📊", label: "Dashboards" },
     { to: "/configuracion-perfil", icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
