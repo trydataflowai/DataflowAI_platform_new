@@ -1,0 +1,520 @@
+:root {
+  --black-void: #000000;
+  --black-cosmos: #050505;
+  --black-deep: #0a0a0a;
+  --accent-neon: #00f7ff;
+  --accent-turquoise: #00e1ff;
+  --accent-cyan: #00c2ff;
+  --accent-dark: #0099cc;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --success: #00ffaa;
+  --warning: #ffcc00;
+  --danger: #ff3366;
+  --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Reset y estilos base */
+.pageContainer {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: var(--black-void);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+}
+
+.loginWrapper {
+  height: 100%;
+}
+
+/* Layout principal */
+.superPremiumContainer {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sección izquierda (Branding) */
+.brandingSection {
+  flex: 1;
+  background: linear-gradient(135deg, var(--black-cosmos) 0%, var(--black-deep) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.brandingContent {
+  text-align: center;
+  padding: 2rem;
+  max-width: 500px;
+  position: relative;
+  z-index: 2;
+}
+
+.logoImg {
+  width: 250px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  filter: drop-shadow(0 0 10px rgba(0, 247, 255, 0.5));
+}
+
+.logoImg:hover {
+  transform: scale(1.05) rotate(-5deg);
+  filter: drop-shadow(0 0 15px var(--accent-neon));
+}
+
+.brandingText {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+/* Grid animado de fondo */
+.animatedGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 200px;
+  margin: 0 auto;
+}
+
+.gridCell {
+  aspect-ratio: 1;
+  background: rgba(0, 247, 255, 0.05);
+  border: 1px solid rgba(0, 247, 255, 0.1);
+  border-radius: 2px;
+  animation: gridPulse 2s infinite ease-in-out;
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.95); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* Sección derecha (Login) */
+.loginSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--black-void);
+  position: relative;
+  overflow: hidden;
+}
+
+.loginCard {
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(15px);
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 380px;
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 247, 255, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.loginHeader {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.loginHeader h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  position: relative;
+  display: inline-block;
+}
+
+.loginHeader h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(to right, var(--accent-neon), var(--accent-cyan));
+  border-radius: 3px;
+}
+
+/* Formulario */
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.inputContainer {
+  position: relative;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.8rem 0;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.inputField.typing + .inputUnderline {
+  transform: scaleX(1);
+  background: linear-gradient(to right, var(--accent-neon), var(--accent-cyan));
+}
+
+.inputUnderline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: var(--transition);
+}
+
+.togglePassword {
+  position: absolute;
+  right: 0;
+  bottom: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+
+.togglePassword:hover {
+  color: var(--accent-neon);
+  transform: scale(1.1);
+}
+
+/* Botón de login */
+.loginButton {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  background: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+  border: none;
+  border-radius: 8px;
+  color: var(--black-deep);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+  z-index: 1;
+}
+
+.loginButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 247, 255, 0.3);
+}
+
+.loginButton:disabled {
+  background: var(--text-secondary);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    rgba(0, 247, 255, 0.3), 
+    rgba(0, 194, 255, 0.3), 
+    rgba(0, 247, 255, 0.3));
+  z-index: -1;
+  opacity: 0;
+  transition: var(--transition);
+  animation: glowPulse 2s infinite;
+}
+
+.loginButton:hover .buttonGlow {
+  opacity: 1;
+}
+
+@keyframes glowPulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.pulseEffect {
+  display: inline-block;
+  animation: textPulse 1.5s infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Mensaje de error */
+.errorMessage {
+  background: rgba(255, 51, 102, 0.1);
+  border-left: 3px solid var(--danger);
+  padding: 0.8rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  animation: errorAppear 0.3s ease-out;
+}
+
+@keyframes errorAppear {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Footer */
+.loginFooter {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.loginFooter a {
+  color: var(--accent-turquoise);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.loginFooter a:hover {
+  color: var(--accent-neon);
+  text-shadow: 0 0 8px rgba(0, 247, 255, 0.3);
+}
+
+/* Partículas */
+.particlesWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  background: var(--accent-neon);
+  border-radius: 50%;
+  opacity: 0;
+  bottom: -10px;
+  left: var(--x);
+  width: var(--size);
+  height: var(--size);
+  animation: particleRise var(--speed) linear infinite;
+  animation-delay: var(--delay);
+  filter: blur(1px);
+}
+
+@keyframes particleRise {
+  0% { 
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% { opacity: 0.8; }
+  100% { 
+    opacity: 0;
+    transform: translateY(-100vh) scale(1.2);
+  }
+}
+
+/* Efecto shake */
+.shake {
+  animation: shakeAnimation 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shakeAnimation {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .superPremiumContainer {
+    flex-direction: column;
+  }
+  
+  .brandingSection {
+    padding: 2rem 1rem;
+  }
+  
+  .loginSection {
+    padding: 2rem 1rem;
+  }
+  
+  .loginCard {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+
+/* -----------------------------
+   Estilos del mensaje de bienvenida (ajustado: -1s, más grande, empresa resaltada, mensaje formal)
+   ----------------------------- */
+
+.welcomeOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.42), rgba(0,0,0,0.78));
+  backdrop-filter: blur(8px);
+  animation: overlayFadeIn 0.28s ease-out forwards;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Tamaño aumentado y presencia más fuerte */
+.welcomeCard {
+  width: 520px;
+  max-width: calc(100% - 36px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
+  border-radius: 16px;
+  padding: 26px 30px;
+  box-shadow:
+    0 26px 60px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(0,247,255,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-primary);
+  text-align: center;
+  transform: translateY(18px);
+  animation: welcomePop 0.52s cubic-bezier(.2,.9,.3,1.2) forwards;
+  position: relative;
+  overflow: visible;
+}
+
+@keyframes welcomePop {
+  0% { opacity: 0; transform: translateY(18px) scale(0.98); }
+  60% { opacity: 1; transform: translateY(-6px) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.welcomeIcon {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(0,247,255,0.14), rgba(0,194,255,0.09));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -64px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 0 22px rgba(0,247,255,0.08) inset;
+  border: 1px solid rgba(0,247,255,0.07);
+}
+
+.welcomeLogo {
+  width: 64px;
+  height: auto;
+  filter: drop-shadow(0 8px 18px rgba(0,247,255,0.14));
+  transform: rotate(-6deg);
+}
+
+.welcomeTitle {
+  font-size: 1.7rem;
+  margin: 14px 0 6px;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  font-weight: 800;
+}
+
+/* Empresa muy resaltada: tamaño, peso y gradiente brillante + glow */
+.welcomeCompany {
+  font-size: 1.12rem;
+  margin: 6px 0 8px;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 2px 8px rgba(0,194,255,0.08),
+    0 0 20px rgba(0,247,255,0.06);
+  letter-spacing: 0.2px;
+  transform: translateY(-2px);
+}
+
+/* Mensaje formal debajo del nombre de la empresa */
+.welcomeMessage {
+  margin-top: 6px;
+  font-size: 0.98rem;
+  color: var(--text-secondary);
+  max-width: 84%;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+/* sparkles / confetti (leves) */
+.welcomeSparkles {
+  position: absolute;
+  inset: auto 18px 18px 18px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  bottom: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+  opacity: 0.98;
+  transform: translateY(0) rotate(0);
+  animation: confettiFall 1.45s cubic-bezier(.2,.8,.2,1) forwards;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-8px) rotate(0deg) scale(0.9); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateY(46px) rotate(180deg) scale(1.05); opacity: 1; }
+  100% { transform: translateY(96px) rotate(360deg) scale(0.9); opacity: 0; }
+}
+
+/* ajuste responsive */
+@media (max-width: 720px) {
+  .welcomeCard { width: calc(100% - 36px); padding: 20px; }
+  .welcomeTitle { font-size: 1.25rem; }
+  .welcomeCompany { font-size: 1rem; }
+  .welcomeIcon { width: 66px; height: 66px; margin-top: -52px; }
+  .welcomeLogo { width: 52px; }
+}

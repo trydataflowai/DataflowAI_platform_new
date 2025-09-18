@@ -14,6 +14,7 @@ import { SideBar } from "../components/layout/SideBar";
 // Páginas
 import Index from "../components/pages/Index";
 import Login from "../components/pages/Login";
+import LoginColtrade from "../components/pages/Login/LoginColtrade";
 import HomeLogin from "../components/pages/HomeLogin";
 import Home from "../components/pages/Home";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
@@ -150,6 +151,7 @@ export const Rutas = () => {
 
           {/* Rutas sin layout */}
           <Route path="/login" element={<Login />} />
+          <Route path="Coltrade/login" element={<LoginColtrade />} />
           <Route path="/crear-empresa" element={<CreacionEmpresa />} />
           <Route path="/crear-usuario" element={<CreacionUsuario />} />
           <Route path="/pagos" element={<PagosStripe />} />
