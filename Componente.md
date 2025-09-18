@@ -1,3 +1,11 @@
+**
+
+USUARIO DE ADMIN:
+
+julianeherrenop
+**
+
+
 **consola BACKEND**
 
 cd backend
