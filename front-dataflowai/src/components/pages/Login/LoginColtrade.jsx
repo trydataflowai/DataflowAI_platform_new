@@ -175,7 +175,7 @@ const LoginColtrade = () => {
       // deja que la animación se vea un poco
       setTimeout(() => {
         setWelcomeVisible(false);
-        const to = buildTo(normalized, "/WelcomeHome");
+        const to = buildTo(normalized, "/home");
         safeNavigateAndReload(to);
       }, 1200);
     } catch (err) {

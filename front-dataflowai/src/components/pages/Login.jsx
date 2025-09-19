@@ -136,7 +136,7 @@ const Login = () => {
       setTimeout(() => {
         setWelcomeVisible(false);
 
-        const to = buildTo(normalized, "/WelcomeHome");
+        const to = buildTo(normalized, "/home");
 
         // Usamos la función segura que fuerza recarga controlada
         safeNavigateAndReload(to);
