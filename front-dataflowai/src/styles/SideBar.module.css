@@ -1,21 +1,34 @@
 /* src/styles/SideBar.module.css */
 
-/* Sidebar fijo y a todo lo alto */
+/* Sidebar como parte del flujo: sticky + scroll interno si hace falta */
 .sidebar {
-  position: fixed;
+  position: -webkit-sticky; /* compatibilidad iOS */
+  position: sticky;
   top: 0;
   left: 0;
   width: 280px;
-  height: 100vh;
   z-index: 1000;
+
+  /* gradiente y estilos visuales */
   background: linear-gradient(160deg, var(--black-deep) 0%, var(--black-cosmos) 100%);
   padding: 2rem 1.5rem;
   border-right: 1px solid rgba(0, 199, 255, 0.1);
+
   display: flex;
   flex-direction: column;
   transition: var(--transition);
+  box-sizing: border-box;
+
+  /* Permitir que el contenido interno haga scroll si supera la altura de la ventana */
+  max-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* Un padding-bottom extra para que el último botón no quede pegado al borde */
+  padding-bottom: 2.5rem;
 }
 
+/* Sidebar colapsado */
 .collapsed {
   width: 120px;
 }
@@ -43,6 +56,7 @@
   font-weight: bold;
   text-align: center;
   transition: var(--transition);
+  margin: 6px 0;
 }
 
 .nav {
@@ -50,6 +64,8 @@
   flex-direction: column;
   gap: 0.5rem;
   flex-grow: 1;
+  /* Aseguramos que nav pueda crecer y empujar el footer hacia abajo */
+  min-height: 0; /* importante para contenedores flex con overflow */
 }
 
 .button {
@@ -174,8 +190,6 @@
   opacity: 0.7;
 }
 
-
-
 /* Logo como imagen: se adapta al contenedor, conserva proporción */
 .logoImg {
   display: block;
@@ -194,14 +208,4 @@
   max-width: 48px;
   height: 36px;
   border-radius: 6px;
-}
-
-/* En caso de que quieras centrar el fallback textual mejor */
-.logoText {
-  color: #ffffff; /* o el color que ya tenías */
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  transition: var(--transition);
-  margin: 6px 0;
 }

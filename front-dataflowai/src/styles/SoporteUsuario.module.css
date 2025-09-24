@@ -10,35 +10,37 @@
   --success: #00ffaa;
   --danger: #ff3366;
   --transition: all 0.18s cubic-bezier(.2,.9,.3,1);
-  --max-w: 1300px; /* Mayor ancho para tabla amplia */
+  --max-w: 1200px; /* ajustado para igualar el ancho de HomeDashboard */
   --card-w: 520px;
 }
 
-/* Page container centered */
+/* Page container centered and limited to --max-w to match HomeDashboard */
 .container {
   width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto; /* centra el contenido */
   min-height: 100%;
-  padding: 28px 20px;
+  padding: 2rem 3rem; /* similar al mainContent de HomeDashboard */
   box-sizing: border-box;
   font-family: 'Inter', Arial, sans-serif;
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  align-items: center;
+  align-items: stretch; /* importante: stretch para que el main ocupe ancho correcto */
   background: transparent;
 }
 
 /* Header */
 .header {
   width: 100%;
-  max-width: var(--max-w);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap; /* permite que los elementos bajen a la siguiente fila */
 }
-.headerLeft { display:flex; flex-direction:column; gap:4px; }
+.headerLeft { display:flex; flex-direction:column; gap:4px; min-width: 220px; }
 .title {
   margin: 0;
   color: var(--accent-neon);
@@ -51,8 +53,16 @@
   font-size: 0.95rem;
 }
 
-/* Header right: filtros + crear */
-.headerRight { display:flex; gap:12px; align-items:center; }
+/* Header right: filtros + crear
+   Hacemos que los elementos hagan wrap y se ajusten en dos filas si hace falta */
+.headerRight {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  min-width: 220px;
+}
 
 /* Filter bar */
 .filterBar {
@@ -63,6 +73,8 @@
   padding: 8px;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.02);
+  flex-wrap: wrap; /* permite doble fila dentro del filterBar */
+  max-width: 860px;
 }
 .filterLabel {
   display:flex;
@@ -103,7 +115,7 @@
 .filterBtn:hover { transform: translateY(-2px); }
 .clearBtn:hover { transform: translateY(-2px); color: var(--accent-neon); }
 
-/* Create button */
+/* Create button: lo permitimos acomodar debajo si no cabe al lado */
 .primaryButton {
   padding: 10px 16px;
   border-radius: 10px;
@@ -114,14 +126,14 @@
   cursor: pointer;
   box-shadow: 0 12px 30px rgba(0,194,255,0.08);
   transition: var(--transition);
+  white-space: nowrap;
 }
 .primaryButton:disabled { opacity: 0.6; cursor: not-allowed; }
 .primaryButton:hover:not(:disabled) { transform: translateY(-3px); }
 
-/* Fetch error */
-.fetchError {
+/* Fetch error / filter error banners */
+.fetchError, .filterError {
   width: 100%;
-  max-width: var(--max-w);
   color: var(--danger);
   background: rgba(255,51,102,0.06);
   padding: 10px 12px;
@@ -129,20 +141,11 @@
   border-left: 4px solid rgba(255,51,102,0.16);
   box-sizing: border-box;
 }
-.filterError {
-  width: 100%;
-  max-width: var(--max-w);
-  color: var(--danger);
-  background: rgba(255,51,102,0.04);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border-left: 4px solid rgba(255,51,102,0.12);
-}
+.filterError { background: rgba(255,51,102,0.04); border-left: 4px solid rgba(255,51,102,0.12); }
 
-/* Table container stretches full width inside max-w */
+/* Table container limited by the same --max-w and centered */
 .tableContainer {
   width: 100%;
-  max-width: var(--max-w);
 }
 
 /* Table wrapper */
@@ -155,11 +158,11 @@
   overflow-x: auto;
 }
 
-/* Table (full width) — más ancha */
+/* Table — reducimos el min-width para que no sea demasiado "gigante" */
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px; /* más ancho para ocupar IZQ-DER */
+  min-width: 900px; /* más razonable, se reduce para no forzar scroll excesivo */
   font-size: 0.95rem;
 }
 .table thead th {
@@ -210,7 +213,7 @@
 .primarySmall:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,194,255,0.04); }
 
 /* Row actions */
-.rowActions { display:flex; gap:8px; align-items:center; }
+.rowActions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
 /* Form elements used in modal */
 .label { display:flex; flex-direction:column; gap:8px; }
@@ -331,16 +334,20 @@
 }
 .secondaryBtn:hover { color: var(--accent-neon); transform: translateY(-2px); }
 
-/* Responsive */
+/* Responsive: ajustar puntos de quiebre para que la tabla no se vea gigante y botones se acomoden */
 @media (max-width: 1200px) {
   :root { --max-w: 980px; }
-  .table { min-width: 900px; }
+  .table { min-width: 800px; }
   .header { flex-direction: column; align-items: stretch; gap:12px; }
   .headerRight { justify-content: space-between; }
 }
 @media (max-width: 980px) {
-  .header { flex-direction: column; align-items: center; gap:8px; }
+  :root { --max-w: 92%; }
+  .container { padding: 1.25rem; }
   .tableWrapper { padding: 8px; }
-  .table { min-width: 700px; }
+  .table { min-width: 650px; }
   .modal { max-width: 92%; }
 }
+
+/* Extra: ayuda a que acciones en filas aparezcan en 2 filas si no caben */
+.rowActions { flex-wrap: wrap; gap: 8px; }

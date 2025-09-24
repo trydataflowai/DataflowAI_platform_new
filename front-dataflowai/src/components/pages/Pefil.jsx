@@ -1,16 +1,10 @@
+// src/components/pages/ConfiguracionUsuarios.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import darkStyles from '../../styles/Profile/PerfilDark.module.css';
 import lightStyles from '../../styles/Profile/PerfilLight.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
 import { useTheme } from "../componentes/ThemeContext";
-
-/**
- * ConfiguracionUsuarios.jsx
- * - muestra tarjetas (siempre)
- * - controla acceso: si rol !== 'Administrador' muestra modal al intentar acceder a rutas restringidas
- * - mantiene los efectos 3D / tilt
- */
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -24,7 +18,7 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-const Card = ({ texto, ruta, index, buildTo, styles, onCardClick }) => {
+const Card = ({ texto, ruta, index, styles, onCardClick }) => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -119,17 +113,16 @@ const Card = ({ texto, ruta, index, buildTo, styles, onCardClick }) => {
 };
 
 const ConfiguracionUsuarios = () => {
-  const { theme } = useTheme(); // 'dark' o 'light'
+  const { theme } = useTheme();
   const [companySegment, setCompanySegment] = useState("");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
-  const [styles, setStyles] = useState(darkStyles); // por defecto oscuro
+  const [styles, setStyles] = useState(darkStyles);
   const [rol, setRol] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const navigate = useNavigate();
 
-  // Obtener info usuario (nombre_corto, plan y rol)
   useEffect(() => {
     let mounted = true;
 
@@ -141,7 +134,7 @@ const ConfiguracionUsuarios = () => {
         const nombreCorto = data?.empresa?.nombre_corto ?? "";
         const pid = data?.empresa?.plan?.id ?? null;
         const pName = data?.empresa?.plan?.tipo ?? "";
-        const r = data?.rol ?? data?.role ?? null; // soporte por si cambia la clave
+        const r = data?.rol ?? data?.role ?? null;
 
         setCompanySegment(normalizeSegment(nombreCorto));
         setPlanId(pid);
@@ -164,13 +157,10 @@ const ConfiguracionUsuarios = () => {
     };
   }, []);
 
-  // Actualizar estilos cuando cambie planId o theme
   useEffect(() => {
     if (planId === 3 || planId === 6) {
-      // planes que permiten toggle entre dark/light
       setStyles(theme === "dark" ? darkStyles : lightStyles);
     } else {
-      // fuerzo dark para planes que no permiten cambio
       setStyles(darkStyles);
     }
   }, [theme, planId]);
@@ -191,7 +181,6 @@ const ConfiguracionUsuarios = () => {
     return hash ? `${fullBase}#${hash}` : fullBase;
   };
 
-  // Opciones (igual que antes)
   const opciones = [
     { texto: "¿Deseas cambiar la contraseña?", ruta: "/cambiar-contrasena" },
     { texto: "¿Deseas activar o desactivar un usuario?", ruta: "/desactivar-activar-usuarios" },
@@ -199,26 +188,22 @@ const ConfiguracionUsuarios = () => {
     { texto: "¿Deseas asignar los dashboards?", ruta: "/AsignarDashboards" },
   ];
 
-  // Rutas permitidas para rol 'Usuario' (según tu comentario)
   const rutasPermitidasUsuario = [
     "/cambiar-contrasena",
     "/ModificarInformacionPersonal",
   ];
 
   const handleCardClick = (ruta) => {
-    // Si es Admin => navegar sin restricciones
     if (String(rol).toLowerCase() === "administrador") {
       navigate(buildTo(ruta));
       return;
     }
 
-    // Si está entre las permitidas para 'Usuario' => navegar
     if (rutasPermitidasUsuario.includes(ruta)) {
       navigate(buildTo(ruta));
       return;
     }
 
-    // Si no: mostrar modal de restricción
     setModalMessage("Acceso restringido: solo pueden acceder administradores a esta opción.");
     setShowModal(true);
   };
@@ -246,7 +231,6 @@ const ConfiguracionUsuarios = () => {
             texto={opcion.texto}
             ruta={opcion.ruta}
             index={index}
-            buildTo={buildTo}
             styles={styles}
             onCardClick={handleCardClick}
           />
@@ -259,12 +243,10 @@ const ConfiguracionUsuarios = () => {
         </small>
       </footer>
 
-      {/* Modal de acceso restringido (compartido dark/light según styles importado) */}
       {showModal && (
         <div
           className={styles.modalOverlay}
           onMouseDown={(e) => {
-            // click fuera cierra modal
             if (e.target === e.currentTarget) closeModal();
           }}
         >

@@ -66,24 +66,17 @@ const DefaultLayout = ({ children }) => {
 };
 
 // Layout con Sidebar
+// <-- MODIFICACIÓN: quitamos marginLeft y dejamos que el layout en flex gestione el ancho -->
 const SideBarLayout = ({ children }) => (
   <div style={{ display: "flex", minHeight: "100vh" }}>
     <SideBar />
-    <main style={{ flexGrow: 1, marginLeft: "280px" }}>{children}</main>
+    {/* main ya no tiene marginLeft: el flex hace que el contenido esté al lado del sidebar */}
+    <main style={{ flexGrow: 1 }}>{children}</main>
   </div>
 );
 
 /**
  * Rutas principales.
- *
- * Lógica:
- * - Al montar, intenta obtener info del usuario (con token).
- * - Si encuentra empresa.nombre_corto lo normaliza (quita espacios) y lo usa
- *   como prefijo para las rutas protegidas.
- *
- * Nota: la función p(path) antepone `/${companySegment}` si existe, de lo contrario
- * devuelve el path tal cual. Así puedes controlar fácilmente qué rutas van
- * con prefijo y cuáles no.
  */
 export const Rutas = () => {
   const [companySegment, setCompanySegment] = useState(""); // Ej: "Coltrade"
@@ -94,22 +87,17 @@ export const Rutas = () => {
     const fetchUser = async () => {
       try {
         const data = await obtenerInfoUsuario();
-        // seguridad: verifica que exista empresa.nombre_corto
         const nombreCorto =
           data && data.empresa && data.empresa.nombre_corto
             ? String(data.empresa.nombre_corto)
             : "";
 
-        // Normalizar: quitar espacios (puedes cambiar a replace(/\s+/g,'-') si prefieres guiones)
         const normalized = nombreCorto ? nombreCorto.trim().replace(/\s+/g, "") : "";
 
         if (mounted) {
           setCompanySegment(normalized);
         }
       } catch (err) {
-        // Si falla (no token, sesión expirada, etc.) dejamos companySegment vacío.
-        // Puedes registrar el error si quieres:
-        // console.error("No se pudo obtener info usuario:", err);
         if (mounted) {
           setCompanySegment("");
         }
@@ -125,42 +113,25 @@ export const Rutas = () => {
     };
   }, []);
 
-  // p('/home') => '/Coltrade/home' o '/home' si companySegment == ''
   const p = (path) => {
-    // Asegurar que path empiece con '/' (para inputs como '/home' o 'home')
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     return companySegment ? `/${companySegment}${normalizedPath}` : normalizedPath;
   };
 
-  // Mientras carga la info del usuario, puedes:
-  // - Mostrar nada (retornar las rutas sin prefijo) o
-  // - Esperar y luego renderizar.
-  // Aquí renderizamos las rutas inmediatamente (sin prefijo) si loading === true,
-  // para evitar bloquear la app. Cuando termine la carga, el prefijo se aplicará
-  // automáticamente (siempre que el usuario navegue de nuevo o uses navegación programática).
-  //
-  // Si prefieres bloquear y esperar a que termine la petición, cambia esto a:
-  // if (loading) return <div>Cargando...</div>;
-
   return (
     <BrowserRouter>
-      {/* THEME PROVIDER al nivel más alto */}
       <ThemeProvider>
         <Routes>
-          {/* Página de inicio pública */}
           <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
 
-          {/* Rutas sin layout */}
           <Route path="/login" element={<Login />} />
           <Route path="Coltrade/login" element={<LoginColtrade />} />
           <Route path="/crear-empresa" element={<CreacionEmpresa />} />
           <Route path="/crear-usuario" element={<CreacionUsuario />} />
           <Route path="/pagos" element={<PagosStripe />} />
 
-          {/* HomeLogin (con Navbar y Footer) */}
           <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 
-          {/* Dashboard (protegido, con Sidebar y tema) */}
           <Route
             path={p("/home")}
             element={
@@ -172,7 +143,6 @@ export const Rutas = () => {
             }
           />
 
-          {/* Marketplace (protegido, con Sidebar y tema) */}
           <Route
             path={p("/marketplace")}
             element={
@@ -184,7 +154,6 @@ export const Rutas = () => {
             }
           />
 
-          {/* Otros dashboards (todos protegidos y con prefijo si aplica) */}
           <Route
             path={("/dashboard-prueba")}
             element={
@@ -328,7 +297,6 @@ export const Rutas = () => {
             }
           />
 
-          {/* Aquí la ruta que pediste: /{empresa}/WelcomeHome */}
           <Route
             path={p("/WelcomeHome")}
             element={
@@ -349,8 +317,6 @@ export const Rutas = () => {
             }
           />
 
-
-          
           <Route
             path={p("/SoporteDetalleUsuario")}
             element={
@@ -362,8 +328,7 @@ export const Rutas = () => {
             }
           />
 
-
-            <Route
+          <Route
             path={p("/HomeTools")}
             element={
               <RutaProtegida>

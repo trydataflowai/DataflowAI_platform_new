@@ -144,12 +144,11 @@ export const SideBar = () => {
   const links = [
     { to: "/WelcomeHome", icon: "🏠", label: "Home" },
     { to: "/home",        icon: "📊", label: "Dashboards" },
-    { to: "/HomeTools", icon: "🆘", label: "Tools" },
+    { to: "/HomeTools",        icon: "📊", label: "Herramientas" },
     { to: "/configuracion-perfil", icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/ChatBot", icon: "🤖", label: "AI Insights" },
     { to: "/SoporteUsuario", icon: "🆘", label: "Support" },
-    
   ];
 
   const filteredLinks = links.filter((link) => {
