@@ -1,479 +1,196 @@
-import React, { useState, useEffect } from 'react';
+// Chatbot.jsx
+import React, { useEffect, useState } from "react";
+import darkStyles from '../../styles/ChatBotDark.module.css';
+import lightStyles from '../../styles/ChatBotLight.module.css';
+
+import { obtenerInfoUsuario } from '../../api/Usuario';
+import { useTheme } from '../componentes/ThemeContext';
 
 const Chatbot = () => {
+  const { theme } = useTheme(); // 'dark' | 'light'
+  const [activeStyles, setActiveStyles] = useState(darkStyles);
+
+  const [planId, setPlanId] = useState(null);
   const [dots, setDots] = useState('');
   const [particles, setParticles] = useState([]);
 
   // Animación de puntos suspensivos
   useEffect(() => {
     const interval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+      setDots(prev => (prev.length >= 3 ? '' : prev + '.'));
     }, 500);
     return () => clearInterval(interval);
   }, []);
 
-  // Generar partículas animadas
+  // Generar partículas animadas una vez
   useEffect(() => {
-    const newParticles = Array.from({ length: 15 }, (_, i) => ({
+    const newParticles = Array.from({ length: 14 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       size: Math.random() * 4 + 2,
-      speed: Math.random() * 15 + 10,
-      delay: Math.random() * 5
+      speed: Math.random() * 10 + 8,
+      delay: Math.random() * 4,
+      opacity: Math.random() * 0.36 + 0.12
     }));
     setParticles(newParticles);
   }, []);
 
+  // Obtener plan del usuario (para permitir forzar dark si plan no lo permite)
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      try {
+        const user = await obtenerInfoUsuario();
+        const pid = user?.empresa?.plan?.id ?? null;
+        setPlanId(pid);
+      } catch (err) {
+        console.warn('No se pudo obtener info usuario (plan):', err);
+        setPlanId(null);
+      }
+    };
+    fetchUsuario();
+  }, []);
+
+  // Seleccionar estilos activos según plan y theme
+  useEffect(() => {
+    if (planId === 3 || planId === 6) {
+      setActiveStyles(theme === 'dark' ? darkStyles : lightStyles);
+    } else {
+      setActiveStyles(darkStyles); // forzar dark para planes que no permiten toggle
+    }
+  }, [theme, planId]);
+
   const chatMessages = [
-    { type: 'bot', message: 'Hola! 👋 Soy tu asistente virtual' },
-    { type: 'user', message: 'Hola, necesito ayuda con mi cuenta' },
-    { type: 'bot', message: 'Por supuesto! Te ayudo con eso...' }
+    { type: 'bot', message: 'Bienvenido. Soy su asistente virtual.' },
+    { type: 'user', message: 'Necesito ayuda con mi cuenta.' },
+    { type: 'bot', message: 'Con gusto. ¿En qué puedo asistirle exactamente?' }
+  ];
+
+  const features = [
+    { title: 'IA Conversacional', subtitle: 'Respuestas automáticas con contexto.' },
+    { title: 'Respuesta rápida', subtitle: 'Tiempo de respuesta optimizado.' },
+    { title: 'Disponibilidad', subtitle: 'Atención continua.' },
+    { title: 'Seguridad', subtitle: 'Privacidad y protección de datos.' }
   ];
 
   return (
-    <div style={{
-      margin: 0,
-      padding: 0,
-      boxSizing: 'border-box',
-      fontFamily: "'Inter', 'Segoe UI', sans-serif",
-      background: '#000000',
-      color: '#ffffff',
-      minHeight: '100vh',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
+    <div className={activeStyles.container}>
       {/* Partículas de fondo */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        zIndex: 1
-      }}>
-        {particles.map((particle) => (
-          <div
-            key={particle.id}
+      <div className={activeStyles.particles} aria-hidden="true">
+        {particles.map((p) => (
+          <span
+            key={p.id}
+            className={activeStyles.particle}
             style={{
-              position: 'absolute',
-              background: '#00f7ff',
-              borderRadius: '50%',
-              opacity: 0,
-              bottom: '-10px',
-              left: `${particle.x}%`,
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              animation: `particleRise ${particle.speed}s linear infinite`,
-              animationDelay: `${particle.delay}s`,
-              filter: 'blur(1px)'
+              left: `${p.x}%`,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              opacity: p.opacity,
+              animationDuration: `${p.speed}s`,
+              animationDelay: `${p.delay}s`
             }}
           />
         ))}
       </div>
 
       {/* Contenedor principal */}
-      <div style={{
-        display: 'flex',
-        height: '100vh',
-        position: 'relative',
-        zIndex: 2
-      }}>
+      <div className={activeStyles.layout}>
         {/* Panel izquierdo - Lista de chats */}
-        <div style={{
-          width: '320px',
-          background: 'linear-gradient(135deg, #050505 0%, #0a0a0a 100%)',
-          borderRight: '1px solid rgba(0, 247, 255, 0.1)',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: '20px',
-            borderBottom: '1px solid rgba(0, 247, 255, 0.1)'
-          }}>
-            <h2 style={{
-              margin: 0,
-              fontSize: '1.4rem',
-              background: 'linear-gradient(90deg, #00f7ff, #00c2ff)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-              fontWeight: '700'
-            }}>
-              ChatBot AI
-            </h2>
-            <p style={{
-              margin: '8px 0 0 0',
-              color: '#cccccc',
-              fontSize: '0.9rem'
-            }}>
-              Asistente Virtual Inteligente
-            </p>
+        <aside className={activeStyles.leftPanel}>
+          <header className={activeStyles.leftHeader}>
+            <div>
+              <h2 className={activeStyles.headerTitle}>ChatBot AI</h2>
+              <p className={activeStyles.headerSubtitle}>Asistente virtual</p>
+            </div>
+          </header>
+
+          <div className={activeStyles.newChatWrap}>
+            <button className={activeStyles.newChatBtn} type="button">Nuevo chat</button>
           </div>
 
-          {/* Botón nuevo chat */}
-          <div style={{ padding: '20px' }}>
-            <button style={{
-              width: '100%',
-              padding: '12px',
-              background: 'linear-gradient(135deg, #00f7ff, #00c2ff)',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#0a0a0a',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-              fontSize: '0.95rem'
-            }}>
-              + Nuevo Chat
-            </button>
-          </div>
-
-          {/* Lista de chats anteriores */}
-          <div style={{
-            flex: 1,
-            padding: '0 20px',
-            overflowY: 'auto'
-          }}>
+          <nav className={activeStyles.chatList} aria-label="Chats recientes">
             {['Consulta sobre facturación', 'Problema técnico', 'Información de productos', 'Soporte general'].map((chat, index) => (
-              <div key={index} style={{
-                padding: '12px 16px',
-                marginBottom: '8px',
-                background: 'rgba(0, 247, 255, 0.05)',
-                border: '1px solid rgba(0, 247, 255, 0.1)',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                fontSize: '0.9rem',
-                color: '#cccccc'
-              }}>
+              <div key={index} className={activeStyles.chatItem} role="button" tabIndex={0}>
                 {chat}
               </div>
             ))}
-          </div>
-        </div>
+          </nav>
+        </aside>
 
         {/* Panel principal - Chat */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          background: '#000000'
-        }}>
-          {/* Header del chat */}
-          <div style={{
-            padding: '20px 30px',
-            borderBottom: '1px solid rgba(0, 247, 255, 0.1)',
-            background: 'rgba(5, 5, 5, 0.8)',
-            backdropFilter: 'blur(15px)'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '15px'
-            }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(0,247,255,0.2), rgba(0,194,255,0.1))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 0 20px rgba(0,247,255,0.3)'
-              }}>
-                🤖
-              </div>
-              <div>
-                <h3 style={{
-                  margin: 0,
-                  fontSize: '1.2rem',
-                  color: '#ffffff'
-                }}>
-                  Asistente Virtual
-                </h3>
-                <p style={{
-                  margin: '4px 0 0 0',
-                  color: '#00ffaa',
-                  fontSize: '0.9rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: '#00ffaa',
-                    animation: 'pulse 2s infinite'
-                  }}></span>
-                  En línea
+        <main className={activeStyles.mainPanel}>
+          <div className={activeStyles.chatHeader}>
+            <div className={activeStyles.headerRow}>
+              <div className={activeStyles.avatarCircle} aria-hidden="true">AV</div>
+              <div className={activeStyles.headerMeta}>
+                <h3 className={activeStyles.assistantName}>Asistente Virtual</h3>
+                <p className={activeStyles.statusLine}>
+                  <span className={activeStyles.statusDot} /> En línea
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Área de mensajes */}
-          <div style={{
-            flex: 1,
-            padding: '30px',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            position: 'relative'
-          }}>
-            {/* Overlay de construcción */}
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.3), rgba(0,0,0,0.7))',
-              backdropFilter: 'blur(10px)',
-              zIndex: 10
-            }}>
-              {/* Icono principal */}
-              <div style={{
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(0,247,255,0.15), rgba(0,194,255,0.08))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '30px',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0,247,255,0.1) inset',
-                border: '2px solid rgba(0,247,255,0.2)',
-                animation: 'float 3s ease-in-out infinite'
-              }}>
-                <div style={{
-                  fontSize: '60px',
-                  filter: 'drop-shadow(0 0 20px rgba(0,247,255,0.3))',
-                  animation: 'rotate 8s linear infinite'
-                }}>
-                  ⚙️
-                </div>
+          <section className={activeStyles.messagesArea} aria-live="polite">
+            <div className={activeStyles.overlay} role="region" aria-label="Información de estado">
+              <div className={activeStyles.overlayIconCircle}>
+                {/* Gear SVG (no emoji) */}
+                <svg className={activeStyles.overlaySvg} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M19.4 15a1.8 1.8 0 0 0 .34 1.96l.02.02a1 1 0 0 1-0.02 1.4l-1.1 1.1a1 1 0 0 1-1.4 0l-.02-.02A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1.96.34l-.02.02a1 1 0 0 1-1.4 0l-1.1-1.1a1 1 0 0 1 0-1.4l.02-.02A1.8 1.8 0 0 0 8.6 15a1.8 1.8 0 0 0-.34-1.96l-.02-.02a1 1 0 0 1 0-1.4l1.1-1.1a1 1 0 0 1 1.4 0l.02.02A1.8 1.8 0 0 0 9 8.6 1.8 1.8 0 0 0 10.96 8.26l.02-.02a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4l-.02.02A1.8 1.8 0 0 0 15 8.6a1.8 1.8 0 0 0 1.96-.34l.02-.02a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4l-.02.02A1.8 1.8 0 0 0 19.4 9" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
 
-              {/* Título principal */}
-              <h1 style={{
-                fontSize: '2.5rem',
-                margin: '0 0 15px 0',
-                background: 'linear-gradient(90deg, #00f7ff, #00e1ff, #00c2ff)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-                fontWeight: '800',
-                textAlign: 'center',
-                letterSpacing: '-1px'
-              }}>
-                EN CONSTRUCCIÓN
-              </h1>
+              <h1 className={activeStyles.overlayTitle}>EN CONSTRUCCIÓN</h1>
 
-              {/* Subtítulo */}
-              <p style={{
-                fontSize: '1.3rem',
-                color: '#cccccc',
-                margin: '0 0 20px 0',
-                textAlign: 'center',
-                maxWidth: '500px',
-                lineHeight: '1.4',
-                fontWeight: '500'
-              }}>
-                Nuestro ChatBot inteligente estará disponible muy pronto
-              </p>
+              <p className={activeStyles.overlaySubtitle}>El servicio estará disponible próximamente.</p>
 
-              {/* Mensaje con puntos animados */}
-              <div style={{
-                padding: '15px 25px',
-                background: 'rgba(0, 247, 255, 0.1)',
-                border: '1px solid rgba(0, 247, 255, 0.2)',
-                borderRadius: '12px',
-                marginBottom: '30px'
-              }}>
-                <p style={{
-                  margin: 0,
-                  color: '#00e1ff',
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }}>
-                  Configurando IA avanzada{dots}
-                </p>
+              <div className={activeStyles.dotsBox}>
+                <p className={activeStyles.dotsText}>Configurando inteligencia artificial{dots}</p>
               </div>
 
-              {/* Características que vendrán */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '15px',
-                maxWidth: '600px',
-                marginTop: '20px'
-              }}>
-                {[
-                  { icon: '🧠', text: 'IA Conversacional' },
-                  { icon: '⚡', text: 'Respuestas Instantáneas' },
-                  { icon: '🎯', text: 'Soporte 24/7' },
-                  { icon: '🔒', text: 'Seguro y Privado' }
-                ].map((feature, index) => (
-                  <div key={index} style={{
-                    padding: '12px 18px',
-                    background: 'rgba(5, 5, 5, 0.8)',
-                    border: '1px solid rgba(0, 247, 255, 0.1)',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}>
-                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>
-                      {feature.icon}
+              <div className={activeStyles.featuresGrid}>
+                {features.map((f, idx) => (
+                  <div key={idx} className={activeStyles.featureCard}>
+                    <div className={activeStyles.featureMark} aria-hidden="true" />
+                    <div>
+                      <p className={activeStyles.featureText}>{f.title}</p>
+                      <p className={activeStyles.featureSub}>{f.subtitle}</p>
                     </div>
-                    <p style={{
-                      margin: 0,
-                      color: '#cccccc',
-                      fontSize: '0.9rem',
-                      fontWeight: '500'
-                    }}>
-                      {feature.text}
-                    </p>
                   </div>
                 ))}
               </div>
 
-              {/* Progreso visual */}
-              <div style={{
-                marginTop: '40px',
-                width: '300px',
-                height: '6px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '3px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #00f7ff, #00c2ff)',
-                  borderRadius: '3px',
-                  animation: 'progressBar 3s ease-in-out infinite'
-                }}></div>
+              <div className={activeStyles.progressWrap}>
+                <div className={activeStyles.progressBar} style={{ width: '58%' }} />
               </div>
             </div>
 
             {/* Mensajes de ejemplo (desenfocados) */}
             {chatMessages.map((msg, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                marginBottom: '15px',
-                width: '100%',
-                filter: 'blur(2px)',
-                opacity: 0.3
-              }}>
-                <div style={{
-                  maxWidth: '70%',
-                  padding: '12px 18px',
-                  borderRadius: '18px',
-                  background: msg.type === 'user' 
-                    ? 'linear-gradient(135deg, #00f7ff, #00c2ff)'
-                    : 'rgba(5, 5, 5, 0.8)',
-                  color: msg.type === 'user' ? '#0a0a0a' : '#ffffff',
-                  border: msg.type === 'bot' ? '1px solid rgba(0, 247, 255, 0.2)' : 'none'
-                }}>
+              <div key={index} className={activeStyles.blurredMessage}>
+                <div
+                  className={`${activeStyles.messageBubble} ${msg.type === 'user' ? activeStyles.messageUser : activeStyles.messageBot}`}
+                >
                   {msg.message}
                 </div>
               </div>
             ))}
-          </div>
+          </section>
 
-          {/* Input area (deshabilitada) */}
-          <div style={{
-            padding: '20px 30px',
-            borderTop: '1px solid rgba(0, 247, 255, 0.1)',
-            background: 'rgba(5, 5, 5, 0.8)',
-            backdropFilter: 'blur(15px)'
-          }}>
-            <div style={{
-              display: 'flex',
-              gap: '15px',
-              alignItems: 'center',
-              position: 'relative'
-            }}>
+          <footer className={activeStyles.inputArea}>
+            <div className={activeStyles.inputRow}>
               <input
                 type="text"
-                placeholder="El chat estará disponible pronto..."
+                placeholder="El chat estará disponible próximamente..."
                 disabled
-                style={{
-                  flex: 1,
-                  padding: '15px 20px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid rgba(0, 247, 255, 0.2)',
-                  borderRadius: '25px',
-                  color: '#cccccc',
-                  fontSize: '1rem',
-                  outline: 'none',
-                  cursor: 'not-allowed'
-                }}
+                className={activeStyles.inputField}
+                aria-disabled="true"
               />
-              <button disabled style={{
-                padding: '15px 20px',
-                background: '#cccccc',
-                border: 'none',
-                borderRadius: '50%',
-                color: '#666',
-                cursor: 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                ➤
-              </button>
+              <button disabled className={activeStyles.sendBtn} aria-disabled="true">Enviar</button>
             </div>
-          </div>
-        </div>
+          </footer>
+        </main>
       </div>
-
-      <style>{`
-        @keyframes particleRise {
-          0% { 
-            opacity: 0;
-            transform: translateY(0) scale(0.5);
-          }
-          20% { opacity: 0.8; }
-          100% { 
-            opacity: 0;
-            transform: translateY(-100vh) scale(1.2);
-          }
-        }
-
-        @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.1); }
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-
-        @keyframes rotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes progressBar {
-          0% { width: 0%; }
-          50% { width: 75%; }
-          100% { width: 0%; }
-        }
-
-        @media (max-width: 768px) {
-          /* Responsive adjustments would go here */
-        }
-      `}</style>
     </div>
   );
 };

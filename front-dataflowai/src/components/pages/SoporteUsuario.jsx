@@ -1,26 +1,46 @@
+// src/components/pages/SoporteUsuario.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../styles/SoporteUsuario.module.css';
+import darkStyles from '../../styles/SoporteUsuario.module.css';
+import lightStyles from '../../styles/SoporteUsuarioLight.module.css';
+
 import { obtenerTickets, crearTicket, obtenerDetalleTicket } from '../../api/SoporteUsuario';
+import { obtenerInfoUsuario } from '../../api/Usuario';
+import { useTheme } from '../componentes/ThemeContext';
 
 const SoporteUsuario = () => {
-  const [allTickets, setAllTickets] = useState([]); // lista completa
-  const [tickets, setTickets] = useState([]); // lista mostrada (filtrada)
+  const { theme } = useTheme(); // 'dark' | 'light'
+  const [activeStyles, setActiveStyles] = useState(darkStyles);
+
+  const [allTickets, setAllTickets] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // modal state: null | { mode: 'create' } | { mode: 'detail', ticketId, data? }
   const [modal, setModal] = useState(null);
-
-  // create form
   const [form, setForm] = useState({ correo: '', asunto: '', descripcion: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  // filter state
-  const [filterFrom, setFilterFrom] = useState(''); // yyyy-mm-dd
+  const [filterFrom, setFilterFrom] = useState('');
   const [filterTo, setFilterTo] = useState('');
   const [filterError, setFilterError] = useState(null);
 
   const [error, setError] = useState(null);
   const [fetchError, setFetchError] = useState(null);
+
+  // Plan & permissions
+  const [planId, setPlanId] = useState(null);
+  const [planName, setPlanName] = useState('');
+
+  // Fetch user info (para obtener planId)
+  const fetchUsuario = async () => {
+    try {
+      const user = await obtenerInfoUsuario();
+      const pid = user?.empresa?.plan?.id ?? null;
+      setPlanId(pid);
+      setPlanName(user?.empresa?.plan?.tipo ?? '');
+    } catch (err) {
+      console.warn('No se pudo obtener info usuario:', err);
+    }
+  };
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -39,8 +59,20 @@ const SoporteUsuario = () => {
   };
 
   useEffect(() => {
+    fetchUsuario();
     fetchTickets();
   }, []);
+
+  // Determinar estilos activos según plan y theme
+  useEffect(() => {
+    // Planes 3 y 6 permiten toggle (el toggle está en el sidebar).
+    // Si el plan no es 3 o 6 forzamos el modo dark.
+    if (planId === 3 || planId === 6) {
+      setActiveStyles(theme === 'dark' ? darkStyles : lightStyles);
+    } else {
+      setActiveStyles(darkStyles);
+    }
+  }, [theme, planId]);
 
   // bloquear scroll cuando hay modal
   useEffect(() => {
@@ -108,7 +140,6 @@ const SoporteUsuario = () => {
       return;
     }
 
-    // validate order
     if (filterFrom && filterTo && filterFrom > filterTo) {
       setFilterError('La fecha "desde" no puede ser posterior a la fecha "hasta".');
       return;
@@ -135,51 +166,53 @@ const SoporteUsuario = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.title}>Soporte</h1>
-          <p className={styles.subtitle}>Crea y consulta tus tickets</p>
+    <div className={activeStyles.container}>
+      <header className={activeStyles.header}>
+        <div className={activeStyles.headerLeft}>
+          <h1 className={activeStyles.title}>Soporte</h1>
+          <p className={activeStyles.subtitle}>Crea y consulta tus tickets</p>
         </div>
 
-        <div className={styles.headerRight}>
-          <div className={styles.filterBar}>
-            <label className={styles.filterLabel}>
+        <div className={activeStyles.headerRight}>
+          <div className={activeStyles.filterBar}>
+            <label className={activeStyles.filterLabel}>
               Desde
               <input
                 type="date"
-                className={styles.dateInput}
+                className={activeStyles.dateInput}
                 value={filterFrom}
                 onChange={(e) => setFilterFrom(e.target.value)}
               />
             </label>
 
-            <label className={styles.filterLabel}>
+            <label className={activeStyles.filterLabel}>
               Hasta
               <input
                 type="date"
-                className={styles.dateInput}
+                className={activeStyles.dateInput}
                 value={filterTo}
                 onChange={(e) => setFilterTo(e.target.value)}
               />
             </label>
 
-            <button className={styles.filterBtn} onClick={applyDateFilter}>Aplicar</button>
-            <button className={styles.clearBtn} onClick={clearFilter}>Limpiar</button>
+            <button className={activeStyles.filterBtn} onClick={applyDateFilter}>Aplicar</button>
+            <button className={activeStyles.clearBtn} onClick={clearFilter}>Limpiar</button>
           </div>
 
-          <button className={styles.primaryButton} onClick={openCreateModal}>
-            + Crear ticket
-          </button>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button className={activeStyles.primaryButton} onClick={openCreateModal}>
+              + Crear ticket
+            </button>
+          </div>
         </div>
       </header>
 
-      {fetchError && <div className={styles.fetchError}>{fetchError}</div>}
-      {filterError && <div className={styles.filterError}>{filterError}</div>}
+      {fetchError && <div className={activeStyles.fetchError}>{fetchError}</div>}
+      {filterError && <div className={activeStyles.filterError}>{filterError}</div>}
 
-      <section className={styles.tableContainer}>
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+      <section className={activeStyles.tableContainer}>
+        <div className={activeStyles.tableWrapper}>
+          <table className={activeStyles.table}>
             <thead>
               <tr>
                 <th style={{width: '6%'}}>ID</th>
@@ -192,21 +225,21 @@ const SoporteUsuario = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6" className={styles.noData}>Cargando tickets...</td></tr>
+                <tr><td colSpan="6" className={activeStyles.noData}>Cargando tickets...</td></tr>
               ) : tickets?.length === 0 ? (
-                <tr><td colSpan="6" className={styles.noData}>No hay tickets para las fechas seleccionadas.</td></tr>
+                <tr><td colSpan="6" className={activeStyles.noData}>No hay tickets para las fechas seleccionadas.</td></tr>
               ) : (
                 tickets.map(t => (
-                  <tr key={t.id_ticket} className={styles.row}>
+                  <tr key={t.id_ticket} className={activeStyles.row}>
                     <td>{t.id_ticket}</td>
-                    <td className={styles.cellAsunto}>{t.asunto}</td>
-                    <td className={styles.muted}>{t.correo}</td>
+                    <td className={activeStyles.cellAsunto}>{t.asunto}</td>
+                    <td className={activeStyles.muted}>{t.correo}</td>
                     <td>{t.estado}</td>
-                    <td className={styles.muted}>{t.fecha_creacion ? fmt(t.fecha_creacion) : '-'}</td>
+                    <td className={activeStyles.muted}>{t.fecha_creacion ? fmt(t.fecha_creacion) : '-'}</td>
                     <td>
-                      <div className={styles.rowActions}>
+                      <div className={activeStyles.rowActions}>
                         <button
-                          className={styles.primarySmall}
+                          className={activeStyles.primarySmall}
                           onClick={() => openDetailModal(t.id_ticket)}
                         >
                           Ver detalle
@@ -223,37 +256,37 @@ const SoporteUsuario = () => {
 
       {/* Modal: create */}
       {modal && modal.mode === 'create' && (
-        <div className={styles.modalBackdrop} onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
+        <div className={activeStyles.modalBackdrop} onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+          <div className={activeStyles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={activeStyles.modalHeader}>
               <div>
-                <h3 className={styles.modalTitle}>Crear ticket</h3>
-                <div className={styles.modalSubtitle}>Envía tu consulta o problema y lo revisaremos.</div>
+                <h3 className={activeStyles.modalTitle}>Crear ticket</h3>
+                <div className={activeStyles.modalSubtitle}>Envía tu consulta o problema y lo revisaremos.</div>
               </div>
-              <button className={styles.closeBtn} onClick={closeModal}>Cerrar</button>
+              <button className={activeStyles.closeBtn} onClick={closeModal}>Cerrar</button>
             </div>
 
-            <form className={styles.modalBody} onSubmit={handleCreate}>
-              {error && <div className={styles.formError}>{error}</div>}
+            <form className={activeStyles.modalBody} onSubmit={handleCreate}>
+              {error && <div className={activeStyles.formError}>{error}</div>}
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Correo</span>
-                <input className={styles.input} name="correo" type="email" value={form.correo} onChange={handleChange} placeholder="tu@correo.com" required />
+              <label className={activeStyles.label}>
+                <span className={activeStyles.labelText}>Correo</span>
+                <input className={activeStyles.input} name="correo" type="email" value={form.correo} onChange={handleChange} placeholder="tu@correo.com" required />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Asunto</span>
-                <input className={styles.input} name="asunto" value={form.asunto} onChange={handleChange} placeholder="Asunto del ticket" required />
+              <label className={activeStyles.label}>
+                <span className={activeStyles.labelText}>Asunto</span>
+                <input className={activeStyles.input} name="asunto" value={form.asunto} onChange={handleChange} placeholder="Asunto del ticket" required />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Descripción</span>
-                <textarea className={styles.textarea} name="descripcion" value={form.descripcion} onChange={handleChange} placeholder="Describe el problema..." rows={6} />
+              <label className={activeStyles.label}>
+                <span className={activeStyles.labelText}>Descripción</span>
+                <textarea className={activeStyles.textarea} name="descripcion" value={form.descripcion} onChange={handleChange} placeholder="Describe el problema..." rows={6} />
               </label>
 
-              <div className={styles.modalFooter}>
-                <button type="button" className={styles.secondaryBtn} onClick={closeModal}>Cancelar</button>
-                <button type="submit" className={styles.primaryButton} disabled={submitting}>{submitting ? 'Creando...' : 'Crear ticket'}</button>
+              <div className={activeStyles.modalFooter}>
+                <button type="button" className={activeStyles.secondaryBtn} onClick={closeModal}>Cancelar</button>
+                <button type="submit" className={activeStyles.primaryButton} disabled={submitting}>{submitting ? 'Creando...' : 'Crear ticket'}</button>
               </div>
             </form>
           </div>
@@ -262,41 +295,40 @@ const SoporteUsuario = () => {
 
       {/* Modal: detail */}
       {modal && modal.mode === 'detail' && (
-        <div className={styles.modalBackdrop} onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
+        <div className={activeStyles.modalBackdrop} onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+          <div className={activeStyles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={activeStyles.modalHeader}>
               <div>
-                <h3 className={styles.modalTitle}>Detalle Ticket {modal.ticketId ? `#${modal.ticketId}` : ''}</h3>
-                <div className={styles.modalSubtitle}>{modal.data?.asunto || ''}</div>
+                <h3 className={activeStyles.modalTitle}>Detalle Ticket {modal.ticketId ? `#${modal.ticketId}` : ''}</h3>
+                <div className={activeStyles.modalSubtitle}>{modal.data?.asunto || ''}</div>
               </div>
-              <button className={styles.closeBtn} onClick={closeModal}>Cerrar</button>
+              <button className={activeStyles.closeBtn} onClick={closeModal}>Cerrar</button>
             </div>
 
-            <div className={styles.modalBody}>
+            <div className={activeStyles.modalBody}>
               {!modal.loading && modal.data ? (
                 <>
-                  <div className={styles.detailRow}><strong>Asunto:</strong> <div className={styles.detailBlock}>{modal.data.asunto}</div></div>
-                  <div className={styles.detailRow}><strong>Correo:</strong> <div className={styles.detailBlock}>{modal.data.correo}</div></div>
-                  <div className={styles.detailRow}><strong>Descripción:</strong> <div className={styles.detailBlock}>{modal.data.descripcion || '-'}</div></div>
-                  <div className={styles.detailRow}><strong>Comentario:</strong> <div className={styles.detailBlock}>{modal.data.comentario || '-'}</div></div>
-                  <div className={styles.detailRow}><strong>Estado:</strong> <div className={styles.detailBlock}>{modal.data.estado}</div></div>
-                  <div className={styles.detailRow}><strong>Fecha creación:</strong> <div className={styles.detailBlock}>{modal.data.fecha_creacion ? fmt(modal.data.fecha_creacion) : '-'}</div></div>
-                  <div className={styles.detailRow}><strong>Fecha cierre:</strong> <div className={styles.detailBlock}>{modal.data.fecha_cierre ? fmt(modal.data.fecha_cierre) : '-'}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Asunto:</strong> <div className={activeStyles.detailBlock}>{modal.data.asunto}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Correo:</strong> <div className={activeStyles.detailBlock}>{modal.data.correo}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Descripción:</strong> <div className={activeStyles.detailBlock}>{modal.data.descripcion || '-'}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Comentario:</strong> <div className={activeStyles.detailBlock}>{modal.data.comentario || '-'}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Estado:</strong> <div className={activeStyles.detailBlock}>{modal.data.estado}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Fecha creación:</strong> <div className={activeStyles.detailBlock}>{modal.data.fecha_creacion ? fmt(modal.data.fecha_creacion) : '-'}</div></div>
+                  <div className={activeStyles.detailRow}><strong>Fecha cierre:</strong> <div className={activeStyles.detailBlock}>{modal.data.fecha_cierre ? fmt(modal.data.fecha_cierre) : '-'}</div></div>
                 </>
               ) : modal.loading ? (
-                <div className={styles.noData}>Cargando detalle...</div>
+                <div className={activeStyles.noData}>Cargando detalle...</div>
               ) : (
-                <div className={styles.noData}>No hay detalle disponible.</div>
+                <div className={activeStyles.noData}>No hay detalle disponible.</div>
               )}
             </div>
 
-            <div className={styles.modalFooter}>
-              <button className={styles.secondaryBtn} onClick={closeModal}>Cerrar</button>
+            <div className={activeStyles.modalFooter}>
+              <button className={activeStyles.secondaryBtn} onClick={closeModal}>Cerrar</button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };
