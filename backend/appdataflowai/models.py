@@ -193,6 +193,97 @@ class Producto(models.Model):
 
 
 
+
+
+
+
+
+#Productos de herramientas
+from django.db import models
+
+class ProductoHerramientas(models.Model):
+
+    TIPO_PRODUCTO_CHOICES = [
+        ('publico', 'Público'),
+        ('privado', 'Privado'),
+    ]
+
+    id_producto_herramienta = models.AutoField(
+        primary_key=True,
+        db_column='id_producto'
+    )
+
+    producto_herramienta = models.CharField(
+        max_length=200,
+        db_column='producto',
+        verbose_name='Nombre del producto'
+    )
+
+    id_area = models.ForeignKey(
+        'Areas',
+        on_delete=models.PROTECT,
+        db_column='id_area',
+        related_name='productos_herramientas'
+    )
+
+    tipo_producto = models.CharField(
+        max_length=30,
+        choices=TIPO_PRODUCTO_CHOICES,
+        null=True,
+        blank=True,
+        db_column='tipo_producto'
+    )
+
+    id_estado = models.ForeignKey(
+        'Estado',
+        on_delete=models.PROTECT,
+        db_column='id_estado',
+        related_name='productos_herramientas'
+    )
+
+    # Corrige el db_column si el typo no existe en tu BD
+    link_producto = models.URLField(
+        max_length=500,
+        db_column='link_producto',  # usa 'link_prodcuto' si tu BD ya lo tiene así
+        null=True,
+        blank=True,
+        help_text='URL del recurso (ej. informe Power BI)'
+    )
+
+    class Meta:
+        db_table = 'productos_herramientas'
+        verbose_name = 'Producto Herramienta'
+        verbose_name_plural = 'Productos Herramientas'
+        ordering = ['producto_herramienta']
+
+    def __str__(self):
+        return self.producto_herramienta
+
+
+
+class DetalleProductoHerramientas(models.Model):
+    id_producto = models.ForeignKey(
+        ProductoHerramientas,
+        on_delete=models.PROTECT,
+        db_column='id_producto_herramienta',
+        related_name='detalles'
+    )
+    id_usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        db_column='id_usuario',
+        related_name='detalles'
+    )
+
+    class Meta:
+        db_table = 'detalle_producto_herramientas'  
+        verbose_name = 'Detalle Producto Herramientas'
+        verbose_name_plural = 'Detalle Producto Herramientas'
+        unique_together = (('id_producto', 'id_usuario'),)
+
+
+
+
 class DetalleProducto(models.Model):
     id_producto = models.ForeignKey(Producto, on_delete=models.PROTECT, db_column='id_producto')
     id_usuario = models.ForeignKey(Usuario, on_delete=models.PROTECT, db_column='id_usuario')

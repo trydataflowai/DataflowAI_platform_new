@@ -498,3 +498,45 @@ class TicketAdmin(admin.ModelAdmin):
     search_fields = ('asunto', 'correo', 'id_usuario__nombres')  # ajusta 'nombres' al campo que uses en Usuario
     list_filter = ('estado', 'fecha_creacion', 'fecha_cierre')
     ordering = ('-fecha_creacion',)
+
+
+
+
+
+from django.contrib import admin
+from .models import ProductoHerramientas
+
+@admin.register(ProductoHerramientas)
+class ProductoHerramientasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_producto_herramienta',
+        'producto_herramienta',
+        'id_area',
+        'tipo_producto',
+        'id_estado',
+        'link_producto',
+    )
+    search_fields = (
+        'producto_herramienta',
+        'id_area__nombre',   # ajusta 'nombre' al campo que uses en tu modelo Areas
+        'id_estado__nombre', # ajusta 'nombre' al campo que uses en tu modelo Estado
+    )
+    list_filter = (
+        'tipo_producto',
+        'id_area',
+        'id_estado',
+    )
+    ordering = ('producto_herramienta',)
+
+
+
+
+from django.contrib import admin
+from .models import DetalleProductoHerramientas
+
+
+@admin.register(DetalleProductoHerramientas)
+class DetalleProductoHerramientasAdmin(admin.ModelAdmin):
+    list_display = ('id_producto', 'id_usuario')
+    search_fields = ('id_producto__producto_herramienta', 'id_usuario__nombres')  # ajusta 'nombres' si tu modelo Usuario usa otro campo
+    list_filter = ('id_producto', 'id_usuario')

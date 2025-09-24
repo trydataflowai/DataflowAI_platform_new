@@ -2018,3 +2018,69 @@ class TicketDetailView(TokenHelperMixin, APIView):
         serializer = TicketSerializer(ticket)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+
+
+#VISTA PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Usuario, DetalleProductoHerramientas
+
+
+class HerramientasUsuarioView(APIView):
+    """
+    Retorna una lista de productos (producto_herramienta) asociados al usuario autenticado,
+    sin información del usuario.
+    """
+    def get(self, request):
+        token = request.headers.get('Authorization', '').split(' ')[-1]
+        if not token:
+            return Response({'error': 'Token no proporcionado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # traemos los detalles vinculados al usuario (evita N+1)
+        detalles = DetalleProductoHerramientas.objects.select_related(
+            'id_producto',
+            'id_producto__id_area',
+            'id_producto__id_estado'
+        ).filter(id_usuario__id_usuario=id_usuario)
+
+        productos = []
+        for dp in detalles:
+            prod = dp.id_producto  # instancia ProductoHerramientas
+
+            # nombre del campo del estado/área puede variar; try varios nombres comunes
+            estado_obj = getattr(prod, 'id_estado', None)
+            estado_val = None
+            if estado_obj is not None:
+                estado_val = getattr(estado_obj, 'estado', None) or getattr(estado_obj, 'nombre', None)
+
+            area_obj = getattr(prod, 'id_area', None)
+            area_id = getattr(area_obj, 'id_area', None) or getattr(area_obj, 'pk', None)
+            area_nombre = getattr(area_obj, 'area_trabajo', None) or getattr(area_obj, 'nombre', None)
+
+            productos.append({
+                'id_producto': getattr(prod, 'id_producto_herramienta', None) or getattr(prod, 'pk', None),
+                'producto': getattr(prod, 'producto_herramienta', None),
+                'tipo_producto': getattr(prod, 'tipo_producto', None),
+                'link_producto': getattr(prod, 'link_producto', None),
+                'estado': estado_val,
+                'area': {
+                    'id_area': area_id,
+                    'nombre': area_nombre,
+                }
+            })
+
+        return Response(productos, status=status.HTTP_200_OK)

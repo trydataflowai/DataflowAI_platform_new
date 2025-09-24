@@ -53,8 +53,11 @@ from .views import (
     AsgDashboardUsuarioEliminarAsignacionView,
 
     #MODULO DE SOPORTE
-    TicketListCreateView, TicketDetailView
-    
+    TicketListCreateView, TicketDetailView,
+
+
+#url PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
+    HerramientasUsuarioView
 )
 
 urlpatterns = [
@@ -125,5 +128,9 @@ urlpatterns = [
 
     path('tickets/', TicketListCreateView.as_view(), name='tickets-list-create'),
     path('tickets/<int:pk>/', TicketDetailView.as_view(), name='ticket-detail'),
+
+
+    #url PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
+    path('usuario/productos/herramientas', HerramientasUsuarioView.as_view(), name='usuario-productos-herramientas'),
 ]
     

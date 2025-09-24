@@ -18,6 +18,7 @@ import LoginColtrade from "../components/pages/Login/LoginColtrade";
 import HomeLogin from "../components/pages/HomeLogin";
 import Home from "../components/pages/Home";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
+import HomeTools from "../components/pages/HomeTools";
 import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
 import SoporteUsuario from "../components/pages/SoporteUsuario";
@@ -347,12 +348,27 @@ export const Rutas = () => {
               </RutaProtegida>
             }
           />
+
+
+          
           <Route
             path={p("/SoporteDetalleUsuario")}
             element={
               <RutaProtegida>
                 <SideBarLayout>
                   <SoporteDetalleUsuario />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+            <Route
+            path={p("/HomeTools")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <HomeTools />
                 </SideBarLayout>
               </RutaProtegida>
             }
