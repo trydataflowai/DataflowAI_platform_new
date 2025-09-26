@@ -16,7 +16,6 @@ import Index from "../components/pages/Index";
 import Login from "../components/pages/Login";
 import LoginColtrade from "../components/pages/Login/LoginColtrade";
 import HomeLogin from "../components/pages/HomeLogin";
-import Home from "../components/pages/Home";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import HomeTools from "../components/pages/HomeTools";
 import { Marketplace } from "../components/pages/Marketplace";
@@ -297,14 +296,6 @@ export const Rutas = () => {
             }
           />
 
-          <Route
-            path={p("/WelcomeHome")}
-            element={
-              <RutaProtegida>
-                <Home />
-              </RutaProtegida>
-            }
-          />
 
           <Route
             path={p("/SoporteUsuario")}

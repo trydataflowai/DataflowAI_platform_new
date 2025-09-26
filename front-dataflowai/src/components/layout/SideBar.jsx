@@ -142,9 +142,8 @@ export const SideBar = () => {
   const toggleCollapsed = () => setCollapsed((c) => !c);
 
   const links = [
-    { to: "/WelcomeHome", icon: "🏠", label: "Home" },
-    { to: "/home",        icon: "📊", label: "Dashboards" },
-    { to: "/HomeTools",        icon: "📊", label: "Tools" },
+    { to: "/home", icon: "📊", label: "Dashboards" },
+    { to: "/HomeTools", icon: "🛠️", label: "Tools" },
     { to: "/configuracion-perfil", icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/ChatBot", icon: "🤖", label: "AI Insights" },
