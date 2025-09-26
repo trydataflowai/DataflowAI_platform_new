@@ -737,6 +737,7 @@ from .models import (
     DashboardFinanzas,
     DashboardVentasColtrade,
     DashboardVentasLoop,
+    DashboardSalesreview,
     Usuario,
     Producto,
 )
@@ -749,6 +750,7 @@ PRODUCTO_MODELO_MAP = {
     2: DashboardVentas,
     4: DashboardFinanzas,
     1: DashboardCompras,
+    10: DashboardSalesreview,
     #  ...otros productos si los hubiera
 }
 
@@ -2084,3 +2086,293 @@ class HerramientasUsuarioView(APIView):
             })
 
         return Response(productos, status=status.HTTP_200_OK)
+
+
+
+
+
+#Vista para el crud del dashboard de SALESREVIEW del modelo: DashboardSalesreview
+# views.py
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from .models import DashboardSalesreview, Usuario
+from .serializers import DashboardSalesreviewSerializer
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+
+class DashboardSalesreviewListCreate(APIView):
+    """
+    GET (lista con filtros opcionales): ?mes=abril  OR ?mes_numero=4 OR ?fecha_from=2025-04-01&fecha_to=2025-04-30
+    POST: crea un registro (id_producto se forzará a DEFAULT_PRODUCT_ID en el serializer).
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token inválido')
+
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def _apply_filters(self, qs, request):
+        """
+        Aplica filtros de query params al queryset.
+        Soporta:
+        - mes (nombre, case-insensitive, exact match)
+        - mes_numero (int)
+        - fecha_from (YYYY-MM-DD)
+        - fecha_to (YYYY-MM-DD)
+        """
+        q = qs
+        mes = request.query_params.get('mes')
+        mes_numero = request.query_params.get('mes_numero')
+        fecha_from = request.query_params.get('fecha_from')
+        fecha_to = request.query_params.get('fecha_to')
+
+        if mes:
+            q = q.filter(mes__iexact=mes)
+        if mes_numero:
+            try:
+                q = q.filter(mes_numero=int(mes_numero))
+            except ValueError:
+                pass
+        if fecha_from:
+            try:
+                dfrom = datetime.strptime(fecha_from, '%Y-%m-%d').date()
+                q = q.filter(fecha_compra__gte=dfrom)
+            except ValueError:
+                pass
+        if fecha_to:
+            try:
+                dto = datetime.strptime(fecha_to, '%Y-%m-%d').date()
+                q = q.filter(fecha_compra__lte=dto)
+            except ValueError:
+                pass
+        return q
+
+    def get(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DashboardSalesreview.objects.filter(id_empresa=empresa)
+        qs = self._apply_filters(qs, request)
+        serializer = DashboardSalesreviewSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DashboardSalesreviewSerializer(data=request.data, context={'empresa': empresa})
+        if serializer.is_valid():
+            obj = serializer.save()
+            return Response(DashboardSalesreviewSerializer(obj).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashboardSalesreviewDetail(APIView):
+    """
+    GET/PUT/PATCH/DELETE por pk. Mantiene la validación de empresa.
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token inválido')
+
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def get(self, request, pk):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesreview, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para ver este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = DashboardSalesreviewSerializer(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _update(self, request, pk, partial):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesreview, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para modificar este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        data = dict(request.data)
+        data.pop('id_empresa', None)
+        data.pop('id_producto', None)
+        serializer = DashboardSalesreviewSerializer(obj, data=data, partial=partial, context={'empresa': empresa})
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response(DashboardSalesreviewSerializer(updated).data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        return self._update(request, pk, partial=False)
+
+    def patch(self, request, pk):
+        return self._update(request, pk, partial=True)
+
+    def delete(self, request, pk):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesreview, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para eliminar este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DashboardSalesreviewBulkDelete(APIView):
+    """
+    POST: borra en masa los registros que coinciden con los filtros y pertenecen a la empresa del usuario.
+    Body (JSON) o query params soportados (se usan los query params si se llaman desde frontend sin body):
+    - mes (nombre)
+    - mes_numero (int)
+    - fecha_from (YYYY-MM-DD)
+    - fecha_to (YYYY-MM-DD)
+
+    Responde: {'deleted': <cantidad>}
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token inválido')
+
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def post(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Preparamos filtros: permitimos recibir por body (JSON) o por query params
+        params = {}
+        if request.data:
+            params = request.data
+        else:
+            params = request.query_params
+
+        # Construimos queryset base
+        qs = DashboardSalesreview.objects.filter(id_empresa=empresa)
+        # Re-utilizamos la lógica de filtrado (copia simple)
+        mes = params.get('mes')
+        mes_numero = params.get('mes_numero')
+        fecha_from = params.get('fecha_from')
+        fecha_to = params.get('fecha_to')
+
+        if mes:
+            qs = qs.filter(mes__iexact=mes)
+        if mes_numero:
+            try:
+                qs = qs.filter(mes_numero=int(mes_numero))
+            except ValueError:
+                pass
+        if fecha_from:
+            try:
+                dfrom = datetime.strptime(fecha_from, '%Y-%m-%d').date()
+                qs = qs.filter(fecha_compra__gte=dfrom)
+            except ValueError:
+                pass
+        if fecha_to:
+            try:
+                dto = datetime.strptime(fecha_to, '%Y-%m-%d').date()
+                qs = qs.filter(fecha_compra__lte=dto)
+            except ValueError:
+                pass
+
+        count = qs.count()
+        if count == 0:
+            return Response({'deleted': 0, 'detail': 'No se encontraron registros para eliminar'}, status=status.HTTP_200_OK)
+
+        qs.delete()
+        return Response({'deleted': count}, status=status.HTTP_200_OK)

@@ -434,3 +434,82 @@ class TicketSerializer(serializers.ModelSerializer):
             'fecha_cierre',
         ]
         read_only_fields = ['id_ticket', 'id_usuario', 'estado', 'fecha_creacion', 'fecha_cierre']
+
+
+
+
+
+ #Serializadores para el crud del dashboard de SALESREVIEW del modelo: DashboardSalesreview
+# serializers.py
+from rest_framework import serializers
+from .models import DashboardSalesreview
+
+# Cambia este valor si quieres otro producto por defecto
+DEFAULT_PRODUCT_ID = 10  # <-- PONER EL ID DEL PRODUCTO POR DEFECTO AQUÍ
+
+class DashboardSalesreviewSerializer(serializers.ModelSerializer):
+    """
+    Serializador que expone id_registro y alias id.
+    Forzamos id_producto a DEFAULT_PRODUCT_ID en create y update (el cliente no lo manda).
+    """
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashboardSalesreview
+        fields = [
+            'id_registro',
+            'id',
+            'mes',
+            'mes_numero',
+            'semana',
+            'dia_compra',
+            'fecha_compra',
+            'fecha_envio',
+            'numero_pedido',
+            'numero_oc',
+            'estado',
+            'linea',
+            'fuente',
+            'sku_enviado',
+            'categoria',
+            'producto',
+            'precio_unidad_antes_iva',
+            'unidades',
+            'ingresos_antes_iva',
+        ]
+        read_only_fields = ('id_registro', 'id')
+
+    def get_id(self, obj):
+        return getattr(obj, 'id_registro', getattr(obj, 'pk', None))
+
+    def validate_mes_numero(self, value):
+        if value is None:
+            return value
+        if value < 1 or value > 12:
+            raise serializers.ValidationError("mes_numero debe estar entre 1 y 12")
+        return value
+
+    def create(self, validated_data):
+        """
+        - Asigna id_empresa desde el contexto (igual que antes).
+        - Fuerza id_producto al DEFAULT_PRODUCT_ID (no se permite que el cliente lo fije).
+        """
+        empresa = self.context.get('empresa', None)
+        if empresa is None:
+            raise serializers.ValidationError("No se pudo determinar la empresa del usuario.")
+        validated_data['id_empresa'] = empresa
+        # Forzamos el FK id_producto al ID por defecto (usamos la clave *_id para evitar hacer query extra)
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID  # <-- AQUI SE COLOCA EL ID POR DEFECTO
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        - Ignora intentos de cambiar id_empresa o id_producto desde el cliente.
+        - Vuelve a forzar id_producto al DEFAULT_PRODUCT_ID (con ello siempre permanece 10).
+        """
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        # Forzamos id_producto al valor por defecto (siempre)
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID  # <-- AQUI SE COLOCA EL ID POR DEFECTO
+        return super().update(instance, validated_data)

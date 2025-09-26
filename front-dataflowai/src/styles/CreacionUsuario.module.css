@@ -1,33 +1,215 @@
-.container {
+:root{
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --border: #e6e6e6;
+  --primary: #0b69ff;
+  --accent: #ffd54d;
+  --danger: #ef5350;
+  --surface: #f8fafc;
+  --card-shadow: 0 6px 18px rgba(15,23,42,0.06);
+  --radius: 8px;
+  --table-font-size: 15px;
+}
+
+/* Contenedor principal */
+.container{
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: #0f172a;
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Cabecera */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.header h1{
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Barra de herramientas (botones principales) */
+.toolbar {
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btnPrimary {
+  background: linear-gradient(180deg, var(--primary), #0a58d8);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 12px rgba(11,105,255,0.12);
+}
+.btnDanger {
+  background: var(--danger);
+  color: white;
+  border: none;
+}
+
+/* Error y mensajes */
+.error {
+  color: #b91c1c;
+  background: #fff1f2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(185,28,28,0.12);
+}
+
+/* Filtros */
+.filters {
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 2rem;
+  gap: 8px;
+  background: var(--surface);
+}
+.filterRow {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.filterRow label{
+  display:flex;
+  flex-direction:column;
+  font-size: 13px;
+  color: var(--muted);
+  gap:4px;
 }
 
-.cardsContainer {
+/* Formularios */
+.formCard {
+  margin-bottom: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  box-shadow: 0 3px 10px rgba(2,6,23,0.03);
+}
+
+.formGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 900px) {
+  .formGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .formGrid { grid-template-columns: 1fr; }
+}
+
+/* Inputs */
+.input {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 14px;
   width: 100%;
-  max-width: 900px;
+  box-sizing: border-box;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 4px 10px rgba(11,105,255,0.08);
 }
 
-.card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem;
+/* Acciones del form */
+.formActions {
+  margin-top: 12px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+/* Tabla y estilos asociados */
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--table-font-size);
+  min-width: 980px; /* que permita scroll en pantallas pequeñas */
+}
+thead th {
+  text-align: left;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  background: #fbfdff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+tbody td {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  vertical-align: middle;
+}
+tbody tr:hover {
+  background: #fbfbfd;
+}
+.actionsCell {
+  display:flex;
+  gap:8px;
+}
+
+/* Indicadores */
+.emptyRow {
+  padding: 16px;
   text-align: center;
-  text-decoration: none;
-  color: #333;
-  font-weight: 500;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s ease-in-out;
+  color: var(--muted);
 }
 
-.card:hover {
-  background: #f5f7ff;
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+/* Loading */
+.loading {
+  padding: 12px;
+  text-align: center;
+  color: var(--muted);
 }
+
+/* Pequeñas utilidades */
+.small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Ajustes para inputs type=date en algunos navegadores */
+.input[type="date"] {
+  padding: 8px 10px;
+}
+
+/* Contrastes para números (opcional - por si quieres dar color) */
+.positive { color: #059669; font-weight: 600; }
+.negative { color: #dc2626; font-weight: 600; }

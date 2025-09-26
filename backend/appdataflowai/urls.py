@@ -57,7 +57,14 @@ from .views import (
 
 
 #url PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
-    HerramientasUsuarioView
+
+    DashboardSalesreviewListCreate,
+
+
+#URLS para el crud del dashboard de SALESREVIEW del modelo: DashboardSalesreview
+    HerramientasUsuarioView,
+    DashboardSalesreviewDetail,
+    DashboardSalesreviewBulkDelete
 )
 
 urlpatterns = [
@@ -132,5 +139,14 @@ urlpatterns = [
 
     #url PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
     path('usuario/productos/herramientas', HerramientasUsuarioView.as_view(), name='usuario-productos-herramientas'),
+
+
+
+
+    #URLS para el crud del dashboard de SALESREVIEW del modelo: DashboardSalesreview
+    path('api/dashboard_salesreview/', DashboardSalesreviewListCreate.as_view(), name='dashsales_list_create'),
+    path('api/dashboard_salesreview/<int:pk>/', DashboardSalesreviewDetail.as_view(), name='dashsales_detail'),
+    path('api/dashboard_salesreview/bulk-delete/', DashboardSalesreviewBulkDelete.as_view(), name='dashsales_bulk_delete'),
+
 ]
     

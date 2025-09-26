@@ -42,6 +42,13 @@ import DashboardSalesreview from "../components/dashboards/DashboardSalesreview"
 import SalesDashboard from "../components/dashboards/SalesDashboard";
 import ApacheEcharts from "../components/dashboards/00Echarts";
 
+
+import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
+
+
+
+
+
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
 
@@ -325,6 +332,18 @@ export const Rutas = () => {
               <RutaProtegida>
                 <SideBarLayout>
                   <HomeTools />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+          <Route
+            path={p("/settingsDashSalesReview")}
+            element={
+              <RutaProtegida> 
+                <SideBarLayout>
+                  <CrudDashboardSalesReview />
                 </SideBarLayout>
               </RutaProtegida>
             }
