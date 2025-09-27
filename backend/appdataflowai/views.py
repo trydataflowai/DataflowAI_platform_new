@@ -2376,3 +2376,154 @@ class DashboardSalesreviewBulkDelete(APIView):
 
         qs.delete()
         return Response({'deleted': count}, status=status.HTTP_200_OK)
+
+
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+class DashboardSalesreviewExport(APIView):
+    """
+    GET: Exporta los registros filtrados de la empresa del usuario como un archivo Excel (.xlsx).
+    Soporta los mismos filtros que DashboardSalesreviewListCreate:
+    - mes
+    - mes_numero
+    - fecha_from (YYYY-MM-DD)
+    - fecha_to   (YYYY-MM-DD)
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+        if not token:
+            raise AuthenticationFailed('No se proporcionó token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token inválido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token inválido')
+
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def _apply_filters(self, qs, request):
+        """
+        Copia simple de la lógica de filtros usada en ListCreate.
+        """
+        q = qs
+        mes = request.query_params.get('mes')
+        mes_numero = request.query_params.get('mes_numero')
+        fecha_from = request.query_params.get('fecha_from')
+        fecha_to = request.query_params.get('fecha_to')
+
+        if mes:
+            q = q.filter(mes__iexact=mes)
+        if mes_numero:
+            try:
+                q = q.filter(mes_numero=int(mes_numero))
+            except ValueError:
+                pass
+        if fecha_from:
+            try:
+                dfrom = datetime.strptime(fecha_from, '%Y-%m-%d').date()
+                q = q.filter(fecha_compra__gte=dfrom)
+            except ValueError:
+                pass
+        if fecha_to:
+            try:
+                dto = datetime.strptime(fecha_to, '%Y-%m-%d').date()
+                q = q.filter(fecha_compra__lte=dto)
+            except ValueError:
+                pass
+        return q
+
+    def get(self, request):
+        # autenticar
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # obtener queryset y aplicar filtros
+        qs = DashboardSalesreview.objects.filter(id_empresa=empresa)
+        qs = self._apply_filters(qs, request)
+
+        # serializar
+        serializer = DashboardSalesreviewSerializer(qs, many=True)
+        data = serializer.data  # lista de OrderedDicts
+
+        # Preparar workbook con openpyxl
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "DashboardSalesReview"
+
+        # Determinar headers: si no hay registros usar fields del serializer
+        if data and len(data) > 0:
+            headers = list(data[0].keys())
+        else:
+            # si no hay datos, tomamos los campos definidos en el serializer Meta
+            try:
+                headers = list(DashboardSalesreviewSerializer.Meta.fields)
+            except Exception:
+                headers = [
+                    'id_registro','id','mes','mes_numero','semana','dia_compra','fecha_compra','fecha_envio',
+                    'numero_pedido','numero_oc','estado','linea','fuente','sku_enviado','categoria','producto',
+                    'precio_unidad_antes_iva','unidades','ingresos_antes_iva'
+                ]
+
+        # escribir headers
+        for col_idx, h in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx, value=h)
+
+        # escribir filas
+        for row_idx, row in enumerate(data, start=2):
+            for col_idx, h in enumerate(headers, start=1):
+                val = row.get(h, None)
+                # normalizar tipos: las fechas serializadas ya vienen como strings (YYYY-MM-DD) desde el serializer
+                ws.cell(row=row_idx, column=col_idx, value=val)
+
+        # opcional: autoajustar anchos de columna (básico)
+        for i, _ in enumerate(headers, start=1):
+            col = get_column_letter(i)
+            max_length = 0
+            for cell in ws[col]:
+                try:
+                    if cell.value:
+                        s = str(cell.value)
+                        if len(s) > max_length:
+                            max_length = len(s)
+                except Exception:
+                    pass
+            adjusted_width = min(max_length + 2, 60)
+            ws.column_dimensions[col].width = adjusted_width
+
+        # guardar en memoria
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        # nombre de archivo (incluye id_empresa o pk)
+        empresa_id = getattr(empresa, 'id_empresa', None) or getattr(empresa, 'pk', None) or 'empresa'
+        today = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"dashboard_salesreview_{empresa_id}_{today}.xlsx"
+
+        # respuesta HttpResponse con attachment
+        from django.http import HttpResponse
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

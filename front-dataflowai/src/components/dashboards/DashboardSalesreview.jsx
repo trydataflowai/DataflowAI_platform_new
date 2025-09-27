@@ -1,4 +1,3 @@
-
 // front-dataflowai/src/components/dashboards/DashboardSalesreview.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -13,12 +12,14 @@ import {
   CartesianGrid,
   ResponsiveContainer
 } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 import { fetchDashboardSalesreview } from '../../api/DashboardsApis/DashboardSalesreview';
 import '../../styles/Dashboards/DashboardSalesreview.css';
 
 const COLORS = ['#7C3AED', '#06B6D4', '#F59E0B', '#EF4444', '#10B981', '#A78BFA', '#F472B6'];
 
 export default function DashboardSalesreview() {
+  const navigate = useNavigate();
   const [rawData, setRawData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -143,6 +144,18 @@ export default function DashboardSalesreview() {
     <div className="dsr-root">
       <div className="dsr-header">
         <h2>Sales Review - Dashboard</h2>
+
+        {/* Acción rápida: botón Data -> settingsDashSalesReview */}
+        <div className="dsr-header-actions">
+          <button
+            className="dsr-btn-data"
+            onClick={() => navigate('settingsDashSalesReview')}
+            title="Ir a Settings Dash Sales Review"
+          >
+            Data
+          </button>
+        </div>
+
         <div className="dsr-controls">
           <div className="dsr-filter-row">
             <label>Desde: <input type="date" value={filterFechaDesde} onChange={(e) => setFilterFechaDesde(e.target.value)} /></label>
@@ -255,54 +268,49 @@ export default function DashboardSalesreview() {
 
         {/* Segunda fila: Bar chart ocupa ancho completo */}
         <div className="card dsr-bar">
-  <h3>Acumulado por Fuente</h3>
-  <ResponsiveContainer width="100%" height={340}>
-    <BarChart
-      data={barData}
-      margin={{ top: 20, right: 30, left: -20, bottom: 5 }}
-      barCategoryGap="0%"
-      barGap={0}
-    >
-      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-      
-      <XAxis
-        dataKey="name"
-        tick={{ fill: '#fff', fontSize: 12 }}
-        axisLine={{ stroke: '#fff' }}
-        tickLine={{ stroke: '#fff' }}
-      />
-      
-      <YAxis
-        tick={{ fill: '#fff', fontSize: 12 }}
-        axisLine={{ stroke: '#fff' }}
-        tickLine={{ stroke: '#fff' }}
-      />
-
-      {/* Tooltip con porcentaje */}
-      <ReTooltip
-      formatter={(val) => {
-        const total = barData.reduce((acc, cur) => acc + cur.value, 0);
-        const porcentaje = ((val / total) * 100).toFixed(1) + "%";
-        return `${new Intl.NumberFormat('es-CO').format(val)} (${porcentaje})`;
-      }}
-      contentStyle={{ backgroundColor: '#fff', borderRadius: 6, padding: '8px 10px' }}
-      itemStyle={{ color: '#000' }}
-      labelStyle={{ color: '#000' }}
-      cursor={{ fill: 'rgba(0,0,0,0.04)' }}/>
-
-      
-      <Bar dataKey="value" onClick={(e) => onBarClick(e)} barSize={60}>
-        {barData.map((entry, i) => (
-          <Cell
-            key={`cell-bar-${i}`}
-            fill={COLORS[i % COLORS.length]}
-            style={{ cursor: 'pointer' }}
-          />
-        ))}
-      </Bar>
-    </BarChart>
-  </ResponsiveContainer>
-</div>
+          <h3>Acumulado por Fuente</h3>
+          <ResponsiveContainer width="100%" height={340}>
+            <BarChart
+              data={barData}
+              margin={{ top: 20, right: 30, left: -20, bottom: 5 }}
+              barCategoryGap="0%"
+              barGap={0}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: '#fff', fontSize: 12 }}
+                axisLine={{ stroke: '#fff' }}
+                tickLine={{ stroke: '#fff' }}
+              />
+              <YAxis
+                tick={{ fill: '#fff', fontSize: 12 }}
+                axisLine={{ stroke: '#fff' }}
+                tickLine={{ stroke: '#fff' }}
+              />
+              <ReTooltip
+                formatter={(val) => {
+                  const total = barData.reduce((acc, cur) => acc + cur.value, 0);
+                  const porcentaje = ((val / total) * 100).toFixed(1) + "%";
+                  return `${new Intl.NumberFormat('es-CO').format(val)} (${porcentaje})`;
+                }}
+                contentStyle={{ backgroundColor: '#fff', borderRadius: 6, padding: '8px 10px' }}
+                itemStyle={{ color: '#000' }}
+                labelStyle={{ color: '#000' }}
+                cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+              />
+              <Bar dataKey="value" onClick={(e) => onBarClick(e)} barSize={60}>
+                {barData.map((entry, i) => (
+                  <Cell
+                    key={`cell-bar-${i}`}
+                    fill={COLORS[i % COLORS.length]}
+                    style={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Tabla expandible (full width) */}
         <div className="card dsr-table" style={{ minHeight: 200 }}>

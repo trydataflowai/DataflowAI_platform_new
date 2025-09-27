@@ -339,7 +339,7 @@ export const Rutas = () => {
 
 
           <Route
-            path={p("/settingsDashSalesReview")}
+            path={("/DashboardSalesReview/settingsDashSalesReview")}
             element={
               <RutaProtegida> 
                 <SideBarLayout>

@@ -105,3 +105,39 @@
   width: 100%;    /* siempre ocupe todo */
   min-width: 0;   /* evita overflow */
 }
+
+
+/* Botón Data en el header */
+.dsr-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* botón principal "Data" */
+.dsr-btn-data {
+  appearance: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #7C3AED 0%, #06B6D4 100%);
+  color: #07102a;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(7, 12, 24, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+/* hover / focus / active */
+.dsr-btn-data:hover,
+.dsr-btn-data:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(7, 12, 24, 0.55);
+  outline: none;
+  opacity: 0.98;
+}
+.dsr-btn-data:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(7, 12, 24, 0.45);
+}

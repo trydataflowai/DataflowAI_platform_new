@@ -12,9 +12,10 @@ function _getAuthHeaders() {
 // helper to build query string
 function buildQuery(params = {}) {
   const esc = encodeURIComponent;
-  return Object.keys(params)
+  const qs = Object.keys(params)
     .filter(k => params[k] !== undefined && params[k] !== null && params[k] !== '')
     .map(k => `${esc(k)}=${esc(params[k])}`).join('&');
+  return qs;
 }
 
 export const fetchDashSales = async (params = {}) => {
@@ -82,4 +83,30 @@ export const bulkDeleteDashSales = async (filters = {}) => {
     throw new Error(json ? JSON.stringify(json) : `Error ${res.status}`);
   }
   return await res.json(); // { deleted: n }
+};
+
+// ----------------- NUEVO: Exportar Excel -----------------
+export const exportDashSales = async (filters = {}) => {
+  const qs = buildQuery(filters);
+  const url = `${API_BASE_URL}api/dashboard_salesreview/export/${qs ? `?${qs}` : ''}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: _getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error ${res.status}: ${text}`);
+  }
+
+  // obtener blob y nombre de archivo si viene en headers
+  const blob = await res.blob();
+  const contentDisposition = res.headers.get('Content-Disposition') || '';
+  let filename = 'dashboard_salesreview.xlsx';
+  const match = /filename="?([^"]+)"?/.exec(contentDisposition);
+  if (match && match[1]) {
+    filename = match[1];
+  }
+  return { blob, filename };
 };

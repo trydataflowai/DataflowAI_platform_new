@@ -7,6 +7,7 @@ import {
   updateDashSale,
   deleteDashSale,
   bulkDeleteDashSales,
+  exportDashSales, // <-- import nuevo
 } from '../../../api/DashboardsCrudApis/CrudDashboardSalesreview';
 
 const emptyForm = {
@@ -91,6 +92,28 @@ const CrudDashboardSalesReview = () => {
       await loadItems(buildFilters());
     } catch (err) {
       setError(err.message || 'Error al eliminar registros filtrados');
+    }
+  };
+
+  // ---- NUEVO: Exportar a Excel ----
+  const handleExport = async () => {
+    setError('');
+    const filters = buildFilters();
+    try {
+      // solicitar el blob desde la API
+      const { blob, filename } = await exportDashSales(filters);
+
+      // crear enlace de descarga
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'dashboard_salesreview.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.message || 'Error al exportar datos');
     }
   };
 
@@ -228,6 +251,11 @@ const CrudDashboardSalesReview = () => {
 
           <button onClick={handleDeleteFiltered} style={{ marginLeft: 12, background: '#ef5350', color: 'white' }}>
             Eliminar registros filtrados
+          </button>
+
+          {/* BOTÓN NUEVO: Exportar Excel */}
+          <button onClick={handleExport} style={{ marginLeft: 12, background: '#1976d2', color: 'white' }}>
+            Exportar Excel
           </button>
         </div>
       </div>
