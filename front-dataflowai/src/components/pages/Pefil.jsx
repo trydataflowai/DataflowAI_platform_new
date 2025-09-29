@@ -237,11 +237,6 @@ const ConfiguracionUsuarios = () => {
         ))}
       </section>
 
-      <footer className={styles.footer}>
-        <small className={styles.footerSmall}>
-          {planName ? `Plan: ${planName}` : "Seguridad • Permisos • Auditoría"}
-        </small>
-      </footer>
 
       {showModal && (
         <div

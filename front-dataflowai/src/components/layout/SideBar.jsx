@@ -231,8 +231,7 @@ export const SideBar = () => {
         </button>
       </div>
 
-      <div className={styles.footer}>
-        {planName && <p className={styles.planText}>{planName}</p>}
+      <div className={styles.footer}> 
         <div className={styles.accentLine} />
         <p className={styles.footerText}>By DataFlow AI</p>
       </div>
