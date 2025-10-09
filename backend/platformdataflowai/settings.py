@@ -105,3 +105,9 @@ STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 import stripe
 stripe.api_key = STRIPE_SECRET_KEY
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'appdataflowai.authentication.JWTAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',  # si quieres dejar sesiones también
+    ),
+}

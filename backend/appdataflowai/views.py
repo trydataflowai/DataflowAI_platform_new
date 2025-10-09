@@ -468,87 +468,41 @@ class StripeWebhookAPIView(APIView):
 #DashboardVentasDataflow de PRUEBA
 # appdataflowai/views.py
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authentication import get_authorization_header
-import jwt
-from django.conf import settings
+from rest_framework.permissions import IsAuthenticated
 from django.utils.dateparse import parse_date
-from .models import DashboardVentasDataflow
 from .serializers import DashboardVentasDataflowSerializer
+from .serializers import DashboardVentasSerializer
+
 
 class DashboardVentasDataflowView(APIView):
-    """
-    Vista protegida que retorna todos los registros de DashboardVentasDataflow.
-    La autenticación se realiza manualmente con JWT en la cabecera Authorization.
-    """
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
-        # 1) Extraer y validar el token del header Authorization
-        auth_header = get_authorization_header(request).split()
-        if not auth_header or auth_header[0].lower() != b'bearer':
-            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido en request'}, status=401)
 
-        try:
-            token = auth_header[1].decode('utf-8')
-            # Esto lanzará ExpiredSignatureError o InvalidTokenError si no es válido
-            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.InvalidTokenError:
-            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # 2) Consultar datos (opcional: filtrar por fecha con ?start=&end=)
-        qs = DashboardVentasDataflow.objects.all().order_by('fecha_entrega')
+        qs = DashboardVentasDataflow.objects.filter(id_empresa=usuario.id_empresa).order_by('fecha_entrega')
         start = request.query_params.get('start')
-        end   = request.query_params.get('end')
+        end = request.query_params.get('end')
         if start:
             qs = qs.filter(fecha_entrega__gte=parse_date(start))
         if end:
             qs = qs.filter(fecha_entrega__lte=parse_date(end))
 
-        # 3) Serializar y devolver
         serializer = DashboardVentasDataflowSerializer(qs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
 
-
-
-
-
-# Vista para retornar registros de DashboardVentas
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authentication import get_authorization_header
-from django.utils.dateparse import parse_date
-from django.conf import settings
-import jwt
-
-from .models import DashboardVentas
-from .serializers import DashboardVentasSerializer
 
 class DashboardVentasView(APIView):
-    """
-    Vista protegida que retorna los registros de DashboardVentas,
-    con filtrado opcional por rango de fecha (?start=YYYY-MM-DD&end=YYYY-MM-DD)
-    """
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # 1. Autenticación JWT (manual)
-        auth_header = get_authorization_header(request).split()
-        if not auth_header or auth_header[0].lower() != b'bearer':
-            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido en request'}, status=401)
 
-        try:
-            token = auth_header[1].decode('utf-8')
-            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.InvalidTokenError:
-            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # 2. Consulta y filtros
-        queryset = DashboardVentas.objects.all().order_by('fecha_venta')
+        queryset = DashboardVentas.objects.filter(id_empresa=usuario.id_empresa).order_by('fecha_venta')
         start = request.query_params.get('start')
         end = request.query_params.get('end')
         if start:
@@ -556,10 +510,36 @@ class DashboardVentasView(APIView):
         if end:
             queryset = queryset.filter(fecha_venta__lte=parse_date(end))
 
-        # 3. Serializar
-        serializer = DashboardVentasSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = DashboardVentasSerializer(queryset, many=True, context={'usuario': usuario})
+        return Response(serializer.data, status=200)
+
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 from rest_framework.views import APIView
@@ -1858,55 +1838,101 @@ class AsgDashboardUsuarioEliminarAsignacionView(AsgDashboardBasePerfilView):
 
 
 
-# Vista para retornar registros de DashboardSalesreview
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authentication import get_authorization_header
-from django.utils.dateparse import parse_date
-from django.conf import settings
-import jwt
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Vista para retornar registros de DashboardSalesreview
 from .models import DashboardSalesreview
 from .serializers import DashboardSalesreviewSerializer
 
 class DashboardSalesreviewView(APIView):
-    """
-    Vista protegida que retorna los registros de DashboardSalesreview,
-    con filtrado opcional por rango de fechas (?start=YYYY-MM-DD&end=YYYY-MM-DD)
-    """
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # 1. Autenticacion JWT (manual)
-        auth_header = get_authorization_header(request).split()
-        if not auth_header or auth_header[0].lower() != b'bearer':
-            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
-
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido en request'}, status=status.HTTP_401_UNAUTHORIZED)
         try:
-            token = auth_header[1].decode('utf-8')
-            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.InvalidTokenError:
-            return Response({'error': 'Token invalido'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # 2. Consulta y filtros por fecha_compra
-        queryset = DashboardSalesreview.objects.all().order_by('fecha_compra')
+            queryset = DashboardSalesreview.objects.filter(id_empresa=usuario.id_empresa).order_by('fecha_compra')
+        except Exception as exc:
+            return Response({'error': 'Error al consultar datos'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         start = request.query_params.get('start')
         end = request.query_params.get('end')
         if start:
             date_start = parse_date(start)
-            if date_start:
-                queryset = queryset.filter(fecha_compra__gte=date_start)
+            if not date_start:
+                return Response({'error': 'Formato de fecha "start" inválido. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+            queryset = queryset.filter(fecha_compra__gte=date_start)
         if end:
             date_end = parse_date(end)
-            if date_end:
-                queryset = queryset.filter(fecha_compra__lte=date_end)
+            if not date_end:
+                return Response({'error': 'Formato de fecha "end" inválido. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+            queryset = queryset.filter(fecha_compra__lte=date_end)
 
-        # 3. Serializar
-        serializer = DashboardSalesreviewSerializer(queryset, many=True)
+        serializer = DashboardSalesreviewSerializer(queryset, many=True, context={'usuario': usuario})
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 

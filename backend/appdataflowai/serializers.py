@@ -148,7 +148,6 @@ class DashboardVentasDataflowSerializer(serializers.ModelSerializer):
 #Serializer para DashboardVentas
 # Este serializer es para el modelo DashboardVentas, que se usa en la implementación de React y
 from .models import DashboardVentas
-from rest_framework import serializers
 
 class DashboardVentasSerializer(serializers.ModelSerializer):
     class Meta:
