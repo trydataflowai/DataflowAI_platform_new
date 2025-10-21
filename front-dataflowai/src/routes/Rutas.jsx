@@ -46,7 +46,7 @@ import ApacheEcharts from "../components/dashboards/00Echarts";
 import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
 
 
-
+import ShopifyJsx from "../components/pages/Shopify";
 
 
 // Protección de rutas
@@ -359,6 +359,24 @@ export const Rutas = () => {
               </RutaProtegida>
             }
           />
+
+
+
+
+
+            <Route
+            path={p("/Shopify/Prueba/deApi")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <ShopifyJsx />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+
         </Routes>
       </ThemeProvider>
     </BrowserRouter>
