@@ -2553,3 +2553,106 @@ class DashboardSalesreviewExport(APIView):
         )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+    
+
+
+# vista para SHOPIFY
+# views.py
+import re
+import time
+import requests
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
+
+# --- estilo Stripe: tomamos la config desde settings (que ya usa decouple) ---
+SHOPIFY_SHOP_DOMAIN = getattr(settings, "SHOPIFY_SHOP_DOMAIN", None)
+SHOPIFY_ACCESS_TOKEN = getattr(settings, "SHOPIFY_ACCESS_TOKEN", None)
+API_VERSION = getattr(settings, "SHOPIFY_API_VERSION", "2025-10")
+
+# Crear headers a nivel de módulo (igual que stripe.api_key = settings.STRIPE_SECRET_KEY)
+SHOPIFY_HEADERS = {
+    "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+    "Content-Type": "application/json",
+}
+
+def _fetch_from_shopify(resource_path, shop=None, token=None, limit=50, fetch_all=False, timeout=20):
+    """Helper compacto para obtener recursos (ej. products.json)."""
+    shop = shop or SHOPIFY_SHOP_DOMAIN
+    token = token or SHOPIFY_ACCESS_TOKEN
+
+    if not shop or not token:
+        # Mismo comportamiento simple que en tu ejemplo: falla en la llamada si no hay token.
+        raise requests.RequestException(
+            "Falta configuración: define SHOPIFY_SHOP_DOMAIN y SHOPIFY_ACCESS_TOKEN en tu .env/settings"
+        )
+
+    headers = {
+        "X-Shopify-Access-Token": token,
+        "Content-Type": "application/json",
+    }
+
+    base_url = f"https://{shop}/admin/api/{API_VERSION}/{resource_path}"
+    params = {"limit": max(1, min(250, int(limit)))}
+
+    results = []
+    url = base_url
+
+    while True:
+        resp = requests.get(url, headers=headers, params=params if url == base_url else None, timeout=timeout)
+
+        # retry sencillo si rate-limited
+        if resp.status_code == 429:
+            time.sleep(2)
+            resp = requests.get(url, headers=headers, params=params if url == base_url else None, timeout=timeout)
+
+        resp.raise_for_status()
+        data = resp.json()
+
+        key = resource_path.split(".")[0]  # 'products'
+        items = data.get(key, [])
+
+        if not fetch_all:
+            return items
+
+        results.extend(items)
+
+        link = resp.headers.get("Link", "")
+        m = re.search(r'<([^>]+)>;\s*rel="next"', link)
+        if m:
+            url = m.group(1)
+            params = None
+            continue
+        break
+
+    return results
+
+@csrf_exempt
+@require_GET
+def shopify_products(request):
+    """
+    GET /shopify/products/?limit=50
+    Opcional: ?all=1 para traer TODAS las páginas (paginación automática).
+    Opcional: ?shop=otra-tienda.myshopify.com para sobrescribir el shop configurado.
+    """
+    try:
+        limit = int(request.GET.get("limit", 50))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "limit debe ser entero"}, status=400)
+
+    fetch_all = request.GET.get("all") in ("1", "true", "True")
+    shop = request.GET.get("shop") or SHOPIFY_SHOP_DOMAIN
+
+    if not SHOPIFY_ACCESS_TOKEN or not shop:
+        return JsonResponse(
+            {"error": "Falta configuración de SHOPIFY_ACCESS_TOKEN o SHOPIFY_SHOP_DOMAIN en settings/.env"},
+            status=500
+        )
+
+    try:
+        products = _fetch_from_shopify("products.json", shop=shop, limit=limit, fetch_all=fetch_all)
+    except requests.RequestException as e:
+        return JsonResponse({"error": "Error al consultar Shopify", "detail": str(e)}, status=500)
+
+    return JsonResponse({"products": products}, json_dumps_params={"ensure_ascii": False})

@@ -111,3 +111,8 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.SessionAuthentication',  # si quieres dejar sesiones también
     ),
 }
+
+
+SHOPIFY_SHOP_DOMAIN = config("SHOPIFY_SHOP_DOMAIN", default="e7i1zh-xs.myshopify.com")
+SHOPIFY_ACCESS_TOKEN = config("SHOPIFY_ACCESS_TOKEN", default=None)
+SHOPIFY_API_VERSION = config("SHOPIFY_API_VERSION", default="2025-10")

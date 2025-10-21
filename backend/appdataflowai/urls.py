@@ -65,7 +65,11 @@ from .views import (
     HerramientasUsuarioView,
     DashboardSalesreviewDetail,
     DashboardSalesreviewBulkDelete,
-    DashboardSalesreviewExport
+    DashboardSalesreviewExport,
+
+
+#URRL PARA PRODUCTOS DE PRUEBA SHOPIFY
+    shopify_products,
 )
 
 urlpatterns = [
@@ -149,6 +153,10 @@ urlpatterns = [
     path('api/dashboard_salesreview/<int:pk>/', DashboardSalesreviewDetail.as_view(), name='dashsales_detail'),
     path('api/dashboard_salesreview/bulk-delete/', DashboardSalesreviewBulkDelete.as_view(), name='dashsales_bulk_delete'),
     path('api/dashboard_salesreview/export/', DashboardSalesreviewExport.as_view(), name='dashsales_export'),  # <-- nueva ruta
+
+
+    #Ruta para shopify
+    path("shopify/products/", shopify_products, name="shopify_products"),
 
 ]
     
