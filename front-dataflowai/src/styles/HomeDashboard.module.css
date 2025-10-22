@@ -975,12 +975,28 @@ html, body, #root {
 
 
 /* ===== ESTILOS PARA VISTA DE IFRAME EMBEBIDO (TEMA CLARO) ===== */
+:root {
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00c7ff;
+  --accent-dark: #0077b6;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --gradient-dark: linear-gradient(145deg, #0a0a12 0%, #12121d 100%);
+  --gradient-accent: linear-gradient(90deg, #00c7ff 0%, #0077b6 100%);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --success: #4ade80;
+  --error: #f87171;
+}
+
 .iframeView {
   width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f8f9fa;
+  background: var(--gradient-dark);
+  color: var(--text-primary);
+  font-family: 'Arial', sans-serif;
 }
 
 .iframeHeader {
@@ -988,9 +1004,9 @@ html, body, #root {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--black-cosmos);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   min-height: 70px;
 }
 
@@ -999,34 +1015,37 @@ html, body, #root {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(0, 199, 255, 0.08);
+  border: 1px solid rgba(0, 199, 255, 0.3);
   border-radius: 8px;
-  color: #7c3aed;
+  color: var(--accent-neon);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .backButton:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(0, 199, 255, 0.15);
+  border-color: rgba(0, 199, 255, 0.6);
   transform: translateX(-4px);
+  box-shadow: 0 0 10px rgba(0, 199, 255, 0.3);
 }
 
 .backButton svg {
   width: 20px;
   height: 20px;
+  fill: var(--accent-neon);
 }
 
 .iframeTitle {
-  color: #1a202c;
+  color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
   text-align: center;
   flex: 1;
+  letter-spacing: 0.5px;
 }
 
 .headerSpacer {
@@ -1039,7 +1058,8 @@ html, body, #root {
   height: calc(100vh - 70px);
   overflow: hidden;
   position: relative;
-  background: #ffffff;
+  background: var(--black-deep);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .iframe {
@@ -1047,6 +1067,7 @@ html, body, #root {
   height: 100%;
   border: none;
   display: block;
+  background: var(--black-deep);
 }
 
 /* Media queries para responsive */
