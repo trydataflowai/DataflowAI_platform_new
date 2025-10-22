@@ -43,6 +43,9 @@ import SalesDashboard from "../components/dashboards/SalesDashboard";
 import ApacheEcharts from "../components/dashboards/00Echarts";
 
 
+import DashboardExterno from "../components/dashboards/DashboardExterno";
+
+
 import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
 
 
@@ -370,6 +373,19 @@ export const Rutas = () => {
               <RutaProtegida>
                 <SideBarLayout>
                   <ShopifyJsx />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+
+           <Route
+            path={p("/dashboard/68f90290-291c-832f-9216-f1c28e2a5e8e-f1c28e2a5e8e")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <DashboardExterno />
                 </SideBarLayout>
               </RutaProtegida>
             }

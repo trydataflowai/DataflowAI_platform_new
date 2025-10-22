@@ -128,6 +128,7 @@ class Producto(models.Model):
     CATEGORIA_CHOICES = [
         ('javascript', 'Javascript'),
         ('power', 'Power'),
+        ('externo', 'Informe Externo'),
     ]
 
     TIPO_PRODUCTO_CHOICES = [
@@ -177,6 +178,14 @@ class Producto(models.Model):
         db_column='link_pb',
         null=True,
         blank=True
+    )
+
+    link_dashboard_externo = models.URLField(
+        max_length=500,
+        db_column='link_dashboard_externo',
+        null=True,
+        blank=True,
+        help_text='URL del dashboard externos'
     )
 
     class Meta:

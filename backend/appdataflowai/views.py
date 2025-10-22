@@ -205,6 +205,8 @@ class ProductosUsuarioView(APIView):
                     'id_area': getattr(prod.id_area, 'id_area', None),
                     'nombre': getattr(prod.id_area, 'area_trabajo', None),
                 },
+                # 🔹 Nuevo campo solicitado: link_dashboard_externo
+                'link_dashboard_externo': getattr(prod, 'link_dashboard_externo', None),
                 'usuario': {
                     'id': usuario.id_usuario,
                     'nombres': usuario.nombres,
@@ -215,8 +217,6 @@ class ProductosUsuarioView(APIView):
             })
 
         return JsonResponse(productos, safe=False)
-
-
 
 
 
