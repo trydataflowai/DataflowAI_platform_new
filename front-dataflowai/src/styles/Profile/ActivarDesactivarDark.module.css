@@ -153,13 +153,16 @@
   margin: 10px 0;
 }
 
-/* Tabla de usuarios */
+/* ============================
+   TABLA MEJORADA - BORDES SUTILES
+   ============================ */
 .tableWrapper {
   overflow-x: auto;
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.004));
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0.004));
   padding: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(40, 40, 40, 0.6); /* Borde gris oscuro muy sutil */
 }
 
 .table {
@@ -167,37 +170,79 @@
   border-collapse: collapse;
   min-width: 860px;
   font-size: 0.95rem;
+  background: transparent;
 }
 
+/* Encabezados de tabla */
 .table thead th {
   text-align: left;
-  padding: 12px 14px;
+  padding: 14px 16px;
   color: var(--text-secondary);
   font-weight: 700;
   font-size: 0.88rem;
   letter-spacing: 0.2px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  background: linear-gradient(180deg, rgba(255,255,255,0.002), rgba(255,255,255,0.001));
+  background: rgba(20, 20, 20, 0.8); /* Fondo gris oscuro para headers */
+  border-bottom: 1px solid rgba(60, 60, 60, 0.8); /* Borde gris oscuro */
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
 }
 
+/* Celdas de tabla */
 .table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.02);
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(50, 50, 50, 0.4); /* Borde gris muy oscuro y sutil */
   color: var(--text-primary);
   vertical-align: middle;
+  background: transparent;
+  transition: var(--transition);
+}
+
+/* Filas de tabla - SIN HOVER PROBLEMÁTICO */
+.row {
+  background: transparent;
+}
+
+/* Alternar colores de filas muy sutiles para mejor legibilidad */
+.table tbody tr:nth-child(even) {
+  background: rgba(30, 30, 30, 0.3); /* Gris muy oscuro para filas pares */
+}
+
+.table tbody tr:nth-child(odd) {
+  background: rgba(20, 20, 20, 0.2); /* Gris aún más oscuro para filas impares */
+}
+
+/* Última fila sin borde inferior */
+.table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .noUsers {
   text-align: center;
   color: var(--text-secondary);
   padding: 18px 0;
+  font-style: italic;
 }
 
 /* Celdas específicas */
-.cellName { font-weight: 700; color: var(--text-primary); }
-.cellEmail { color: var(--text-secondary); font-size: 0.92rem; }
-.cellRole { color: var(--text-secondary); text-transform: capitalize; }
-.cellState { width: 120px; }
+.cellName { 
+  font-weight: 700; 
+  color: var(--text-primary); 
+}
+
+.cellEmail { 
+  color: var(--text-secondary); 
+  font-size: 0.92rem; 
+}
+
+.cellRole { 
+  color: var(--text-secondary); 
+  text-transform: capitalize; 
+}
+
+.cellState { 
+  width: 120px; 
+}
 
 .stateActive {
   display: inline-block;
@@ -207,6 +252,7 @@
   color: var(--success);
   font-weight: 700;
   border: 1px solid rgba(0,255,170,0.06);
+  font-size: 0.85rem;
 }
 
 .stateInactive {
@@ -217,6 +263,7 @@
   color: var(--danger);
   font-weight: 700;
   border: 1px solid rgba(255,51,102,0.04);
+  font-size: 0.85rem;
 }
 
 /* Acciones (botones dentro de la tabla) */
@@ -224,6 +271,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .actionButton,
@@ -231,44 +279,50 @@
 .deleteButton {
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.04);
-  background: transparent;
+  border: 1px solid rgba(60, 60, 60, 0.6); /* Borde gris oscuro */
+  background: rgba(40, 40, 40, 0.4); /* Fondo gris oscuro */
   color: var(--text-primary);
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .actionButton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: rgba(0, 40, 50, 0.4); /* Fondo azul oscuro */
   color: var(--accent-neon);
-  box-shadow: 0 6px 18px rgba(0,194,255,0.03);
+  border: 1px solid rgba(0, 100, 120, 0.4);
 }
 
 .actionButton:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0,194,255,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,194,255,0.06);
+  background: rgba(0, 60, 70, 0.5);
 }
 
 .roleButton {
-  background: linear-gradient(90deg, rgba(0,194,255,0.03), rgba(0,247,255,0.02));
+  background: rgba(0, 30, 50, 0.4); /* Fondo azul oscuro */
   color: var(--accent-cyan);
+  border: 1px solid rgba(0, 80, 120, 0.4);
 }
 
 .roleButton:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0,194,255,0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,194,255,0.04);
+  background: rgba(0, 50, 70, 0.5);
 }
 
 .deleteButton {
-  background: linear-gradient(90deg, rgba(255,51,102,0.02), rgba(255,51,102,0.01));
+  background: rgba(50, 0, 10, 0.4); /* Fondo rojo oscuro */
   color: var(--danger);
-  border-color: rgba(255,51,102,0.06);
+  border: 1px solid rgba(80, 0, 20, 0.4);
 }
 
 .deleteButton:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(255,51,102,0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255,51,102,0.04);
+  background: rgba(70, 0, 20, 0.5);
 }
 
 /* Estados disabled / loading */
@@ -286,6 +340,8 @@
 .loading {
   padding: 14px;
   color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
 }
 
 /* ============================
@@ -305,7 +361,7 @@
   gap: 8px;
   padding: 10px 12px;
   background: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(60, 60, 60, 0.6); /* Borde gris oscuro */
   border-radius: 10px;
   color: var(--text-primary);
   cursor: pointer;
@@ -344,20 +400,22 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: var(--black-deep);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(20, 20, 20, 0.95); /* Fondo gris oscuro */
+  border: 1px solid rgba(60, 60, 60, 0.8); /* Borde gris oscuro */
   border-radius: 8px;
   box-shadow: 0 18px 40px rgba(0,0,0,0.6);
   max-height: 220px;
   overflow-y: auto;
   z-index: 1200;
   padding: 6px 6px;
+  backdrop-filter: blur(10px);
 }
 
 /* empty item */
 .customSelectEmpty {
   padding: 10px 12px;
   color: var(--text-secondary);
+  font-style: italic;
 }
 
 /* each option */
@@ -372,18 +430,18 @@
 }
 
 .customSelectItem:hover {
-  background: rgba(255,255,255,0.02);
+  background: rgba(50, 50, 50, 0.4); /* Hover gris oscuro */
 }
 
 .customSelectItemSelected {
-  background: rgba(0,194,255,0.04);
+  background: rgba(0, 60, 80, 0.4); /* Seleccionado azul oscuro */
   color: var(--accent-cyan);
 }
 
 /* small scrollbar style for dropdown (modern browsers) */
 .customSelectList::-webkit-scrollbar { width: 8px; height: 8px; }
 .customSelectList::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.04);
+  background: rgba(60, 60, 60, 0.6); /* Scrollbar gris oscuro */
   border-radius: 8px;
 }
 
@@ -406,4 +464,11 @@
   .table { min-width: 600px; font-size: 0.88rem; }
   .cellActions { flex-wrap: wrap; gap: 6px; }
   .primaryButton { justify-self: stretch; width: 100%; }
+  
+  .actionButton,
+  .roleButton,
+  .deleteButton {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
 }
