@@ -43,7 +43,7 @@ from .views import (
     EmpresaView,
     AreasListView,
 
-
+#
 
 
 #ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
@@ -56,16 +56,17 @@ from .views import (
     TicketListCreateView, TicketDetailView,
 
 
-#url PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
+    ##VISTA PARA RETORNAR LAS HERRAMIENTAS CORRESPONDIENTES A CADA USUARIO
+    HerramientasUsuarioView,
+
+
+    #URLS para el crud del dashboard de SALESREVIEW del modelo: DashboardSalesreview
 
     DashboardSalesreviewListCreate,
-
-
-#URLS para el crud del dashboard de SALESREVIEW del modelo: DashboardSalesreview
-    HerramientasUsuarioView,
     DashboardSalesreviewDetail,
     DashboardSalesreviewBulkDelete,
     DashboardSalesreviewExport,
+    
 
 
 #URRL PARA PRODUCTOS DE PRUEBA SHOPIFY

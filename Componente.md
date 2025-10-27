@@ -39,6 +39,17 @@ Cancelar cambios git restore .
 
 Borrar archivos: git clean -fd
 
+**AGREGAR UNA RAMA**
+
+Crearla en git
+
+Traer las ramas
+git fetch origin
+git branch -r
+
+Cambiar
+git checkout -b desarrollodani origin/desarrollodani
+
 **USUARIO:**
 
 C:\Users\Julian Herreño\OneDrive - Colombian Trade Company SAS\DATA\02. AREAS\DATA\Julian Estif Herreno Palacios\09-DataFlow-WebSite\front-dataflowai\src\api\Usuario.js
