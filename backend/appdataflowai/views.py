@@ -2691,3 +2691,320 @@ def shopify_products(request):
         return JsonResponse({"error": "Error al consultar Shopify", "detail": str(e)}, status=500)
 
     return JsonResponse({"products": products}, json_dumps_params={"ensure_ascii": False})
+
+
+
+
+
+
+
+#odoo
+# backend/app/views.py
+import xmlrpc.client
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+from django.conf import settings
+import jwt
+
+def safe_get_name(field_value):
+    """Retorna el name de un many2one Odoo (lista [id, name]) o el valor en crudo."""
+    if not field_value:
+        return None
+    if isinstance(field_value, (list, tuple)) and len(field_value) >= 2:
+        return field_value[1]
+    return field_value
+
+class OdooSales2025View(APIView):
+    """
+    GET: devuelve ventas (sale.order) del año configurado (por defecto 2025) con state='sale'.
+    Autenticación: Authorization: Bearer <jwt>
+
+    Query params:
+      - page (int, default 1)
+      - per_page (int, default 100, max 1000)
+      - all=1 to traer TODO (ignora paginación; usar con cuidado)
+      - year=YYYY (opcional para sobrescribir ODOO_SALES_YEAR)
+    """
+    def get(self, request):
+        # --- JWT auth (igual que antes) ---
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1].decode('utf-8')
+            jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': f'Error validando token: {str(e)}'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # --- Leer configuración Odoo desde settings (viene del .env) ---
+        ODOO_URL = getattr(settings, "ODOO_URL", None)
+        ODOO_DB = getattr(settings, "ODOO_DB", None)
+        ODOO_USERNAME = getattr(settings, "ODOO_USERNAME", None)
+        ODOO_API_KEY = getattr(settings, "ODOO_API_KEY", None)
+        YEAR = request.query_params.get("year") or getattr(settings, "ODOO_SALES_YEAR", 2025)
+        try:
+            YEAR = int(YEAR)
+        except Exception:
+            YEAR = 2025
+
+        # Validación mínima de config
+        if not (ODOO_URL and ODOO_DB and ODOO_USERNAME and ODOO_API_KEY):
+            return Response({'error': 'Falta configuración ODOO (revisa variables en settings/.env)'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # --- Conexión a Odoo ---
+        try:
+            common = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/common", allow_none=True)
+            uid = common.authenticate(ODOO_DB, ODOO_USERNAME, ODOO_API_KEY, {})
+            if not uid:
+                return Response({'error': 'Autenticación Odoo fallida'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            models = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/object", allow_none=True)
+        except Exception as e:
+            return Response({'error': f'Error conectando a Odoo: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # --- Parámetros de paginación / opción all ---
+        try:
+            page = int(request.query_params.get('page', 1))
+            per_page = int(request.query_params.get('per_page', 100))
+        except Exception:
+            page = 1
+            per_page = 100
+        if per_page <= 0:
+            per_page = 100
+        per_page = min(per_page, 1000)
+        fetch_all = request.query_params.get('all') in ('1', 'true', 'True')
+
+        # --- Dominio para año y state='sale' ---
+        start_dt = f"{YEAR}-01-01 00:00:00"
+        end_dt = f"{YEAR}-12-31 23:59:59"
+        domain = [
+            ("create_date", ">=", start_dt),
+            ("create_date", "<=", end_dt),
+            ("state", "=", "sale"),
+        ]
+
+        try:
+            # 1) obtener ids (solo IDs, operación rápida)
+            sale_order_ids = models.execute_kw(
+                ODOO_DB, uid, ODOO_API_KEY,
+                "sale.order", "search",
+                [domain],
+                {"order": "create_date desc"}
+            )
+        except Exception as e:
+            return Response({'error': f'Error buscando sale.order ids: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        total = len(sale_order_ids)
+
+        if total == 0:
+            return Response({
+                "total": 0,
+                "page": page,
+                "per_page": per_page,
+                "results": []
+            }, status=status.HTTP_200_OK)
+
+        # Paginación sobre la lista de ids (rápido)
+        if fetch_all:
+            page_ids = sale_order_ids
+            page = 1
+            per_page = total
+        else:
+            start = (page - 1) * per_page
+            end = start + per_page
+            page_ids = sale_order_ids[start:end]
+
+        # 2) leer registros de sale.order en batch (reduce llamadas)
+        sale_fields = [
+            "id",
+            "name",
+            "create_date",
+            "x_studio_canal",
+            "x_studio_orden_fuente",
+            "x_studio_fuente_1",
+            "commitment_date",
+            "partner_id",
+            "user_id",
+            "company_id",
+            "amount_total",
+            "state",
+            "invoice_ids",
+            "invoice_status",
+            "cart_quantity",
+            "order_line",
+        ]
+        try:
+            sale_records = models.execute_kw(
+                ODOO_DB, uid, ODOO_API_KEY,
+                "sale.order", "read",
+                [page_ids],
+                {"fields": sale_fields}
+            )
+        except Exception as e:
+            return Response({'error': f'Error leyendo sale.order: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # 3) Colectar order_line ids y invoice ids para lecturas en batch
+        all_order_line_ids = []
+        all_invoice_ids = []
+        for s in sale_records:
+            ol = s.get("order_line") or []
+            all_order_line_ids.extend(ol)
+            inv = s.get("invoice_ids") or []
+            all_invoice_ids.extend(inv)
+
+        all_order_line_ids = list(set(all_order_line_ids))
+        all_invoice_ids = list(set(all_invoice_ids))
+
+        # 4) Leer order lines en batch
+        order_line_map = {}
+        if all_order_line_ids:
+            try:
+                ol_fields = ["id", "order_id", "product_id", "product_uom_qty", "price_unit", "price_subtotal", "qty_invoiced", "qty_delivered"]
+                order_lines = models.execute_kw(
+                    ODOO_DB, uid, ODOO_API_KEY,
+                    "sale.order.line", "read",
+                    [all_order_line_ids],
+                    {"fields": ol_fields}
+                )
+                for ln in order_lines:
+                    order_line_map[ln["id"]] = ln
+            except Exception:
+                order_line_map = {}
+
+        # 5) Leer productos en batch para obtener marcas
+        product_ids = set()
+        for ln in order_line_map.values():
+            p = ln.get("product_id")
+            if p and isinstance(p, (list, tuple)):
+                product_ids.add(p[0])
+        product_brand_by_id = {}
+        if product_ids:
+            try:
+                prod_fields = ["id", "x_studio_marca", "product_tmpl_id", "name"]
+                prod_recs = models.execute_kw(
+                    ODOO_DB, uid, ODOO_API_KEY,
+                    "product.product", "read",
+                    [list(product_ids)],
+                    {"fields": prod_fields}
+                )
+                tmpl_ids = []
+                pid_to_tmpl = {}
+                for p in prod_recs:
+                    pid = p.get("id")
+                    if p.get("x_studio_marca"):
+                        product_brand_by_id[pid] = p.get("x_studio_marca")
+                    else:
+                        pt = p.get("product_tmpl_id")
+                        if pt and isinstance(pt, (list, tuple)):
+                            pid_to_tmpl[pid] = pt[0]
+                            tmpl_ids.append(pt[0])
+                if tmpl_ids:
+                    tmpl_records = models.execute_kw(
+                        ODOO_DB, uid, ODOO_API_KEY,
+                        "product.template", "read",
+                        [list(set(tmpl_ids))],
+                        {"fields": ["id", "x_studio_marca"]}
+                    )
+                    tmpl_map = {t["id"]: t.get("x_studio_marca") for t in tmpl_records}
+                    for pid, tid in pid_to_tmpl.items():
+                        if tmpl_map.get(tid):
+                            product_brand_by_id[pid] = tmpl_map.get(tid)
+            except Exception:
+                product_brand_by_id = {}
+
+        # 6) Leer facturas en batch si existen
+        invoices_map = {}
+        if all_invoice_ids:
+            try:
+                inv_fields = ["id", "name", "state", "amount_total", "invoice_date"]
+                inv_recs = models.execute_kw(
+                    ODOO_DB, uid, ODOO_API_KEY,
+                    "account.move", "read",
+                    [all_invoice_ids],
+                    {"fields": inv_fields}
+                )
+                for inv in inv_recs:
+                    invoices_map[inv["id"]] = inv
+            except Exception:
+                invoices_map = {}
+
+        # 7) Armar resultados compactos (pero completos) por sale.order
+        results = []
+        for s in sale_records:
+            order_lines_out = []
+            for ln_id in s.get("order_line") or []:
+                ln = order_line_map.get(ln_id)
+                if not ln:
+                    continue
+                p = ln.get("product_id")
+                prod_id = p[0] if p and isinstance(p, (list, tuple)) else None
+                prod_name = p[1] if p and isinstance(p, (list, tuple)) else None
+                order_lines_out.append({
+                    "id": ln.get("id"),
+                    "product": {
+                        "id": prod_id,
+                        "name": prod_name,
+                        "brand": product_brand_by_id.get(prod_id, None)
+                    },
+                    "product_uom_qty": ln.get("product_uom_qty"),
+                    "price_unit": ln.get("price_unit"),
+                    "price_subtotal": ln.get("price_subtotal"),
+                    "qty_invoiced": ln.get("qty_invoiced"),
+                    "qty_delivered": ln.get("qty_delivered"),
+                })
+
+            invoices_detail = []
+            for inv_id in s.get("invoice_ids") or []:
+                inv = invoices_map.get(inv_id)
+                if inv:
+                    invoices_detail.append({
+                        "id": inv.get("id"),
+                        "name": inv.get("name"),
+                        "state": inv.get("state"),
+                        "amount_total": inv.get("amount_total"),
+                        "invoice_date": inv.get("invoice_date"),
+                    })
+
+            results.append({
+                "id": s.get("id"),
+                "reference": s.get("name"),
+                "create_date": s.get("create_date"),
+                "canal": s.get("x_studio_canal"),
+                "orden_fuente": s.get("x_studio_orden_fuente"),
+                "fuente": s.get("x_studio_fuente_1"),
+                "commitment_date": s.get("commitment_date"),
+                "partner": {
+                    "id": s.get("partner_id")[0] if s.get("partner_id") and isinstance(s.get("partner_id"), (list, tuple)) else None,
+                    "name": safe_get_name(s.get("partner_id")),
+                },
+                "user": {
+                    "id": s.get("user_id")[0] if s.get("user_id") and isinstance(s.get("user_id"), (list, tuple)) else None,
+                    "name": safe_get_name(s.get("user_id")),
+                },
+                "company": {
+                    "id": s.get("company_id")[0] if s.get("company_id") and isinstance(s.get("company_id"), (list, tuple)) else None,
+                    "name": safe_get_name(s.get("company_id")),
+                },
+                "amount_total": s.get("amount_total"),
+                "state": s.get("state"),
+                "invoice_ids": s.get("invoice_ids", []),
+                "invoice_status": s.get("invoice_status"),
+                "cart_quantity": s.get("cart_quantity"),
+                "order_lines": order_lines_out,
+                "invoices_detail": invoices_detail,
+            })
+
+        # 8) Respuesta
+        return Response({
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "results": results
+        }, status=status.HTTP_200_OK)

@@ -116,3 +116,13 @@ REST_FRAMEWORK = {
 SHOPIFY_SHOP_DOMAIN = config("SHOPIFY_SHOP_DOMAIN", default="e7i1zh-xs.myshopify.com")
 SHOPIFY_ACCESS_TOKEN = config("SHOPIFY_ACCESS_TOKEN", default=None)
 SHOPIFY_API_VERSION = config("SHOPIFY_API_VERSION", default="2025-10")
+
+
+
+# ODOO settings (leer desde .env)
+ODOO_URL = config("ODOO_URL", default="https://coltradeco.odoo.com")
+ODOO_DB = config("ODOO_DB", default="coltradeco")
+ODOO_USERNAME = config("ODOO_USERNAME", default=None)
+ODOO_API_KEY = config("ODOO_API_KEY", default=None)
+# Año por defecto para filtrar ventas (puedes sobreescribir en .env)
+ODOO_SALES_YEAR = config("ODOO_SALES_YEAR", cast=int, default=2025)

@@ -68,9 +68,15 @@ from .views import (
     DashboardSalesreviewExport,
     
 
+    
+
 
 #URRL PARA PRODUCTOS DE PRUEBA SHOPIFY
     shopify_products,
+
+
+    #odoo
+    OdooSales2025View,
 )
 
 urlpatterns = [
@@ -158,6 +164,10 @@ urlpatterns = [
 
     #Ruta para shopify
     path("shopify/products/", shopify_products, name="shopify_products"),
+
+
+    #odoo
+    path("odoo/order/salescoltrade/", OdooSales2025View.as_view(), name="odoo-order-s68097")
 
 ]
     

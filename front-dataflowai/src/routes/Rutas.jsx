@@ -46,6 +46,8 @@ import ApacheEcharts from "../components/dashboards/00Echarts";
 
 import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
 
+import DashboardVentasColtradeOdoo from "../components/dashboards/DashboardColtradeOdoo";
+
 
 import ShopifyJsx from "../components/pages/Shopify";
 
@@ -376,7 +378,16 @@ export const Rutas = () => {
             }
           />
 
-
+             <Route
+            path={("/DashboardVentasOdoo")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <DashboardVentasColtradeOdoo />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
 
     
 
