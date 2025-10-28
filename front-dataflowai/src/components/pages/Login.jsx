@@ -61,29 +61,19 @@ const Login = () => {
 
   const safeNavigateAndReload = (to) => {
     try {
-      // Si ya estamos en esa ruta, solo recargamos para forzar render.
       if (to === window.location.pathname + window.location.hash) {
-        // Evitar recarga infinita: marcar en sessionStorage por un intento
         const key = 'login_reload_attempt';
         if (!sessionStorage.getItem(key)) {
           sessionStorage.setItem(key, Date.now().toString());
           window.location.reload();
         } else {
-          // ya intentamos recargar; limpiamos la marca
           sessionStorage.removeItem(key);
-          // Como fallback, hacemos replace para evitar bucles
           window.location.replace(to);
         }
         return;
       }
-
-      // Si la ruta es distinta, navegamos y forzamos recarga completa
-      // Esto evita estados inconsistentes en la SPA cuando la app espera
-      // el prefijo de empresa ya presente en la URL.
-      // Usamos assign para que haya recarga (replace podría necesitar historial control).
       window.location.assign(to);
     } catch (err) {
-      // como fallback si algo falla con location, usamos navigate (SPA)
       navigate(to, { replace: true });
     }
   };
@@ -102,11 +92,10 @@ const Login = () => {
     }
 
     try {
-      // iniciarSesion presumiblemente guarda el token en localStorage
-      await iniciarSesion({ correo, contrasena });
+      // Llamada al backend - guarda token/usuario/registro_sesion en localStorage
+      const data = await iniciarSesion({ correo, contrasena });
 
-      // Después del login pedimos info del usuario (retry corto por si el token
-      // aún no quedó disponible de inmediato)
+      // Intentamos obtener info adicional del usuario (si tu endpoint lo provee)
       let info = null;
       try {
         const maxRetries = 4;
@@ -124,12 +113,19 @@ const Login = () => {
         console.warn('No se pudo obtener info del usuario tras login:', errInfo);
       }
 
-      const nombres = info?.nombres || info?.first_name || '';
-      const empresaNombre = info?.empresa?.nombre || info?.empresa || '';
+      // Preferimos la info detallada si se obtuvo, si no usamos la info devuelta por el login
+      const nombres = info?.nombres || data?.usuario?.nombre || '';
+      const empresaNombre = info?.empresa?.nombre || info?.empresa || (data?.usuario?.empresa?.nombre || '');
       const nombreCortoRaw = info?.empresa?.nombre_corto ?? '';
       const normalized = normalizeSegment(nombreCortoRaw);
       setCompanySegment(normalized);
       setWelcomeData({ nombres, empresa: { nombre: empresaNombre } });
+
+      // Guardamos registro_sesion (ya lo guarda iniciarSesion, pero lo dejamos explícito)
+      if (data?.registro_sesion) {
+        localStorage.setItem('registro_sesion', JSON.stringify(data.registro_sesion));
+      }
+
       setWelcomeVisible(true);
 
       // Mostrar overlay de bienvenida unos segundos y luego navegar + recargar
@@ -137,10 +133,8 @@ const Login = () => {
         setWelcomeVisible(false);
 
         const to = buildTo(normalized, "/home");
-
-        // Usamos la función segura que fuerza recarga controlada
         safeNavigateAndReload(to);
-      }, 1200); // tiempo breve para mostrar el overlay
+      }, 1200);
     } catch (err) {
       setError(err?.message || 'Credenciales incorrectas');
       setShake(true);

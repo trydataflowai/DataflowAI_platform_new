@@ -731,3 +731,60 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"{self.asunto} - {self.estado}"
+
+
+
+
+#Modelo para registrar los inicios de sesión de un usuario
+from django.db import models
+from django.utils import timezone
+
+# asumo que Empresa y Usuario ya están definidos arriba en este mismo archivo
+# si no, importa: from .models import Empresa, Usuario (o el path correcto)
+
+class RegistrosSesion(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa',
+        related_name='registros_sesiones'
+    )
+    nombre_empresa = models.CharField(max_length=200, db_column='nombre_empresa', editable=False)
+
+    id_usuario = models.ForeignKey(
+        'Usuario',
+        on_delete=models.PROTECT,
+        db_column='id_usuario',
+        related_name='registros_sesiones_usuario'
+    )
+    nombres = models.CharField(max_length=200, db_column='nombres', editable=False)
+
+    fecha_inicio_sesion = models.DateTimeField(db_column='fecha_inicio_sesion', default=timezone.now)
+
+    class Meta:
+        db_table = 'registros_sesion'
+        verbose_name_plural = 'Registros de Sesión'
+
+    def save(self, *args, **kwargs):
+        """
+        Rellena nombre_empresa y nombres desde las FKs si no se han provisto.
+        Esto hace que podamos crear registros pasando sólo las FK.
+        """
+        if self.id_empresa and (not self.nombre_empresa):
+            try:
+                # id_empresa es una instancia de Empresa
+                self.nombre_empresa = getattr(self.id_empresa, 'nombre_empresa', '') or ''
+            except Exception:
+                self.nombre_empresa = ''
+
+        if self.id_usuario and (not self.nombres):
+            try:
+                self.nombres = getattr(self.id_usuario, 'nombres', '') or ''
+            except Exception:
+                self.nombres = ''
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.id_registro} - {self.nombre_empresa} / {self.nombres} - {self.fecha_inicio_sesion}"

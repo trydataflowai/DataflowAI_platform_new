@@ -1,77 +1,111 @@
-#HOLA DANI, ESTO ES POR PARTE DE JULIAN
 
-
-# views.py
-import jwt
-import pandas as pd
+import logging
 from datetime import datetime, timedelta
-from django.conf import settings
-from django.http import JsonResponse
-from django.db import models
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 
-from .models import (
-    Usuario,
-    DetalleProducto,
-    DashboardVentasDataflow
-)
+import jwt
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Usuario, RegistrosSesion
+
+logger = logging.getLogger(__name__)
+
 
 class LoginView(APIView):
     """
     Vista para autenticación de usuarios.
-    Ahora valida además que el usuario esté activo (id_estado == 1).
-    Si el usuario no está activo devuelve {'error': 'usuario inactivo'} con status 403.
+    Al autenticarse correctamente, además crea un registro en RegistrosSesion.
     """
     def post(self, request):
-        correo = request.data.get('correo', '').strip()
-        contrasena = request.data.get('contrasena', '').strip()
+        correo = (request.data.get('correo') or '').strip()
+        contrasena = (request.data.get('contrasena') or '').strip()
 
         if not correo or not contrasena:
             return Response({'error': 'Correo y contraseña son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Busca usuario por correo y contraseña (manteniendo tu enfoque actual de contraseñas en texto plano)
+            # Nota: mantengo tu verificación por correo + contraseña en texto plano
             usuario = Usuario.objects.get(correo=correo, contrasena=contrasena)
         except Usuario.DoesNotExist:
             return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            logger.exception("Error buscando usuario")
+            return Response({'error': 'Error interno'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Verifica que el estado sea activo (id_estado == 1)
-        # id_estado es FK a Estado; comparamos la PK
         try:
             estado_id = usuario.id_estado.id_estado
         except Exception:
             estado_id = None
 
         if estado_id != 1:
-            # Usuario existe pero no está activo
             return Response({'error': 'usuario inactivo'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Usuario activo: generamos token JWT
+        # Generamos token JWT
         payload = {
             'id_usuario': usuario.id_usuario,
             'correo': usuario.correo,
-            'exp': datetime.utcnow() + timedelta(hours=1),  # mantiene 1 hora; ajusta si quieres
+            'exp': datetime.utcnow() + timedelta(hours=1),
             'iat': datetime.utcnow()
         }
 
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-        # jwt.encode puede devolver bytes en algunas versiones; aseguramos string
-        if isinstance(token, bytes):
-            token = token.decode('utf-8')
+        try:
+            token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+            if isinstance(token, bytes):
+                token = token.decode('utf-8')
+        except Exception:
+            logger.exception("Error generando token JWT")
+            return Response({'error': 'Error generando token'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Intentamos crear el registro de sesión.
+        registro_data = None
+        try:
+            # Usamos transaction.on_commit para asegurar consistencia, pero igualmente
+            # creamos sin bloquear el flujo de login si falla.
+            with transaction.atomic():
+                # Asumo que Usuario tiene campo id_empresa FK y es instancia válida
+                id_empresa_fk = getattr(usuario, 'id_empresa', None)
+                # Creación: pasamos instancias FK directamente
+                registro = RegistrosSesion.objects.create(
+                    id_empresa=id_empresa_fk,
+                    id_usuario=usuario,
+                    fecha_inicio_sesion=timezone.now()
+                )
+                # Aseguramos que nombre_empresa/nombres queden rellenados por save()
+                registro.refresh_from_db()
+
+                registro_data = {
+                    'id_registro': registro.id_registro,
+                    'fecha_inicio_sesion': registro.fecha_inicio_sesion.isoformat()
+                }
+        except Exception as e:
+            # No detenemos el login si hay error creando el registro; lo logueamos.
+            logger.exception("No se pudo crear RegistrosSesion tras login para usuario %s", getattr(usuario, 'id_usuario', None))
+            registro_data = None
+
+        respuesta_usuario = {
+            'id': usuario.id_usuario,
+            'nombre': usuario.nombres,
+            'correo': usuario.correo,
+            'rol': getattr(usuario.id_permiso_acceso, 'rol', None),
+            'estado': getattr(usuario.id_estado, 'estado', None)
+        }
 
         return Response({
             'token': token,
-            'usuario': {
-                'id': usuario.id_usuario,
-                'nombre': usuario.nombres,
-                'correo': usuario.correo,
-                'rol': getattr(usuario.id_permiso_acceso, 'rol', None),
-                'estado': getattr(usuario.id_estado, 'estado', None)
-            }
+            'usuario': respuesta_usuario,
+            'registro_sesion': registro_data
         }, status=status.HTTP_200_OK)
+
+
+
+
+
+
 
 # appdataflowai/views.py
 

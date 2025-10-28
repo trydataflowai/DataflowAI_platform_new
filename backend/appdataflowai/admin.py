@@ -540,3 +540,31 @@ class DetalleProductoHerramientasAdmin(admin.ModelAdmin):
     list_display = ('id_producto', 'id_usuario')
     search_fields = ('id_producto__producto_herramienta', 'id_usuario__nombres')  # ajusta 'nombres' si tu modelo Usuario usa otro campo
     list_filter = ('id_producto', 'id_usuario')
+
+
+
+from django.contrib import admin
+from .models import RegistrosSesion
+
+@admin.register(RegistrosSesion)
+class RegistrosSesionAdmin(admin.ModelAdmin):
+    list_display = ('id_registro', 'nombre_empresa', 'nombres', 'fecha_inicio_sesion')
+    search_fields = ('id_empresa__nombre_empresa', 'id_usuario__nombres')
+    list_filter = ('id_empresa', 'id_usuario', 'fecha_inicio_sesion')
+    ordering = ('-fecha_inicio_sesion',)
+
+    # Opcional: solo lectura para los campos autocompletados
+    readonly_fields = ('nombre_empresa', 'nombres', 'fecha_inicio_sesion')
+
+    # Opcional: si quieres agrupar los campos en secciones en el formulario admin
+    fieldsets = (
+        ('Información de la Empresa', {
+            'fields': ('id_empresa', 'nombre_empresa')
+        }),
+        ('Información del Usuario', {
+            'fields': ('id_usuario', 'nombres')
+        }),
+        ('Registro de Sesión', {
+            'fields': ('fecha_inicio_sesion',)
+        }),
+    )
