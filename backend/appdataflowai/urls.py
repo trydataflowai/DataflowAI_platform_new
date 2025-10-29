@@ -70,6 +70,15 @@ from .views import (
 
 #URRL PARA PRODUCTOS DE PRUEBA SHOPIFY
     shopify_products,
+
+
+#URLS para el crud del dashboard de Sales Corporativo del modelo:
+    DashboardSalesCorporativoListCreateProd15,
+    DashboardSalesCorporativoDetailProd15,
+    DashboardSalesCorporativoBulkDeleteProd15,
+    DashboardSalesCorporativoExportProd15,
+
+
 )
 
 urlpatterns = [
@@ -158,5 +167,14 @@ urlpatterns = [
     #Ruta para shopify
     path("shopify/products/", shopify_products, name="shopify_products"),
 
+
+    #URLS para el crud del dashboard de Sales Corporativo del modelo: DashboardSalesCorporativo
+    path('api/dashboard_salescorporativo_prod15/', DashboardSalesCorporativoListCreateProd15.as_view(), name='dashcorp_list_create_prod15'),
+    path('api/dashboard_salescorporativo_prod15/<int:pk>/', DashboardSalesCorporativoDetailProd15.as_view(), name='dashcorp_detail_prod15'),
+    path('api/dashboard_salescorporativo_prod15/bulk-delete/', DashboardSalesCorporativoBulkDeleteProd15.as_view(), name='dashcorp_bulk_delete_prod15'),
+    path('api/dashboard_salescorporativo_prod15/export/', DashboardSalesCorporativoExportProd15.as_view(), name='dashcorp_export_prod15'),
+    
 ]
+    
+
     

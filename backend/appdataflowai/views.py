@@ -2657,3 +2657,334 @@ def shopify_products(request):
         return JsonResponse({"error": "Error al consultar Shopify", "detail": str(e)}, status=500)
 
     return JsonResponse({"products": products}, json_dumps_params={"ensure_ascii": False})
+
+
+
+
+#Vista para el crud del dashboard de SALES CORPORATIVO del modelo: DashboardSalesCorporativo
+# views.py
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+
+from .models import DashboardSalesCorporativo, Usuario
+from .serializers import DashboardSalesCorporativoSerializerProd15
+
+# Funcion comun para obtener usuario desde token (nombre con prod15 para evitar colisiones)
+def get_usuario_from_token_prod15(request):
+    auth = request.headers.get('Authorization', '')
+    token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else auth.split(' ')[-1] if auth else ''
+    if not token:
+        raise AuthenticationFailed('No se proporciono token')
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        id_usuario = payload.get('id_usuario')
+        if not id_usuario:
+            raise AuthenticationFailed('Token invalido')
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Token expirado')
+    except jwt.InvalidTokenError:
+        raise AuthenticationFailed('Token invalido')
+    try:
+        usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+        return usuario
+    except Usuario.DoesNotExist:
+        raise AuthenticationFailed('Usuario no encontrado')
+
+class DashboardSalesCorporativoListCreateProd15(APIView):
+    """
+    GET: lista con filtros opcionales (mes_nombre, fecha_from, fecha_to, nombre_cliente, marca)
+    POST: crea un registro (id_producto forzado a DEFAULT_PRODUCT_ID en el serializer)
+    """
+
+    def _apply_filters_prod15(self, qs, request):
+        q = qs
+        mes_nombre = request.query_params.get('mes_nombre')
+        nombre_cliente = request.query_params.get('nombre_cliente')
+        marca = request.query_params.get('marca')
+        fecha_from = request.query_params.get('fecha_from')
+        fecha_to = request.query_params.get('fecha_to')
+
+        if mes_nombre:
+            q = q.filter(mes_nombre__iexact=mes_nombre)
+        if nombre_cliente:
+            q = q.filter(nombre_cliente__icontains=nombre_cliente)
+        if marca:
+            q = q.filter(marca__icontains=marca)
+        if fecha_from:
+            try:
+                dfrom = datetime.strptime(fecha_from, '%Y-%m-%d').date()
+                q = q.filter(fecha__gte=dfrom)
+            except ValueError:
+                pass
+        if fecha_to:
+            try:
+                dto = datetime.strptime(fecha_to, '%Y-%m-%d').date()
+                q = q.filter(fecha__lte=dto)
+            except ValueError:
+                pass
+        return q
+
+    def get(self, request):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DashboardSalesCorporativo.objects.filter(id_empresa=empresa)
+        qs = self._apply_filters_prod15(qs, request)
+        serializer = DashboardSalesCorporativoSerializerProd15(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DashboardSalesCorporativoSerializerProd15(data=request.data, context={'empresa': empresa})
+        if serializer.is_valid():
+            obj = serializer.save()
+            return Response(DashboardSalesCorporativoSerializerProd15(obj).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashboardSalesCorporativoDetailProd15(APIView):
+    """
+    GET/PUT/PATCH/DELETE por pk. Valida que el registro pertenezca a la misma empresa del usuario.
+    """
+
+    def _update_prod15(self, request, pk, partial):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesCorporativo, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para modificar este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        data = dict(request.data)
+        data.pop('id_empresa', None)
+        data.pop('id_producto', None)
+        serializer = DashboardSalesCorporativoSerializerProd15(obj, data=data, partial=partial, context={'empresa': empresa})
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response(DashboardSalesCorporativoSerializerProd15(updated).data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, pk):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesCorporativo, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para ver este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = DashboardSalesCorporativoSerializerProd15(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        return self._update_prod15(request, pk, partial=False)
+
+    def patch(self, request, pk):
+        return self._update_prod15(request, pk, partial=True)
+
+    def delete(self, request, pk):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesCorporativo, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para eliminar este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DashboardSalesCorporativoBulkDeleteProd15(APIView):
+    """
+    POST: borra registros por filtros y empresa del usuario. Responde {'deleted': <cantidad>}
+    """
+
+    def post(self, request):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        params = request.data if request.data else request.query_params
+
+        qs = DashboardSalesCorporativo.objects.filter(id_empresa=empresa)
+        mes_nombre = params.get('mes_nombre')
+        nombre_cliente = params.get('nombre_cliente')
+        marca = params.get('marca')
+        fecha_from = params.get('fecha_from')
+        fecha_to = params.get('fecha_to')
+
+        if mes_nombre:
+            qs = qs.filter(mes_nombre__iexact=mes_nombre)
+        if nombre_cliente:
+            qs = qs.filter(nombre_cliente__icontains=nombre_cliente)
+        if marca:
+            qs = qs.filter(marca__icontains=marca)
+        if fecha_from:
+            try:
+                dfrom = datetime.strptime(fecha_from, '%Y-%m-%d').date()
+                qs = qs.filter(fecha__gte=dfrom)
+            except ValueError:
+                pass
+        if fecha_to:
+            try:
+                dto = datetime.strptime(fecha_to, '%Y-%m-%d').date()
+                qs = qs.filter(fecha__lte=dto)
+            except ValueError:
+                pass
+
+        count = qs.count()
+        if count == 0:
+            return Response({'deleted': 0, 'detail': 'No se encontraron registros para eliminar'}, status=status.HTTP_200_OK)
+
+        qs.delete()
+        return Response({'deleted': count}, status=status.HTTP_200_OK)
+
+
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+class DashboardSalesCorporativoExportProd15(APIView):
+    """
+    GET: exporta registros filtrados de la empresa del usuario a xlsx.
+    Soporta filtros: mes_nombre, nombre_cliente, marca, fecha_from, fecha_to
+    """
+
+    def _apply_filters_export_prod15(self, qs, request):
+        q = qs
+        mes_nombre = request.query_params.get('mes_nombre')
+        nombre_cliente = request.query_params.get('nombre_cliente')
+        marca = request.query_params.get('marca')
+        fecha_from = request.query_params.get('fecha_from')
+        fecha_to = request.query_params.get('fecha_to')
+
+        if mes_nombre:
+            q = q.filter(mes_nombre__iexact=mes_nombre)
+        if nombre_cliente:
+            q = q.filter(nombre_cliente__icontains=nombre_cliente)
+        if marca:
+            q = q.filter(marca__icontains=marca)
+        if fecha_from:
+            try:
+                dfrom = datetime.strptime(fecha_from, '%Y-%m-%d').date()
+                q = q.filter(fecha__gte=dfrom)
+            except ValueError:
+                pass
+        if fecha_to:
+            try:
+                dto = datetime.strptime(fecha_to, '%Y-%m-%d').date()
+                q = q.filter(fecha__lte=dto)
+            except ValueError:
+                pass
+        return q
+
+    def get(self, request):
+        try:
+            usuario = get_usuario_from_token_prod15(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DashboardSalesCorporativo.objects.filter(id_empresa=empresa)
+        qs = self._apply_filters_export_prod15(qs, request)
+
+        serializer = DashboardSalesCorporativoSerializerProd15(qs, many=True)
+        data = serializer.data
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "DashboardSalesCorporativo"
+
+        if data and len(data) > 0:
+            headers = list(data[0].keys())
+        else:
+            try:
+                headers = list(DashboardSalesCorporativoSerializerProd15.Meta.fields)
+            except Exception:
+                headers = [
+                    'id_registro','id','orden_compra','fecha','mes_nombre','categoria_cliente','nombre_cliente',
+                    'categoria_producto','marca','producto','estado_cotizacion','unidades','precio_unitario','observaciones'
+                ]
+
+        for col_idx, h in enumerate(headers, start=1):
+            ws.cell(row=1, column=col_idx, value=h)
+
+        for row_idx, row in enumerate(data, start=2):
+            for col_idx, h in enumerate(headers, start=1):
+                val = row.get(h, None)
+                ws.cell(row=row_idx, column=col_idx, value=val)
+
+        for i, _ in enumerate(headers, start=1):
+            col = get_column_letter(i)
+            max_length = 0
+            for cell in ws[col]:
+                try:
+                    if cell.value:
+                        s = str(cell.value)
+                        if len(s) > max_length:
+                            max_length = len(s)
+                except Exception:
+                    pass
+            adjusted_width = min(max_length + 2, 60)
+            ws.column_dimensions[col].width = adjusted_width
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        empresa_id = getattr(empresa, 'id_empresa', None) or getattr(empresa, 'pk', None) or 'empresa'
+        today = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"dashboard_salescorporativo_{empresa_id}_{today}.xlsx"
+
+        from django.http import HttpResponse
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename=\"{filename}\"'
+        return response

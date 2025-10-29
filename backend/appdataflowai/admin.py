@@ -540,3 +540,40 @@ class DetalleProductoHerramientasAdmin(admin.ModelAdmin):
     list_display = ('id_producto', 'id_usuario')
     search_fields = ('id_producto__producto_herramienta', 'id_usuario__nombres')  # ajusta 'nombres' si tu modelo Usuario usa otro campo
     list_filter = ('id_producto', 'id_usuario')
+
+
+from django.contrib import admin
+from .models import DashboardSalesCorporativo
+
+@admin.register(DashboardSalesCorporativo)
+class DashboardSalesCorporativoAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'orden_compra',
+        'fecha',
+        'mes_nombre',
+        'categoria_cliente',
+        'nombre_cliente',
+        'categoria_producto',
+        'marca',
+        'producto',
+        'estado_cotizacion',
+        'unidades',
+        'precio_unitario',
+    )
+    search_fields = (
+        'orden_compra',
+        'nombre_cliente',
+        'marca',
+        'producto',
+        'categoria_cliente',
+        'categoria_producto',
+    )
+    list_filter = (
+        'mes_nombre',
+        'marca',
+        'categoria_producto',
+        'categoria_cliente',
+        'fecha',
+    )
+    ordering = ('-fecha',)

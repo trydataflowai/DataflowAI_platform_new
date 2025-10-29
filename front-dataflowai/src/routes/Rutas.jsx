@@ -46,6 +46,10 @@ import ApacheEcharts from "../components/dashboards/00Echarts";
 
 import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
 
+// Ruta de Dashboard de Sales Corporativo - CRUD
+import CrudDashboardSalesCorporativo from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativo";
+
+
 
 import ShopifyJsx from "../components/pages/Shopify";
 
@@ -376,7 +380,16 @@ export const Rutas = () => {
             }
           />
 
-
+          <Route
+            path={("/DashboardSalescorporativo/Cotizaciones")}
+            element={
+              <RutaProtegida> 
+                <SideBarLayout>
+                  <CrudDashboardSalesCorporativo />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
 
     
 

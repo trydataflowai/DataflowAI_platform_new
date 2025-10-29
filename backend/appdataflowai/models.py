@@ -630,6 +630,34 @@ class DashboardSalesreview(models.Model):
         verbose_name_plural = 'Dashboard Sales Review'
 
 
+from django.db import models
+
+class DashboardSalesCorporativo(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+# Identificadores clave obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa', null=True, blank=True)
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+
+    
+    orden_compra = models.CharField(max_length=50, db_column='orden_compra', null=False)
+    fecha = models.DateField(db_column='fecha', null=False)
+    mes_nombre = models.CharField(max_length=20, db_column='mes_nombre', null=True, blank=True)
+    categoria_cliente = models.CharField(max_length=100, db_column='categoria_cliente', null=True, blank=True)
+    nombre_cliente = models.CharField(max_length=150, db_column='nombre_cliente', null=True, blank=True)
+    categoria_producto = models.CharField(max_length=100, db_column='categoria_producto', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+    producto = models.CharField(max_length=150, db_column='producto', null=True, blank=True)
+    estado_cotizacion = models.FloatField(db_column='estado_cotizacion', null=True, blank=True)
+    unidades = models.IntegerField(db_column='unidades', null=True, blank=True)
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, db_column='precio_unitario', null=True, blank=True)
+    observaciones = models.TextField(db_column='observaciones', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_salescorporativo'
+        verbose_name_plural = 'Dashboard Sales Corporativo'
+
 
 
 """
