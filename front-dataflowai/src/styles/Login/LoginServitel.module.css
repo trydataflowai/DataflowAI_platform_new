@@ -1,45 +1,45 @@
 :root {
-  --coltrade-black-void: #000000;
-  --coltrade-black-cosmos: #050505;
-  --coltrade-black-deep: #0a0a0a;
-  --coltrade-accent-neon: #00f7ff;
-  --coltrade-accent-turquoise: #00e1ff;
-  --coltrade-accent-cyan: #00c2ff;
-  --coltrade-accent-dark: #0099cc;
-  --coltrade-text-primary: #ffffff;
-  --coltrade-text-secondary: #cccccc;
-  --coltrade-success: #00ffaa;
-  --coltrade-warning: #ffcc00;
-  --coltrade-danger: #ff3366;
-  --coltrade-transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --servitel-black-void: #ffffff;
+  --servitel-black-cosmos: #fafafa;
+  --servitel-black-deep: #f5f5f5;
+  --servitel-accent-neon: #00b43f;
+  --servitel-accent-turquoise: #00b43f;
+  --servitel-accent-cyan: #00b43f;
+  --servitel-accent-dark: #008c32;
+  --servitel-text-primary: #000000;
+  --servitel-text-secondary: #333333;
+  --servitel-success: #00b43f;
+  --servitel-warning: #ffcc00;
+  --servitel-danger: #ff3366;
+  --servitel-transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Reset y estilos base */
-.coltradePageContainer {
+.servitelPageContainer {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', 'Segoe UI', sans-serif;
-  background: var(--coltrade-black-void);
-  color: var(--coltrade-text-primary);
+  background: var(--servitel-black-void);
+  color: var(--servitel-text-primary);
   overflow: hidden;
   height: 100vh;
 }
 
-.coltradeLoginWrapper {
+.servitelLoginWrapper {
   height: 100%;
 }
 
 /* Layout principal */
-.coltradeSuperContainer {
+.servitelSuperContainer {
   display: flex;
   min-height: 100vh;
 }
 
 /* Sección izquierda (Branding) */
-.coltradeBrandingSection {
+.servitelBrandingSection {
   flex: 1;
-  background: linear-gradient(135deg, var(--coltrade-black-cosmos) 0%, var(--coltrade-black-deep) 100%);
+  background: linear-gradient(135deg, var(--servitel-black-cosmos) 0%, var(--servitel-black-deep) 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -47,7 +47,7 @@
   overflow: hidden;
 }
 
-.coltradeBrandingContent {
+.servitelBrandingContent {
   text-align: center;
   padding: 2rem;
   max-width: 500px;
@@ -55,28 +55,28 @@
   z-index: 2;
 }
 
-.coltradeLogoImg {
+.servitelLogoImg {
   width: 250px;
   height: auto;
   margin-bottom: 1.5rem;
   cursor: pointer;
-  transition: var(--coltrade-transition);
-  filter: drop-shadow(0 0 10px rgba(0, 247, 255, 0.5));
+  transition: var(--servitel-transition);
+  filter: drop-shadow(0 0 10px rgba(0, 180, 63, 0.5));
 }
 
-.coltradeLogoImg:hover {
+.servitelLogoImg:hover {
   transform: scale(1.05) rotate(-5deg);
-  filter: drop-shadow(0 0 15px var(--coltrade-accent-neon));
+  filter: drop-shadow(0 0 15px var(--servitel-accent-neon));
 }
 
-.coltradeBrandingText {
-  color: var(--coltrade-text-secondary);
+.servitelBrandingText {
+  color: var(--servitel-text-secondary);
   font-size: 1.1rem;
   margin-bottom: 2rem;
 }
 
 /* Grid animado de fondo */
-.coltradeAnimatedGrid {
+.servitelAnimatedGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
@@ -84,57 +84,57 @@
   margin: 0 auto;
 }
 
-.coltradeGridCell {
+.servitelGridCell {
   aspect-ratio: 1;
-  background: rgba(0, 247, 255, 0.05);
-  border: 1px solid rgba(0, 247, 255, 0.1);
+  background: rgba(0, 180, 63, 0.05);
+  border: 1px solid rgba(0, 180, 63, 0.1);
   border-radius: 2px;
-  animation: coltradeGridPulse 2s infinite ease-in-out;
+  animation: servitelGridPulse 2s infinite ease-in-out;
 }
 
-@keyframes coltradeGridPulse {
+@keyframes servitelGridPulse {
   0%, 100% { opacity: 0.3; transform: scale(0.95); }
   50% { opacity: 0.8; transform: scale(1.05); }
 }
 
 /* Sección derecha (Login) */
-.coltradeLoginSection {
+.servitelLoginSection {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--coltrade-black-void);
+  background: var(--servitel-black-void);
   position: relative;
   overflow: hidden;
 }
 
-.coltradeLoginCard {
-  background: rgba(5, 5, 5, 0.8);
+.servitelLoginCard {
+  background: rgba(250, 250, 250, 0.8);
   backdrop-filter: blur(15px);
   border-radius: 16px;
   padding: 2.5rem;
   width: 380px;
   box-shadow: 
-    0 10px 25px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(0, 247, 255, 0.1);
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 180, 63, 0.1);
   position: relative;
   z-index: 2;
 }
 
-.coltradeLoginHeader {
+.servitelLoginHeader {
   margin-bottom: 2rem;
   text-align: center;
 }
 
-.coltradeLoginHeader h2 {
+.servitelLoginHeader h2 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: var(--coltrade-text-primary);
+  color: var(--servitel-text-primary);
   position: relative;
   display: inline-block;
 }
 
-.coltradeLoginHeader h2::after {
+.servitelLoginHeader h2::after {
   content: '';
   position: absolute;
   bottom: -8px;
@@ -142,140 +142,140 @@
   transform: translateX(-50%);
   width: 50px;
   height: 3px;
-  background: linear-gradient(to right, var(--coltrade-accent-neon), var(--coltrade-accent-cyan));
+  background: linear-gradient(to right, var(--servitel-accent-neon), var(--servitel-accent-cyan));
   border-radius: 3px;
 }
 
 /* Formulario */
-.coltradeFormGroup {
+.servitelFormGroup {
   margin-bottom: 1.5rem;
 }
 
-.coltradeFormGroup label {
+.servitelFormGroup label {
   display: block;
   margin-bottom: 0.5rem;
-  color: var(--coltrade-text-secondary);
+  color: var(--servitel-text-secondary);
   font-size: 0.9rem;
 }
 
-.coltradeInputContainer {
+.servitelInputContainer {
   position: relative;
 }
 
-.coltradeInputField {
+.servitelInputField {
   width: 100%;
   padding: 0.8rem 0;
   background: transparent;
   border: none;
-  color: var(--coltrade-text-primary);
+  color: var(--servitel-text-primary);
   font-size: 1rem;
   outline: none;
-  transition: var(--coltrade-transition);
+  transition: var(--servitel-transition);
 }
 
-.coltradeInputField.coltradeTyping + .coltradeInputUnderline {
+.servitelInputField.servitelTyping + .servitelInputUnderline {
   transform: scaleX(1);
-  background: linear-gradient(to right, var(--coltrade-accent-neon), var(--coltrade-accent-cyan));
+  background: linear-gradient(to right, var(--servitel-accent-neon), var(--servitel-accent-cyan));
 }
 
-.coltradeInputUnderline {
+.servitelInputUnderline {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
   height: 2px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   transform: scaleX(0);
   transform-origin: left;
-  transition: var(--coltrade-transition);
+  transition: var(--servitel-transition);
 }
 
-.coltradeTogglePassword {
+.servitelTogglePassword {
   position: absolute;
   right: 0;
   bottom: 0.5rem;
   background: none;
   border: none;
-  color: var(--coltrade-text-secondary);
+  color: var(--servitel-text-secondary);
   cursor: pointer;
   font-size: 1.2rem;
-  transition: var(--coltrade-transition);
+  transition: var(--servitel-transition);
 }
 
-.coltradeTogglePassword:hover {
-  color: var(--coltrade-accent-neon);
+.servitelTogglePassword:hover {
+  color: var(--servitel-accent-neon);
   transform: scale(1.1);
 }
 
 /* Botón de login */
-.coltradeLoginButton {
+.servitelLoginButton {
   width: 100%;
   padding: 1rem;
   margin-top: 1.5rem;
-  background: linear-gradient(135deg, var(--coltrade-accent-neon), var(--coltrade-accent-cyan));
+  background: linear-gradient(135deg, var(--servitel-accent-neon), var(--servitel-accent-cyan));
   border: none;
   border-radius: 8px;
-  color: var(--coltrade-black-deep);
+  color: white;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: var(--coltrade-transition);
+  transition: var(--servitel-transition);
   z-index: 1;
 }
 
-.coltradeLoginButton:hover {
+.servitelLoginButton:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 247, 255, 0.3);
+  box-shadow: 0 10px 20px rgba(0, 180, 63, 0.3);
 }
 
-.coltradeLoginButton:disabled {
-  background: var(--coltrade-text-secondary);
+.servitelLoginButton:disabled {
+  background: var(--servitel-text-secondary);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.coltradeButtonGlow {
+.servitelButtonGlow {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, 
-    rgba(0, 247, 255, 0.3), 
-    rgba(0, 194, 255, 0.3), 
-    rgba(0, 247, 255, 0.3));
+    rgba(0, 180, 63, 0.3), 
+    rgba(0, 180, 63, 0.3), 
+    rgba(0, 180, 63, 0.3));
   z-index: -1;
   opacity: 0;
-  transition: var(--coltrade-transition);
-  animation: coltradeGlowPulse 2s infinite;
+  transition: var(--servitel-transition);
+  animation: servitelGlowPulse 2s infinite;
 }
 
-.coltradeLoginButton:hover .coltradeButtonGlow {
+.servitelLoginButton:hover .servitelButtonGlow {
   opacity: 1;
 }
 
-@keyframes coltradeGlowPulse {
+@keyframes servitelGlowPulse {
   0%, 100% { transform: scale(1); opacity: 0.7; }
   50% { transform: scale(1.05); opacity: 1; }
 }
 
-.coltradePulseEffect {
+.servitelPulseEffect {
   display: inline-block;
-  animation: coltradeTextPulse 1.5s infinite;
+  animation: servitelTextPulse 1.5s infinite;
 }
 
-@keyframes coltradeTextPulse {
+@keyframes servitelTextPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
 
 /* Mensaje de error */
-.coltradeErrorMessage {
+.servitelErrorMessage {
   background: rgba(255, 51, 102, 0.1);
-  border-left: 3px solid var(--coltrade-danger);
+  border-left: 3px solid var(--servitel-danger);
   padding: 0.8rem;
   border-radius: 4px;
   margin-top: 1rem;
@@ -283,36 +283,36 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  animation: coltradeErrorAppear 0.3s ease-out;
+  animation: servitelErrorAppear 0.3s ease-out;
 }
 
-@keyframes coltradeErrorAppear {
+@keyframes servitelErrorAppear {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 /* Footer */
-.coltradeLoginFooter {
+.servitelLoginFooter {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 0.9rem;
-  color: var(--coltrade-text-secondary);
+  color: var(--servitel-text-secondary);
 }
 
-.coltradeLoginFooter a {
-  color: var(--coltrade-accent-turquoise);
+.servitelLoginFooter a {
+  color: var(--servitel-accent-turquoise);
   text-decoration: none;
   font-weight: 500;
-  transition: var(--coltrade-transition);
+  transition: var(--servitel-transition);
 }
 
-.coltradeLoginFooter a:hover {
-  color: var(--coltrade-accent-neon);
-  text-shadow: 0 0 8px rgba(0, 247, 255, 0.3);
+.servitelLoginFooter a:hover {
+  color: var(--servitel-accent-neon);
+  text-shadow: 0 0 8px rgba(0, 180, 63, 0.3);
 }
 
 /* Partículas */
-.coltradeParticlesWrapper {
+.servitelParticlesWrapper {
   position: absolute;
   top: 0;
   left: 0;
@@ -322,21 +322,21 @@
   z-index: 1;
 }
 
-.coltradeParticle {
+.servitelParticle {
   position: absolute;
-  background: var(--coltrade-accent-neon);
+  background: var(--servitel-accent-neon);
   border-radius: 50%;
   opacity: 0;
   bottom: -10px;
-  left: var(--coltrade-x);
-  width: var(--coltrade-size);
-  height: var(--coltrade-size);
-  animation: coltradeParticleRise var(--coltrade-speed) linear infinite;
-  animation-delay: var(--coltrade-delay);
+  left: var(--servitel-x);
+  width: var(--servitel-size);
+  height: var(--servitel-size);
+  animation: servitelParticleRise var(--servitel-speed) linear infinite;
+  animation-delay: var(--servitel-delay);
   filter: blur(1px);
 }
 
-@keyframes coltradeParticleRise {
+@keyframes servitelParticleRise {
   0% { 
     opacity: 0;
     transform: translateY(0) scale(0.5);
@@ -349,18 +349,18 @@
 }
 
 /* Efecto shake */
-.coltradeShake {
-  animation: coltradeShakeAnimation 0.5s cubic-bezier(.36,.07,.19,.97) both;
+.servitelShake {
+  animation: servitelShakeAnimation 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
 
-@keyframes coltradeShakeAnimation {
+@keyframes servitelShakeAnimation {
   0%, 100% { transform: translateX(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
   20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
 /* Estrellas en el branding section */
-.coltradeStarField {
+.servitelStarField {
   position: absolute;
   top: 0;
   left: 0;
@@ -369,32 +369,32 @@
   pointer-events: none;
 }
 
-.coltradeStar {
+.servitelStar {
   position: absolute;
-  background: var(--coltrade-accent-neon);
+  background: var(--servitel-accent-neon);
   border-radius: 50%;
-  animation: coltradeTwinkle 3s infinite ease-in-out;
+  animation: servitelTwinkle 3s infinite ease-in-out;
 }
 
-@keyframes coltradeTwinkle {
+@keyframes servitelTwinkle {
   0%, 100% { opacity: 0.3; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2); }
 }
 
-.coltradeShootingStar, 
-.coltradeShootingStar2 {
+.servitelShootingStar, 
+.servitelShootingStar2 {
   position: absolute;
-  background: linear-gradient(to right, transparent, var(--coltrade-accent-neon));
+  background: linear-gradient(to right, transparent, var(--servitel-accent-neon));
   height: 1px;
-  animation: coltradeShootingStar 8s infinite linear;
+  animation: servitelShootingStar 8s infinite linear;
 }
 
-.coltradeShootingStar2 {
+.servitelShootingStar2 {
   animation-delay: 4s;
   top: 30%;
 }
 
-@keyframes coltradeShootingStar {
+@keyframes servitelShootingStar {
   0% { transform: translateX(-100px) translateY(0); opacity: 0; }
   10% { opacity: 1; }
   90% { opacity: 1; }
@@ -402,60 +402,60 @@
 }
 
 /* Card glare effect */
-.coltradeCardGlare {
+.servitelCardGlare {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(0, 247, 255, 0.03) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(0, 180, 63, 0.03) 0%, transparent 50%);
   border-radius: 16px;
   pointer-events: none;
 }
 
 /* Progress bar styles */
-.coltradeProgressWrap {
+.servitelProgressWrap {
   margin: 1.5rem 0;
 }
 
-.coltradeProgressInfo {
+.servitelProgressInfo {
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.5rem;
   font-size: 0.8rem;
-  color: var(--coltrade-text-secondary);
+  color: var(--servitel-text-secondary);
 }
 
-.coltradeProgressLabel {
+.servitelProgressLabel {
   /* Estilo para la etiqueta de progreso */
 }
 
-.coltradeProgressETA {
+.servitelProgressETA {
   /* Estilo para el ETA */
 }
 
-.coltradeProgressBarContainer {
+.servitelProgressBarContainer {
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
   overflow: hidden;
 }
 
-.coltradeProgressBar {
+.servitelProgressBar {
   height: 100%;
-  background: linear-gradient(to right, var(--coltrade-accent-neon), var(--coltrade-accent-cyan));
+  background: linear-gradient(to right, var(--servitel-accent-neon), var(--servitel-accent-cyan));
   border-radius: 2px;
   transition: width 0.3s ease;
 }
 
-.coltradeSmallProgress {
+.servitelSmallProgress {
   font-size: 0.8rem;
   margin-left: 0.5rem;
   opacity: 0.8;
 }
 
-.coltradeButtonContent {
+.servitelButtonContent {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -463,7 +463,7 @@
   z-index: 2;
 }
 
-.coltradeButtonStar {
+.servitelButtonStar {
   position: absolute;
   right: 1rem;
   opacity: 0.8;
@@ -473,126 +473,126 @@
    Estilos del mensaje de bienvenida
    ----------------------------- */
 
-.coltradeWelcomeOverlay {
+.servitelWelcomeOverlay {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.42), rgba(0,0,0,0.78));
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.42), rgba(255,255,255,0.78));
   backdrop-filter: blur(8px);
-  animation: coltradeOverlayFadeIn 0.28s ease-out forwards;
+  animation: servitelOverlayFadeIn 0.28s ease-out forwards;
 }
 
-@keyframes coltradeOverlayFadeIn {
+@keyframes servitelOverlayFadeIn {
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
 
 /* Tamaño aumentado y presencia más fuerte */
-.coltradeWelcomeCard {
+.servitelWelcomeCard {
   width: 520px;
   max-width: calc(100% - 36px);
-  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
+  background: linear-gradient(180deg, rgba(0,0,0,0.045), rgba(0,0,0,0.018));
   border-radius: 16px;
   padding: 26px 30px;
   box-shadow:
-    0 26px 60px rgba(0,0,0,0.65),
-    0 0 0 1px rgba(0,247,255,0.06);
+    0 26px 60px rgba(0,0,0,0.15),
+    0 0 0 1px rgba(0,180,63,0.06);
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: var(--coltrade-text-primary);
+  color: var(--servitel-text-primary);
   text-align: center;
   transform: translateY(18px);
-  animation: coltradeWelcomePop 0.52s cubic-bezier(.2,.9,.3,1.2) forwards;
+  animation: servitelWelcomePop 0.52s cubic-bezier(.2,.9,.3,1.2) forwards;
   position: relative;
   overflow: visible;
 }
 
-@keyframes coltradeWelcomePop {
+@keyframes servitelWelcomePop {
   0% { opacity: 0; transform: translateY(18px) scale(0.98); }
   60% { opacity: 1; transform: translateY(-6px) scale(1.04); }
   100% { transform: translateY(0) scale(1); }
 }
 
-.coltradeWelcomeIcon {
+.servitelWelcomeIcon {
   width: 86px;
   height: 86px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(0,247,255,0.14), rgba(0,194,255,0.09));
+  background: linear-gradient(135deg, rgba(0,180,63,0.14), rgba(0,180,63,0.09));
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: -64px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 0 22px rgba(0,247,255,0.08) inset;
-  border: 1px solid rgba(0,247,255,0.07);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.15), 0 0 22px rgba(0,180,63,0.08) inset;
+  border: 1px solid rgba(0,180,63,0.07);
 }
 
-.coltradeWelcomeLogo {
+.servitelWelcomeLogo {
   width: 64px;
   height: auto;
-  filter: drop-shadow(0 8px 18px rgba(0,247,255,0.14));
+  filter: drop-shadow(0 8px 18px rgba(0,180,63,0.14));
   transform: rotate(-6deg);
 }
 
-.coltradeWelcomeTitle {
+.servitelWelcomeTitle {
   font-size: 1.7rem;
   margin: 14px 0 6px;
-  color: var(--coltrade-text-primary);
+  color: var(--servitel-text-primary);
   letter-spacing: -0.2px;
   font-weight: 800;
 }
 
 /* Empresa muy resaltada: tamaño, peso y gradiente brillante + glow */
-.coltradeWelcomeCompany {
+.servitelWelcomeCompany {
   font-size: 1.12rem;
   margin: 6px 0 8px;
   font-weight: 800;
-  background: linear-gradient(90deg, var(--coltrade-accent-neon), var(--coltrade-accent-cyan));
+  background: linear-gradient(90deg, var(--servitel-accent-neon), var(--servitel-accent-cyan));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-shadow:
-    0 2px 8px rgba(0,194,255,0.08),
-    0 0 20px rgba(0,247,255,0.06);
+    0 2px 8px rgba(0,180,63,0.08),
+    0 0 20px rgba(0,180,63,0.06);
   letter-spacing: 0.2px;
   transform: translateY(-2px);
 }
 
 /* Mensaje formal debajo del nombre de la empresa */
-.coltradeWelcomeMessage {
+.servitelWelcomeMessage {
   margin-top: 6px;
   font-size: 0.98rem;
-  color: var(--coltrade-text-secondary);
+  color: var(--servitel-text-secondary);
   max-width: 84%;
   line-height: 1.3;
   font-weight: 500;
 }
 
 /* sparkles / confetti (leves) */
-.coltradeWelcomeSparkles {
+.servitelWelcomeSparkles {
   position: absolute;
   inset: auto 18px 18px 18px;
   height: 14px;
   pointer-events: none;
 }
 
-.coltradeConfetti {
+.servitelConfetti {
   position: absolute;
   bottom: 8px;
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  background: linear-gradient(135deg, var(--coltrade-accent-neon), var(--coltrade-accent-cyan));
+  background: linear-gradient(135deg, var(--servitel-accent-neon), var(--servitel-accent-cyan));
   opacity: 0.98;
   transform: translateY(0) rotate(0);
-  animation: coltradeConfettiFall 1.45s cubic-bezier(.2,.8,.2,1) forwards;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  animation: servitelConfettiFall 1.45s cubic-bezier(.2,.8,.2,1) forwards;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
-@keyframes coltradeConfettiFall {
+@keyframes servitelConfettiFall {
   0% { transform: translateY(-8px) rotate(0deg) scale(0.9); opacity: 0; }
   20% { opacity: 1; }
   70% { transform: translateY(46px) rotate(180deg) scale(1.05); opacity: 1; }
@@ -601,43 +601,43 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .coltradeSuperContainer {
+  .servitelSuperContainer {
     flex-direction: column;
   }
   
-  .coltradeBrandingSection {
+  .servitelBrandingSection {
     padding: 2rem 1rem;
   }
   
-  .coltradeLoginSection {
+  .servitelLoginSection {
     padding: 2rem 1rem;
   }
   
-  .coltradeLoginCard {
+  .servitelLoginCard {
     width: 100%;
     max-width: 400px;
   }
 
-  .coltradeWelcomeCard { 
+  .servitelWelcomeCard { 
     width: calc(100% - 36px); 
     padding: 20px; 
   }
   
-  .coltradeWelcomeTitle { 
+  .servitelWelcomeTitle { 
     font-size: 1.25rem; 
   }
   
-  .coltradeWelcomeCompany { 
+  .servitelWelcomeCompany { 
     font-size: 1rem; 
   }
   
-  .coltradeWelcomeIcon { 
+  .servitelWelcomeIcon { 
     width: 66px; 
     height: 66px; 
     margin-top: -52px; 
   }
   
-  .coltradeWelcomeLogo { 
+  .servitelWelcomeLogo { 
     width: 52px; 
   }
 }

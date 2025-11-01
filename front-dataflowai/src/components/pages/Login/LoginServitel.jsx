@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { iniciarSesion } from '../../../api/Login';
 import { obtenerInfoUsuario } from '../../../api/Usuario';
-import Logo from '../../../assets/login/logo_coltrade.png';
-import styles from '../../../styles/Login/LoginColtrade.module.css';
+import Logo from '../../../assets/login/logo_servitel.png';
+import styles from '../../../styles/Login/LoginServitel.module.css';
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -33,7 +33,7 @@ const buildTo = (companySegment, to) => {
   return hash ? `${fullBase}#${hash}` : fullBase;
 };
 
-const LoginColtrade = () => {
+const LoginServitel = () => {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
@@ -187,18 +187,18 @@ const LoginColtrade = () => {
   const stars = Array.from({ length: starCount });
 
   return (
-    <div className="coltrade-login">
-      <div className={styles.coltradePageContainer}>
-        <div className={styles.coltradeLoginWrapper}>
-          <div className={styles.coltradeSuperContainer}>
+    <div className="servitel-login">
+      <div className={styles.servitelPageContainer}>
+        <div className={styles.servitelLoginWrapper}>
+          <div className={styles.servitelSuperContainer}>
             {/* BRANDING / IZQUIERDA */}
-            <div className={styles.coltradeBrandingSection}>
+            <div className={styles.servitelBrandingSection}>
               {/* Star field (decorativo) */}
-              <div className={styles.coltradeStarField} aria-hidden>
+              <div className={styles.servitelStarField} aria-hidden>
                 {stars.map((_, i) => (
                   <span
                     key={`star-${i}`}
-                    className={styles.coltradeStar}
+                    className={styles.servitelStar}
                     style={{
                       left: `${(i * 7) % 100}%`,
                       top: `${(i * 13) % 100}%`,
@@ -207,56 +207,56 @@ const LoginColtrade = () => {
                     }}
                   />
                 ))}
-                <div className={styles.coltradeShootingStar} />
-                <div className={styles.coltradeShootingStar2} />
+                <div className={styles.servitelShootingStar} />
+                <div className={styles.servitelShootingStar2} />
               </div>
 
-              <div className={styles.coltradeBrandingContent}>
+              <div className={styles.servitelBrandingContent}>
                 <img
                   src={Logo}
                   alt="Dataflow AI"
-                  className={styles.coltradeLogoImg}
-                  onClick={() => navigate('/Coltrade/login')}
+                  className={styles.servitelLogoImg}
+                  onClick={() => navigate('/Servitel/login')}
                   style={{ cursor: 'pointer' }}
                 />
-                <p className={styles.coltradeBrandingText}>Business Intelligence</p>
-                <div className={styles.coltradeAnimatedGrid}>
+                <p className={styles.servitelBrandingText}>Business Intelligence</p>
+                <div className={styles.servitelAnimatedGrid}>
                   {Array.from({ length: 16 }).map((_, i) => (
-                    <div key={i} className={styles.coltradeGridCell} style={{ animationDelay: `${i * 0.05}s` }} />
+                    <div key={i} className={styles.servitelGridCell} style={{ animationDelay: `${i * 0.05}s` }} />
                   ))}
                 </div>
               </div>
             </div>
 
             {/* LOGIN / DERECHA */}
-            <div className={`${styles.coltradeLoginSection} ${shake ? styles.coltradeShake : ''}`}>
+            <div className={`${styles.servitelLoginSection} ${shake ? styles.servitelShake : ''}`}>
               {/* partículas decorativas (subtile) */}
-              <div className={styles.coltradeParticlesWrapper} aria-hidden>
+              <div className={styles.servitelParticlesWrapper} aria-hidden>
                 {particles.map((_, i) => {
                   const size = `${6 + (i % 4) * 3}px`;
                   return (
                     <span
                       key={`p-${i}`}
-                      className={styles.coltradeParticle}
+                      className={styles.servitelParticle}
                       style={{
-                        '--coltrade-x': `${(i * 11) % 100}%`,
-                        '--coltrade-size': size,
-                        '--coltrade-delay': `${i * 0.18}s`,
-                        '--coltrade-speed': `${6 + (i % 4) * 1.8}s`,
+                        '--servitel-x': `${(i * 11) % 100}%`,
+                        '--servitel-size': size,
+                        '--servitel-delay': `${i * 0.18}s`,
+                        '--servitel-speed': `${6 + (i % 4) * 1.8}s`,
                       }}
                     />
                   );
                 })}
               </div>
 
-              <div className={styles.coltradeLoginCard}>
+              <div className={styles.servitelLoginCard}>
                 {/* glare / brillo sutil */}
-                <div className={styles.coltradeCardGlare} aria-hidden />
+                <div className={styles.servitelCardGlare} aria-hidden />
 
-                <div className={styles.coltradeLoginHeader}>
+                <div className={styles.servitelLoginHeader}>
                   <h2>Iniciar Sesión</h2>
                   {error && (
-                    <div className={styles.coltradeErrorMessage}>
+                    <div className={styles.servitelErrorMessage}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -268,40 +268,40 @@ const LoginColtrade = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} aria-describedby={error ? 'login-error' : undefined}>
-                  <div className={styles.coltradeFormGroup}>
+                  <div className={styles.servitelFormGroup}>
                     <label htmlFor="correo">Correo Electrónico</label>
-                    <div className={styles.coltradeInputContainer}>
+                    <div className={styles.servitelInputContainer}>
                       <input
                         id="correo"
                         type="email"
                         value={correo}
                         onChange={(e) => setCorreo(e.target.value)}
-                        className={`${styles.coltradeInputField} ${correo ? styles.coltradeTyping : ''}`}
+                        className={`${styles.servitelInputField} ${correo ? styles.servitelTyping : ''}`}
                         placeholder="tu@correo.com"
                         autoComplete="username"
                         aria-label="Correo electrónico"
                       />
-                      <div className={styles.coltradeInputUnderline}></div>
+                      <div className={styles.servitelInputUnderline}></div>
                     </div>
                   </div>
 
-                  <div className={styles.coltradeFormGroup}>
+                  <div className={styles.servitelFormGroup}>
                     <label htmlFor="contrasena">Contraseña</label>
-                    <div className={styles.coltradeInputContainer}>
+                    <div className={styles.servitelInputContainer}>
                       <input
                         id="contrasena"
                         type={showPassword ? 'text' : 'password'}
                         value={contrasena}
                         onChange={(e) => setContrasena(e.target.value)}
-                        className={`${styles.coltradeInputField} ${contrasena ? styles.coltradeTyping : ''}`}
+                        className={`${styles.servitelInputField} ${contrasena ? styles.servitelTyping : ''}`}
                         placeholder="••••••••"
                         autoComplete="current-password"
                         aria-label="Contraseña"
                       />
-                      <div className={styles.coltradeInputUnderline}></div>
+                      <div className={styles.servitelInputUnderline}></div>
                       <button
                         type="button"
-                        className={styles.coltradeTogglePassword}
+                        className={styles.servitelTogglePassword}
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
@@ -311,37 +311,37 @@ const LoginColtrade = () => {
                   </div>
 
                   {/* Barra de progreso y ETA (solo visual) */}
-                  <div className={styles.coltradeProgressWrap} aria-hidden={!cargando}>
-                    <div className={styles.coltradeProgressInfo}>
-                      <div className={styles.coltradeProgressLabel}>
+                  <div className={styles.servitelProgressWrap} aria-hidden={!cargando}>
+                    <div className={styles.servitelProgressInfo}>
+                      <div className={styles.servitelProgressLabel}>
                         {cargando ? `Cargando ${dots}` : 'Listo'}
                       </div>
-                      <div className={styles.coltradeProgressETA}>
+                      <div className={styles.servitelProgressETA}>
                         {cargando ? (eta !== null ? `≈ ${eta}s` : '') : ''}
                       </div>
                     </div>
-                    <div className={styles.coltradeProgressBarContainer} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
-                      <div className={styles.coltradeProgressBar} style={{ width: `${progress}%` }} />
+                    <div className={styles.servitelProgressBarContainer} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
+                      <div className={styles.servitelProgressBar} style={{ width: `${progress}%` }} />
                     </div>
                   </div>
 
-                  <button type="submit" disabled={cargando} className={styles.coltradeLoginButton} aria-busy={cargando}>
-                    <span className={styles.coltradeButtonContent}>
+                  <button type="submit" disabled={cargando} className={styles.servitelLoginButton} aria-busy={cargando}>
+                    <span className={styles.servitelButtonContent}>
                       {cargando ? (
                         <>
-                          <span className={styles.coltradePulseEffect}>Accediendo{dots}</span>
-                          <span className={styles.coltradeSmallProgress}>{progress}%</span>
+                          <span className={styles.servitelPulseEffect}>Accediendo{dots}</span>
+                          <span className={styles.servitelSmallProgress}>{progress}%</span>
                         </>
                       ) : (
                         <span>Iniciar Sesión</span>
                       )}
                     </span>
-                    <span className={styles.coltradeButtonGlow} aria-hidden />
-                    <span className={styles.coltradeButtonStar} aria-hidden>✦</span>
+                    <span className={styles.servitelButtonGlow} aria-hidden />
+                    <span className={styles.servitelButtonStar} aria-hidden>✦</span>
                   </button>
                 </form>
 
-                <div className={styles.coltradeLoginFooter}>
+                <div className={styles.servitelLoginFooter}>
                   
                 </div>
               </div>
@@ -350,17 +350,17 @@ const LoginColtrade = () => {
         </div>
 
         {welcomeVisible && (
-          <div className={styles.coltradeWelcomeOverlay} role="dialog" aria-live="polite">
-            <div className={styles.coltradeWelcomeCard}>
-              <div className={styles.coltradeWelcomeIcon}>
-                <img src={Logo} alt="" className={styles.coltradeWelcomeLogo} />
+          <div className={styles.servitelWelcomeOverlay} role="dialog" aria-live="polite">
+            <div className={styles.servitelWelcomeCard}>
+              <div className={styles.servitelWelcomeIcon}>
+                <img src={Logo} alt="" className={styles.servitelWelcomeLogo} />
               </div>
-              <h3 className={styles.coltradeWelcomeTitle}> Bienvenido {welcomeData.nombres ? welcomeData.nombres : ''} </h3>
-              <p className={styles.coltradeWelcomeCompany}> {welcomeData.empresa?.nombre ? welcomeData.empresa.nombre : ''} </p>
-              <p className={styles.coltradeWelcomeMessage}> Espero que tengas una excelente experiencia en nuestra plataforma. </p>
-              <div className={styles.coltradeWelcomeSparkles}>
+              <h3 className={styles.servitelWelcomeTitle}> Bienvenido {welcomeData.nombres ? welcomeData.nombres : ''} </h3>
+              <p className={styles.servitelWelcomeCompany}> {welcomeData.empresa?.nombre ? welcomeData.empresa.nombre : ''} </p>
+              <p className={styles.servitelWelcomeMessage}> Espero que tengas una excelente experiencia en nuestra plataforma. </p>
+              <div className={styles.servitelWelcomeSparkles}>
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <span key={i} className={styles.coltradeConfetti} style={{ left: `${10 + i * 10}%`, animationDelay: `${i * 0.08}s` }} />
+                  <span key={i} className={styles.servitelConfetti} style={{ left: `${10 + i * 10}%`, animationDelay: `${i * 0.08}s` }} />
                 ))}
               </div>
             </div>
@@ -371,4 +371,4 @@ const LoginColtrade = () => {
   );
 };
 
-export default LoginColtrade;
+export default LoginServitel;

@@ -15,7 +15,7 @@
 }
 
 /* Reset y estilos base */
-.pageContainer {
+:global(.login-general) .pageContainer {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -27,18 +27,18 @@
   height: 100vh;
 }
 
-.loginWrapper {
+:global(.login-general) .loginWrapper {
   height: 100%;
 }
 
 /* Layout principal */
-.superPremiumContainer {
+:global(.login-general) .superPremiumContainer {
   display: flex;
   min-height: 100vh;
 }
 
 /* Sección izquierda (Branding) */
-.brandingSection {
+:global(.login-general) .brandingSection {
   flex: 1;
   background: linear-gradient(135deg, rgba(2,6,23,0.85) 0%, rgba(3,12,30,0.9) 100%);
   display: flex;
@@ -50,7 +50,7 @@
 }
 
 /* field de estrellitas - branding */
-.starField {
+:global(.login-general) .starField {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -59,7 +59,7 @@
 }
 
 /* Estrellitas pequeñas */
-.star {
+:global(.login-general) .star {
   position: absolute;
   width: 3px;
   height: 3px;
@@ -77,7 +77,8 @@
 }
 
 /* Shooting stars (diagonales, decorativas) */
-.shootingStar, .shootingStar2 {
+:global(.login-general) .shootingStar, 
+:global(.login-general) .shootingStar2 {
   position: absolute;
   top: -10%;
   left: -25%;
@@ -91,7 +92,7 @@
   z-index: 2;
 }
 
-.shootingStar2 {
+:global(.login-general) .shootingStar2 {
   top: 10%;
   left: -10%;
   width: 120px;
@@ -107,7 +108,7 @@
 }
 
 /* Branding content por delante de decoraciones */
-.brandingContent {
+:global(.login-general) .brandingContent {
   text-align: center;
   padding: 2rem;
   max-width: 520px;
@@ -115,7 +116,7 @@
   z-index: 3;
 }
 
-.logoImg {
+:global(.login-general) .logoImg {
   width: 240px;
   height: auto;
   margin-bottom: 1.25rem;
@@ -125,12 +126,12 @@
   transform-origin: center;
 }
 
-.logoImg:hover {
+:global(.login-general) .logoImg:hover {
   transform: scale(1.06) rotate(-6deg);
   filter: drop-shadow(0 0 22px var(--accent-neon));
 }
 
-.brandingText {
+:global(.login-general) .brandingText {
   color: var(--text-secondary);
   font-size: 1.05rem;
   margin-bottom: 1.75rem;
@@ -138,7 +139,7 @@
 }
 
 /* Grid animado de fondo */
-.animatedGrid {
+:global(.login-general) .animatedGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
@@ -147,7 +148,7 @@
   z-index: 3;
 }
 
-.gridCell {
+:global(.login-general) .gridCell {
   aspect-ratio: 1;
   background: linear-gradient(180deg, rgba(0,194,255,0.03), rgba(0,247,255,0.01));
   border: 1px solid rgba(0, 247, 255, 0.06);
@@ -156,8 +157,13 @@
   box-shadow: 0 4px 18px rgba(0,0,0,0.45) inset;
 }
 
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.95); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
 /* Sección derecha (Login) */
-.loginSection {
+:global(.login-general) .loginSection {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -168,7 +174,7 @@
 }
 
 /* Card login principal */
-.loginCard {
+:global(.login-general) .loginCard {
   background: linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.018));
   backdrop-filter: blur(10px) saturate(1.1);
   border-radius: 16px;
@@ -184,7 +190,7 @@
 }
 
 /* Brillo sutil en la card */
-.cardGlare {
+:global(.login-general) .cardGlare {
   pointer-events: none;
   position: absolute;
   inset: -2px;
@@ -195,13 +201,13 @@
 }
 
 /* Header del login */
-.loginHeader {
+:global(.login-general) .loginHeader {
   margin-bottom: 1.6rem;
   text-align: center;
   z-index: 3;
 }
 
-.loginHeader h2 {
+:global(.login-general) .loginHeader h2 {
   font-size: 1.85rem;
   margin-bottom: 0.6rem;
   color: var(--text-primary);
@@ -211,7 +217,7 @@
   letter-spacing: -0.4px;
 }
 
-.loginHeader h2::after {
+:global(.login-general) .loginHeader h2::after {
   content: '';
   position: absolute;
   bottom: -10px;
@@ -225,13 +231,13 @@
 }
 
 /* Formulario */
-.formGroup {
+:global(.login-general) .formGroup {
   margin-bottom: 1.2rem;
   position: relative;
   z-index: 3;
 }
 
-.formGroup label {
+:global(.login-general) .formGroup label {
   display: block;
   margin-bottom: 0.5rem;
   color: var(--text-secondary);
@@ -240,11 +246,11 @@
   letter-spacing: 0.2px;
 }
 
-.inputContainer {
+:global(.login-general) .inputContainer {
   position: relative;
 }
 
-.inputField {
+:global(.login-general) .inputField {
   width: 100%;
   padding: 0.88rem 0;
   background: transparent;
@@ -255,11 +261,11 @@
   transition: var(--transition);
 }
 
-.inputField.typing {
+:global(.login-general) .inputField.typing {
   /* placeholder effect handled by underline */
 }
 
-.inputUnderline {
+:global(.login-general) .inputUnderline {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -271,15 +277,15 @@
   transition: var(--transition);
 }
 
-.inputField:focus + .inputUnderline,
-.inputField.typing + .inputUnderline {
+:global(.login-general) .inputField:focus + .inputUnderline,
+:global(.login-general) .inputField.typing + .inputUnderline {
   transform: scaleX(1);
   background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
   box-shadow: 0 6px 24px rgba(0,194,255,0.04);
 }
 
 /* Toggle password */
-.togglePassword {
+:global(.login-general) .togglePassword {
   position: absolute;
   right: 0;
   bottom: 0.6rem;
@@ -292,13 +298,13 @@
   z-index: 4;
 }
 
-.togglePassword:hover {
+:global(.login-general) .togglePassword:hover {
   color: var(--accent-neon);
   transform: scale(1.1);
 }
 
 /* Botón de login */
-.loginButton {
+:global(.login-general) .loginButton {
   width: 100%;
   padding: 0.98rem 1rem;
   margin-top: 1.35rem;
@@ -319,12 +325,12 @@
   gap: 10px;
 }
 
-.loginButton:hover {
+:global(.login-general) .loginButton:hover {
   transform: translateY(-3px) scale(1.01);
   box-shadow: 0 16px 40px rgba(0, 194, 255, 0.14);
 }
 
-.loginButton:disabled {
+:global(.login-general) .loginButton:disabled {
   background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
   cursor: not-allowed;
   transform: none;
@@ -332,7 +338,7 @@
 }
 
 /* brillo en el botón */
-.buttonGlow {
+:global(.login-general) .buttonGlow {
   position: absolute;
   top: -6%;
   left: -10%;
@@ -346,7 +352,7 @@
 }
 
 /* pequeña estrella que da "toque" premium */
-.buttonStar {
+:global(.login-general) .buttonStar {
   position: absolute;
   right: 12px;
   top: 10px;
@@ -359,7 +365,7 @@
 }
 
 /* contenido interno del botón */
-.buttonContent {
+:global(.login-general) .buttonContent {
   position: relative;
   z-index: 9;
   display: flex;
@@ -368,7 +374,7 @@
 }
 
 /* mini porcentaje al lado del texto cuando carga */
-.smallProgress {
+:global(.login-general) .smallProgress {
   font-weight: 800;
   font-size: 0.95rem;
   color: rgba(0,0,0,0.85);
@@ -379,7 +385,7 @@
 }
 
 /* animación de texto pulsante */
-.pulseEffect {
+:global(.login-general) .pulseEffect {
   display: inline-block;
   animation: textPulse 1.6s infinite;
   z-index: 9;
@@ -391,7 +397,7 @@
 }
 
 /* Mensaje de error */
-.errorMessage {
+:global(.login-general) .errorMessage {
   background: rgba(255, 51, 102, 0.07);
   border-left: 3px solid var(--danger);
   padding: 0.72rem;
@@ -411,7 +417,7 @@
 }
 
 /* Footer */
-.loginFooter {
+:global(.login-general) .loginFooter {
   margin-top: 1.05rem;
   text-align: center;
   font-size: 0.92rem;
@@ -419,20 +425,20 @@
   z-index: 6;
 }
 
-.loginFooter a {
+:global(.login-general) .loginFooter a {
   color: var(--accent-turquoise);
   text-decoration: none;
   font-weight: 700;
   transition: var(--transition);
 }
 
-.loginFooter a:hover {
+:global(.login-general) .loginFooter a:hover {
   color: var(--accent-neon);
   text-shadow: 0 0 10px rgba(0, 247, 255, 0.18);
 }
 
 /* Partículas (derecha) */
-.particlesWrapper {
+:global(.login-general) .particlesWrapper {
   position: absolute;
   top: 0;
   left: 0;
@@ -443,7 +449,7 @@
   pointer-events: none;
 }
 
-.particle {
+:global(.login-general) .particle {
   position: absolute;
   background: radial-gradient(circle at 33% 33%, rgba(255,255,255,0.9), rgba(0, 194, 255, 0.12));
   border-radius: 50%;
@@ -475,7 +481,7 @@
 }
 
 /* Efecto shake */
-.shake {
+:global(.login-general) .shake {
   animation: shakeAnimation 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
 
@@ -486,13 +492,13 @@
 }
 
 /* Barra de progreso (visual, no cambia lógica) */
-.progressWrap {
+:global(.login-general) .progressWrap {
   margin-top: 0.9rem;
   margin-bottom: 0.2rem;
   z-index: 5;
 }
 
-.progressInfo {
+:global(.login-general) .progressInfo {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -502,10 +508,10 @@
   opacity: 0.95;
 }
 
-.progressLabel { font-weight: 600; }
-.progressETA { font-weight: 700; color: rgba(255,255,255,0.6); }
+:global(.login-general) .progressLabel { font-weight: 600; }
+:global(.login-general) .progressETA { font-weight: 700; color: rgba(255,255,255,0.6); }
 
-.progressBarContainer {
+:global(.login-general) .progressBarContainer {
   width: 100%;
   height: 8px;
   background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -514,7 +520,7 @@
   box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
 }
 
-.progressBar {
+:global(.login-general) .progressBar {
   height: 100%;
   background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
   width: 0%;
@@ -523,7 +529,7 @@
 }
 
 /* Mensaje de bienvenida (ajustado) */
-.welcomeOverlay {
+:global(.login-general) .welcomeOverlay {
   position: fixed;
   inset: 0;
   display: flex;
@@ -540,7 +546,7 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-.welcomeCard {
+:global(.login-general) .welcomeCard {
   width: 520px;
   max-width: calc(100% - 36px);
   background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
@@ -566,7 +572,7 @@
   100% { transform: translateY(0) scale(1); }
 }
 
-.welcomeIcon {
+:global(.login-general) .welcomeIcon {
   width: 86px;
   height: 86px;
   border-radius: 50%;
@@ -579,14 +585,14 @@
   border: 1px solid rgba(0,247,255,0.07);
 }
 
-.welcomeLogo {
+:global(.login-general) .welcomeLogo {
   width: 64px;
   height: auto;
   filter: drop-shadow(0 8px 18px rgba(0,247,255,0.14));
   transform: rotate(-6deg);
 }
 
-.welcomeTitle {
+:global(.login-general) .welcomeTitle {
   font-size: 1.7rem;
   margin: 14px 0 6px;
   color: var(--text-primary);
@@ -594,7 +600,7 @@
   font-weight: 900;
 }
 
-.welcomeCompany {
+:global(.login-general) .welcomeCompany {
   font-size: 1.12rem;
   margin: 6px 0 8px;
   font-weight: 900;
@@ -609,7 +615,7 @@
   transform: translateY(-2px);
 }
 
-.welcomeMessage {
+:global(.login-general) .welcomeMessage {
   margin-top: 6px;
   font-size: 0.98rem;
   color: var(--text-secondary);
@@ -619,14 +625,14 @@
 }
 
 /* sparkles / confetti (leves) */
-.welcomeSparkles {
+:global(.login-general) .welcomeSparkles {
   position: absolute;
   inset: auto 18px 18px 18px;
   height: 14px;
   pointer-events: none;
 }
 
-.confetti {
+:global(.login-general) .confetti {
   position: absolute;
   bottom: 8px;
   width: 10px;
@@ -648,32 +654,32 @@
 
 /* ajuste responsive */
 @media (max-width: 920px) {
-  .superPremiumContainer {
+  :global(.login-general) .superPremiumContainer {
     flex-direction: column;
   }
 
-  .brandingSection {
+  :global(.login-general) .brandingSection {
     padding: 2rem 1rem;
     order: 2;
   }
 
-  .loginSection {
+  :global(.login-general) .loginSection {
     padding: 2rem 1rem;
     order: 1;
   }
 
-  .loginCard {
+  :global(.login-general) .loginCard {
     width: 100%;
     max-width: 540px;
   }
 
-  .logoImg { width: 200px; }
+  :global(.login-general) .logoImg { width: 200px; }
 }
 
 @media (max-width: 720px) {
-  .welcomeCard { width: calc(100% - 36px); padding: 20px; }
-  .welcomeTitle { font-size: 1.25rem; }
-  .welcomeCompany { font-size: 1rem; }
-  .welcomeIcon { width: 66px; height: 66px; margin-top: -52px; }
-  .welcomeLogo { width: 52px; }
+  :global(.login-general) .welcomeCard { width: calc(100% - 36px); padding: 20px; }
+  :global(.login-general) .welcomeTitle { font-size: 1.25rem; }
+  :global(.login-general) .welcomeCompany { font-size: 1rem; }
+  :global(.login-general) .welcomeIcon { width: 66px; height: 66px; margin-top: -52px; }
+  :global(.login-general) .welcomeLogo { width: 52px; }
 }

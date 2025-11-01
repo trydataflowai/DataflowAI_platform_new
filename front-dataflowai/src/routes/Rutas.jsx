@@ -14,7 +14,9 @@ import { SideBar } from "../components/layout/SideBar";
 // Páginas
 import Index from "../components/pages/Index";
 import Login from "../components/pages/Login";
+import LoginServitel from "../components/pages/Login/LoginServitel";
 import LoginColtrade from "../components/pages/Login/LoginColtrade";
+
 import HomeLogin from "../components/pages/HomeLogin";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import HomeTools from "../components/pages/HomeTools";
@@ -134,7 +136,9 @@ export const Rutas = () => {
           <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
 
           <Route path="/login" element={<Login />} />
+          <Route path="Servitel/login" element={<LoginServitel />} />
           <Route path="Coltrade/login" element={<LoginColtrade />} />
+           
           <Route path="/crear-empresa" element={<CreacionEmpresa />} />
           <Route path="/crear-usuario" element={<CreacionUsuario />} />
           <Route path="/pagos" element={<PagosStripe />} />
