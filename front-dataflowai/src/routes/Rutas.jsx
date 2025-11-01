@@ -41,6 +41,7 @@ import DashboardCompras from "../components/dashboards/DashboardCompras";
 import DashboardSalesreview from "../components/dashboards/DashboardSalesreview";
 import SalesDashboard from "../components/dashboards/SalesDashboard";
 import ApacheEcharts from "../components/dashboards/00Echarts";
+import DashboardISPVentas from "../components/pages/dashboardcrud/DashboardISPVentas";
 
 
 
@@ -48,6 +49,14 @@ import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDash
 
 // Ruta de Dashboard de Sales Corporativo - CRUD
 import CrudDashboardSalesCorporativo from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativo";
+
+
+// Ruta de Dashboard de Sales Corporativo - CRUD metas
+import CrudDashboardSalesCorporativoMetas from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoMetas";
+
+
+// Ruta de Dashboard de Sales Corporativo - CRUD Inicio
+import CrudDashboardSalesCorporativoInicio from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoInicio";
 
 
 
@@ -391,8 +400,40 @@ export const Rutas = () => {
             }
           />
 
-    
 
+           <Route
+            path={("/DashboardSalescorporativo/Metas")}
+            element={
+              <RutaProtegida> 
+                <SideBarLayout>
+                  <CrudDashboardSalesCorporativoMetas />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+            <Route
+            path={("/DashboardSalescorporativo")}
+            element={
+              <RutaProtegida> 
+                <SideBarLayout>
+                  <CrudDashboardSalesCorporativoInicio />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+            <Route
+              path={("/DashboardISPventas")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardISPVentas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
         </Routes>
       </ThemeProvider>

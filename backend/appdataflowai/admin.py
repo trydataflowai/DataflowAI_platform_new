@@ -577,3 +577,75 @@ class DashboardSalesCorporativoAdmin(admin.ModelAdmin):
         'fecha',
     )
     ordering = ('-fecha',)
+
+
+
+from django.contrib import admin
+from .models import DashboardSalesCorporativoMetas
+
+@admin.register(DashboardSalesCorporativoMetas)
+class DashboardSalesCorporativoMetasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'ano',
+        'mes',
+        'categoria_cliente',
+        'nombre_cliente',
+        'categoria_producto',
+        'meta',
+        'id_empresa',
+        'id_producto',
+    )
+
+    list_filter = ('ano', 'mes', 'categoria_cliente', 'categoria_producto')
+    search_fields = ('nombre_cliente', 'categoria_cliente', 'categoria_producto')
+    ordering = ('-ano', '-mes')
+
+
+
+from django.contrib import admin
+from .models import DashboardIspVentas
+
+
+@admin.register(DashboardIspVentas)
+class DashboardIspVentasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'ano',
+        'mes',
+        'nombre_cliente',
+        'categoria_cliente',
+        'ciudad',
+        'segmento',
+        'nombre_plan',
+        'categoria_plan',
+        'velocidad_mbps',
+        'precio_mensual',
+        'estado_suscripcion',
+        'monto_facturado',
+        'fecha_inicio',
+        'fecha_fin',
+        'id_empresa',
+        'id_producto',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'categoria_cliente',
+        'ciudad',
+        'segmento',
+        'categoria_plan',
+        'estado_suscripcion',
+        'metodo_pago',
+    )
+
+    search_fields = (
+        'nombre_cliente',
+        'nombre_plan',
+        'categoria_cliente',
+        'categoria_plan',
+        'ciudad',
+    )
+
+    ordering = ('-ano', '-mes')

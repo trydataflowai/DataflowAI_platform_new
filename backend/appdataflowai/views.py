@@ -2988,3 +2988,412 @@ class DashboardSalesCorporativoExportProd15(APIView):
         )
         response['Content-Disposition'] = f'attachment; filename=\"{filename}\"'
         return response
+
+
+
+#Vista para el crud del dashboard de SALES CORPORATIVO del modelo: DashboardSalesCorporativoMetas
+# views.py
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
+from .models import DashboardSalesCorporativoMetas, Usuario
+from .serializers import DashboardSalesCorporativoMetasProduct15Serializer
+
+class DashboardSalesCorporativoMetasProduct15_ListCreate(APIView):
+    """
+    GET: lista con filtros (ano, mes, categoria_cliente, nombre_cliente, categoria_producto)
+    POST: crea una meta; id_producto se forzara a DEFAULT_PRODUCT_ID desde el serializer.
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else (auth.split(' ')[-1] if auth else '')
+        if not token:
+            raise AuthenticationFailed('No se proporciono token')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token invalido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token invalido')
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def _apply_filters(self, qs, request):
+        q = qs
+        ano = request.query_params.get('ano')
+        mes = request.query_params.get('mes')
+        categoria_cliente = request.query_params.get('categoria_cliente')
+        nombre_cliente = request.query_params.get('nombre_cliente')
+        categoria_producto = request.query_params.get('categoria_producto')
+
+        if ano:
+            try:
+                q = q.filter(ano=int(ano))
+            except ValueError:
+                pass
+        if mes:
+            q = q.filter(mes__iexact=mes)
+        if categoria_cliente:
+            q = q.filter(categoria_cliente__icontains=categoria_cliente)
+        if nombre_cliente:
+            q = q.filter(nombre_cliente__icontains=nombre_cliente)
+        if categoria_producto:
+            q = q.filter(categoria_producto__icontains=categoria_producto)
+        return q
+
+    def get(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DashboardSalesCorporativoMetas.objects.filter(id_empresa=empresa)
+        qs = self._apply_filters(qs, request)
+        serializer = DashboardSalesCorporativoMetasProduct15Serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DashboardSalesCorporativoMetasProduct15Serializer(data=request.data, context={'empresa': empresa})
+        if serializer.is_valid():
+            obj = serializer.save()
+            return Response(DashboardSalesCorporativoMetasProduct15Serializer(obj).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashboardSalesCorporativoMetasProduct15_Detail(APIView):
+    """
+    GET/PUT/PATCH/DELETE por pk para metas; valida empresa.
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else (auth.split(' ')[-1] if auth else '')
+        if not token:
+            raise AuthenticationFailed('No se proporciono token')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token invalido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token invalido')
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def get(self, request, pk):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesCorporativoMetas, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para ver este registro'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = DashboardSalesCorporativoMetasProduct15Serializer(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _update(self, request, pk, partial):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesCorporativoMetas, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para modificar este registro'}, status=status.HTTP_403_FORBIDDEN)
+
+        data = dict(request.data)
+        data.pop('id_empresa', None)
+        data.pop('id_producto', None)
+        serializer = DashboardSalesCorporativoMetasProduct15Serializer(obj, data=data, partial=partial, context={'empresa': empresa})
+        if serializer.is_valid():
+            updated = serializer.save()
+            return Response(DashboardSalesCorporativoMetasProduct15Serializer(updated).data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        return self._update(request, pk, partial=False)
+
+    def patch(self, request, pk):
+        return self._update(request, pk, partial=True)
+
+    def delete(self, request, pk):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = get_object_or_404(DashboardSalesCorporativoMetas, pk=pk)
+        if obj.id_empresa != empresa:
+            return Response({'error': 'No autorizado para eliminar este registro'}, status=status.HTTP_403_FORBIDDEN)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DashboardSalesCorporativoMetasProduct15_BulkDelete(APIView):
+    """
+    POST: borra en masa los registros que coinciden con filtros y pertenecen a la empresa del usuario.
+    Soporta filtros por body o query params: ano, mes, categoria_cliente, nombre_cliente, categoria_producto
+    Responde: {'deleted': <cantidad>}
+    """
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else (auth.split(' ')[-1] if auth else '')
+        if not token:
+            raise AuthenticationFailed('No se proporciono token')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token invalido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token invalido')
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def post(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        params = request.data if request.data else request.query_params
+        qs = DashboardSalesCorporativoMetas.objects.filter(id_empresa=empresa)
+
+        ano = params.get('ano')
+        mes = params.get('mes')
+        categoria_cliente = params.get('categoria_cliente')
+        nombre_cliente = params.get('nombre_cliente')
+        categoria_producto = params.get('categoria_producto')
+
+        if ano:
+            try:
+                qs = qs.filter(ano=int(ano))
+            except ValueError:
+                pass
+        if mes:
+            qs = qs.filter(mes__iexact=mes)
+        if categoria_cliente:
+            qs = qs.filter(categoria_cliente__icontains=categoria_cliente)
+        if nombre_cliente:
+            qs = qs.filter(nombre_cliente__icontains=nombre_cliente)
+        if categoria_producto:
+            qs = qs.filter(categoria_producto__icontains=categoria_producto)
+
+        count = qs.count()
+        if count == 0:
+            return Response({'deleted': 0, 'detail': 'No se encontraron registros para eliminar'}, status=status.HTTP_200_OK)
+        qs.delete()
+        return Response({'deleted': count}, status=status.HTTP_200_OK)
+
+
+class DashboardSalesCorporativoMetasProduct15_Export(APIView):
+    """
+    GET: Exporta los registros filtrados de la empresa del usuario como .xlsx
+    Soporta filtros: ano, mes, categoria_cliente, nombre_cliente, categoria_producto
+    """
+
+    def _get_usuario_from_token(self, request):
+        auth = request.headers.get('Authorization', '')
+        token = auth.split('Bearer ')[-1] if 'Bearer ' in auth else (auth.split(' ')[-1] if auth else '')
+        if not token:
+            raise AuthenticationFailed('No se proporciono token')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                raise AuthenticationFailed('Token invalido')
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expirado')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Token invalido')
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+            return usuario
+        except Usuario.DoesNotExist:
+            raise AuthenticationFailed('Usuario no encontrado')
+
+    def _apply_filters(self, qs, request):
+        q = qs
+        ano = request.query_params.get('ano')
+        mes = request.query_params.get('mes')
+        categoria_cliente = request.query_params.get('categoria_cliente')
+        nombre_cliente = request.query_params.get('nombre_cliente')
+        categoria_producto = request.query_params.get('categoria_producto')
+
+        if ano:
+            try:
+                q = q.filter(ano=int(ano))
+            except ValueError:
+                pass
+        if mes:
+            q = q.filter(mes__iexact=mes)
+        if categoria_cliente:
+            q = q.filter(categoria_cliente__icontains=categoria_cliente)
+        if nombre_cliente:
+            q = q.filter(nombre_cliente__icontains=nombre_cliente)
+        if categoria_producto:
+            q = q.filter(categoria_producto__icontains=categoria_producto)
+        return q
+
+    def get(self, request):
+        try:
+            usuario = self._get_usuario_from_token(request)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if empresa is None:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DashboardSalesCorporativoMetas.objects.filter(id_empresa=empresa)
+        qs = self._apply_filters(qs, request)
+        serializer = DashboardSalesCorporativoMetasProduct15Serializer(qs, many=True)
+        data = serializer.data
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "DashboardSalesCorporativoMetas"
+
+        if data and len(data) > 0:
+            headers = list(data[0].keys())
+        else:
+            headers = list(DashboardSalesCorporativoMetasProduct15Serializer.Meta.fields)
+
+        for col_idx, h in enumerate(headers, start=1):
+            ws.cell(row=1, column=col_idx, value=h)
+
+        for row_idx, row in enumerate(data, start=2):
+            for col_idx, h in enumerate(headers, start=1):
+                val = row.get(h, None)
+                ws.cell(row=row_idx, column=col_idx, value=val)
+
+        for i, _ in enumerate(headers, start=1):
+            col = get_column_letter(i)
+            max_length = 0
+            for cell in ws[col]:
+                try:
+                    if cell.value:
+                        s = str(cell.value)
+                        if len(s) > max_length:
+                            max_length = len(s)
+                except Exception:
+                    pass
+            ws.column_dimensions[col].width = min(max_length + 2, 60)
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        empresa_id = getattr(empresa, 'id_empresa', None) or getattr(empresa, 'pk', None) or 'empresa'
+        today = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"dashboard_salescorporativometas_{empresa_id}_{today}.xlsx"
+
+        from django.http import HttpResponse
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename=\"{filename}\"'
+        return response
+
+
+
+
+
+
+
+
+#Vistas para Dashboard de Isp
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import DashboardIspVentas
+from .serializers import DashboardIspVentasSerializer
+
+class DashboardIspVentas_List(APIView):
+    """
+    API para obtener los registros de Dashboard ISP Ventas
+    Permite filtrar por empresa, año, mes, cliente, plan, etc.
+    """
+    def get(self, request):
+        queryset = DashboardIspVentas.objects.all()
+
+        # Filtros opcionales por parámetros GET
+        id_empresa = request.GET.get('id_empresa')
+        ano = request.GET.get('ano')
+        mes = request.GET.get('mes')
+        categoria_cliente = request.GET.get('categoria_cliente')
+        ciudad = request.GET.get('ciudad')
+        segmento = request.GET.get('segmento')
+        estado_suscripcion = request.GET.get('estado_suscripcion')
+
+        if id_empresa:
+            queryset = queryset.filter(id_empresa=id_empresa)
+        if ano:
+            queryset = queryset.filter(ano=ano)
+        if mes:
+            queryset = queryset.filter(mes__iexact=mes)
+        if categoria_cliente:
+            queryset = queryset.filter(categoria_cliente__iexact=categoria_cliente)
+        if ciudad:
+            queryset = queryset.filter(ciudad__iexact=ciudad)
+        if segmento:
+            queryset = queryset.filter(segmento__iexact=segmento)
+        if estado_suscripcion:
+            queryset = queryset.filter(estado_suscripcion__iexact=estado_suscripcion)
+
+        serializer = DashboardIspVentasSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
