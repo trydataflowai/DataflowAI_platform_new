@@ -186,7 +186,7 @@ const LoginServitel = () => {
   const starCount = 18;
   const stars = Array.from({ length: starCount });
 
-  return (
+  return (//
     <div className="servitel-login">
       <div className={styles.servitelPageContainer}>
         <div className={styles.servitelLoginWrapper}>

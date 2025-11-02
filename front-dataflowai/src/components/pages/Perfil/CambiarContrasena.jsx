@@ -1,8 +1,11 @@
+// src/components/.../AppCambiarContrasena.jsx
 import React, { useState } from 'react';
-import styles from '../../../styles/Profile/CambiarContraDark.module.css';
+import styles from '../../../styles/Profile/CambiarContrasena.module.css';
 import { cambiarContrasena } from '../../../api/Profile';
+import { useTheme } from '../../componentes/ThemeContext'; // ajusta la ruta si hace falta
 
 const AppCambiarContrasena = () => {
+  const { theme } = useTheme();
   const [actual, setActual] = useState('');
   const [nueva, setNueva] = useState('');
   const [confirmar, setConfirmar] = useState('');
@@ -55,33 +58,36 @@ const AppCambiarContrasena = () => {
     }
   };
 
+  // variante (aplica clase raíz con variables)
+  const variantClass = theme === 'light' ? styles.CambiarcontrasenaLight : styles.CambiarcontrasenaDark;
+
   return (
-    <div className={styles.container}>
-      <div className={styles.card} style={{ maxWidth: 560 }}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Cambiar contraseña</h1>
-          <p className={styles.subtitle}>Actualiza tu contraseña para mantener tu cuenta segura.</p>
+    <div className={`${styles.cambiarcontrasenacontainer} ${variantClass}`}>
+      <div className={styles.cambiarcontrasenacard} style={{ maxWidth: 560 }}>
+        <div className={styles.cambiarcontrasenaheader}>
+          <h1 className={styles.cambiarcontrasenatitle}>Cambiar contraseña</h1>
+          <p className={styles.cambiarcontrasenasubtitle}>Actualiza tu contraseña para mantener tu cuenta segura.</p>
         </div>
 
-        {error && <div className={styles.errorBox} role="alert">{error}</div>}
-        {success && <div className={styles.successBox} role="status">{success}</div>}
+        {error && <div className={styles.cambiarcontrasenaerrorBox} role="alert">{error}</div>}
+        {success && <div className={styles.cambiarcontrasenasuccessBox} role="status">{success}</div>}
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <label className={styles.label}>
-            <span className={styles.labelText}>Contraseña actual</span>
-            <div className={styles.inputRow}>
+        <form onSubmit={handleSubmit} className={styles.cambiarcontrasenaform}>
+          <label className={styles.cambiarcontrasenalabel}>
+            <span className={styles.cambiarcontrasenalabelText}>Contraseña actual</span>
+            <div className={styles.cambiarcontrasenainputRow}>
               <input
                 name="actual"
                 value={actual}
                 onChange={(e) => setActual(e.target.value)}
                 type={showActual ? 'text' : 'password'}
-                className={styles.input}
+                className={styles.cambiarcontrasenainput}
                 autoComplete="current-password"
                 aria-label="Contraseña actual"
               />
               <button
                 type="button"
-                className={styles.showBtn}
+                className={styles.cambiarcontrasenashowBtn}
                 onClick={() => setShowActual(p => !p)}
                 aria-label="Mostrar contraseña actual"
               >
@@ -90,50 +96,50 @@ const AppCambiarContrasena = () => {
             </div>
           </label>
 
-          <label className={styles.label}>
-            <span className={styles.labelText}>Nueva contraseña</span>
-            <div className={styles.inputRow}>
+          <label className={styles.cambiarcontrasenalabel}>
+            <span className={styles.cambiarcontrasenalabelText}>Nueva contraseña</span>
+            <div className={styles.cambiarcontrasenainputRow}>
               <input
                 name="nueva"
                 value={nueva}
                 onChange={(e) => setNueva(e.target.value)}
                 type={showNueva ? 'text' : 'password'}
-                className={styles.input}
+                className={styles.cambiarcontrasenainput}
                 autoComplete="new-password"
                 aria-label="Nueva contraseña"
               />
               <button
                 type="button"
-                className={styles.showBtn}
+                className={styles.cambiarcontrasenashowBtn}
                 onClick={() => setShowNueva(p => !p)}
                 aria-label="Mostrar nueva contraseña"
               >
                 {showNueva ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
-            <div className={styles.strengthBar} aria-hidden>
-              <div className={`${styles.strengthSegment} ${strength >= 1 ? styles.on : ''}`}></div>
-              <div className={`${styles.strengthSegment} ${strength >= 2 ? styles.on : ''}`}></div>
-              <div className={`${styles.strengthSegment} ${strength >= 3 ? styles.on : ''}`}></div>
-              <div className={`${styles.strengthSegment} ${strength >= 4 ? styles.on : ''}`}></div>
+            <div className={styles.cambiarcontrasenastrengthBar} aria-hidden>
+              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 1 ? styles.cambiarcontrasenaon : ''}`}></div>
+              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 2 ? styles.cambiarcontrasenaon : ''}`}></div>
+              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 3 ? styles.cambiarcontrasenaon : ''}`}></div>
+              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 4 ? styles.cambiarcontrasenaon : ''}`}></div>
             </div>
           </label>
 
-          <label className={styles.label}>
-            <span className={styles.labelText}>Confirmar nueva contraseña</span>
-            <div className={styles.inputRow}>
+          <label className={styles.cambiarcontrasenalabel}>
+            <span className={styles.cambiarcontrasenalabelText}>Confirmar nueva contraseña</span>
+            <div className={styles.cambiarcontrasenainputRow}>
               <input
                 name="confirmar"
                 value={confirmar}
                 onChange={(e) => setConfirmar(e.target.value)}
                 type={showConfirmar ? 'text' : 'password'}
-                className={styles.input}
+                className={styles.cambiarcontrasenainput}
                 autoComplete="new-password"
                 aria-label="Confirmar nueva contraseña"
               />
               <button
                 type="button"
-                className={styles.showBtn}
+                className={styles.cambiarcontrasenashowBtn}
                 onClick={() => setShowConfirmar(p => !p)}
                 aria-label="Mostrar confirmar contraseña"
               >
@@ -142,8 +148,8 @@ const AppCambiarContrasena = () => {
             </div>
           </label>
 
-          <div className={styles.actions}>
-            <button type="submit" className={styles.primaryButton} disabled={saving}>
+          <div className={styles.cambiarcontrasenaactions}>
+            <button type="submit" className={styles.cambiarcontrasenaprimaryButton} disabled={saving}>
               {saving ? 'Guardando...' : 'Cambiar contraseña'}
             </button>
           </div>

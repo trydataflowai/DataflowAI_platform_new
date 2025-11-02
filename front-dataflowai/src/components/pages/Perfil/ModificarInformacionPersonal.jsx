@@ -1,5 +1,7 @@
+// src/components/.../ModificarInformacionPersonal.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/Profile/ModInfoPersonalDark.module.css';
+import styles from '../../../styles/Profile/ModInfoPersonal.module.css';
+import { useTheme } from '../../componentes/ThemeContext'; // ajusta ruta si hace falta
 import {
   obtenerMiPerfil,
   actualizarMiUsuario,
@@ -7,8 +9,9 @@ import {
 } from '../../../api/Profile';
 
 const ModificarInformacionPersonal = () => {
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false); // modo edición global
+  const [editing, setEditing] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
   const [error, setError] = useState('');
@@ -71,7 +74,6 @@ const ModificarInformacionPersonal = () => {
   const isAdmin = permisoId === 1;
 
   const enterEdit = () => {
-    // guarda backups de los valores actuales para poder restaurar si cancela
     setBackupUser({ nombres, apellidos, correo });
     setBackupCompany({
       nombreEmpresa,
@@ -89,7 +91,6 @@ const ModificarInformacionPersonal = () => {
   };
 
   const cancelEdit = () => {
-    // restaura desde backups
     if (backupUser) {
       setNombres(backupUser.nombres);
       setApellidos(backupUser.apellidos);
@@ -124,7 +125,6 @@ const ModificarInformacionPersonal = () => {
       const res = await actualizarMiUsuario(payload);
       setUsuario(res.usuario);
       setSuccess('Usuario actualizado correctamente');
-      // actualizar backups para futura edición
       setBackupUser({ nombres, apellidos, correo });
       setEditing(false);
     } catch (err) {
@@ -158,7 +158,6 @@ const ModificarInformacionPersonal = () => {
       const res = await actualizarEmpresa(payload);
       setEmpresa(res.empresa);
       setSuccess('Empresa actualizada correctamente');
-      // actualizar backups
       setBackupCompany({
         nombreEmpresa,
         direccion,
@@ -178,35 +177,37 @@ const ModificarInformacionPersonal = () => {
     }
   };
 
+  const variantClass = theme === 'light' ? styles.modinfopersonalLight : styles.modinfopersonalDark;
+
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.centerBox}>
-          <div className={styles.loader} />
-          <div className={styles.loadingText}>Cargando perfil...</div>
+      <div className={`${styles.modinfopersonalcontainer} ${variantClass}`}>
+        <div className={styles.modinfopersonalcenterBox}>
+          <div className={styles.modinfopersonalloader} />
+          <div className={styles.modinfopersonalloadingText}>Cargando perfil...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.modinfopersonalcontainer} ${variantClass}`}>
 
-      <header className={styles.header}>
+      <header className={styles.modinfopersonalheader}>
         <div>
-          <h1 className={styles.title}>Modificar Información Personal</h1>
-          <p className={styles.subtitle}>Actualiza tu información o la de tu empresa</p>
+          <h1 className={styles.modinfopersonaltitle}>Modificar Información Personal</h1>
+          <p className={styles.modinfopersonalsubtitle}>Actualiza tu información o la de tu empresa</p>
         </div>
 
-        <div className={styles.headerActions}>
+        <div className={styles.modinfopersonalheaderActions}>
           {!editing ? (
-            <button className={styles.editToggle} onClick={enterEdit}>
+            <button className={styles.modinfopersonaleditToggle} onClick={enterEdit}>
               ✏️ Editar información
             </button>
           ) : (
             <>
-              <span className={styles.editBadge}>Modo edición</span>
-              <button className={styles.cancelBtn} onClick={cancelEdit}>
+              <span className={styles.modinfopersonaleditBadge}>Modo edición</span>
+              <button className={styles.modinfopersonalcancelBtn} onClick={cancelEdit}>
                 ✖️ Cancelar edición
               </button>
             </>
@@ -214,23 +215,23 @@ const ModificarInformacionPersonal = () => {
         </div>
       </header>
 
-      {error && <div className={styles.alert + ' ' + styles.alertError}>{error}</div>}
-      {success && <div className={styles.alert + ' ' + styles.alertSuccess}>{success}</div>}
+      {error && <div className={`${styles.modinfopersonalalert} ${styles.modinfopersonalalertError}`}>{error}</div>}
+      {success && <div className={`${styles.modinfopersonalalert} ${styles.modinfopersonalalertSuccess}`}>{success}</div>}
 
-      <div className={styles.grid}>
+      <div className={styles.modinfopersonalgrid}>
 
         {/* Usuario */}
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.sectionTitle}>Mi usuario</h2>
+        <section className={styles.modinfopersonalcard}>
+          <div className={styles.modinfopersonalcardHeader}>
+            <h2 className={styles.modinfopersonalsectionTitle}>Mi usuario</h2>
           </div>
 
-          <form onSubmit={handleSaveUser} className={styles.form}>
-            <div className={styles.row}>
-              <label className={styles.label}>
-                <span className={styles.labelText}>Nombre</span>
+          <form onSubmit={handleSaveUser} className={styles.modinfopersonalform}>
+            <div className={styles.modinfopersonalrow}>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Nombre</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={nombres}
                   onChange={(e) => setNombres(e.target.value)}
                   placeholder="Tu nombre"
@@ -238,10 +239,10 @@ const ModificarInformacionPersonal = () => {
                 />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Apellidos</span>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Apellidos</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={apellidos}
                   onChange={(e) => setApellidos(e.target.value)}
                   placeholder="Tus apellidos"
@@ -250,11 +251,11 @@ const ModificarInformacionPersonal = () => {
               </label>
             </div>
 
-            <div className={styles.rowSingle}>
-              <label className={styles.label}>
-                <span className={styles.labelText}>Correo</span>
+            <div className={styles.modinfopersonalrowSingle}>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Correo</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   type="email"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
@@ -264,9 +265,9 @@ const ModificarInformacionPersonal = () => {
               </label>
             </div>
 
-            <div className={styles.actions}>
+            <div className={styles.modinfopersonalactions}>
               <button
-                className={styles.primaryButton}
+                className={styles.modinfopersonalprimaryButton}
                 type="submit"
                 disabled={!editing || savingUser}
                 aria-disabled={!editing || savingUser}
@@ -278,23 +279,23 @@ const ModificarInformacionPersonal = () => {
         </section>
 
         {/* Empresa */}
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.sectionTitle}>Empresa {empresa ? `- ${empresa.nombre_empresa}` : ''}</h2>
+        <section className={styles.modinfopersonalcard}>
+          <div className={styles.modinfopersonalcardHeader}>
+            <h2 className={styles.modinfopersonalsectionTitle}>Empresa {empresa ? `- ${empresa.nombre_empresa}` : ''}</h2>
           </div>
 
           {!isAdmin && (
-            <div className={styles.infoBox}>
+            <div className={styles.modinfopersonalinfoBox}>
               Sólo administradores pueden editar la empresa.
             </div>
           )}
 
-          <form onSubmit={handleSaveCompany} className={styles.form}>
-            <div className={styles.row}>
-              <label className={styles.label}>
-                <span className={styles.labelText}>Nombre empresa</span>
+          <form onSubmit={handleSaveCompany} className={styles.modinfopersonalform}>
+            <div className={styles.modinfopersonalrow}>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Nombre empresa</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={nombreEmpresa}
                   onChange={(e) => setNombreEmpresa(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -303,10 +304,10 @@ const ModificarInformacionPersonal = () => {
                 />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Dirección</span>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Dirección</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -316,11 +317,11 @@ const ModificarInformacionPersonal = () => {
               </label>
             </div>
 
-            <div className={styles.row}>
-              <label className={styles.labelSmall}>
-                <span className={styles.labelText}>Prefijo</span>
+            <div className={styles.modinfopersonalrow}>
+              <label className={styles.modinfopersonallabelSmall}>
+                <span className={styles.modinfopersonallabelText}>Prefijo</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={prefijoPais}
                   onChange={(e) => setPrefijoPais(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -329,10 +330,10 @@ const ModificarInformacionPersonal = () => {
                 />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Teléfono</span>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Teléfono</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -342,11 +343,11 @@ const ModificarInformacionPersonal = () => {
               </label>
             </div>
 
-            <div className={styles.row}>
-              <label className={styles.label}>
-                <span className={styles.labelText}>Ciudad</span>
+            <div className={styles.modinfopersonalrow}>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Ciudad</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={ciudad}
                   onChange={(e) => setCiudad(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -355,10 +356,10 @@ const ModificarInformacionPersonal = () => {
                 />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>País</span>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>País</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={pais}
                   onChange={(e) => setPais(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -368,11 +369,11 @@ const ModificarInformacionPersonal = () => {
               </label>
             </div>
 
-            <div className={styles.row}>
-              <label className={styles.label}>
-                <span className={styles.labelText}>Correo empresa</span>
+            <div className={styles.modinfopersonalrow}>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Correo empresa</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   type="email"
                   value={correoEmpresa}
                   onChange={(e) => setCorreoEmpresa(e.target.value)}
@@ -382,10 +383,10 @@ const ModificarInformacionPersonal = () => {
                 />
               </label>
 
-              <label className={styles.label}>
-                <span className={styles.labelText}>Página web</span>
+              <label className={styles.modinfopersonallabel}>
+                <span className={styles.modinfopersonallabelText}>Página web</span>
                 <input
-                  className={styles.input}
+                  className={styles.modinfopersonalinput}
                   value={paginaWeb}
                   onChange={(e) => setPaginaWeb(e.target.value)}
                   disabled={!isAdmin || !editing}
@@ -395,9 +396,9 @@ const ModificarInformacionPersonal = () => {
               </label>
             </div>
 
-            <div className={styles.actions}>
+            <div className={styles.modinfopersonalactions}>
               <button
-                className={styles.primaryButton}
+                className={styles.modinfopersonalprimaryButton}
                 type="submit"
                 disabled={!editing || !isAdmin || savingCompany}
                 aria-disabled={!editing || !isAdmin || savingCompany}

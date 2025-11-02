@@ -1,5 +1,6 @@
+// src/components/.../ActivarDesactivarUsuarios.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import styles from '../../../styles/Profile/ActivarDesactivarDark.module.css';
+import styles from '../../../styles/Profile/ActivarDesactivar.module.css';
 import {
   obtenerUsuariosEmpresa,
   cambiarEstadoUsuario,
@@ -10,6 +11,7 @@ import {
   obtenerMiPerfil,
   obtenerAreas
 } from '../../../api/Profile';
+import { useTheme } from "../../componentes/ThemeContext"; // ajusta ruta si tu ThemeContext está en otra carpeta
 
 const INACTIVE_STATE_ID = 2;
 const ACTIVE_STATE_ID = 1;
@@ -17,6 +19,7 @@ const ADMIN_ROLE_ID = 1;
 const USER_ROLE_ID = 2;
 
 const ActivarDesactivarUsuarios = () => {
+  const { theme } = useTheme();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
@@ -34,7 +37,15 @@ const ActivarDesactivarUsuarios = () => {
   const [permisos, setPermisos] = useState([]);
   const [miPermisoId, setMiPermisoId] = useState(null);
   const [areas, setAreas] = useState([]);
-  const [nuevoAreaId, setNuevoAreaId] = useState(''); // <-- campo nuevo
+  const [nuevoAreaId, setNuevoAreaId] = useState('');
+
+  useEffect(() => {
+    fetchUsuarios();
+    fetchPermisos();
+    fetchAreas();
+    fetchMiPerfil();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchUsuarios = async () => {
     setLoading(true);
@@ -76,13 +87,6 @@ const ActivarDesactivarUsuarios = () => {
       console.error('No se pudo obtener perfil:', err);
     }
   };
-
-  useEffect(() => {
-    fetchUsuarios();
-    fetchPermisos();
-    fetchAreas();
-    fetchMiPerfil();
-  }, []);
 
   const toggleEstado = async (usuario) => {
     const nuevoEstado = (usuario.id_estado === ACTIVE_STATE_ID) ? INACTIVE_STATE_ID : ACTIVE_STATE_ID;
@@ -211,29 +215,29 @@ const ActivarDesactivarUsuarios = () => {
     const selected = options.find(opt => String(opt.value) === String(value));
 
     return (
-      <div className={styles.customSelect} ref={ref}>
+      <div className={styles.PerfilactivardesactivarcustomSelect} ref={ref}>
         <button
           type="button"
-          className={styles.customSelectButton}
+          className={styles.PerfilactivardesactivarcustomSelectButton}
           onClick={() => setOpen(o => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
         >
-          <span className={styles.customSelectValue}>
+          <span className={styles.PerfilactivardesactivarcustomSelectValue}>
             {selected ? selected.label : placeholder}
           </span>
-          <span className={styles.customSelectArrow} aria-hidden />
+          <span className={styles.PerfilactivardesactivarcustomSelectArrow} aria-hidden />
         </button>
 
         {open && (
-          <ul role="listbox" className={styles.customSelectList}>
-            {options.length === 0 && <li className={styles.customSelectEmpty}>No hay opciones</li>}
+          <ul role="listbox" className={styles.PerfilactivardesactivarcustomSelectList}>
+            {options.length === 0 && <li className={styles.PerfilactivardesactivarcustomSelectEmpty}>No hay opciones</li>}
             {options.map(opt => (
               <li
                 key={opt.value}
                 role="option"
                 aria-selected={String(opt.value) === String(value)}
-                className={`${styles.customSelectItem} ${String(opt.value) === String(value) ? styles.customSelectItemSelected : ''}`}
+                className={`${styles.PerfilactivardesactivarcustomSelectItem} ${String(opt.value) === String(value) ? styles.PerfilactivardesactivarcustomSelectItemSelected : ''}`}
                 onClick={() => { onChange(String(opt.value)); setOpen(false); }}
               >
                 {opt.label}
@@ -249,40 +253,43 @@ const ActivarDesactivarUsuarios = () => {
   const areaOptions = areas.map(a => ({ value: a.id_area, label: a.area_trabajo }));
   const permisoOptions = permisos.map(p => ({ value: p.id_permiso_acceso, label: p.rol }));
 
+  // clase variante (light/dark)
+  const variantClass = theme === 'light' ? styles.PerfilactivardesactivarLight : styles.PerfilactivardesactivarDark;
+
   return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>Administrar Usuarios</h1>
-      <p className={styles.pageSubtitle}>Activa, desactiva, crea usuarios, asigna roles y gestiona acceso.</p>
+    <div className={`${styles.Perfilactivardesactivarcontainer} ${variantClass}`}>
+      <h1 className={styles.PerfilactivardesactivarpageTitle}>Administrar Usuarios</h1>
+      <p className={styles.PerfilactivardesactivarpageSubtitle}>Activa, desactiva, crea usuarios, asigna roles y gestiona acceso.</p>
 
-      {error && <div className={styles.error}>{error}</div>}
-      {success && <div className={styles.success}>{success}</div>}
+      {error && <div className={styles.Perfilactivardesactivarerror}>{error}</div>}
+      {success && <div className={styles.Perfilactivardesactivarsuccess}>{success}</div>}
 
-      <section className={styles.createSection}>
-        <h2 className={styles.sectionTitle}>Crear usuario</h2>
-        <form onSubmit={handleCrearUsuario} className={styles.form}>
-          <div className={styles.formRow}>
-            <label className={styles.label}>Nombre</label>
-            <input className={styles.input} value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
+      <section className={styles.PerfilactivardesactivarcreateSection}>
+        <h2 className={styles.PerfilactivardesactivarsectionTitle}>Crear usuario</h2>
+        <form onSubmit={handleCrearUsuario} className={styles.Perfilactivardesactivarform}>
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Nombre</label>
+            <input className={styles.Perfilactivardesactivarinput} value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
           </div>
-          <div className={styles.formRow}>
-            <label className={styles.label}>Apellidos</label>
-            <input className={styles.input} value={nuevoApellidos} onChange={e => setNuevoApellidos(e.target.value)} />
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Apellidos</label>
+            <input className={styles.Perfilactivardesactivarinput} value={nuevoApellidos} onChange={e => setNuevoApellidos(e.target.value)} />
           </div>
-          <div className={styles.formRow}>
-            <label className={styles.label}>Correo</label>
-            <input className={styles.input} type="email" value={nuevoCorreo} onChange={e => setNuevoCorreo(e.target.value)} />
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Correo</label>
+            <input className={styles.Perfilactivardesactivarinput} type="email" value={nuevoCorreo} onChange={e => setNuevoCorreo(e.target.value)} />
           </div>
-          <div className={styles.formRow}>
-            <label className={styles.label}>Contraseña</label>
-            <input className={styles.input} type="password" value={nuevaContrasena} onChange={e => setNuevaContrasena(e.target.value)} />
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Contraseña</label>
+            <input className={styles.Perfilactivardesactivarinput} type="password" value={nuevaContrasena} onChange={e => setNuevaContrasena(e.target.value)} />
           </div>
-          <div className={styles.formRow}>
-            <label className={styles.label}>Confirmar Contraseña</label>
-            <input className={styles.input} type="password" value={confirmContrasena} onChange={e => setConfirmContrasena(e.target.value)} />
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Confirmar Contraseña</label>
+            <input className={styles.Perfilactivardesactivarinput} type="password" value={confirmContrasena} onChange={e => setConfirmContrasena(e.target.value)} />
           </div>
 
-          <div className={styles.formRow}>
-            <label className={styles.label}>Área</label>
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Área</label>
             <CustomSelect
               options={areaOptions}
               value={nuevoAreaId}
@@ -291,8 +298,8 @@ const ActivarDesactivarUsuarios = () => {
             />
           </div>
 
-          <div className={styles.formRow}>
-            <label className={styles.label}>Rol (opcional)</label>
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <label className={styles.Perfilactivardesactivarlabel}>Rol (opcional)</label>
             <CustomSelect
               options={permisoOptions}
               value={nuevoRolId}
@@ -301,19 +308,19 @@ const ActivarDesactivarUsuarios = () => {
             />
           </div>
 
-          <div className={styles.formRow}>
-            <button className={styles.primaryButton} type="submit" disabled={creando}>{creando ? 'Creando...' : 'Crear usuario'}</button>
+          <div className={styles.PerfilactivardesactivarformRow}>
+            <button className={styles.PerfilactivardesactivarprimaryButton} type="submit" disabled={creando}>{creando ? 'Creando...' : 'Crear usuario'}</button>
           </div>
         </form>
       </section>
 
-      <hr className={styles.divider} />
+      <hr className={styles.Perfilactivardesactivardivider} />
 
       {loading ? (
-        <div className={styles.loading}>Cargando usuarios...</div>
+        <div className={styles.Perfilactivardesactivarloading}>Cargando usuarios...</div>
       ) : (
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+        <div className={styles.PerfilactivardesactivartableWrapper}>
+          <table className={styles.Perfilactivardesactivartable}>
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -327,23 +334,23 @@ const ActivarDesactivarUsuarios = () => {
             <tbody>
               {usuarios.length === 0 && (
                 <tr>
-                  <td colSpan="6" className={styles.noUsers}>No hay usuarios</td>
+                  <td colSpan="6" className={styles.PerfilactivardesactivarnoUsers}>No hay usuarios</td>
                 </tr>
               )}
               {usuarios.map(u => (
                 <tr key={u.id_usuario}>
-                  <td className={styles.cellName}>{u.nombres} {u.apellidos || ''}</td>
-                  <td className={styles.cellEmail}>{u.correo}</td>
-                  <td className={styles.cellRole}>{u.rol || '-'}</td>
-                  <td className={styles.cellArea}>{u.area_trabajo || '-'}</td>
-                  <td className={styles.cellState}>
-                    <span className={u.id_estado === ACTIVE_STATE_ID ? styles.stateActive : styles.stateInactive}>
+                  <td className={styles.PerfilactivardesactivarcellName}>{u.nombres} {u.apellidos || ''}</td>
+                  <td className={styles.PerfilactivardesactivarcellEmail}>{u.correo}</td>
+                  <td className={styles.PerfilactivardesactivarcellRole}>{u.rol || '-'}</td>
+                  <td className={styles.PerfilactivardesactivarcellArea}>{u.area_trabajo || '-'}</td>
+                  <td className={styles.PerfilactivardesactivarcellState}>
+                    <span className={u.id_estado === ACTIVE_STATE_ID ? styles.PerfilactivardesactivarstateActive : styles.PerfilactivardesactivarstateInactive}>
                       {u.estado || (`ID ${u.id_estado}`)}
                     </span>
                   </td>
-                  <td className={styles.cellActions}>
+                  <td className={styles.PerfilactivardesactivarcellActions}>
                     <button
-                      className={styles.actionButton}
+                      className={styles.PerfilactivardesactivaractionButton}
                       disabled={actionLoading === u.id_usuario}
                       onClick={() => toggleEstado(u)}
                     >
@@ -352,7 +359,7 @@ const ActivarDesactivarUsuarios = () => {
 
                     {miPermisoId === ADMIN_ROLE_ID && (
                       <button
-                        className={styles.roleButton}
+                        className={styles.PerfilactivardesactivarroleButton}
                         disabled={actionLoading === u.id_usuario}
                         onClick={() => handleToggleRol(u)}
                       >
@@ -361,7 +368,7 @@ const ActivarDesactivarUsuarios = () => {
                     )}
 
                     <button
-                      className={styles.deleteButton}
+                      className={styles.PerfilactivardesactivardeleteButton}
                       disabled={actionLoading === u.id_usuario}
                       onClick={() => handleEliminar(u)}
                     >

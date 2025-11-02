@@ -1,8 +1,7 @@
 // src/components/pages/ConfiguracionUsuarios.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import darkStyles from '../../styles/Profile/PerfilDark.module.css';
-import lightStyles from '../../styles/Profile/PerfilLight.module.css';
+import styles from '../../styles/Profile/Perfil.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
 import { useTheme } from "../componentes/ThemeContext";
 
@@ -18,7 +17,7 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-const Card = ({ texto, ruta, index, styles, onCardClick }) => {
+const Card = ({ texto, ruta, index, onCardClick }) => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -72,7 +71,7 @@ const Card = ({ texto, ruta, index, styles, onCardClick }) => {
   return (
     <div
       ref={ref}
-      className={styles.card}
+      className={styles.Perfilgeneralcard}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       onFocus={() => ref.current && ref.current.style.setProperty("--s", "1.04")}
@@ -90,22 +89,22 @@ const Card = ({ texto, ruta, index, styles, onCardClick }) => {
         ["--my"]: "50%",
       }}
     >
-      <div className={styles.cardInner}>
-        <div className={styles.cardHeader}>
-          <h3 className={styles.cardTitle}>{texto}</h3>
-          <div className={styles.cardMeta}>
-            <span className={styles.badge}>{index + 1}</span>
+      <div className={styles.PerfilgeneralcardInner}>
+        <div className={styles.PerfilgeneralcardHeader}>
+          <h3 className={styles.PerfilgeneralcardTitle}>{texto}</h3>
+          <div className={styles.PerfilgeneralcardMeta}>
+            <span className={styles.Perfilgeneralbadge}>{index + 1}</span>
           </div>
         </div>
 
-        <div className={styles.cardBody}>
-          <p className={styles.cardDesc}>
+        <div className={styles.PerfilgeneralcardBody}>
+          <p className={styles.PerfilgeneralcardDesc}>
             Accede a esta opción para gestionar permisos, revisión y seguridad.
           </p>
         </div>
 
-        <div className={styles.cardFooter}>
-          <span className={styles.cta}>Ir a la configuración →</span>
+        <div className={styles.PerfilgeneralcardFooter}>
+          <span className={styles.Perfilgeneralcta}>Ir a la configuración →</span>
         </div>
       </div>
     </div>
@@ -117,7 +116,6 @@ const ConfiguracionUsuarios = () => {
   const [companySegment, setCompanySegment] = useState("");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
-  const [styles, setStyles] = useState(darkStyles);
   const [rol, setRol] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -156,14 +154,6 @@ const ConfiguracionUsuarios = () => {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (planId === 3 || planId === 6) {
-      setStyles(theme === "dark" ? darkStyles : lightStyles);
-    } else {
-      setStyles(darkStyles);
-    }
-  }, [theme, planId]);
 
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
@@ -213,55 +203,61 @@ const ConfiguracionUsuarios = () => {
     setModalMessage("");
   };
 
+  // Decide clase variante (dark/light) según planId y theme (mismo comportamiento anterior)
+  const variantClass =
+    planId === 3 || planId === 6
+      ? theme === "dark"
+        ? styles.PerfilgeneralDark
+        : styles.PerfilgeneralLight
+      : styles.PerfilgeneralDark;
+
   return (
-    <main className={styles.container} aria-labelledby="config-usuarios-title">
-      <header className={styles.header}>
-        <h1 id="config-usuarios-title" className={styles.title}>
+    <main className={`${styles.Perfilgeneralcontainer} ${variantClass}`} aria-labelledby="config-usuarios-title">
+      <header className={styles.Perfilgeneralheader}>
+        <h1 id="config-usuarios-title" className={styles.Perfilgeneraltitle}>
           Configuración de Usuarios
         </h1>
-        <p className={styles.subtitle}>
+        <p className={styles.Perfilgeneralsubtitle}>
           Opciones rápidas — seguridad y administración con estilo.
         </p>
       </header>
 
-      <section className={styles.cardsContainer} aria-label="Opciones de configuración">
+      <section className={styles.PerfilgeneralcardsContainer} aria-label="Opciones de configuración">
         {opciones.map((opcion, index) => (
           <Card
             key={index}
             texto={opcion.texto}
             ruta={opcion.ruta}
             index={index}
-            styles={styles}
             onCardClick={handleCardClick}
           />
         ))}
       </section>
 
-
       {showModal && (
         <div
-          className={styles.modalOverlay}
+          className={styles.PerfilgeneralmodalOverlay}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closeModal();
           }}
         >
           <div
-            className={styles.modal}
+            className={styles.Perfilgeneralmodal}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
             aria-describedby="modal-desc"
           >
-            <h2 id="modal-title" className={styles.modalTitle}>
+            <h2 id="modal-title" className={styles.PerfilgeneralmodalTitle}>
               Acceso restringido
             </h2>
-            <p id="modal-desc" className={styles.modalDesc}>
+            <p id="modal-desc" className={styles.PerfilgeneralmodalDesc}>
               {modalMessage}
             </p>
 
-            <div className={styles.modalActions}>
+            <div className={styles.PerfilgeneralmodalActions}>
               <button
-                className={styles.btnPrimary}
+                className={styles.PerfilgeneralbtnPrimary}
                 onClick={closeModal}
                 autoFocus
               >

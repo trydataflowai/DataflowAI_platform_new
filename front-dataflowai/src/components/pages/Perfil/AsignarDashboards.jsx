@@ -1,5 +1,7 @@
+// src/components/.../AsgDashboardAsignarDashboards.jsx
 import React, { useEffect, useState, useCallback } from 'react';
-import styles from '../../../styles/Profile/AsignarDashboardDark.module.css';
+import styles from '../../../styles/Profile/AsignarDashboard.module.css';
+import { useTheme } from "../../componentes/ThemeContext"; // ajusta ruta si es necesario
 import {
   AsgDashboard_obtenerUsuariosEmpresa,
   AsgDashboard_obtenerProductos,
@@ -9,6 +11,7 @@ import {
 } from '../../../api/Profile';
 
 const AsgDashboardAsignarDashboards = () => {
+  const { theme } = useTheme();
   const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -49,7 +52,6 @@ const AsgDashboardAsignarDashboards = () => {
     } else {
       document.body.style.overflow = 'unset';
     }
-    
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -130,7 +132,6 @@ const AsgDashboardAsignarDashboards = () => {
     try {
       await AsgDashboard_asignarProductoUsuario(selectedUser.id_usuario, producto.id_producto);
       setMsg('Dashboard asignado correctamente.');
-      // Actualizar asignaciones sin recargar toda la lista
       const data = await AsgDashboard_obtenerAsignacionesUsuario(selectedUser.id_usuario);
       setAsignaciones(data || []);
     } catch (err) {
@@ -149,7 +150,6 @@ const AsgDashboardAsignarDashboards = () => {
     try {
       await AsgDashboard_eliminarAsignacionUsuario(selectedUser.id_usuario, producto.id_producto);
       setMsg('Dashboard eliminado correctamente.');
-      // Actualizar asignaciones sin recargar toda la lista
       const data = await AsgDashboard_obtenerAsignacionesUsuario(selectedUser.id_usuario);
       setAsignaciones(data || []);
     } catch (err) {
@@ -174,29 +174,32 @@ const AsgDashboardAsignarDashboards = () => {
     Promise.all([cargarUsuarios(), cargarProductos()]);
   }, [cargarUsuarios, cargarProductos]);
 
+  // clase variante (light/dark) aplicada al contenedor principal
+  const variantClass = theme === 'light' ? styles.asignardashboardLight : styles.asignardashboardDark;
+
   return (
-    <div className={styles.container}>
-      <div className={styles.headerRow}>
+    <div className={`${styles.asignardashboardcontainer} ${variantClass}`}>
+      <div className={styles.asignardashboardheaderRow}>
         <div>
-          <h1 className={styles.pageTitle}>Asignar Dashboards</h1>
-          <p className={styles.pageSubtitle}>Selecciona un usuario y asigna o quita dashboards.</p>
+          <h1 className={styles.asignardashboardpageTitle}>Asignar Dashboards</h1>
+          <p className={styles.asignardashboardpageSubtitle}>Selecciona un usuario y asigna o quita dashboards.</p>
         </div>
         <div>
-          <button className={styles.refreshBtn} onClick={recargarTodo}>
+          <button className={styles.asignardashboardrefreshBtn} onClick={recargarTodo}>
             Recargar
           </button>
         </div>
       </div>
 
-      {loading && <div className={styles.info}>Cargando datos...</div>}
-      {error && <div className={styles.error}>{error}</div>}
-      {msg && <div className={styles.success}>{msg}</div>}
+      {loading && <div className={styles.asignardashboardinfo}>Cargando datos...</div>}
+      {error && <div className={styles.asignardashboarderror}>{error}</div>}
+      {msg && <div className={styles.asignardashboardsuccess}>{msg}</div>}
 
-      <section className={styles.usersSection}>
-        <h2 className={styles.sectionTitle}>Usuarios de la empresa</h2>
+      <section className={styles.asignardashboardusersSection}>
+        <h2 className={styles.asignardashboardsectionTitle}>Usuarios de la empresa</h2>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+        <div className={styles.asignardashboardtableWrapper}>
+          <table className={styles.asignardashboardtable}>
             <thead>
               <tr>
                 <th>Nombre Completo</th>
@@ -208,15 +211,15 @@ const AsgDashboardAsignarDashboards = () => {
             <tbody>
               {usuarios.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan="4" className={styles.noData}>No hay usuarios registrados</td>
+                  <td colSpan="4" className={styles.asignardashboardnoData}>No hay usuarios registrados</td>
                 </tr>
               ) : usuarios.map(u => (
-                <tr key={u.id_usuario} className={styles.tableRow}>
-                  <td className={styles.cellBold}>{u.nombres} {u.apellidos || ''}</td>
-                  <td className={styles.cellMuted}>{u.area || '-'}</td>
+                <tr key={u.id_usuario} className={styles.asignardashboardtableRow}>
+                  <td className={styles.asignardashboardcellBold}>{u.nombres} {u.apellidos || ''}</td>
+                  <td className={styles.asignardashboardcellMuted}>{u.area || '-'}</td>
                   <td>
                     <button
-                      className={styles.primarySmall}
+                      className={styles.asignardashboardprimarySmall}
                       onClick={() => abrirAsignar(u)}
                       aria-label={`Asignar dashboards a ${u.nombres}`}
                     >
@@ -225,7 +228,7 @@ const AsgDashboardAsignarDashboards = () => {
                   </td>
                   <td>
                     <button
-                      className={styles.dangerSmall}
+                      className={styles.asignardashboarddangerSmall}
                       onClick={() => abrirQuitar(u)}
                       aria-label={`Quitar dashboards a ${u.nombres}`}
                     >
@@ -242,38 +245,38 @@ const AsgDashboardAsignarDashboards = () => {
       {/* Modal para Asignar Dashboards */}
       {selectedUser && modalType === 'asignar' && (
         <div
-          className={styles.modalBackdrop}
+          className={styles.asignardashboardmodalBackdrop}
           role="dialog"
           aria-modal="true"
           onClick={(e) => {
             if (e.target === e.currentTarget) cerrarModal();
           }}
         >
-          <div className={styles.modalAsignar} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div className={styles.modalTitle}>
+          <div className={styles.asignardashboardmodalAsignar} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.asignardashboardmodalHeader}>
+              <div className={styles.asignardashboardmodalTitle}>
                 <h3>Asignar Dashboards</h3>
-                <div className={styles.userInfo}>
-                  <span className={styles.userName}>{selectedUser.nombres} {selectedUser.apellidos || ''}</span>
-                  <span className={styles.userEmail}>{selectedUser.correo}</span>
+                <div className={styles.asignardashboarduserInfo}>
+                  <span className={styles.asignardashboarduserName}>{selectedUser.nombres} {selectedUser.apellidos || ''}</span>
+                  <span className={styles.asignardashboarduserEmail}>{selectedUser.correo}</span>
                 </div>
               </div>
-              <button className={styles.closeBtn} onClick={cerrarModal} aria-label="Cerrar">
+              <button className={styles.asignardashboardcloseBtn} onClick={cerrarModal} aria-label="Cerrar">
                 ×
               </button>
             </div>
 
-            <div className={styles.modalBody}>
-              <div className={styles.fullColumn}>
-                <h4 className={styles.subTitle}>Dashboards Disponibles para Asignar</h4>
-                <div className={styles.scrollArea}>
+            <div className={styles.asignardashboardmodalBody}>
+              <div className={styles.asignardashboardfullColumn}>
+                <h4 className={styles.asignardashboardsubTitle}>Dashboards Disponibles para Asignar</h4>
+                <div className={styles.asignardashboardscrollArea}>
                   {modalLoading ? (
-                    <div className={styles.loadingData}>Cargando dashboards...</div>
+                    <div className={styles.asignardashboardloadingData}>Cargando dashboards...</div>
                   ) : (
-                    <div className={styles.tableContainer}>
-                      <table className={styles.tableCompact}>
+                    <div className={styles.asignardashboardtableContainer}>
+                      <table className={styles.asignardashboardtableCompact}>
                         <thead>
-                          <tr className={styles.tableHeaderRow}>
+                          <tr className={styles.asignardashboardtableHeaderRow}>
                             <th>Dashboard</th>
                             <th>Área</th>
                             <th>Propietario</th>
@@ -282,18 +285,18 @@ const AsgDashboardAsignarDashboards = () => {
                         </thead>
                         <tbody>
                           {productos.length === 0 ? (
-                            <tr><td colSpan="4" className={styles.noData}>No hay dashboards disponibles</td></tr>
+                            <tr><td colSpan="4" className={styles.asignardashboardnoData}>No hay dashboards disponibles</td></tr>
                           ) : productos.map(p => {
                             const assigned = isAssigned(p.id_producto);
                             const propietario = (p.owned_by && p.owned_by.length) ? p.owned_by.map(o => o.nombre_empresa).join(', ') : 'Público';
                             return (
-                              <tr key={p.id_producto} className={styles.modalTableRow}>
-                                <td className={styles.cellBold}>{p.producto}</td>
-                                <td className={styles.cellMuted}>{p.area || '-'}</td>
-                                <td className={styles.cellMuted}>{propietario}</td>
+                              <tr key={p.id_producto} className={styles.asignardashboardmodalTableRow}>
+                                <td className={styles.asignardashboardcellBold}>{p.producto}</td>
+                                <td className={styles.asignardashboardcellMuted}>{p.area || '-'}</td>
+                                <td className={styles.asignardashboardcellMuted}>{propietario}</td>
                                 <td>
                                   <button
-                                    className={`${styles.smallBtn} ${assigned ? styles.disabledBtn : ''}`}
+                                    className={`${styles.asignardashboardsmallBtn} ${assigned ? styles.asignardashboarddisabledBtn : ''}`}
                                     onClick={() => handleAsignar(p)}
                                     disabled={assigned || actionLoading === p.id_producto}
                                   >
@@ -311,8 +314,8 @@ const AsgDashboardAsignarDashboards = () => {
               </div>
             </div>
 
-            <div className={styles.modalFooter}>
-              <button className={styles.secondaryBtn} onClick={cerrarModal}>Cerrar</button>
+            <div className={styles.asignardashboardmodalFooter}>
+              <button className={styles.asignardashboardsecondaryBtn} onClick={cerrarModal}>Cerrar</button>
             </div>
           </div>
         </div>
@@ -321,38 +324,38 @@ const AsgDashboardAsignarDashboards = () => {
       {/* Modal para Quitar Dashboards */}
       {selectedUser && modalType === 'quitar' && (
         <div
-          className={styles.modalBackdrop}
+          className={styles.asignardashboardmodalBackdrop}
           role="dialog"
           aria-modal="true"
           onClick={(e) => {
             if (e.target === e.currentTarget) cerrarModal();
           }}
         >
-          <div className={styles.modalQuitar} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div className={styles.modalTitle}>
+          <div className={styles.asignardashboardmodalQuitar} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.asignardashboardmodalHeader}>
+              <div className={styles.asignardashboardmodalTitle}>
                 <h3>Quitar Dashboards</h3>
-                <div className={styles.userInfo}>
-                  <span className={styles.userName}>{selectedUser.nombres} {selectedUser.apellidos || ''}</span>
-                  <span className={styles.userEmail}>{selectedUser.correo}</span>
+                <div className={styles.asignardashboarduserInfo}>
+                  <span className={styles.asignardashboarduserName}>{selectedUser.nombres} {selectedUser.apellidos || ''}</span>
+                  <span className={styles.asignardashboarduserEmail}>{selectedUser.correo}</span>
                 </div>
               </div>
-              <button className={styles.closeBtn} onClick={cerrarModal} aria-label="Cerrar">
+              <button className={styles.asignardashboardcloseBtn} onClick={cerrarModal} aria-label="Cerrar">
                 ×
               </button>
             </div>
 
-            <div className={styles.modalBody}>
-              <div className={styles.fullColumn}>
-                <h4 className={styles.subTitle}>Dashboards Actualmente Asignados</h4>
-                <div className={styles.scrollArea}>
+            <div className={styles.asignardashboardmodalBody}>
+              <div className={styles.asignardashboardfullColumn}>
+                <h4 className={styles.asignardashboardsubTitle}>Dashboards Actualmente Asignados</h4>
+                <div className={styles.asignardashboardscrollArea}>
                   {modalLoading ? (
-                    <div className={styles.loadingData}>Cargando asignaciones...</div>
+                    <div className={styles.asignardashboardloadingData}>Cargando asignaciones...</div>
                   ) : (
-                    <div className={styles.tableContainer}>
-                      <table className={styles.tableCompact}>
+                    <div className={styles.asignardashboardtableContainer}>
+                      <table className={styles.asignardashboardtableCompact}>
                         <thead>
-                          <tr className={styles.tableHeaderRow}>
+                          <tr className={styles.asignardashboardtableHeaderRow}>
                             <th>Dashboard</th>
                             <th>Área</th>
                             <th>Acción</th>
@@ -360,17 +363,17 @@ const AsgDashboardAsignarDashboards = () => {
                         </thead>
                         <tbody>
                           {asignaciones.length === 0 ? (
-                            <tr><td colSpan="3" className={styles.noData}>No hay dashboards asignados</td></tr>
+                            <tr><td colSpan="3" className={styles.asignardashboardnoData}>No hay dashboards asignados</td></tr>
                           ) : asignaciones.map(a => {
                             const prod = a.producto || (a.id_producto && productos.find(p => p.id_producto === a.id_producto));
                             if (!prod) return null;
                             return (
-                              <tr key={prod.id_producto} className={styles.modalTableRow}>
-                                <td className={styles.cellBold}>{prod.producto}</td>
-                                <td className={styles.cellMuted}>{prod.area || '-'}</td>
+                              <tr key={prod.id_producto} className={styles.asignardashboardmodalTableRow}>
+                                <td className={styles.asignardashboardcellBold}>{prod.producto}</td>
+                                <td className={styles.asignardashboardcellMuted}>{prod.area || '-'}</td>
                                 <td>
                                   <button
-                                    className={styles.dangerSmall}
+                                    className={styles.asignardashboarddangerSmall}
                                     onClick={() => handleEliminar(prod)}
                                     disabled={actionLoading === prod.id_producto}
                                   >
@@ -388,8 +391,8 @@ const AsgDashboardAsignarDashboards = () => {
               </div>
             </div>
 
-            <div className={styles.modalFooter}>
-              <button className={styles.secondaryBtn} onClick={cerrarModal}>Cerrar</button>
+            <div className={styles.asignardashboardmodalFooter}>
+              <button className={styles.asignardashboardsecondaryBtn} onClick={cerrarModal}>Cerrar</button>
             </div>
           </div>
         </div>
