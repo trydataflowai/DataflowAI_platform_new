@@ -1,20 +1,35 @@
-// Chatbot.jsx
-import React, { useEffect, useState } from "react";
+// src/components/pages/ChatBot.jsx
+import React, { useEffect, useState, useRef } from "react";
 import darkStyles from '../../styles/ChatBotDark.module.css';
 import lightStyles from '../../styles/ChatBotLight.module.css';
-
-import { obtenerInfoUsuario } from '../../api/Usuario';
 import { useTheme } from '../componentes/ThemeContext';
+import { sendMessageToBackend } from '../../api/ChatBot';
+import { obtenerInfoUsuario } from '../../api/Usuario';
+
+const ALLOWED_USER_IDS = [1, 2, 3, 20];
 
 const Chatbot = () => {
   const { theme } = useTheme(); // 'dark' | 'light'
   const [activeStyles, setActiveStyles] = useState(darkStyles);
 
-  const [planId, setPlanId] = useState(null);
+  const [planId, setPlanId] = useState(null); // <- AÑADIR ESTADO PARA planId
   const [dots, setDots] = useState('');
   const [particles, setParticles] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [messages, setMessages] = useState([
+    { id: 'sys-1', role: 'bot', text: 'Bienvenido. Soy su asistente virtual.' }
+  ]);
+  const [isSending, setIsSending] = useState(false);
 
-  // Animación de puntos suspensivos
+  // --- autorización usuario ---
+  const [userId, setUserId] = useState(null);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
+  const messagesEndRef = useRef(null);
+
+  // puntos animación
   useEffect(() => {
     const interval = setInterval(() => {
       setDots(prev => (prev.length >= 3 ? '' : prev + '.'));
@@ -22,7 +37,7 @@ const Chatbot = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Generar partículas animadas una vez
+  // partículas
   useEffect(() => {
     const newParticles = Array.from({ length: 14 }, (_, i) => ({
       id: i,
@@ -35,46 +50,91 @@ const Chatbot = () => {
     setParticles(newParticles);
   }, []);
 
-  // Obtener plan del usuario (para permitir forzar dark si plan no lo permite)
+  // OBTENER INFORMACIÓN DEL USUARIO Y PLAN - AÑADIR ESTE useEffect
   useEffect(() => {
-    const fetchUsuario = async () => {
+    const fetchUserInfo = async () => {
       try {
-        const user = await obtenerInfoUsuario();
-        const pid = user?.empresa?.plan?.id ?? null;
+        const userInfo = await obtenerInfoUsuario();
+        const pid = userInfo.empresa?.plan?.id;
         setPlanId(pid);
+        
+        // También establecer el userId para la autorización
+        const id = userInfo?.id ?? null;
+        setUserId(id);
+        const allowed = ALLOWED_USER_IDS.includes(id);
+        setIsAllowed(allowed);
       } catch (err) {
-        console.warn('No se pudo obtener info usuario (plan):', err);
+        console.error('Error al obtener info del usuario:', err);
+        // Si no se puede obtener el plan, usar modo oscuro por defecto
         setPlanId(null);
+        setIsAllowed(false);
+      } finally {
+        setAuthLoading(false);
       }
     };
-    fetchUsuario();
+    
+    fetchUserInfo();
   }, []);
 
-  // Seleccionar estilos activos según plan y theme
+  // estilos segun theme/plan - CORREGIR ESTE useEffect
   useEffect(() => {
     if (planId === 3 || planId === 6) {
+      // Si el plan permite cambiar el tema
       setActiveStyles(theme === 'dark' ? darkStyles : lightStyles);
     } else {
-      setActiveStyles(darkStyles); // forzar dark para planes que no permiten toggle
+      // Si el plan no lo permite, forzar modo oscuro
+      setActiveStyles(darkStyles);
     }
-  }, [theme, planId]);
+  }, [theme, planId]); // <- Añadir planId como dependencia
 
-  const chatMessages = [
-    { type: 'bot', message: 'Bienvenido. Soy su asistente virtual.' },
-    { type: 'user', message: 'Necesito ayuda con mi cuenta.' },
-    { type: 'bot', message: 'Con gusto. ¿En qué puedo asistirle exactamente?' }
-  ];
+  // scroll al final cuando hay mensajes nuevos
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages]);
 
-  const features = [
-    { title: 'IA Conversacional', subtitle: 'Respuestas automáticas con contexto.' },
-    { title: 'Respuesta rápida', subtitle: 'Tiempo de respuesta optimizado.' },
-    { title: 'Disponibilidad', subtitle: 'Atención continua.' },
-    { title: 'Seguridad', subtitle: 'Privacidad y protección de datos.' }
-  ];
+  const sendMessage = async () => {
+    const text = inputValue.trim();
+    if (!text) return;
+
+    // bloqueo por permisos: sólo enviar si isAllowed === true
+    if (!isAllowed) {
+      // agregar un mensaje del bot explicando que no tiene permiso
+      setMessages(prev => [
+        ...prev,
+        { id: `b-block-${Date.now()}`, role: 'bot', text: 'No tienes permiso para enviar prompts en este chat.' }
+      ]);
+      setInputValue('');
+      return;
+    }
+
+    const userMsg = { id: `u-${Date.now()}`, role: 'user', text };
+    setMessages(prev => [...prev, userMsg]);
+    setInputValue('');
+    setIsSending(true);
+
+    try {
+      const res = await sendMessageToBackend(text);
+      const botReply = res?.reply ?? "No hay respuesta.";
+      const botMsg = { id: `b-${Date.now()}`, role: 'bot', text: botReply };
+      setMessages(prev => [...prev, botMsg]);
+    } catch (err) {
+      const errText = (err && err.message) ? err.message : "Error enviando mensaje";
+      const botMsg = { id: `b-err-${Date.now()}`, role: 'bot', text: `Error: ${errText}` };
+      setMessages(prev => [...prev, botMsg]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!isSending) sendMessage();
+    }
+  };
 
   return (
     <div className={activeStyles.container}>
-      {/* Partículas de fondo */}
       <div className={activeStyles.particles} aria-hidden="true">
         {particles.map((p) => (
           <span
@@ -92,9 +152,7 @@ const Chatbot = () => {
         ))}
       </div>
 
-      {/* Contenedor principal */}
       <div className={activeStyles.layout}>
-        {/* Panel izquierdo - Lista de chats */}
         <aside className={activeStyles.leftPanel}>
           <header className={activeStyles.leftHeader}>
             <div>
@@ -104,7 +162,13 @@ const Chatbot = () => {
           </header>
 
           <div className={activeStyles.newChatWrap}>
-            <button className={activeStyles.newChatBtn} type="button">Nuevo chat</button>
+            <button
+              className={activeStyles.newChatBtn}
+              type="button"
+              onClick={() => {
+                setMessages([{ id: 'sys-1', role: 'bot', text: 'Bienvenido. Soy su asistente virtual.' }]);
+              }}
+            >Nuevo chat</button>
           </div>
 
           <nav className={activeStyles.chatList} aria-label="Chats recientes">
@@ -116,7 +180,6 @@ const Chatbot = () => {
           </nav>
         </aside>
 
-        {/* Panel principal - Chat */}
         <main className={activeStyles.mainPanel}>
           <div className={activeStyles.chatHeader}>
             <div className={activeStyles.headerRow}>
@@ -126,67 +189,61 @@ const Chatbot = () => {
                 <p className={activeStyles.statusLine}>
                   <span className={activeStyles.statusDot} /> En línea
                 </p>
+                {/* Estado de autorización mostrado de forma discreta */}
+                <p className={activeStyles.smallNote} aria-live="polite">
+                  {authLoading ? 'Validando usuario...' : (
+                    isAllowed
+                      ? `Acceso permitido (user id: ${userId})`
+                      : authError ? `Acceso denegado: ${authError}` : `Acceso denegado (user id: ${userId ?? 'desconocido'})`
+                  )}
+                </p>
               </div>
             </div>
           </div>
 
           <section className={activeStyles.messagesArea} aria-live="polite">
-            <div className={activeStyles.overlay} role="region" aria-label="Información de estado">
-              <div className={activeStyles.overlayIconCircle}>
-                {/* Gear SVG (no emoji) */}
-                <svg className={activeStyles.overlaySvg} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M19.4 15a1.8 1.8 0 0 0 .34 1.96l.02.02a1 1 0 0 1-0.02 1.4l-1.1 1.1a1 1 0 0 1-1.4 0l-.02-.02A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1.96.34l-.02.02a1 1 0 0 1-1.4 0l-1.1-1.1a1 1 0 0 1 0-1.4l.02-.02A1.8 1.8 0 0 0 8.6 15a1.8 1.8 0 0 0-.34-1.96l-.02-.02a1 1 0 0 1 0-1.4l1.1-1.1a1 1 0 0 1 1.4 0l.02.02A1.8 1.8 0 0 0 9 8.6 1.8 1.8 0 0 0 10.96 8.26l.02-.02a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4l-.02.02A1.8 1.8 0 0 0 15 8.6a1.8 1.8 0 0 0 1.96-.34l.02-.02a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1 0 1.4l-.02.02A1.8 1.8 0 0 0 19.4 9" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-
-              <h1 className={activeStyles.overlayTitle}>EN CONSTRUCCIÓN</h1>
-
-              <p className={activeStyles.overlaySubtitle}>El servicio estará disponible próximamente.</p>
-
-              <div className={activeStyles.dotsBox}>
-                <p className={activeStyles.dotsText}>Configurando inteligencia artificial{dots}</p>
-              </div>
-
-              <div className={activeStyles.featuresGrid}>
-                {features.map((f, idx) => (
-                  <div key={idx} className={activeStyles.featureCard}>
-                    <div className={activeStyles.featureMark} aria-hidden="true" />
-                    <div>
-                      <p className={activeStyles.featureText}>{f.title}</p>
-                      <p className={activeStyles.featureSub}>{f.subtitle}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={activeStyles.progressWrap}>
-                <div className={activeStyles.progressBar} style={{ width: '58%' }} />
-              </div>
-            </div>
-
-            {/* Mensajes de ejemplo (desenfocados) */}
-            {chatMessages.map((msg, index) => (
-              <div key={index} className={activeStyles.blurredMessage}>
+            {/* Mensajes */}
+            {messages.map((msg) => (
+              <div key={msg.id} className={activeStyles.blurredMessage}>
                 <div
-                  className={`${activeStyles.messageBubble} ${msg.type === 'user' ? activeStyles.messageUser : activeStyles.messageBot}`}
+                  className={`${activeStyles.messageBubble} ${msg.role === 'user' ? activeStyles.messageUser : activeStyles.messageBot}`}
                 >
-                  {msg.message}
+                  {msg.text}
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </section>
 
           <footer className={activeStyles.inputArea}>
             <div className={activeStyles.inputRow}>
-              <input
-                type="text"
-                placeholder="El chat estará disponible próximamente..."
-                disabled
+              {/* Si el usuario no está permitido, el textarea se deshabilita y mostramos placeholder explicativo */}
+              <textarea
+                rows={1}
+                placeholder={
+                  authLoading
+                    ? 'Validando usuario...'
+                    : isAllowed
+                      ? 'Escribe un mensaje...'
+                      : 'No tienes permiso para enviar prompts en este chat'
+                }
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
                 className={activeStyles.inputField}
-                aria-disabled="true"
+                disabled={isSending || !isAllowed || authLoading}
+                aria-disabled={isSending || !isAllowed || authLoading}
               />
-              <button disabled className={activeStyles.sendBtn} aria-disabled="true">Enviar</button>
+              <button
+                onClick={sendMessage}
+                disabled={isSending || !isAllowed || authLoading}
+                className={activeStyles.sendBtn}
+                aria-disabled={isSending || !isAllowed || authLoading}
+                type="button"
+                title={(!isAllowed && !authLoading) ? 'No tienes permiso para enviar prompts' : 'Enviar'}
+              >
+                {isSending ? `Enviando${dots}` : 'Enviar'}
+              </button>
             </div>
           </footer>
         </main>

@@ -77,6 +77,11 @@ from .views import (
 
     #odoo
     OdooSales2025View,
+
+
+    #CHATBOT
+
+    ChatbotAPIView,
 )
 
 urlpatterns = [
@@ -167,7 +172,11 @@ urlpatterns = [
 
 
     #odoo
-    path("odoo/order/salescoltrade/", OdooSales2025View.as_view(), name="odoo-order-s68097")
+    path("odoo/order/salescoltrade/", OdooSales2025View.as_view(), name="odoo-order-s68097"),
+
+
+    #chatbot
+    path('chatbot/message/', ChatbotAPIView.as_view(), name='chatbot-message'),
 
 ]
     

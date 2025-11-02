@@ -126,3 +126,11 @@ ODOO_USERNAME = config("ODOO_USERNAME", default=None)
 ODOO_API_KEY = config("ODOO_API_KEY", default=None)
 # Año por defecto para filtrar ventas (puedes sobreescribir en .env)
 ODOO_SALES_YEAR = config("ODOO_SALES_YEAR", cast=int, default=2025)
+
+
+
+
+
+OPENAI_API_KEY = config("OPENAI_API_KEY", default=None)
+OPENAI_API_BASE = config("OPENAI_API_BASE", default="https://api.openai.com/v1")
+OPENAI_DEFAULT_MODEL = config("OPENAI_DEFAULT_MODEL", default="gpt-4o-mini")
