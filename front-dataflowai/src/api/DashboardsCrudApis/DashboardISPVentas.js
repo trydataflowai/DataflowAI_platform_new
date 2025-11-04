@@ -1,7 +1,17 @@
 import { useState, useMemo } from 'react';
 
 /* ------------- CONFIG ------------- */
-const API_BASE_URL = 'http://localhost:8000/api';
+// Tomar la URL base desde las variables de entorno Vite, con fallback seguro
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
+// Helper para concatenar rutas sin errores por barras duplicadas
+const buildUrl = (path) => {
+  const base = String(API_BASE_URL || '').replace(/\/+$|^\/+/, '');
+  const p = String(path || '').replace(/^\/+/, '');
+  // Si la base queda vacía devolvemos la ruta tal cual
+  if (!base) return `/${p}`;
+  return `${base}/${p}`;
+};
 
 /* ------------- HELPERS ------------- */
 const safeNumber = (raw) => {
@@ -59,7 +69,7 @@ export const getVentas = async () => {
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE_URL}/dashboard_isp_ventas/list/`, {
+  const res = await fetch(buildUrl('dashboard_isp_ventas/list/'), {
     method: 'GET',
     headers,
   });

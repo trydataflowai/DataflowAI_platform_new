@@ -1,30 +1,44 @@
 // front-dataflowai/src/api/DashboardsCrudApis/CrudDashboardSalesCorporativoInicio.js
 
-// URL base de tu API - AJUSTA SEGUN TU CONFIGURACION
-const API_BASE_URL = 'http://localhost:8000/api'; // Cambia esto por tu URL real
+/* ============================
+   Configuración base de la API
+   ============================
+   Usa la variable de entorno VITE_API_BASE_URL si está definida.
+   Se normaliza la URL para evitar dobles slashes al concatenar rutas.
+*/
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-// Funcion para obtener el token del usuario logueado
+const buildUrl = (path = '') => {
+  const base = String(API_BASE_URL).replace(/\/+$/, '');
+  const p = String(path).replace(/^\/+/, '');
+  return `${base}/${p}`;
+};
+
+// -----------------------------
+// Token y headers comunes
+// -----------------------------
 const getToken = () => {
   const token = localStorage.getItem('token');
   if (!token) {
-    console.error('No se encontro token de autenticacion');
+    console.error('No se encontró token de autenticación');
   }
   return token;
 };
 
-// Headers comunes para las peticiones
-const getHeaders = () => {
+const getHeaders = (isJson = true) => {
   const token = getToken();
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
+  const headers = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (isJson) headers['Content-Type'] = 'application/json';
+  return headers;
 };
 
+// -----------------------------
 // Obtener cotizaciones
+// -----------------------------
 export const getCotizaciones = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard_salescorporativo_prod15/`, {
+    const response = await fetch(buildUrl('dashboard_salescorporativo_prod15/'), {
       method: 'GET',
       headers: getHeaders(),
     });
@@ -37,7 +51,7 @@ export const getCotizaciones = async () => {
     const data = await response.json();
 
     // Normalizar los datos para asegurar tipos correctos
-    return data.map(item => ({
+    return (Array.isArray(data) ? data : []).map(item => ({
       ...item,
       estado_cotizacion: Number(item.estado_cotizacion),
       unidades: Number(item.unidades) || 0,
@@ -50,10 +64,12 @@ export const getCotizaciones = async () => {
   }
 };
 
+// -----------------------------
 // Obtener metas
+// -----------------------------
 export const getMetas = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/dashboard_salescorporativometas/product15/`, {
+    const response = await fetch(buildUrl('dashboard_salescorporativometas/product15/'), {
       method: 'GET',
       headers: getHeaders(),
     });
@@ -65,8 +81,7 @@ export const getMetas = async () => {
 
     const data = await response.json();
 
-    // Normalizar los datos para asegurar tipos correctos
-    return data.map(item => ({
+    return (Array.isArray(data) ? data : []).map(item => ({
       ...item,
       ano: Number(item.ano),
       meta: parseFloat(item.meta) || 0,
@@ -78,8 +93,10 @@ export const getMetas = async () => {
   }
 };
 
-// Funcion para obtener valores unicos combinando metas y cotizaciones
-export const obtenerValoresUnicosCombinados = (metas, cotizaciones, field) => {
+// -----------------------------
+// Obtener valores únicos combinados (metas + cotizaciones)
+// -----------------------------
+export const obtenerValoresUnicosCombinados = (metas = [], cotizaciones = [], field) => {
   let valores = [];
 
   if (field === 'ano') {
@@ -112,8 +129,10 @@ export const obtenerValoresUnicosCombinados = (metas, cotizaciones, field) => {
   });
 };
 
-// aplicarFiltros original (para la primera parte del dashboard)
-export const aplicarFiltros = (cotizaciones, metas, filters) => {
+// -----------------------------
+// aplicarFiltros (para dashboard principal)
+// -----------------------------
+export const aplicarFiltros = (cotizaciones = [], metas = [], filters = {}) => {
   let filteredCot = [...cotizaciones];
   let filteredMet = [...metas];
 
@@ -131,7 +150,7 @@ export const aplicarFiltros = (cotizaciones, metas, filters) => {
     });
   }
 
-  // Ano
+  // Año
   if (filters.ano && filters.ano.length > 0) {
     const anosSeleccionados = filters.ano.map(a => Number(a));
     filteredMet = filteredMet.filter(m => anosSeleccionados.includes(Number(m.ano)));
@@ -188,8 +207,10 @@ export const aplicarFiltros = (cotizaciones, metas, filters) => {
   return { filteredCot, filteredMet };
 };
 
-// Nueva funcion: aplica filtros SOLO a cotizaciones (para la seccion analisis)
-export const aplicarFiltrosCotizaciones = (cotizaciones, filtersCot) => {
+// -----------------------------
+// aplicarFiltrosCotizaciones (solo cotizaciones) - sección análisis
+// -----------------------------
+export const aplicarFiltrosCotizaciones = (cotizaciones = [], filtersCot = {}) => {
   let filtered = [...cotizaciones];
 
   // Rango fechas
@@ -247,11 +268,13 @@ export const aplicarFiltrosCotizaciones = (cotizaciones, filtersCot) => {
   return filtered;
 };
 
-// Funcion para calcular estadisticas existentes
-export const calcularEstadisticas = (filteredCotizaciones, filteredMetas) => {
-  const metaTotal = filteredMetas.reduce((sum, m) => sum + parseFloat(m.meta || 0), 0);
+// -----------------------------
+// calcularEstadisticas
+// -----------------------------
+export const calcularEstadisticas = (filteredCotizaciones = [], filteredMetas = []) => {
+  const metaTotal = (Array.isArray(filteredMetas) ? filteredMetas : []).reduce((sum, m) => sum + parseFloat(m.meta || 0), 0);
 
-  const cotizacionesCerradas = filteredCotizaciones.filter(c => Number(c.estado_cotizacion) === 100);
+  const cotizacionesCerradas = (Array.isArray(filteredCotizaciones) ? filteredCotizaciones : []).filter(c => Number(c.estado_cotizacion) === 100);
 
   const vendidoReal = cotizacionesCerradas.reduce((sum, c) => {
     const precioUnitario = parseFloat(c.precio_unitario) || 0;
@@ -274,7 +297,9 @@ export const calcularEstadisticas = (filteredCotizaciones, filteredMetas) => {
   };
 };
 
-// Formatear moneda en pesos colombianos
+// -----------------------------
+// Formatear moneda (COP)
+// -----------------------------
 export const formatearMoneda = (value) => {
   const numero = parseFloat(value) || 0;
   return new Intl.NumberFormat('es-CO', {
@@ -285,7 +310,9 @@ export const formatearMoneda = (value) => {
   }).format(numero);
 };
 
-// Autenticacion util
+// -----------------------------
+// Autenticación util
+// -----------------------------
 export const isAuthenticated = () => {
   return !!getToken();
 };
@@ -294,14 +321,16 @@ export const handleAuthError = (error) => {
   if (!error) return;
   const msg = String(error.message || error);
   if (msg.includes('401') || msg.includes('403')) {
-    console.error('Error de autenticacion. Limpiando token...');
+    console.error('Error de autenticación. Limpiando token...');
     localStorage.removeItem('token');
-    // window.location.href = '/login'; // descomenta si quieres redirigir automatico
+    // window.location.href = '/login'; // descomenta si quieres redirigir automáticamente
   }
 };
 
-// --- Nueva funcion: calcularAnalisisAdicional (recibe array de cotizaciones ya filtradas) ---
-export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
+// -----------------------------
+// calcularAnalisisAdicional
+// -----------------------------
+export const calcularAnalisisAdicional = (cotizacionesFiltradas = []) => {
   const valorDe = (c) => {
     const precio = parseFloat(c.precio_unitario) || 0;
     const unidades = Number(c.unidades) || 0;
@@ -309,17 +338,17 @@ export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
   };
 
   // ventas estado 100
-  const ventasEstado100 = cotizacionesFiltradas
+  const ventasEstado100 = (cotizacionesFiltradas || [])
     .filter(c => Number(c.estado_cotizacion) === 100)
     .reduce((s, c) => s + valorDe(c), 0);
 
   // Distinct count de orden_compra total
-  const allOrdenesSet = new Set(cotizacionesFiltradas.map(c => c.orden_compra).filter(Boolean));
+  const allOrdenesSet = new Set((cotizacionesFiltradas || []).map(c => c.orden_compra).filter(Boolean));
   const totalOrdenesDistinct = allOrdenesSet.size;
 
   // Acumular por orden para calcular valor por orden y si tiene estado 100
   const ordenesPorEstado = {};
-  cotizacionesFiltradas.forEach(c => {
+  (cotizacionesFiltradas || []).forEach(c => {
     const oc = c.orden_compra || `OC-${c.id_registro || c.id || Math.random()}`;
     if (!ordenesPorEstado[oc]) ordenesPorEstado[oc] = { totalValor: 0, tiene100: false, tieneNo100: false };
     const v = valorDe(c);
@@ -336,7 +365,7 @@ export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
 
   // Acumulado por estado de cotizacion
   const mapEstado = {};
-  cotizacionesFiltradas.forEach(c => {
+  (cotizacionesFiltradas || []).forEach(c => {
     const estado = Number(c.estado_cotizacion);
     if (!mapEstado[estado]) mapEstado[estado] = 0;
     mapEstado[estado] += valorDe(c);
@@ -345,7 +374,7 @@ export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
 
   // Distribucion por categoria_producto
   const mapCatProd = {};
-  cotizacionesFiltradas.forEach(c => {
+  (cotizacionesFiltradas || []).forEach(c => {
     const cat = c.categoria_producto || 'Sin categoria';
     if (!mapCatProd[cat]) mapCatProd[cat] = 0;
     mapCatProd[cat] += valorDe(c);
@@ -359,7 +388,7 @@ export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
 
   // Resumen por cliente (orden distinct, vendido 100, en proceso)
   const clienteOrdenesMap = {};
-  cotizacionesFiltradas.forEach(c => {
+  (cotizacionesFiltradas || []).forEach(c => {
     const cliente = c.nombre_cliente || 'Sin nombre';
     if (!clienteOrdenesMap[cliente]) clienteOrdenesMap[cliente] = { todas: new Set(), con100: new Set() };
     if (c.orden_compra) {
@@ -369,11 +398,11 @@ export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
   });
 
   const resumenClientes = Object.keys(clienteOrdenesMap).map(cliente => {
-    const vendido100 = cotizacionesFiltradas
+    const vendido100 = (cotizacionesFiltradas || [])
       .filter(c => c.nombre_cliente === cliente && Number(c.estado_cotizacion) === 100)
       .reduce((s, c) => s + valorDe(c), 0);
 
-    const enProceso = cotizacionesFiltradas
+    const enProceso = (cotizacionesFiltradas || [])
       .filter(c => c.nombre_cliente === cliente && Number(c.estado_cotizacion) !== 100)
       .reduce((s, c) => s + valorDe(c), 0);
 
@@ -409,5 +438,3 @@ export const calcularAnalisisAdicional = (cotizacionesFiltradas) => {
     resumenClientes
   };
 };
-
-
