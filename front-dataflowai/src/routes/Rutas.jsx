@@ -51,6 +51,18 @@ import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDash
 import DashboardVentasColtradeOdoo from "../components/dashboards/DashboardColtradeOdoo";
 
 
+
+//DAHABOARD
+
+import CrudDashboardSalesCorporativo from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativo";
+
+import DashboardSalesCorporativo from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoInicio";
+
+import CrudDashboardSalesCorporativoMetas from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoMetas";
+
+import DashboardISPVentas from "../components/pages/dashboardcrud/DashboardISPVentas";
+
+
 import ShopifyJsx from "../components/pages/Shopify";
 
 
@@ -393,7 +405,57 @@ export const Rutas = () => {
             }
           />
 
-    
+
+
+
+             <Route
+            path={("/dashboardSalescorporativo/Cotizaciones")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <CrudDashboardSalesCorporativo />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+             <Route
+            path={("/DashboardSalescorporativo")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <DashboardSalesCorporativo />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+             <Route
+            path={("/dashboardSalescorporativo/Metas")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <CrudDashboardSalesCorporativoMetas />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+             <Route
+            path={("/DashboardISPventas")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <DashboardISPVentas />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+
+        
 
 
         </Routes>
