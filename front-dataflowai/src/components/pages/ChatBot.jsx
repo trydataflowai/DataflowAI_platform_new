@@ -6,7 +6,7 @@ import { useTheme } from '../componentes/ThemeContext';
 import { sendMessageToBackend } from '../../api/ChatBot';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 
-const ALLOWED_USER_IDS = [1, 2, 3, 20];
+const ALLOWED_USER_IDS = [1, 2, 3];
 
 const Chatbot = () => {
   const { theme } = useTheme(); // 'dark' | 'light'

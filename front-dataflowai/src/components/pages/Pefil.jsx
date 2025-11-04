@@ -1,7 +1,7 @@
 // src/components/pages/ConfiguracionUsuarios.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from '../../styles/Profile/Perfil.module.css';
+import defaultStyles from '../../styles/Profile/Perfil.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
 import { useTheme } from "../componentes/ThemeContext";
 
@@ -17,7 +17,8 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-const Card = ({ texto, ruta, index, onCardClick }) => {
+// Card recibe el objeto `styles` dinámico como prop para usar el CSS correcto
+const Card = ({ texto, ruta, index, onCardClick, styles }) => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -119,6 +120,11 @@ const ConfiguracionUsuarios = () => {
   const [rol, setRol] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [companyId, setCompanyId] = useState(null);
+
+  // `styles` es el CSS module activo (por defecto defaultStyles)
+  const [styles, setStyles] = useState(defaultStyles);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -133,11 +139,13 @@ const ConfiguracionUsuarios = () => {
         const pid = data?.empresa?.plan?.id ?? null;
         const pName = data?.empresa?.plan?.tipo ?? "";
         const r = data?.rol ?? data?.role ?? null;
+        const cid = data?.empresa?.id ?? null;
 
         setCompanySegment(normalizeSegment(nombreCorto));
         setPlanId(pid);
         setPlanName(pName);
         setRol(r);
+        setCompanyId(cid);
       } catch (err) {
         console.error("No se pudo obtener info de usuario:", err);
         if (mounted) {
@@ -145,6 +153,7 @@ const ConfiguracionUsuarios = () => {
           setPlanId(null);
           setPlanName("");
           setRol(null);
+          setCompanyId(null);
         }
       }
     };
@@ -154,6 +163,39 @@ const ConfiguracionUsuarios = () => {
       mounted = false;
     };
   }, []);
+
+  // Cargar dinámicamente el módulo CSS si aplica
+  useEffect(() => {
+    let mounted = true;
+
+    const loadCompanyStyles = async () => {
+      // Solo intentamos usar estilos personalizados si el plan es 3 o 6
+      if ((planId === 3 || planId === 6) && companyId) {
+        try {
+          // Intento de import dinámico del CSS module de la empresa
+          const module = await import(`../../styles/empresas/${companyId}/Perfil.module.css`);
+          // En Vite/ESM los CSS modules exportan el mapeo como default
+          if (mounted && module && (module.default || module)) {
+            const cssMap = module.default || module;
+            setStyles(cssMap);
+            return;
+          }
+        } catch (err) {
+          // No existe el archivo o fallo en la importación: fallback al default
+          console.warn(`No se encontró CSS custom para la empresa ${companyId} o hubo un error. Usando estilos por defecto.`, err);
+        }
+      }
+
+      // fallback general
+      if (mounted) setStyles(defaultStyles);
+    };
+
+    loadCompanyStyles();
+
+    return () => {
+      mounted = false;
+    };
+  }, [planId, companyId]);
 
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
@@ -203,7 +245,7 @@ const ConfiguracionUsuarios = () => {
     setModalMessage("");
   };
 
-  // Decide clase variante (dark/light) según planId y theme (mismo comportamiento anterior)
+  // Decide clase variante (dark/light) según planId y theme
   const variantClass =
     planId === 3 || planId === 6
       ? theme === "dark"
@@ -230,6 +272,7 @@ const ConfiguracionUsuarios = () => {
             ruta={opcion.ruta}
             index={index}
             onCardClick={handleCardClick}
+            styles={styles}
           />
         ))}
       </section>
