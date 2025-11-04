@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-;
 
-import styles from '../../styles/CrudSalesCorporativo.module.css';
 import dashboardStyles from '../../styles/Dashboards/DashboardSalesCorporativo.module.css';
 
 import {
@@ -47,8 +45,8 @@ const MultiSelectDropdown = ({ label, options = [], selected = [], onChange, pla
   };
 
   return (
-    <div className={`${styles.filterItem} ${dashboardStyles.filterItem}`} ref={ref} style={{ position: 'relative' }}>
-      <label className={`${styles.label} ${dashboardStyles.label}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className={dashboardStyles.DashSalesCorpoFilterItem} ref={ref} style={{ position: 'relative' }}>
+      <label className={dashboardStyles.DashSalesCorpoLabel} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>{label} {selected.length > 0 && <span style={{ color: '#10b981', fontWeight: 'bold' }}>({selected.length})</span>}</span>
         {selected.length > 0 && <button onClick={clearAll} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} title="Limpiar">✖</button>}
       </label>
@@ -56,7 +54,7 @@ const MultiSelectDropdown = ({ label, options = [], selected = [], onChange, pla
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={styles.multiSelectBtn}
+        className={dashboardStyles.DashSalesCorpoMultiSelectBtn}
         style={{
           width: '100%',
           textAlign: 'left',
@@ -118,7 +116,6 @@ const MultiSelectDropdown = ({ label, options = [], selected = [], onChange, pla
 const DashboardVentasCorporativo = () => {
   const navigate = useNavigate();
 
-  
   // carga e estado
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -369,24 +366,24 @@ const DashboardVentasCorporativo = () => {
 
   const getEstadoBadge = (porcentaje, tieneMeta) => {
     if (!tieneMeta) {
-      return <span className={`${styles.badge} ${styles.badgeInfo}`}>Sin Meta</span>;
+      return <span className={`${dashboardStyles.DashSalesCorpoBadge} ${dashboardStyles.DashSalesCorpoBadgeInfo}`}>Sin Meta</span>;
     }
     if (porcentaje >= 100) {
-      return <span className={`${styles.badge} ${styles.badgeSuccess}`}>Excelente</span>;
+      return <span className={`${dashboardStyles.DashSalesCorpoBadge} ${dashboardStyles.DashSalesCorpoBadgeSuccess}`}>Excelente</span>;
     }
     if (porcentaje >= 80) {
-      return <span className={`${styles.badge} ${styles.badgeWarning}`}>Bueno</span>;
+      return <span className={`${dashboardStyles.DashSalesCorpoBadge} ${dashboardStyles.DashSalesCorpoBadgeWarning}`}>Bueno</span>;
     }
-    return <span className={`${styles.badge} ${styles.badgeDanger}`}>Bajo</span>;
+    return <span className={`${dashboardStyles.DashSalesCorpoBadge} ${dashboardStyles.DashSalesCorpoBadgeDanger}`}>Bajo</span>;
   };
 
   if (loading) {
-    return <div className={`${styles.loading} ${dashboardStyles.loading}`}>Cargando datos del dashboard...</div>;
+    return <div className={dashboardStyles.DashSalesCorpoLoading}>Cargando datos del dashboard...</div>;
   }
 
   if (error) {
     return (
-      <div className={`${styles.container} ${dashboardStyles.container}`}>
+      <div className={dashboardStyles.DashSalesCorpoContainer}>
         <div style={{
           padding: '20px',
           backgroundColor: '#fee2e2',
@@ -416,14 +413,14 @@ const DashboardVentasCorporativo = () => {
   }
 
   return (
-    <div className={`${styles.container} ${dashboardStyles.container}`}>
-      <div className={`${styles.header} ${dashboardStyles.header}`}>
-        <h1 className={`${styles.title} ${dashboardStyles.title}`}>📊 Dashboard de Ventas Corporativo - Inicio</h1>
+    <div className={dashboardStyles.DashSalesCorpoContainer}>
+      <div className={dashboardStyles.DashSalesCorpoHeader}>
+        <h1 className={dashboardStyles.DashSalesCorpoTitle}>📊 Dashboard de Ventas Corporativo - Inicio</h1>
 
-        <div className={`${styles.navButtons} ${dashboardStyles.navButtons}`}>
+        <div className={dashboardStyles.DashSalesCorpoNavButtons}>
           <button
             onClick={() => navigate("/DashboardSalescorporativo")}
-            className={`${styles.navBtn} ${styles.btnInicio} ${dashboardStyles.navBtn} ${dashboardStyles.btnInicio}`}
+            className={`${dashboardStyles.DashSalesCorpoNavBtn} ${dashboardStyles.DashSalesCorpoBtnInicio}`}
             type="button"
           >
             INICIO
@@ -431,7 +428,7 @@ const DashboardVentasCorporativo = () => {
 
           <button
             onClick={() => navigate("/dashboardSalescorporativo/Metas")}
-            className={`${styles.navBtn} ${styles.btnMetas} ${dashboardStyles.navBtn} ${dashboardStyles.btnMetas}`}
+            className={`${dashboardStyles.DashSalesCorpoNavBtn} ${dashboardStyles.DashSalesCorpoBtnMetas}`}
             type="button"
           >
             METAS
@@ -439,7 +436,7 @@ const DashboardVentasCorporativo = () => {
 
           <button
             onClick={() => navigate("/dashboardSalescorporativo/Cotizaciones")}
-            className={`${styles.navBtn} ${styles.btnCotizaciones} ${dashboardStyles.navBtn} ${dashboardStyles.btnCotizaciones}`}
+            className={`${dashboardStyles.DashSalesCorpoNavBtn} ${dashboardStyles.DashSalesCorpoBtnCotizaciones}`}
             type="button"
           >
             COTIZACIONES
@@ -448,9 +445,9 @@ const DashboardVentasCorporativo = () => {
       </div>
 
       {/* FILTROS PRINCIPALES (seccion superior) */}
-      <div className={`${styles.filtersContainer} ${dashboardStyles.filtersContainer}`}>
-        <h3 className={`${styles.filtersTitle} ${dashboardStyles.filtersTitle}`}>🔍 Filtros de Analisis Metas vs Cotizaciones</h3>
-        <div className={`${styles.filtersGrid} ${dashboardStyles.filtersGrid}`}>
+      <div className={dashboardStyles.DashSalesCorpoFiltersContainer}>
+        <h3 className={dashboardStyles.DashSalesCorpoFiltersTitle}>🔍 Filtros de Analisis Metas vs Cotizaciones</h3>
+        <div className={dashboardStyles.DashSalesCorpoFiltersGrid}>
 
           <MultiSelectDropdown
             label="Ano"
@@ -517,30 +514,30 @@ const DashboardVentasCorporativo = () => {
             maxHeight={180}
           />
 
-          <button className={`${styles.btnClear} ${dashboardStyles.btnClear}`} onClick={clearFilters}>
+          <button className={dashboardStyles.DashSalesCorpoBtnClear} onClick={clearFilters}>
             🧹 Limpiar Filtros
           </button>
         </div>
       </div>
 
       {/* CARDS Y GRAFICOS INICIALES (sin cambios funcionales) */}
-      <div className={`${styles.cardsContainer} ${dashboardStyles.cardsContainer}`}>
-        <div className={`${styles.card} ${dashboardStyles.card}`}>
-          <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: '#dbeafe' }}>🎯</div>
-          <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>Meta Total</h3>
-          <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{formatearMoneda(stats.metaTotal)}</div>
+      <div className={dashboardStyles.DashSalesCorpoCardsContainer}>
+        <div className={dashboardStyles.DashSalesCorpoCard}>
+          <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: '#dbeafe' }}>🎯</div>
+          <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>Meta Total</h3>
+          <div className={dashboardStyles.DashSalesCorpoCardValue}>{formatearMoneda(stats.metaTotal)}</div>
         </div>
 
-        <div className={`${styles.card} ${dashboardStyles.card}`}>
-          <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: '#d1fae5' }}>🏆</div>
-          <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>Vendido Real</h3>
-          <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{formatearMoneda(stats.vendidoReal)}</div>
+        <div className={dashboardStyles.DashSalesCorpoCard}>
+          <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: '#d1fae5' }}>🏆</div>
+          <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>Vendido Real</h3>
+          <div className={dashboardStyles.DashSalesCorpoCardValue}>{formatearMoneda(stats.vendidoReal)}</div>
         </div>
 
-        <div className={`${styles.card} ${dashboardStyles.card}`}>
-          <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: stats.porcentajeCumplimiento >= 100 ? '#d1fae5' : '#fef3c7' }}>📊</div>
-          <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>% Cumplimiento</h3>
-          <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{stats.porcentajeCumplimiento}%</div>
+        <div className={dashboardStyles.DashSalesCorpoCard}>
+          <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: stats.porcentajeCumplimiento >= 100 ? '#d1fae5' : '#fef3c7' }}>📊</div>
+          <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>% Cumplimiento</h3>
+          <div className={dashboardStyles.DashSalesCorpoCardValue}>{stats.porcentajeCumplimiento}%</div>
           <div style={{
             fontSize: '11px',
             color: '#666',
@@ -551,19 +548,19 @@ const DashboardVentasCorporativo = () => {
           </div>
         </div>
 
-        <div className={`${styles.card} ${dashboardStyles.card}`}>
-          <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: stats.diferencia >= 0 ? '#d1fae5' : '#fee2e2' }}>⚖️</div>
-          <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>Diferencia vs Meta</h3>
-          <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`} style={{ color: stats.diferencia >= 0 ? '#10b981' : '#ef4444' }}>
+        <div className={dashboardStyles.DashSalesCorpoCard}>
+          <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: stats.diferencia >= 0 ? '#d1fae5' : '#fee2e2' }}>⚖️</div>
+          <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>Diferencia vs Meta</h3>
+          <div className={dashboardStyles.DashSalesCorpoCardValue} style={{ color: stats.diferencia >= 0 ? '#10b981' : '#ef4444' }}>
             {formatearMoneda(stats.diferencia)}
           </div>
         </div>
       </div>
 
       {/* GRAFICOS INICIALES */}
-      <div className={`${styles.chartsContainer} ${dashboardStyles.chartsContainer}`}>
-        <div className={`${styles.chartItem} ${dashboardStyles.chartItem}`}>
-          <h3 className={`${styles.chartTitle} ${dashboardStyles.chartTitle}`}>Cumplimiento por Categoria Cliente</h3>
+      <div className={dashboardStyles.DashSalesCorpoChartsContainer}>
+        <div className={dashboardStyles.DashSalesCorpoChartItem}>
+          <h3 className={dashboardStyles.DashSalesCorpoChartTitle}>Cumplimiento por Categoria Cliente</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={getCategoriaClienteData()}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -577,8 +574,8 @@ const DashboardVentasCorporativo = () => {
           </ResponsiveContainer>
         </div>
 
-        <div className={`${styles.chartItem} ${dashboardStyles.chartItem}`}>
-          <h3 className={`${styles.chartTitle} ${dashboardStyles.chartTitle}`}>Cumplimiento por Categoria Producto</h3>
+        <div className={dashboardStyles.DashSalesCorpoChartItem}>
+          <h3 className={dashboardStyles.DashSalesCorpoChartTitle}>Cumplimiento por Categoria Producto</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={getCategoriaProductoData()}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -593,9 +590,9 @@ const DashboardVentasCorporativo = () => {
         </div>
       </div>
 
-      <div className={`${styles.chartsContainer} ${styles.chartWide} ${dashboardStyles.chartsContainer} ${dashboardStyles.chartWide}`}>
-        <div className={`${styles.chartItem} ${dashboardStyles.chartItem}`}>
-          <h3 className={`${styles.chartTitle} ${dashboardStyles.chartTitle}`}>Meta vs Vendido por Cliente</h3>
+      <div className={`${dashboardStyles.DashSalesCorpoChartsContainer} ${dashboardStyles.DashSalesCorpoChartWide}`}>
+        <div className={dashboardStyles.DashSalesCorpoChartItem}>
+          <h3 className={dashboardStyles.DashSalesCorpoChartTitle}>Meta vs Vendido por Cliente</h3>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={getClienteData()}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -611,21 +608,21 @@ const DashboardVentasCorporativo = () => {
       </div>
 
       {/* TABLA FINAL RESUMEN EXISTENTE */}
-      <div className={`${styles.tableContainer} ${dashboardStyles.tableContainer}`} style={{ marginTop: 16 }}>
-        <div className={`${styles.tableHeader} ${dashboardStyles.tableHeader}`}>
+      <div className={dashboardStyles.DashSalesCorpoTableContainer} style={{ marginTop: 16 }}>
+        <div className={dashboardStyles.DashSalesCorpoTableHeader}>
           <span style={{ fontSize: '20px' }}>📋</span>
           <h3 style={{ margin: 0 }}>Resumen de Cumplimiento por Cliente</h3>
         </div>
         <div style={{ overflowX: 'auto' }}>
-          <table className={`${styles.table} ${dashboardStyles.table}`}>
+          <table className={dashboardStyles.DashSalesCorpoTable}>
             <thead>
               <tr>
-                <th className={`${styles.th} ${dashboardStyles.th}`}>Cliente</th>
-                <th className={`${styles.th} ${dashboardStyles.th}`}>Categoria</th>
-                <th className={`${styles.th} ${dashboardStyles.th}`}>Meta</th>
-                <th className={`${styles.th} ${dashboardStyles.th}`}>Vendido</th>
-                <th className={`${styles.th} ${dashboardStyles.th}`}>% Cumplimiento</th>
-                <th className={`${styles.th} ${dashboardStyles.th}`}>Estado</th>
+                <th className={dashboardStyles.DashSalesCorpoTh}>Cliente</th>
+                <th className={dashboardStyles.DashSalesCorpoTh}>Categoria</th>
+                <th className={dashboardStyles.DashSalesCorpoTh}>Meta</th>
+                <th className={dashboardStyles.DashSalesCorpoTh}>Vendido</th>
+                <th className={dashboardStyles.DashSalesCorpoTh}>% Cumplimiento</th>
+                <th className={dashboardStyles.DashSalesCorpoTh}>Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -641,12 +638,12 @@ const DashboardVentasCorporativo = () => {
 
                 return (
                   <tr key={idx} style={{ background: backgroundColor }}>
-                    <td className={`${styles.td} ${dashboardStyles.td}`}>{row.cliente}</td>
-                    <td className={`${styles.td} ${dashboardStyles.td}`}>{row.categoria || 'N/A'}</td>
-                    <td className={`${styles.td} ${dashboardStyles.td}`}>{row.tieneMeta ? formatearMoneda(row.meta) : 'N/A'}</td>
-                    <td className={`${styles.td} ${dashboardStyles.td}`}>{formatearMoneda(row.vendido)}</td>
-                    <td className={`${styles.td} ${dashboardStyles.td}`}>{row.tieneMeta ? `${porcentaje}%` : 'N/A'}</td>
-                    <td className={`${styles.td} ${dashboardStyles.td}`}>{getEstadoBadge(parseFloat(porcentaje), row.tieneMeta)}</td>
+                    <td className={dashboardStyles.DashSalesCorpoTd}>{row.cliente}</td>
+                    <td className={dashboardStyles.DashSalesCorpoTd}>{row.categoria || 'N/A'}</td>
+                    <td className={dashboardStyles.DashSalesCorpoTd}>{row.tieneMeta ? formatearMoneda(row.meta) : 'N/A'}</td>
+                    <td className={dashboardStyles.DashSalesCorpoTd}>{formatearMoneda(row.vendido)}</td>
+                    <td className={dashboardStyles.DashSalesCorpoTd}>{row.tieneMeta ? `${porcentaje}%` : 'N/A'}</td>
+                    <td className={dashboardStyles.DashSalesCorpoTd}>{getEstadoBadge(parseFloat(porcentaje), row.tieneMeta)}</td>
                   </tr>
                 );
               })}
@@ -656,10 +653,9 @@ const DashboardVentasCorporativo = () => {
       </div>
 
       {/* NUEVA SECCION: filtros EXCLUSIVOS para analisis de cotizaciones */}
-      <div className={`${styles.filtersContainer} ${dashboardStyles.filtersContainer}`} style={{ marginTop: 18 }}>
-        <h3 className={`${styles.filtersTitle} ${dashboardStyles.filtersTitle}`}>🔎 Filtros Analisis Cotizaciones</h3>
-        <div className={`${styles.filtersGrid} ${dashboardStyles.filtersGrid}`}>
-
+      <div className={dashboardStyles.DashSalesCorpoFiltersContainer} style={{ marginTop: 18 }}>
+        <h3 className={dashboardStyles.DashSalesCorpoFiltersTitle}>🔎 Filtros Analisis Cotizaciones</h3>
+        <div className={dashboardStyles.DashSalesCorpoFiltersGrid}>
 
           <MultiSelectDropdown
             label="Mes"
@@ -716,43 +712,43 @@ const DashboardVentasCorporativo = () => {
             maxHeight={180}
           />
 
-          <button className={`${styles.btnClear} ${dashboardStyles.btnClear}`} onClick={clearFiltersAnalisis}>
+          <button className={dashboardStyles.DashSalesCorpoBtnClear} onClick={clearFiltersAnalisis}>
             🧹 Limpiar Filtros
           </button>
         </div>
       </div>
 
       {/* SECCION ANALISIS (usa cotizaciones filtradas por filtersAnalisis) */}
-      <div className={`${styles.analisisContainer} ${dashboardStyles.analisisContainer}`} style={{ marginTop: 12 }}>
-  <div className={`${styles.cardsContainer} ${dashboardStyles.cardsContainer}`}>
-    <div className={`${styles.card} ${dashboardStyles.card}`}>
-      <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: '#d1fae5' }}>💰</div>
-      <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>Ventas (estado 100)</h3>
-      <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{formatearMoneda(analisisAdicional.ventasEstado100)}</div>
+      <div className={dashboardStyles.DashSalesCorpoAnalisisContainer} style={{ marginTop: 12 }}>
+  <div className={dashboardStyles.DashSalesCorpoCardsContainer}>
+    <div className={dashboardStyles.DashSalesCorpoCard}>
+      <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: '#d1fae5' }}>💰</div>
+      <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>Ventas (estado 100)</h3>
+      <div className={dashboardStyles.DashSalesCorpoCardValue}>{formatearMoneda(analisisAdicional.ventasEstado100)}</div>
     </div>
 
-    <div className={`${styles.card} ${dashboardStyles.card}`}>
-      <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: '#eef2ff' }}>📦</div>
-      <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>Ordenes</h3>
-      <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{analisisAdicional.totalOrdenesDistinct}</div>
+    <div className={dashboardStyles.DashSalesCorpoCard}>
+      <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: '#eef2ff' }}>📦</div>
+      <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>Ordenes</h3>
+      <div className={dashboardStyles.DashSalesCorpoCardValue}>{analisisAdicional.totalOrdenesDistinct}</div>
     </div>
 
-    <div className={`${styles.card} ${dashboardStyles.card}`}>
-      <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: '#fff7ed' }}>🔁</div>
-      <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>% Ordenes al 100</h3>
-      <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{analisisAdicional.porcentajeOrdenes100.toFixed(1)}%</div>
+    <div className={dashboardStyles.DashSalesCorpoCard}>
+      <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: '#fff7ed' }}>🔁</div>
+      <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>% Ordenes al 100</h3>
+      <div className={dashboardStyles.DashSalesCorpoCardValue}>{analisisAdicional.porcentajeOrdenes100.toFixed(1)}%</div>
     </div>
 
-    <div className={`${styles.card} ${dashboardStyles.card}`}>
-      <div className={`${styles.cardIcon} ${dashboardStyles.cardIcon}`} style={{ background: '#fee2e2' }}>🧾</div>
-      <h3 className={`${styles.cardTitle} ${dashboardStyles.cardTitle}`}>Valor total ordenes</h3>
-      <div className={`${styles.cardValue} ${dashboardStyles.cardValue}`}>{formatearMoneda(analisisAdicional.valorTodasOrdenes)}</div>
+    <div className={dashboardStyles.DashSalesCorpoCard}>
+      <div className={dashboardStyles.DashSalesCorpoCardIcon} style={{ background: '#fee2e2' }}>🧾</div>
+      <h3 className={dashboardStyles.DashSalesCorpoCardTitle}>Valor total ordenes</h3>
+      <div className={dashboardStyles.DashSalesCorpoCardValue}>{formatearMoneda(analisisAdicional.valorTodasOrdenes)}</div>
     </div>
   </div>
 
 
 <div
-  className={`${styles.chartsContainer} ${dashboardStyles.chartsContainer}`}
+  className={dashboardStyles.DashSalesCorpoChartsContainer}
   style={{
     display: 'flex',
     justifyContent: 'space-between',
@@ -762,10 +758,10 @@ const DashboardVentasCorporativo = () => {
   }}
 >
   <div
-    className={`${styles.chartItem} ${dashboardStyles.chartItem}`}
+    className={dashboardStyles.DashSalesCorpoChartItem}
     style={{ flex: '1', background: 'white', borderRadius: 8, padding: 12 }}
   >
-    <h4 className={styles.chartTitle}>Acumulado $ por Estado de Cotizacion</h4>
+    <h4 className={dashboardStyles.DashSalesCorpoChartTitle}>Acumulado $ por Estado de Cotizacion</h4>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={analisisAdicional.dataPorEstado}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -778,7 +774,7 @@ const DashboardVentasCorporativo = () => {
   </div>
 
 <div
-  className={`${styles.chartItem} ${dashboardStyles.chartItem}`}
+  className={dashboardStyles.DashSalesCorpoChartItem}
   style={{
     flex: '1',
     background: 'white',
@@ -788,7 +784,7 @@ const DashboardVentasCorporativo = () => {
   }}
 >
   <h4
-    className={styles.chartTitle}
+    className={dashboardStyles.DashSalesCorpoChartTitle}
     style={{
       fontSize: '16px',
       fontWeight: 600,
@@ -814,9 +810,8 @@ const DashboardVentasCorporativo = () => {
         }
       >
         {analisisAdicional.dataPorCategoria.map((entry, index) => {
-          // 🎨 Generar colores dinamicos estilo pastel (agradables y variados)
-          const hue = (index * 137.508) % 360; // Numero primo para distribuir tonos sin repetir
-          const color = `hsl(${hue}, 65%, 65%)`; // Saturacion y luminosidad suaves
+          const hue = (index * 137.508) % 360;
+          const color = `hsl(${hue}, 65%, 65%)`;
           return <Cell key={`cell-${index}`} fill={color} stroke="white" strokeWidth={1.5} />;
         })}
       </Pie>
@@ -828,9 +823,9 @@ const DashboardVentasCorporativo = () => {
 </div>
 
 
-        <div className={`${styles.chartsContainer} ${dashboardStyles.chartsContainer}`} style={{ marginTop: 12 }}>
-          <div className={`${styles.chartItem} ${dashboardStyles.chartItem}`} style={{ width: '100%' }}>
-            <h4 className={styles.chartTitle}>Top Clientes - Vendido (estado 100)</h4>
+        <div className={dashboardStyles.DashSalesCorpoChartsContainer} style={{ marginTop: 12 }}>
+          <div className={dashboardStyles.DashSalesCorpoChartItem} style={{ width: '100%' }}>
+            <h4 className={dashboardStyles.DashSalesCorpoChartTitle}>Top Clientes - Vendido (estado 100)</h4>
             <ResponsiveContainer width="100%" height={380}>
               <BarChart data={analisisAdicional.barrasClientes}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -844,36 +839,35 @@ const DashboardVentasCorporativo = () => {
         </div>
 
         {/* TABLA: Resumen por Cliente (estilo igual a la tabla existente) */}
-<div className={`${styles.tableContainer} ${dashboardStyles.tableContainer}`} style={{ marginTop: 12 }}>
-  <div className={`${styles.tableHeader} ${dashboardStyles.tableHeader}`}>
+<div className={dashboardStyles.DashSalesCorpoTableContainer} style={{ marginTop: 12 }}>
+  <div className={dashboardStyles.DashSalesCorpoTableHeader}>
     <span style={{ fontSize: '20px' }}>📋</span>
     <h3 style={{ margin: 0 }}>Resumen por Cliente</h3>
   </div>
 
   <div style={{ overflowX: 'auto' }}>
-    <table className={`${styles.table} ${dashboardStyles.table}`}>
+    <table className={dashboardStyles.DashSalesCorpoTable}>
       <thead>
         <tr>
-          <th className={`${styles.th} ${dashboardStyles.th}`}>Cliente</th>
-          <th className={`${styles.th} ${dashboardStyles.th}`}>Total Ordenes</th>
-          <th className={`${styles.th} ${dashboardStyles.th}`}>Vendido al 100 $</th>
-          <th className={`${styles.th} ${dashboardStyles.th}`}>En proceso $</th>
-          <th className={`${styles.th} ${dashboardStyles.th}`}>% Conversion</th>
+          <th className={dashboardStyles.DashSalesCorpoTh}>Cliente</th>
+          <th className={dashboardStyles.DashSalesCorpoTh}>Total Ordenes</th>
+          <th className={dashboardStyles.DashSalesCorpoTh}>Vendido al 100 $</th>
+          <th className={dashboardStyles.DashSalesCorpoTh}>En proceso $</th>
+          <th className={dashboardStyles.DashSalesCorpoTh}>% Conversion</th>
         </tr>
       </thead>
 
       <tbody>
         {analisisAdicional.resumenClientes && analisisAdicional.resumenClientes.map((r, idx) => {
-          // fila alternada
           const backgroundColor = idx % 2 === 0 ? '#f9f9f9' : 'white';
 
           return (
             <tr key={r.cliente + idx} style={{ background: backgroundColor }}>
-              <td className={`${styles.td} ${dashboardStyles.td}`}>{r.cliente}</td>
-              <td className={`${styles.td} ${dashboardStyles.td}`}>{r.totalOrdenesDistinct}</td>
-              <td className={`${styles.td} ${dashboardStyles.td}`}>{formatearMoneda(r.vendido100)}</td>
-              <td className={`${styles.td} ${dashboardStyles.td}`}>{formatearMoneda(r.enProceso)}</td>
-              <td className={`${styles.td} ${dashboardStyles.td}`}>{r.porcentajeConversion ? `${r.porcentajeConversion.toFixed(1)}%` : '0.0%'}</td>
+              <td className={dashboardStyles.DashSalesCorpoTd}>{r.cliente}</td>
+              <td className={dashboardStyles.DashSalesCorpoTd}>{r.totalOrdenesDistinct}</td>
+              <td className={dashboardStyles.DashSalesCorpoTd}>{formatearMoneda(r.vendido100)}</td>
+              <td className={dashboardStyles.DashSalesCorpoTd}>{formatearMoneda(r.enProceso)}</td>
+              <td className={dashboardStyles.DashSalesCorpoTd}>{r.porcentajeConversion ? `${r.porcentajeConversion.toFixed(1)}%` : '0.0%'}</td>
             </tr>
           );
         })}
@@ -884,8 +878,6 @@ const DashboardVentasCorporativo = () => {
         </div>
 
       
-
-
 
     </div>
   );

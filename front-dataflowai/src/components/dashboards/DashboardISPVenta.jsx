@@ -83,15 +83,14 @@ function CustomizedTreemapContent(props) {
   );
 }
 
-
 // Tooltip personalizado
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className={styles.customTooltip}>
-        <p className={styles.tooltipLabel}>{label}</p>
+      <div className={styles.dashipscolxdsCustomTooltip}>
+        <p className={styles.dashipscolxdsTooltipLabel}>{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color }} className={styles.tooltipValue}>
+          <p key={index} style={{ color: entry.color }} className={styles.dashipscolxdsTooltipValue}>
             {entry.name}: {
               entry.name.includes('%') || entry.name.includes('Var') 
                 ? `${Number(entry.value).toFixed(2)}%`
@@ -187,16 +186,16 @@ export default function DashboardISPVenta() {
   const COLORS = ['#00B43F', '#2CAF47', '#3EAA4F', '#4CA556', '#57A05D', '#609B63', '#689669', '#6F916F'];
 
   return (
-    <div className={styles.container}>
+    <div className={styles.dashipscolxdsContainer}>
       {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.titulo}>
-            <span className={styles.tituloIcon}>📊</span>
+      <div className={styles.dashipscolxdsHeader}>
+        <div className={styles.dashipscolxdsHeaderContent}>
+          <h1 className={styles.dashipscolxdsTitulo}>
+            <span className={styles.dashipscolxdsTituloIcon}>📊</span>
             Dashboard ISP Ventas
-            <span className={styles.badge}>v1.0</span>
+            <span className={styles.dashipscolxdsBadge}>v1.0</span>
           </h1>
-          <div className={styles.headerDate}>
+          <div className={styles.dashipscolxdsHeaderDate}>
             {new Date().toLocaleDateString('es-CO', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -208,145 +207,145 @@ export default function DashboardISPVenta() {
       </div>
 
       {error && (
-        <div className={styles.errorAlert}>
-          <span className={styles.errorIcon}>⚠️</span>
+        <div className={styles.dashipscolxdsErrorAlert}>
+          <span className={styles.dashipscolxdsErrorIcon}>⚠️</span>
           {error}
         </div>
       )}
 
       {/* Panel de filtros */}
-      <div className={styles.filtersPanel}>
-        <div className={styles.filtersSectionTitle}>
-          <span className={styles.filterIcon}>🔍</span>
+      <div className={styles.dashipscolxdsFiltersPanel}>
+        <div className={styles.dashipscolxdsFiltersSectionTitle}>
+          <span className={styles.dashipscolxdsFilterIcon}>🔍</span>
           Filtros de búsqueda
         </div>
         
-        <div className={styles.filtersGrid}>
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>📅</span>
+        <div className={styles.dashipscolxdsFiltersGrid}>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>📅</span>
               Fecha desde
             </label>
             <input
               type="date"
-              className={styles.filterInput}
+              className={styles.dashipscolxdsFilterInput}
               value={filters.fecha_from}
               onChange={e => handleFilterChange('fecha_from', e.target.value)}
             />
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>📅</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>📅</span>
               Fecha hasta
             </label>
             <input
               type="date"
-              className={styles.filterInput}
+              className={styles.dashipscolxdsFilterInput}
               value={filters.fecha_to}
               onChange={e => handleFilterChange('fecha_to', e.target.value)}
             />
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>👥</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>👥</span>
               Categoría cliente
             </label>
             <select 
               value={filters.categoria_cliente} 
               onChange={e => handleFilterChange('categoria_cliente', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
               {options.categoria_clientes.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>📍</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>📍</span>
               Ciudad
             </label>
             <select 
               value={filters.ciudad} 
               onChange={e => handleFilterChange('ciudad', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todas</option>
               {options.ciudades.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>🎯</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>🎯</span>
               Segmento
             </label>
             <select 
               value={filters.segmento} 
               onChange={e => handleFilterChange('segmento', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
               {options.segmentos.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>📦</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>📦</span>
               Nombre plan
             </label>
             <select 
               value={filters.nombre_plan} 
               onChange={e => handleFilterChange('nombre_plan', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
               {options.nombres_plan.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>🏷️</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>🏷️</span>
               Categoría plan
             </label>
             <select 
               value={filters.categoria_plan} 
               onChange={e => handleFilterChange('categoria_plan', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
               {options.categorias_plan.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>✓</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>✓</span>
               Estado suscripción
             </label>
             <select 
               value={filters.estado_suscripcion} 
               onChange={e => handleFilterChange('estado_suscripcion', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
               {options.estados_suscripcion.map(es => <option key={es} value={es}>{es}</option>)}
             </select>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>
-              <span className={styles.labelIcon}>💳</span>
+          <div className={styles.dashipscolxdsFilterGroup}>
+            <label className={styles.dashipscolxdsFilterLabel}>
+              <span className={styles.dashipscolxdsLabelIcon}>💳</span>
               Método pago
             </label>
             <select 
               value={filters.metodo_pago} 
               onChange={e => handleFilterChange('metodo_pago', e.target.value)} 
-              className={styles.filterSelect}
+              className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
               {options.metodos_pago.map(m => <option key={m} value={m}>{m}</option>)}
@@ -354,100 +353,100 @@ export default function DashboardISPVenta() {
           </div>
         </div>
 
-        <div className={styles.filterActions}>
-          <button className={styles.btnPrimary} onClick={cargarVentas} disabled={loading}>
-            <span className={styles.btnIcon}>🔄</span>
+        <div className={styles.dashipscolxdsFilterActions}>
+          <button className={styles.dashipscolxdsBtnPrimary} onClick={cargarVentas} disabled={loading}>
+            <span className={styles.dashipscolxdsBtnIcon}>🔄</span>
             {loading ? 'Cargando...' : 'Refrescar datos'}
           </button>
-          <button className={styles.btnSecondary} onClick={clearFilters}>
-            <span className={styles.btnIcon}>✕</span>
+          <button className={styles.dashipscolxdsBtnSecondary} onClick={clearFilters}>
+            <span className={styles.dashipscolxdsBtnIcon}>✕</span>
             Limpiar filtros
           </button>
         </div>
       </div>
 
       {/* KPIs Grid */}
-      <div className={styles.kpiGrid}>
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>👥</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>Clientes Activos</div>
-            <div className={styles.kpiValue}>
+      <div className={styles.dashipscolxdsKpiGrid}>
+        <div className={styles.dashipscolxdsKpiCard}>
+          <div className={styles.dashipscolxdsKpiIcon}>👥</div>
+          <div className={styles.dashipscolxdsKpiContent}>
+            <div className={styles.dashipscolxdsKpiLabel}>Clientes Activos</div>
+            <div className={styles.dashipscolxdsKpiValue}>
               {loading ? '...' : kpis.totalClientes.toLocaleString('es-CO')}
             </div>
-            <div className={styles.kpiSub}>{filteredVentas.length.toLocaleString('es-CO')} registros</div>
+            <div className={styles.dashipscolxdsKpiSub}>{filteredVentas.length.toLocaleString('es-CO')} registros</div>
           </div>
-          <div className={styles.kpiGlow}></div>
+          <div className={styles.dashipscolxdsKpiGlow}></div>
         </div>
 
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>⚠️</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>Clientes Cancelados</div>
-            <div className={styles.kpiValue}>
+        <div className={styles.dashipscolxdsKpiCard}>
+          <div className={styles.dashipscolxdsKpiIcon}>⚠️</div>
+          <div className={styles.dashipscolxdsKpiContent}>
+            <div className={styles.dashipscolxdsKpiLabel}>Clientes Cancelados</div>
+            <div className={styles.dashipscolxdsKpiValue}>
               {loading ? '...' : (kpis.customersCanceled ?? 0).toLocaleString('es-CO')}
             </div>
-            <div className={styles.kpiSub}>Estado: Cancelada</div>
+            <div className={styles.dashipscolxdsKpiSub}>Estado: Cancelada</div>
           </div>
-          <div className={styles.kpiGlow}></div>
+          <div className={styles.dashipscolxdsKpiGlow}></div>
         </div>
 
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>💰</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>Total Facturado</div>
-            <div className={styles.kpiValue}>
+        <div className={styles.dashipscolxdsKpiCard}>
+          <div className={styles.dashipscolxdsKpiIcon}>💰</div>
+          <div className={styles.dashipscolxdsKpiContent}>
+            <div className={styles.dashipscolxdsKpiLabel}>Total Facturado</div>
+            <div className={styles.dashipscolxdsKpiValue}>
               {loading ? '...' : `$${kpis.totalFacturado.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
             </div>
-            <div className={styles.kpiSub}>Suma total período</div>
+            <div className={styles.dashipscolxdsKpiSub}>Suma total período</div>
           </div>
-          <div className={styles.kpiGlow}></div>
+          <div className={styles.dashipscolxdsKpiGlow}></div>
         </div>
 
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>📉</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>Churn Rate</div>
-            <div className={styles.kpiValue}>
+        <div className={styles.dashipscolxdsKpiCard}>
+          <div className={styles.dashipscolxdsKpiIcon}>📉</div>
+          <div className={styles.dashipscolxdsKpiContent}>
+            <div className={styles.dashipscolxdsKpiLabel}>Churn Rate</div>
+            <div className={styles.dashipscolxdsKpiValue}>
               {loading ? '...' : `${(extended.churnRate * 100).toFixed(2)}%`}
             </div>
-            <div className={styles.kpiSub}>Tasa de cancelación</div>
+            <div className={styles.dashipscolxdsKpiSub}>Tasa de cancelación</div>
           </div>
-          <div className={styles.kpiGlow}></div>
+          <div className={styles.dashipscolxdsKpiGlow}></div>
         </div>
 
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>📈</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>MRR</div>
-            <div className={styles.kpiValue}>
+        <div className={styles.dashipscolxdsKpiCard}>
+          <div className={styles.dashipscolxdsKpiIcon}>📈</div>
+          <div className={styles.dashipscolxdsKpiContent}>
+            <div className={styles.dashipscolxdsKpiLabel}>MRR</div>
+            <div className={styles.dashipscolxdsKpiValue}>
               {loading ? '...' : `$${extended.MRR.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
             </div>
-            <div className={styles.kpiSub}>Monthly Recurring Revenue</div>
+            <div className={styles.dashipscolxdsKpiSub}>Monthly Recurring Revenue</div>
           </div>
-          <div className={styles.kpiGlow}></div>
+          <div className={styles.dashipscolxdsKpiGlow}></div>
         </div>
       </div>
 
       {/* Gráfico principal */}
-      <div className={styles.chartCard}>
-        <div className={styles.chartHeader}>
-          <h3 className={styles.chartTitle}>
-            <span className={styles.chartIcon}>📊</span>
+      <div className={styles.dashipscolxdsChartCard}>
+        <div className={styles.dashipscolxdsChartHeader}>
+          <h3 className={styles.dashipscolxdsChartTitle}>
+            <span className={styles.dashipscolxdsChartIcon}>📊</span>
             Tendencia de Facturación Mensual
           </h3>
-          <div className={styles.chartLegendCustom}>
-            <span className={styles.legendItem}>
-              <span className={styles.legendBar}></span>
+          <div className={styles.dashipscolxdsChartLegendCustom}>
+            <span className={styles.dashipscolxdsLegendItem}>
+              <span className={styles.dashipscolxdsLegendBar}></span>
               Total Mensual
             </span>
-            <span className={styles.legendItem}>
-              <span className={styles.legendLine}></span>
+            <span className={styles.dashipscolxdsLegendItem}>
+              <span className={styles.dashipscolxdsLegendLine}></span>
               Variación %
             </span>
           </div>
         </div>
-        <div className={styles.chartWrapper}>
+        <div className={styles.dashipscolxdsChartWrapper}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData}>
               <defs>
@@ -501,12 +500,12 @@ export default function DashboardISPVenta() {
       </div>
 
       {/* Grid de gráficos inferiores */}
-      <div className={styles.analyticsGrid}>
+      <div className={styles.dashipscolxdsAnalyticsGrid}>
         {/* Panel izquierdo: Pie chart distribucion por categoria_plan */}
-        <div className={styles.analyticsCard}>
-          <h3 className={styles.analyticsTitle}>Distribución por categoría de plan</h3>
-          <div className={styles.analyticsContentRow}>
-            <div className={styles.pieWrapper}>
+        <div className={styles.dashipscolxdsAnalyticsCard}>
+          <h3 className={styles.dashipscolxdsAnalyticsTitle}>Distribución por categoría de plan</h3>
+          <div className={styles.dashipscolxdsAnalyticsContentRow}>
+            <div className={styles.dashipscolxdsPieWrapper}>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -536,43 +535,43 @@ export default function DashboardISPVenta() {
             </div>
 
             {/* resumen: top items */}
-            <div className={styles.summaryList}>
+            <div className={styles.dashipscolxdsSummaryList}>
               {distributionCategoria.slice(0,8).map((row, i) => (
-                <div key={row.key} className={styles.summaryItem}>
-                  <div className={styles.summaryLeft}>
+                <div key={row.key} className={styles.dashipscolxdsSummaryItem}>
+                  <div className={styles.dashipscolxdsSummaryLeft}>
                     <span 
-                      className={styles.colorBox} 
+                      className={styles.dashipscolxdsColorBox} 
                       style={{ 
                         background: ['#10b981','#06b6d4','#f59e0b','#ef4444','#8b5cf6','#3b82f6','#84cc16','#f97316'][i % 8] 
                       }} 
                     />
-                    <div className={styles.summaryKey}>{row.key}</div>
+                    <div className={styles.dashipscolxdsSummaryKey}>{row.key}</div>
                   </div>
-                  <div className={styles.summaryRight}>
-                    <div className={styles.summaryTotal}>
+                  <div className={styles.dashipscolxdsSummaryRight}>
+                    <div className={styles.dashipscolxdsSummaryTotal}>
                       ${row.total.toLocaleString(undefined, { minimumFractionDigits: 0 })}
                     </div>
-                    <div className={styles.summaryPct}>{row.pct.toFixed(1)}%</div>
+                    <div className={styles.dashipscolxdsSummaryPct}>{row.pct.toFixed(1)}%</div>
                   </div>
                 </div>
               ))}
 
               {distributionCategoria.length === 0 && (
-                <div className={styles.noData}>No hay datos para mostrar.</div>
+                <div className={styles.dashipscolxdsNoData}>No hay datos para mostrar.</div>
               )}
             </div>
           </div>
         </div>
 
         {/* Treemap jerárquico */}
-        <div className={styles.analyticsCard}>
-          <div className={styles.chartHeader}>
-            <h3 className={styles.chartTitle}>
-              <span className={styles.chartIcon}>🗺️</span>
+        <div className={styles.dashipscolxdsAnalyticsCard}>
+          <div className={styles.dashipscolxdsChartHeader}>
+            <h3 className={styles.dashipscolxdsChartTitle}>
+              <span className={styles.dashipscolxdsChartIcon}>🗺️</span>
               Mapa de Ventas por Ciudad
             </h3>
           </div>
-          <div className={styles.treemapWrapper}>
+          <div className={styles.dashipscolxdsTreemapWrapper}>
             <ResponsiveContainer width="100%" height={300}>
               <Treemap
                 data={hierarchyData.hierarchy[0]?.children || []}
@@ -589,79 +588,79 @@ export default function DashboardISPVenta() {
       </div>
 
       {/* Tabla de Clientes */}
-      <div className={styles.tableCard}>
-        <div className={styles.tableHeader}>
-          <h3 className={styles.tableTitle}>
-            <span className={styles.tableIcon}>📋</span>
+      <div className={styles.dashipscolxdsTableCard}>
+        <div className={styles.dashipscolxdsTableHeader}>
+          <h3 className={styles.dashipscolxdsTableTitle}>
+            <span className={styles.dashipscolxdsTableIcon}>📋</span>
             Resumen Detallado de Clientes
           </h3>
-          <div className={styles.tableControls}>
-            <div className={styles.tableSearch}>
+          <div className={styles.dashipscolxdsTableControls}>
+            <div className={styles.dashipscolxdsTableSearch}>
               <input
                 type="text"
                 placeholder="Buscar cliente..."
-                className={styles.searchInput}
+                className={styles.dashipscolxdsSearchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <span className={styles.searchIcon}>🔍</span>
+              <span className={styles.dashipscolxdsSearchIcon}>🔍</span>
             </div>
-            <div className={styles.tableStats}>
-              <span className={styles.statItem}>
+            <div className={styles.dashipscolxdsTableStats}>
+              <span className={styles.dashipscolxdsStatItem}>
                 Mostrando {currentItems.length} de {filteredTableData.length} registros
               </span>
             </div>
           </div>
         </div>
 
-        <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+        <div className={styles.dashipscolxdsTableContainer}>
+          <table className={styles.dashipscolxdsDataTable}>
             <thead>
               <tr>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('nombre_cliente')}
                 >
                   Cliente {renderSortIcon('nombre_cliente')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('monto_facturado')}
                 >
                   Total Facturado {renderSortIcon('monto_facturado')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('ciudad')}
                 >
                   Ciudad {renderSortIcon('ciudad')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('segmento')}
                 >
                   Segmento {renderSortIcon('segmento')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('nombre_plan')}
                 >
                   Plan {renderSortIcon('nombre_plan')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('categoria_plan')}
                 >
                   Categoría Plan {renderSortIcon('categoria_plan')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('fecha_inicio')}
                 >
                   Fecha Inicio {renderSortIcon('fecha_inicio')}
                 </th>
                 <th 
-                  className={styles.sortableHeader}
+                  className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('estado_suscripcion')}
                 >
                   Estado {renderSortIcon('estado_suscripcion')}
@@ -670,39 +669,39 @@ export default function DashboardISPVenta() {
             </thead>
             <tbody>
               {currentItems.map((venta, index) => (
-                <tr key={`${venta.id || index}-${venta.nombre_cliente}`} className={styles.tableRow}>
-                  <td className={styles.clientCell}>
-                    <div className={styles.clientInfo}>
-                      <div className={styles.clientName}>{venta.nombre_cliente || 'N/A'}</div>
+                <tr key={`${venta.id || index}-${venta.nombre_cliente}`} className={styles.dashipscolxdsTableRow}>
+                  <td className={styles.dashipscolxdsClientCell}>
+                    <div className={styles.dashipscolxdsClientInfo}>
+                      <div className={styles.dashipscolxdsClientName}>{venta.nombre_cliente || 'N/A'}</div>
                       {venta.email && (
-                        <div className={styles.clientEmail}>{venta.email}</div>
+                        <div className={styles.dashipscolxdsClientEmail}>{venta.email}</div>
                       )}
                     </div>
                   </td>
-                  <td className={styles.amountCell}>
-                    <div className={styles.amountValue}>
+                  <td className={styles.dashipscolxdsAmountCell}>
+                    <div className={styles.dashipscolxdsAmountValue}>
                       ${Number(venta.monto_facturado || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                     </div>
                   </td>
-                  <td className={styles.cityCell}>
-                    <span className={styles.cityBadge}>{venta.ciudad || 'N/A'}</span>
+                  <td className={styles.dashipscolxdsCityCell}>
+                    <span className={styles.dashipscolxdsCityBadge}>{venta.ciudad || 'N/A'}</span>
                   </td>
-                  <td className={styles.segmentCell}>
-                    <span className={`${styles.segmentBadge} ${getSegmentClass(venta.segmento, styles)}`}>
+                  <td className={styles.dashipscolxdsSegmentCell}>
+                    <span className={`${styles.dashipscolxdsSegmentBadge} ${getSegmentClass(venta.segmento, styles)}`}>
                       {venta.segmento || 'N/A'}
                     </span>
                   </td>
-                  <td className={styles.planCell}>{venta.nombre_plan || 'N/A'}</td>
-                  <td className={styles.categoryCell}>
-                    <span className={`${styles.categoryBadge} ${getCategoryClass(venta.categoria_plan, styles)}`}>
+                  <td className={styles.dashipscolxdsPlanCell}>{venta.nombre_plan || 'N/A'}</td>
+                  <td className={styles.dashipscolxdsCategoryCell}>
+                    <span className={`${styles.dashipscolxdsCategoryBadge} ${getCategoryClass(venta.categoria_plan, styles)}`}>
                       {venta.categoria_plan || 'N/A'}
                     </span>
                   </td>
-                  <td className={styles.dateCell}>
+                  <td className={styles.dashipscolxdsDateCell}>
                     {venta.fecha_inicio ? new Date(venta.fecha_inicio).toLocaleDateString('es-CO') : 'N/A'}
                   </td>
-                  <td className={styles.statusCell}>
-                    <span className={`${styles.statusBadge} ${getStatusClass(venta.estado_suscripcion, styles)}`}>
+                  <td className={styles.dashipscolxdsStatusCell}>
+                    <span className={`${styles.dashipscolxdsStatusBadge} ${getStatusClass(venta.estado_suscripcion, styles)}`}>
                       {venta.estado_suscripcion || 'N/A'}
                     </span>
                   </td>
@@ -712,9 +711,9 @@ export default function DashboardISPVenta() {
           </table>
 
           {currentItems.length === 0 && (
-            <div className={styles.noData}>
-              <div className={styles.noDataIcon}>📭</div>
-              <div className={styles.noDataText}>
+            <div className={styles.dashipscolxdsNoData}>
+              <div className={styles.dashipscolxdsNoDataIcon}>📭</div>
+              <div className={styles.dashipscolxdsNoDataText}>
                 No se encontraron registros con los filtros actuales
               </div>
             </div>
@@ -723,21 +722,21 @@ export default function DashboardISPVenta() {
 
         {/* Paginación */}
         {filteredTableData.length > itemsPerPage && (
-          <div className={styles.pagination}>
+          <div className={styles.dashipscolxdsPagination}>
             <button 
-              className={styles.paginationBtn}
+              className={styles.dashipscolxdsPaginationBtn}
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
               ‹ Anterior
             </button>
             
-            <div className={styles.paginationInfo}>
+            <div className={styles.dashipscolxdsPaginationInfo}>
               Página {currentPage} de {totalPages}
             </div>
 
             <button 
-              className={styles.paginationBtn}
+              className={styles.dashipscolxdsPaginationBtn}
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
