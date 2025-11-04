@@ -14,7 +14,7 @@ import {
   Cell,
   Treemap,
 } from 'recharts';
-import styles from '../../../styles/DashboardISPVentas.module.css';
+import styles from '../../styles/Dashboards/DashboardISPVentas.module.css';
 import {
   getVentas,
   normalizeVentas,
@@ -29,7 +29,7 @@ import {
   getCategoryClass,
   getStatusClass,
   useClientesTable,
-} from '../../../api/DashboardsCrudApis/DashboardISPVentas';
+} from '../../api/DashboardsCrudApis/DashboardISPVentas';
 
 // Componente de Treemap personalizado
 function CustomizedTreemapContent(props) {
@@ -83,6 +83,7 @@ function CustomizedTreemapContent(props) {
   );
 }
 
+
 // Tooltip personalizado
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -104,7 +105,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function DashboardISPVentas() {
+export default function DashboardISPVenta() {
   const [rawVentas, setRawVentas] = useState([]);
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);

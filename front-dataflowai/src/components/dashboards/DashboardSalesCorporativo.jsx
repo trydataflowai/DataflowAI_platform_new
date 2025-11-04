@@ -1,12 +1,10 @@
-// front-dataflowai/src/components/pages/dashboardcrud/CrudDashboardSalesCorporativoInicio.jsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 ;
 
-import styles from '../../../styles/CrudSalesCorporativo.module.css';
-import dashboardStyles from '../../../styles/DashboardSalesCorporativo.module.css';
+import styles from '../../styles/CrudSalesCorporativo.module.css';
+import dashboardStyles from '../../styles/Dashboards/DashboardSalesCorporativo.module.css';
 
 import {
   getCotizaciones,
@@ -18,7 +16,7 @@ import {
   formatearMoneda,
   handleAuthError,
   calcularAnalisisAdicional,
-} from '../../../api/DashboardsCrudApis/CrudDashboardSalesCorporativoInicio';
+} from '../../api/DashboardsCrudApis/CrudDashboardSalesCorporativoInicio';
 
 // MultiSelectDropdown component (self-contained)
 const MultiSelectDropdown = ({ label, options = [], selected = [], onChange, placeholder = 'Seleccionar', maxHeight = 200 }) => {
@@ -117,7 +115,7 @@ const MultiSelectDropdown = ({ label, options = [], selected = [], onChange, pla
   );
 };
 
-const DashboardSalesCorporativo = () => {
+const DashboardVentasCorporativo = () => {
   const navigate = useNavigate();
 
   
@@ -893,4 +891,4 @@ const DashboardSalesCorporativo = () => {
   );
 };
 
-export default DashboardSalesCorporativo;
+export default DashboardVentasCorporativo;

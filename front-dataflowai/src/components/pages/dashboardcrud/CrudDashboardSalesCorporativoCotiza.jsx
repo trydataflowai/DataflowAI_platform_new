@@ -1,6 +1,6 @@
 // CrudDashboardSalesCorporativo.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CrudSalesCorporativo.module.css';
+import styles from '../../../styles/CrudDashboard/CrudSalesCorporativo.module.css';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchDashCorp,
@@ -31,7 +31,7 @@ const todayISO = () => {
   return d.toISOString().slice(0, 10);
 };
 
-const CrudDashboardSalesCorporativo = () => {
+const CrudDashboardSalesCorporativoCotizaciones = () => {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
@@ -364,4 +364,4 @@ const CrudDashboardSalesCorporativo = () => {
   );
 };
 
-export default CrudDashboardSalesCorporativo;
+export default CrudDashboardSalesCorporativoCotizaciones;

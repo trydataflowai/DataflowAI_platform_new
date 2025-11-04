@@ -1,6 +1,6 @@
 // CrudDashboardSalesCorporativoMetas.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CrudSalesCorporativo.module.css';
+import styles from '../../../styles/CrudDashboard/CrudSalesCorporativo.module.css';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchDashMetas,
