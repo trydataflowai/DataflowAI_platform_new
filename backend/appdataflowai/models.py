@@ -631,6 +631,107 @@ class DashboardSalesreview(models.Model):
 
 
 
+from django.db import models
+
+class DashboardSalesCorporativo(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+# Identificadores clave obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa', null=True, blank=True)
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+
+    
+    orden_compra = models.CharField(max_length=50, db_column='orden_compra', null=False)
+    fecha = models.DateField(db_column='fecha', null=False)
+    mes_nombre = models.CharField(max_length=20, db_column='mes_nombre', null=True, blank=True)
+    categoria_cliente = models.CharField(max_length=100, db_column='categoria_cliente', null=True, blank=True)
+    nombre_cliente = models.CharField(max_length=150, db_column='nombre_cliente', null=True, blank=True)
+    categoria_producto = models.CharField(max_length=100, db_column='categoria_producto', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+    producto = models.CharField(max_length=150, db_column='producto', null=True, blank=True)
+    estado_cotizacion = models.CharField(max_length=10, db_column='estado_cotizacion', null=True, blank=True)
+    unidades = models.IntegerField(db_column='unidades', null=True, blank=True)
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, db_column='precio_unitario', null=True, blank=True)
+    observaciones = models.TextField(db_column='observaciones', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_salescorporativo'
+        verbose_name_plural = 'Dashboard Sales Corporativo'
+
+
+
+
+from django.db import models
+
+class DashboardSalesCorporativoMetas(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores clave
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa', null=True, blank=True)
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # Campos de la meta
+    ano = models.IntegerField(db_column='ano', null=False)
+    mes = models.CharField(max_length=10, db_column='mes', null=True, blank=True)
+    categoria_cliente = models.CharField(max_length=100, db_column='categoria_cliente', null=True, blank=True)
+    nombre_cliente = models.CharField(max_length=150, db_column='nombre_cliente', null=True, blank=True)
+    categoria_producto = models.CharField(max_length=100, db_column='categoria_producto', null=True, blank=True)
+    meta = models.DecimalField(max_digits=14, decimal_places=2, db_column='meta', null=False)
+
+    class Meta:
+        db_table = 'dashboard_salescorporativometas'
+        verbose_name_plural = 'Dashboard Sales Corporativo Metas'
+        ordering = ['-ano', '-mes']
+
+
+
+
+#Modelo para Dashboard ISP Ventas
+from django.db import models
+
+class DashboardIspVentas(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+
+# Identificadores clave
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa', null=True, blank=True)
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # Periodo de referencia
+    ano = models.IntegerField(db_column='ano', null=False)
+    mes = models.CharField(max_length=15, db_column='mes', null=True, blank=True)
+    fecha_registro = models.DateField(db_column='fecha_registro', null=True, blank=True)
+
+    # Datos del cliente
+    nombre_cliente = models.CharField(max_length=150, db_column='nombre_cliente', null=True, blank=True)
+    categoria_cliente = models.CharField(max_length=100, db_column='categoria_cliente', null=True, blank=True)
+    ciudad = models.CharField(max_length=100, db_column='ciudad', null=True, blank=True)
+    segmento = models.CharField(max_length=100, db_column='segmento', null=True, blank=True)  # residencial, empresarial, etc.
+
+    # Datos del plan
+    nombre_plan = models.CharField(max_length=150, db_column='nombre_plan', null=True, blank=True)
+    categoria_plan = models.CharField(max_length=100, db_column='categoria_plan', null=True, blank=True)
+    velocidad_mbps = models.DecimalField(max_digits=10, decimal_places=2, db_column='velocidad_mbps', null=True, blank=True)
+    precio_mensual = models.DecimalField(max_digits=14, decimal_places=2, db_column='precio_mensual', null=True, blank=True)
+    estado_suscripcion = models.CharField(max_length=50, db_column='estado_suscripcion', null=True, blank=True)  # activa, cancelada, suspendida
+
+    # Datos de facturación
+    fecha_inicio = models.DateField(db_column='fecha_inicio', null=True, blank=True)
+    fecha_fin = models.DateField(db_column='fecha_fin', null=True, blank=True)
+    monto_facturado = models.DecimalField(max_digits=14, decimal_places=2, db_column='monto_facturado', null=True, blank=True)
+    metodo_pago = models.CharField(max_length=50, db_column='metodo_pago', null=True, blank=True)
+
+    # Observaciones o notas
+    observaciones = models.TextField(db_column='observaciones', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_isp_ventas'
+        verbose_name_plural = 'Dashboard ISP Ventas'
+        ordering = ['-ano', '-mes']
+
+
+
 
 """
 Modelos de los dashboard a vender.

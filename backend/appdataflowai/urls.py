@@ -82,6 +82,26 @@ from .views import (
     #CHATBOT
 
     ChatbotAPIView,
+
+
+
+#URLS para el crud del dashboard de Sales Corporativo Cotizaciones del modelo:
+    DashboardSalesCorporativoListCreateProd15,
+    DashboardSalesCorporativoDetailProd15,
+    DashboardSalesCorporativoBulkDeleteProd15,
+    DashboardSalesCorporativoExportProd15,
+
+#URLS para el crud del dashboard de Sales Corporativo Metas del modelo:
+     DashboardSalesCorporativoMetasProduct15_ListCreate,
+    DashboardSalesCorporativoMetasProduct15_Detail,
+    DashboardSalesCorporativoMetasProduct15_BulkDelete,
+    DashboardSalesCorporativoMetasProduct15_Export,
+
+
+#URL de Dashboard ISP Ventas
+    DashboardIspVentas_List,
+
+
 )
 
 urlpatterns = [
@@ -177,6 +197,24 @@ urlpatterns = [
 
     #chatbot
     path('chatbot/message/', ChatbotAPIView.as_view(), name='chatbot-message'),
+
+
+    #URLS para el crud del dashboard de Sales Corporativo del modelo: DashboardSalesCorporativo
+    path('dashboard_salescorporativo_prod15/', DashboardSalesCorporativoListCreateProd15.as_view(), name='dashcorp_list_create_prod15'),
+    path('dashboard_salescorporativo_prod15/<int:pk>/', DashboardSalesCorporativoDetailProd15.as_view(), name='dashcorp_detail_prod15'),
+    path('dashboard_salescorporativo_prod15/bulk-delete/', DashboardSalesCorporativoBulkDeleteProd15.as_view(), name='dashcorp_bulk_delete_prod15'),
+    path('dashboard_salescorporativo_prod15/export/', DashboardSalesCorporativoExportProd15.as_view(), name='dashcorp_export_prod15'),
+
+
+      # CRUD para DashboardSalesCorporativoMetas (product id 15)
+    path('dashboard_salescorporativometas/product15/', DashboardSalesCorporativoMetasProduct15_ListCreate.as_view(), name='dashmetas_prod15_list_create'),
+    path('dashboard_salescorporativometas/product15/<int:pk>/', DashboardSalesCorporativoMetasProduct15_Detail.as_view(), name='dashmetas_prod15_detail'),
+    path('dashboard_salescorporativometas/product15/bulk-delete/', DashboardSalesCorporativoMetasProduct15_BulkDelete.as_view(), name='dashmetas_prod15_bulk_delete'),
+    path('dashboard_salescorporativometas/product15/export/', DashboardSalesCorporativoMetasProduct15_Export.as_view(), name='dashmetas_prod15_export'),
+
+
+    #URL de Dashboard ISP Ventas
+    path('dashboard_isp_ventas/list/', DashboardIspVentas_List.as_view(), name='dashboard_isp_ventas_list'),
 
 ]
     

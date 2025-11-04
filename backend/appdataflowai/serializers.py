@@ -512,3 +512,154 @@ class DashboardSalesreviewSerializer(serializers.ModelSerializer):
         # Forzamos id_producto al valor por defecto (siempre)
         validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID  # <-- AQUI SE COLOCA EL ID POR DEFECTO
         return super().update(instance, validated_data)
+
+
+
+# Este es el serializador para el crud del Dashboard Sales Corporativo del modelo: DashboardSalesCorporativo
+# serializers.py
+from rest_framework import serializers
+from .models import DashboardSalesCorporativo
+
+# Producto por defecto para forzar id_producto
+DEFAULT_PRODUCT_ID = 15  # <-- ID del producto por defecto
+
+class DashboardSalesCorporativoSerializerProd15(serializers.ModelSerializer):
+    """
+    Serializador que expone id_registro y alias id.
+    Forzamos id_producto a DEFAULT_PRODUCT_ID en create y update.
+    """
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashboardSalesCorporativo
+        fields = [
+            'id_registro',
+            'id',
+            'orden_compra',
+            'fecha',
+            'mes_nombre',
+            'categoria_cliente',
+            'nombre_cliente',
+            'categoria_producto',
+            'marca',
+            'producto',
+            'estado_cotizacion',
+            'unidades',
+            'precio_unitario',
+            'observaciones',
+        ]
+        read_only_fields = ('id_registro', 'id')
+
+    def get_id(self, obj):
+        return getattr(obj, 'id_registro', getattr(obj, 'pk', None))
+
+    def validate_unidades(self, value):
+        if value is None:
+            return value
+        if value < 0:
+            raise serializers.ValidationError("unidades no puede ser negativo")
+        return value
+
+    def create(self, validated_data):
+        """
+        - Asigna id_empresa desde el contexto.
+        - Forza id_producto al DEFAULT_PRODUCT_ID (el cliente no lo manda).
+        """
+        empresa = self.context.get('empresa', None)
+        if empresa is None:
+            raise serializers.ValidationError("No se pudo determinar la empresa del usuario.")
+        validated_data['id_empresa'] = empresa
+        # Forzamos el FK id_producto al ID por defecto
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        - Ignora intentos de cambiar id_empresa o id_producto desde el cliente.
+        - Forza id_producto al DEFAULT_PRODUCT_ID.
+        """
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID
+        return super().update(instance, validated_data)
+
+
+# Este es el serializador para el crud del Dashboard Sales Corporativo del modelo: DashboardSalesCorporativometas
+# serializers.py
+from rest_framework import serializers
+from .models import DashboardSalesCorporativoMetas
+
+# PONER AQUI EL ID POR DEFECTO DEL PRODUCTO
+DEFAULT_PRODUCT_ID = 15  # <-- ID DEL PRODUCTO POR DEFECTO
+
+class DashboardSalesCorporativoMetasProduct15Serializer(serializers.ModelSerializer):
+    """
+    Serializador que expone id_registro e id.
+    Forzamos id_producto a DEFAULT_PRODUCT_ID en create y update.
+    """
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashboardSalesCorporativoMetas
+        fields = [
+            'id_registro',
+            'id',
+            'id_empresa',
+            'id_producto',
+            'ano',
+            'mes',
+            'categoria_cliente',
+            'nombre_cliente',
+            'categoria_producto',
+            'meta',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return getattr(obj, 'id_registro', getattr(obj, 'pk', None))
+
+    def validate_ano(self, value):
+        # opcional: validar rango basico de anio
+        try:
+            v = int(value)
+        except Exception:
+            raise serializers.ValidationError("ano debe ser un numero entero")
+        if v < 1900 or v > 2100:
+            raise serializers.ValidationError("ano fuera de rango")
+        return v
+
+    def create(self, validated_data):
+        """
+        Asigna id_empresa desde el contexto (usuario) y fija id_producto al DEFAULT_PRODUCT_ID.
+        """
+        empresa = self.context.get('empresa', None)
+        if empresa is None:
+            raise serializers.ValidationError("No se pudo determinar la empresa del usuario.")
+        validated_data['id_empresa'] = empresa
+        # forzamos FK por id para evitar query extra
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Ignora id_empresa/id_producto enviados por el cliente y vuelve a forzar id_producto.
+        """
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID
+        return super().update(instance, validated_data)
+
+
+
+
+
+#Serializador de Dashboard ISP Ventas
+from rest_framework import serializers
+from .models import DashboardIspVentas
+
+class DashboardIspVentasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardIspVentas
+        fields = '__all__'
