@@ -1,18 +1,39 @@
 // src/components/pages/ChatBot.jsx
 import React, { useEffect, useState, useRef } from "react";
-import darkStyles from '../../styles/ChatBotDark.module.css';
-import lightStyles from '../../styles/ChatBotLight.module.css';
+import darkStylesDefault from '../../styles/ChatBotDark.module.css';
+import lightStylesDefault from '../../styles/ChatBotLight.module.css';
 import { useTheme } from '../componentes/ThemeContext';
 import { sendMessageToBackend } from '../../api/ChatBot';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 
 const ALLOWED_USER_IDS = [1, 2, 3];
 
+/*
+  Lógica de estilos por empresa:
+  - Intentamos resolver estilos específicos por empresa buscando archivos:
+      src/styles/empresas/{companyId}/ChatBot.module.css      (dark)
+      src/styles/empresas/{companyId}/ChatBotLight.module.css (light)
+  - Si existen y el plan del usuario es 3 o 6 usamos los estilos por empresa.
+  - Si no existen o el plan no aplica, usamos los estilos por defecto importados arriba.
+  - Usamos import.meta.glob(..., { eager: true }) para que Vite incluya
+    los módulos CSS en el bundle y podamos accederlos por ruta construida.
+*/
+const empresaLightModules = import.meta.glob(
+  '../../styles/empresas/*/ChatBotLight.module.css',
+  { eager: true }
+);
+const empresaDarkModules = import.meta.glob(
+  '../../styles/empresas/*/ChatBot.module.css',
+  { eager: true }
+);
+
 const Chatbot = () => {
   const { theme } = useTheme(); // 'dark' | 'light'
-  const [activeStyles, setActiveStyles] = useState(darkStyles);
+  const [activeStyles, setActiveStyles] = useState(darkStylesDefault);
 
-  const [planId, setPlanId] = useState(null); // <- AÑADIR ESTADO PARA planId
+  const [planId, setPlanId] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
+
   const [dots, setDots] = useState('');
   const [particles, setParticles] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -50,42 +71,77 @@ const Chatbot = () => {
     setParticles(newParticles);
   }, []);
 
-  // OBTENER INFORMACIÓN DEL USUARIO Y PLAN - AÑADIR ESTE useEffect
+  // OBTENER INFORMACIÓN DEL USUARIO Y PLAN
   useEffect(() => {
+    let mounted = true;
     const fetchUserInfo = async () => {
       try {
         const userInfo = await obtenerInfoUsuario();
-        const pid = userInfo.empresa?.plan?.id;
-        setPlanId(pid);
-        
-        // También establecer el userId para la autorización
+        if (!mounted || !userInfo) return;
+
+        const pid = userInfo.empresa?.plan?.id ?? null;
+        const cid = userInfo.empresa?.id ?? null;
         const id = userInfo?.id ?? null;
+
+        setPlanId(pid);
+        setCompanyId(cid);
         setUserId(id);
+
         const allowed = ALLOWED_USER_IDS.includes(id);
         setIsAllowed(allowed);
+
+        setAuthError(null);
       } catch (err) {
         console.error('Error al obtener info del usuario:', err);
-        // Si no se puede obtener el plan, usar modo oscuro por defecto
         setPlanId(null);
+        setCompanyId(null);
+        setUserId(null);
         setIsAllowed(false);
+        setAuthError('No se pudo validar usuario');
       } finally {
-        setAuthLoading(false);
+        if (mounted) setAuthLoading(false);
       }
     };
-    
+
     fetchUserInfo();
+    return () => { mounted = false; };
   }, []);
 
-  // estilos segun theme/plan - CORREGIR ESTE useEffect
+  // estilos segun theme/plan/company
   useEffect(() => {
-    if (planId === 3 || planId === 6) {
-      // Si el plan permite cambiar el tema
-      setActiveStyles(theme === 'dark' ? darkStyles : lightStyles);
+    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
+
+    const lightKey = `../../styles/empresas/${companyId}/ChatBotLight.module.css`;
+    const darkKey = `../../styles/empresas/${companyId}/ChatBot.module.css`;
+
+    const foundCompanyLight = empresaLightModules[lightKey];
+    const foundCompanyDark = empresaDarkModules[darkKey];
+
+    const extract = (mod) => {
+      if (!mod) return null;
+      return mod.default ?? mod;
+    };
+
+    const companyLight = extract(foundCompanyLight);
+    const companyDark = extract(foundCompanyDark);
+
+    let chosenStyles = darkStylesDefault;
+    if (theme === 'dark') {
+      if (useCompanyStyles && companyDark) {
+        chosenStyles = companyDark;
+      } else {
+        chosenStyles = darkStylesDefault;
+      }
     } else {
-      // Si el plan no lo permite, forzar modo oscuro
-      setActiveStyles(darkStyles);
+      if (useCompanyStyles && companyLight) {
+        chosenStyles = companyLight;
+      } else {
+        chosenStyles = lightStylesDefault;
+      }
     }
-  }, [theme, planId]); // <- Añadir planId como dependencia
+
+    setActiveStyles(chosenStyles);
+  }, [theme, planId, companyId]);
 
   // scroll al final cuando hay mensajes nuevos
   useEffect(() => {
@@ -98,7 +154,6 @@ const Chatbot = () => {
 
     // bloqueo por permisos: sólo enviar si isAllowed === true
     if (!isAllowed) {
-      // agregar un mensaje del bot explicando que no tiene permiso
       setMessages(prev => [
         ...prev,
         { id: `b-block-${Date.now()}`, role: 'bot', text: 'No tienes permiso para enviar prompts en este chat.' }

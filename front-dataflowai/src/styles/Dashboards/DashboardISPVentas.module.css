@@ -298,6 +298,23 @@
   padding: 0 clamp(12px, 2vw, 16px);
 }
 
+
+/* ajusta responsivo: 3 cols medianas, 2 cols en movil */
+@media (max-width: 1200px) {
+  .dashipscolxdsKpiGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+ 
+@media (max-width: 720px) {
+  .dashipscolxdsKpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+ 
+
+
+
 .dashipscolxdsKpiCard {
   position: relative;
   background: var(--dashipscolxds-bg-primary);
@@ -1309,3 +1326,133 @@
     text-align: left;
   }
 }
+
+
+
+
+
+
+
+
+
+.kpiGrid {
+  max-width: 1600px;
+  margin: 0 auto 32px auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)); /* <- 5 tarjetas por fila */
+  gap: clamp(14px, 2.5vw, 18px);
+  padding: 0 clamp(12px, 2vw, 16px);
+}
+ 
+/* ajusta responsivo: 3 cols medianas, 2 cols en movil */
+@media (max-width: 1200px) {
+  .kpiGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+ 
+@media (max-width: 720px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+ 
+.kpiCard {
+  position: relative;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  padding: clamp(16px, 3vw, 20px);
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2.5vw, 16px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  min-height: 90px;
+}
+ 
+.kpiCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-50), var(--color-100));
+}
+ 
+.kpiCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-50);
+  box-shadow: var(--shadow-md);
+}
+ 
+.kpiGlow {
+  position: absolute;
+  top: 50%;
+  right: -60%;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(0, 180, 63, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: right 0.5s ease;
+}
+ 
+.kpiCard:hover .kpiGlow {
+  right: -30%;
+}
+ 
+.kpiIcon {
+  font-size: clamp(28px, 6vw, 36px);
+  filter: drop-shadow(0 2px 6px rgba(0, 180, 63, 0.15));
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+ 
+.kpiContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+ 
+.kpiLabel {
+  font-size: clamp(9px, 1.8vw, 11px);
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+ 
+.kpiValue {
+  font-size: clamp(18px, 4.5vw, 26px);
+  font-weight: 800;
+  color: var(--color-50);
+  line-height: 1.1;
+  margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.5px;
+}
+ 
+.kpiSub {
+  font-size: clamp(9px, 1.8vw, 10px);
+  color: var(--text-secondary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+  opacity: 0.8;
+}
+ 

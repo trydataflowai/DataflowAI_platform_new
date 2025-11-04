@@ -1,22 +1,81 @@
-:root{
+/* ModInfoPersonal.module.css
+   Un único archivo con variantes light/dark:
+   - .modinfopersonalDark
+   - .modinfopersonalLight
+   y estilos compartidos que usan variables definidas por la variante activa.
+*/
+
+/* -------------------------
+   VARIANTE: DARK
+   ------------------------- */
+.modinfopersonalDark {
   --black-void: #000000;
   --black-cosmos: #050505;
   --black-deep: #0a0a0a;
-  --accent-neon: #00f7ff;
-  --accent-turquoise: #00e1ff;
-  --accent-cyan: #00c2ff;
-  --accent-dark: #0099cc;
+
+  --accent-neon: #00ff88;
+  --accent-turquoise: #00e173;
+  --accent-cyan: #00c25c;
+  --accent-dark: #009947;
+
   --text-primary: #ffffff;
   --text-secondary: #cfcfcf;
   --muted: rgba(255,255,255,0.06);
   --glass: rgba(255,255,255,0.03);
+
   --success: #00ffaa;
   --danger: #ff3366;
+
   --transition: all 0.20s cubic-bezier(.2,.9,.3,1);
-  --card-max-w: 1200px; /* aumentado para tarjetas más anchas */
+
+  --card-max-w: 1200px;
+
+  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
+  --card-border: rgba(255,255,255,0.02);
+  --shadow-card: 0 18px 44px rgba(0,0,0,0.65);
+  --btn-gradient: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
 }
 
-/* Contenedor principal centrado */
+/* -------------------------
+   VARIANTE: LIGHT (paleta solicitada)
+   ------------------------- */
+.modinfopersonalLight {
+  --bg: #ffffff;
+  --panel: #f7fff7;
+  --primary-green: #00b43f;
+  --primary-green-600: #008530;
+  --text: #0b1a2b;
+  --muted: #6b7785;
+  --muted-2: #8a97a6;
+  --surface: #ffffff;
+  --border: #e6f8ec;
+  --shadow: 0 8px 30px rgba(0,180,63,0.06);
+  --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
+
+  --accent-neon: var(--primary-green);
+  --accent-turquoise: var(--primary-green-600);
+  --accent-cyan: #00d44f;
+
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --muted: var(--muted-2);
+
+  --glass: rgba(18,59,35,0.03);
+
+  --success: #0fa969;
+  --danger: #d0445a;
+
+  --container-bg: linear-gradient(180deg, var(--panel), var(--surface));
+  --card-bg: linear-gradient(180deg, var(--surface), #fbfffb);
+  --card-border: var(--border);
+  --shadow-card: var(--shadow);
+  --btn-gradient: linear-gradient(135deg, var(--primary-green), var(--primary-green-600));
+}
+
+/* =========================
+   Estilos compartidos (usando variables definidas por la variante)
+   ========================= */
 .modinfopersonalcontainer {
   width: 100%;
   min-height: 100%;
@@ -27,11 +86,12 @@
   box-sizing: border-box;
   font-family: 'Inter', Arial, sans-serif;
   color: var(--text-primary);
-  background: transparent;
-  align-items: center; /* centra horizontalmente */
+  background: var(--container-bg);
+  align-items: center;
+  transition: background 220ms, color 220ms;
 }
 
-/* Header centrado */
+/* Header */
 .modinfopersonalheader {
   width: 100%;
   max-width: var(--card-max-w);
@@ -40,10 +100,6 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 6px;
-}
-.modinfopersonaltitleContainer {
-  display:flex;
-  flex-direction:column;
 }
 .modinfopersonaltitle {
   font-size: 1.7rem;
@@ -57,7 +113,7 @@
   font-size: 0.98rem;
 }
 
-/* Header actions (editar / cancelar) */
+/* Header actions */
 .modinfopersonalheaderActions {
   margin-top: 0;
   display: flex;
@@ -66,21 +122,20 @@
   align-items: center;
 }
 
-/* Edit toggle */
+/* Buttons */
 .modinfopersonaleditToggle {
   padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(0,247,255,0.12), rgba(0,194,255,0.08));
+  background: linear-gradient(135deg, rgba(0,255,136,0.12), rgba(0,194,92,0.08));
   color: var(--accent-neon);
-  border: 1px solid rgba(0,247,255,0.06);
+  border: 1px solid rgba(0,255,136,0.06);
   border-radius: 12px;
   cursor: pointer;
   font-weight: 800;
   transition: var(--transition);
   font-size: 0.95rem;
 }
-.modinfopersonaleditToggle:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,194,255,0.05); }
+.modinfopersonaleditToggle:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,194,92,0.05); }
 
-/* Cancel button */
 .modinfopersonalcancelBtn {
   padding: 10px 14px;
   background: transparent;
@@ -92,14 +147,13 @@
 }
 .modinfopersonalcancelBtn:hover { color: var(--accent-neon); transform: translateY(-2px); }
 
-/* Badge modo edición */
 .modinfopersonaleditBadge {
-  background: rgba(0,247,255,0.06);
+  background: rgba(0,255,136,0.06);
   color: var(--accent-neon);
   padding: 6px 12px;
   border-radius: 999px;
   font-weight: 800;
-  border: 1px solid rgba(0,247,255,0.04);
+  border: 1px solid rgba(0,255,136,0.04);
   font-size: 0.88rem;
 }
 
@@ -123,36 +177,37 @@
   border-left: 4px solid rgba(0,255,170,0.10);
 }
 
-/* Grid layout - centrado */
+/* Grid */
 .modinfopersonalgrid {
   width: 100%;
   max-width: var(--card-max-w);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px;
-  justify-items: center; /* centra las tarjetas en cada celda */
+  justify-items: center;
   align-items: start;
 }
 
-/* Card — ahora más grande */
+/* Card */
 .modinfopersonalcard {
   width: 100%;
-  max-width: 560px; /* aumentado para tarjetas más grandes */
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
+  max-width: 560px;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 26px;
-  box-shadow: 0 18px 44px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(0,247,255,0.02);
+  box-shadow: var(--shadow-card);
   color: var(--text-primary);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  border: 1px solid var(--card-border);
 }
 
-/* Card header / title inside */
+/* Card header/title */
 .modinfopersonalcardHeader {
   display: flex;
-  justify-content: center; /* centra título dentro tarjeta */
+  justify-content: center;
   align-items: center;
   margin-bottom: 8px;
 }
@@ -164,7 +219,7 @@
   text-align: center;
 }
 
-/* Small helper / info */
+/* Info box */
 .modinfopersonalinfoBox {
   margin: 8px 0 10px 0;
   background: rgba(255,255,255,0.01);
@@ -184,59 +239,46 @@
   width: 100%;
 }
 
-/* Rows: two fields (desktop) */
+/* Rows */
 .modinfopersonalrow {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
+.modinfopersonalrowSingle { display: block; }
 
-/* Single column row */
-.modinfopersonalrowSingle {
-  display: block;
-}
-
-/* Label wrapper */
-.modinfopersonallabel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+/* Labels / Inputs */
+.modinfopersonallabel,
 .modinfopersonallabelSmall {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-width: 140px;
 }
-
-/* Label text */
 .modinfopersonallabelText {
   font-size: 0.95rem;
   color: var(--text-secondary);
   font-weight: 700;
 }
 
-/* Inputs (full width inside card) */
 .modinfopersonalinput {
   width: 100%;
   padding: 14px 16px;
-  background: rgba(255,255,255,0.01);
-  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--glass);
+  border: 1px solid rgba(0,0,0,0.06);
   border-radius: 12px;
   color: var(--text-primary);
   outline: none;
   font-size: 1rem;
   transition: var(--transition);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45) inset;
+  box-shadow: inset 0 6px 18px rgba(0,0,0,0.03);
 }
-.modinfopersonalinput::placeholder { color: rgba(255,255,255,0.22); }
-
+.modinfopersonalinput::placeholder { color: rgba(0,0,0,0.24); }
 .modinfopersonalinput:focus {
-  border-color: rgba(0,194,255,0.28);
-  box-shadow: 0 14px 36px rgba(0,194,255,0.06);
+  border-color: rgba(0,194,92,0.16);
+  box-shadow: 0 14px 36px rgba(0,194,92,0.04);
 }
 
-/* Disabled inputs */
+/* Disabled / readonly */
 .modinfopersonalinput[disabled], .modinfopersonalinput[readonly] {
   opacity: 0.65;
   cursor: not-allowed;
@@ -244,34 +286,27 @@
   border-style: dashed;
 }
 
-/* Actions area */
+/* Actions */
 .modinfopersonalactions {
   display: flex;
   justify-content: center;
   margin-top: 6px;
 }
 
-/* Primary button (gradient) */
 .modinfopersonalprimaryButton {
   padding: 12px 18px;
-  background: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
-  color: #001018;
+  background: var(--btn-gradient);
+  color: #001803;
   border: none;
   border-radius: 12px;
   font-weight: 900;
   cursor: pointer;
   font-size: 1rem;
-  box-shadow: 0 16px 36px rgba(0,194,255,0.10);
+  box-shadow: 0 16px 36px rgba(0,194,92,0.10);
   transition: var(--transition);
 }
-.modinfopersonalprimaryButton:hover:not(:disabled) {
-  transform: translateY(-3px);
-}
-.modinfopersonalprimaryButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-}
+.modinfopersonalprimaryButton:hover:not(:disabled) { transform: translateY(-3px); }
+.modinfopersonalprimaryButton:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 /* Loading center box */
 .modinfopersonalcenterBox {
@@ -281,16 +316,16 @@
   flex-direction: column;
   align-items: center;
   padding: 30px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  background: rgba(255,255,255,0.01);
   border-radius: 14px;
-  box-shadow: 0 14px 36px rgba(0,0,0,0.6);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.12);
 }
 .modinfopersonalloader {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(90deg, rgba(0,247,255,0.18), rgba(0,194,255,0.12));
-  box-shadow: 0 10px 36px rgba(0,194,255,0.06);
+  background: linear-gradient(90deg, rgba(0,255,136,0.18), rgba(0,194,92,0.12));
+  box-shadow: 0 10px 36px rgba(0,194,92,0.06);
   margin-bottom: 14px;
   animation: modinfopersonalpulse 1400ms infinite ease-in-out;
 }
@@ -304,19 +339,14 @@
   font-size: 1rem;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 1180px) {
   :root { --card-max-w: 980px; }
   .modinfopersonalcard { max-width: 48rem; }
 }
 @media (max-width: 980px) {
-  .modinfopersonalgrid {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-  .modinfopersonalrow {
-    grid-template-columns: 1fr;
-  }
+  .modinfopersonalgrid { grid-template-columns: 1fr; align-items: stretch; }
+  .modinfopersonalrow { grid-template-columns: 1fr; }
   .modinfopersonallabelSmall { max-width: 100%; }
   .modinfopersonalactions { justify-content: center; }
   .modinfopersonalcenterBox { max-width: 100%; }

@@ -1,8 +1,35 @@
 // src/components/.../AppCambiarContrasena.jsx
-import React, { useState } from 'react';
-import styles from '../../../styles/Profile/CambiarContrasena.module.css';
+import React, { useState, useEffect } from 'react';
 import { cambiarContrasena } from '../../../api/Profile';
-import { useTheme } from '../../componentes/ThemeContext'; // ajusta la ruta si hace falta
+import { useTheme } from '../../componentes/ThemeContext';
+import { obtenerInfoUsuario } from '../../../api/Usuario';
+
+// Función para cargar los estilos dinámicamente
+const cargarEstilosEmpresa = async (empresaId, planId) => {
+  const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
+  
+  try {
+    // Verificar si el plan es especial y si existe la carpeta de la empresa
+    if (planesEspeciales.includes(planId)) {
+      try {
+        // Intentar importar los estilos de la carpeta de la empresa
+        const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/CambiarContrasena.module.css`);
+        return estilosEmpresa.default;
+      } catch (error) {
+        console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
+      }
+    }
+    
+    // Cargar estilos por defecto
+    const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
+    return estilosPorDefecto.default;
+  } catch (error) {
+    console.error('Error cargando estilos:', error);
+    // Fallback a estilos por defecto
+    const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
+    return estilosPorDefecto.default;
+  }
+};
 
 const AppCambiarContrasena = () => {
   const { theme } = useTheme();
@@ -12,10 +39,42 @@ const AppCambiarContrasena = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [styles, setStyles] = useState({});
+  const [cargandoEstilos, setCargandoEstilos] = useState(true);
 
   const [showActual, setShowActual] = useState(false);
   const [showNueva, setShowNueva] = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
+
+  // Cargar información del usuario y estilos
+  useEffect(() => {
+    const cargarUsuarioYEstilos = async () => {
+      setCargandoEstilos(true);
+      try {
+        const usuarioInfo = await obtenerInfoUsuario();
+        const empresaId = usuarioInfo.empresa?.id;
+        const planId = usuarioInfo.empresa?.plan?.id;
+        
+        if (empresaId && planId) {
+          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
+          setStyles(estilosCargados);
+        } else {
+          // Fallback a estilos por defecto si no hay info de empresa/plan
+          const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
+          setStyles(estilosPorDefecto.default);
+        }
+      } catch (error) {
+        console.error('Error cargando información del usuario:', error);
+        // Fallback a estilos por defecto
+        const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
+        setStyles(estilosPorDefecto.default);
+      } finally {
+        setCargandoEstilos(false);
+      }
+    };
+
+    cargarUsuarioYEstilos();
+  }, []);
 
   const passwordStrength = (pwd) => {
     if (!pwd) return 0;
@@ -57,6 +116,15 @@ const AppCambiarContrasena = () => {
       setSaving(false);
     }
   };
+
+  // Si aún se están cargando los estilos, mostrar loading
+  if (cargandoEstilos) {
+    return (
+      <div className="cargando-estilos">
+        <div>Cargando estilos...</div>
+      </div>
+    );
+  }
 
   // variante (aplica clase raíz con variables)
   const variantClass = theme === 'light' ? styles.CambiarcontrasenaLight : styles.CambiarcontrasenaDark;

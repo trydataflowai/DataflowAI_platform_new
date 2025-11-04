@@ -43,24 +43,24 @@ function CustomizedTreemapContent(props) {
 
   return (
     <g>
-      <rect 
-        x={x} 
-        y={y} 
-        width={width} 
-        height={height} 
-        style={{ 
-          fill: bg, 
-          stroke: '#e0e0e0', 
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        style={{
+          fill: bg,
+          stroke: '#e0e0e0',
           strokeWidth: 2,
           opacity: 0.9
-        }} 
+        }}
       />
       {showName && (
-        <text 
-          x={x + padding} 
-          y={y + padding + fontSize} 
-          fill="#ffffff" 
-          fontSize={fontSize} 
+        <text
+          x={x + padding}
+          y={y + padding + fontSize}
+          fill="#ffffff"
+          fontSize={fontSize}
           fontWeight={700}
           style={{ pointerEvents: 'none' }}
         >
@@ -68,10 +68,10 @@ function CustomizedTreemapContent(props) {
         </text>
       )}
       {showValue && (
-        <text 
-          x={x + padding} 
-          y={y + padding + fontSize + 18} 
-          fill="#ffffff" 
+        <text
+          x={x + padding}
+          y={y + padding + fontSize + 18}
+          fill="#ffffff"
           fontSize={Math.max(10, fontSize - 2)}
           fontWeight={600}
           style={{ pointerEvents: 'none' }}
@@ -92,7 +92,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         {payload.map((entry, index) => (
           <p key={index} style={{ color: entry.color }} className={styles.dashipscolxdsTooltipValue}>
             {entry.name}: {
-              entry.name.includes('%') || entry.name.includes('Var') 
+              entry.name.includes('%') || entry.name.includes('Var')
                 ? `${Number(entry.value).toFixed(2)}%`
                 : `$${Number(entry.value).toLocaleString('es-CO')}`
             }
@@ -196,11 +196,11 @@ export default function DashboardISPVenta() {
             <span className={styles.dashipscolxdsBadge}>v1.0</span>
           </h1>
           <div className={styles.dashipscolxdsHeaderDate}>
-            {new Date().toLocaleDateString('es-CO', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            {new Date().toLocaleDateString('es-CO', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function DashboardISPVenta() {
           <span className={styles.dashipscolxdsFilterIcon}>🔍</span>
           Filtros de búsqueda
         </div>
-        
+
         <div className={styles.dashipscolxdsFiltersGrid}>
           <div className={styles.dashipscolxdsFilterGroup}>
             <label className={styles.dashipscolxdsFilterLabel}>
@@ -252,9 +252,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>👥</span>
               Categoría cliente
             </label>
-            <select 
-              value={filters.categoria_cliente} 
-              onChange={e => handleFilterChange('categoria_cliente', e.target.value)} 
+            <select
+              value={filters.categoria_cliente}
+              onChange={e => handleFilterChange('categoria_cliente', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
@@ -267,9 +267,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>📍</span>
               Ciudad
             </label>
-            <select 
-              value={filters.ciudad} 
-              onChange={e => handleFilterChange('ciudad', e.target.value)} 
+            <select
+              value={filters.ciudad}
+              onChange={e => handleFilterChange('ciudad', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todas</option>
@@ -282,9 +282,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>🎯</span>
               Segmento
             </label>
-            <select 
-              value={filters.segmento} 
-              onChange={e => handleFilterChange('segmento', e.target.value)} 
+            <select
+              value={filters.segmento}
+              onChange={e => handleFilterChange('segmento', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
@@ -297,9 +297,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>📦</span>
               Nombre plan
             </label>
-            <select 
-              value={filters.nombre_plan} 
-              onChange={e => handleFilterChange('nombre_plan', e.target.value)} 
+            <select
+              value={filters.nombre_plan}
+              onChange={e => handleFilterChange('nombre_plan', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
@@ -312,9 +312,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>🏷️</span>
               Categoría plan
             </label>
-            <select 
-              value={filters.categoria_plan} 
-              onChange={e => handleFilterChange('categoria_plan', e.target.value)} 
+            <select
+              value={filters.categoria_plan}
+              onChange={e => handleFilterChange('categoria_plan', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
@@ -327,9 +327,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>✓</span>
               Estado suscripción
             </label>
-            <select 
-              value={filters.estado_suscripcion} 
-              onChange={e => handleFilterChange('estado_suscripcion', e.target.value)} 
+            <select
+              value={filters.estado_suscripcion}
+              onChange={e => handleFilterChange('estado_suscripcion', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
@@ -342,9 +342,9 @@ export default function DashboardISPVenta() {
               <span className={styles.dashipscolxdsLabelIcon}>💳</span>
               Método pago
             </label>
-            <select 
-              value={filters.metodo_pago} 
-              onChange={e => handleFilterChange('metodo_pago', e.target.value)} 
+            <select
+              value={filters.metodo_pago}
+              onChange={e => handleFilterChange('metodo_pago', e.target.value)}
               className={styles.dashipscolxdsFilterSelect}
             >
               <option value=''>Todos</option>
@@ -423,9 +423,98 @@ export default function DashboardISPVenta() {
               {loading ? '...' : `$${extended.MRR.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
             </div>
             <div className={styles.dashipscolxdsKpiSub}>Monthly Recurring Revenue</div>
+
+
           </div>
           <div className={styles.dashipscolxdsKpiGlow}></div>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiIcon}>📊</div>
+          <div className={styles.kpiContent}>
+            <div className={styles.kpiLabel}>ARPU</div>
+            <div className={styles.kpiValue}>$ 148.392,37</div>
+            <div className={styles.kpiSub}>Ingreso promedio mensual por cliente</div>
+          </div>
+          <div className={styles.kpiGlow}></div>
+        </div>
+
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiIcon}>⏱️</div>
+          <div className={styles.kpiContent}>
+            <div className={styles.kpiLabel}>AVR Time on boarding</div>
+            <div className={styles.kpiValue}>15 dias</div>
+            <div className={styles.kpiSub}>Tiempo desde venta hasta instalacion</div>
+          </div>
+          <div className={styles.kpiGlow}></div>
+        </div>
+
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiIcon}>🛠️</div>
+          <div className={styles.kpiContent}>
+            <div className={styles.kpiLabel}>MTTR</div>
+            <div className={styles.kpiValue}>12 horas</div>
+            <div className={styles.kpiSub}>AVR solucion de fallas tecnicas</div>
+          </div>
+          <div className={styles.kpiGlow}></div>
+        </div>
+
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiIcon}>💸</div>
+          <div className={styles.kpiContent}>
+            <div className={styles.kpiLabel}>CAC</div>
+            <div className={styles.kpiValue}>$100.000</div>
+            <div className={styles.kpiSub}>Costo de adquisicion de usuario</div>
+          </div>
+          <div className={styles.kpiGlow}></div>
+        </div>
+
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiIcon}>📶</div>
+          <div className={styles.kpiContent}>
+            <div className={styles.kpiLabel}>Revenue per Mbps</div>
+            <div className={styles.kpiValue}>$ 1.350 / Mbps</div>
+            <div className={styles.kpiSub}>Ingreso mensual por megabit</div>
+          </div>
+          <div className={styles.kpiGlow}></div>
+        </div>
+
       </div>
 
       {/* Gráfico principal */}
@@ -451,47 +540,47 @@ export default function DashboardISPVenta() {
             <ComposedChart data={chartData}>
               <defs>
                 <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00B43F" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#2CAF47" stopOpacity={0.6}/>
+                  <stop offset="5%" stopColor="#00B43F" stopOpacity={0.9} />
+                  <stop offset="95%" stopColor="#2CAF47" stopOpacity={0.6} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis 
-                dataKey="label" 
-                tick={{ fontSize: 11, fill: '#6c757d' }} 
-                stroke="#e0e0e0"
-              />
-              <YAxis 
-                yAxisId="left" 
-                orientation="left" 
-                tickFormatter={(v) => v >= 1000 ? (v/1000).toFixed(1) + 'k' : v}
+              <XAxis
+                dataKey="label"
                 tick={{ fontSize: 11, fill: '#6c757d' }}
                 stroke="#e0e0e0"
               />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
+              <YAxis
+                yAxisId="left"
+                orientation="left"
+                tickFormatter={(v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v}
+                tick={{ fontSize: 11, fill: '#6c757d' }}
+                stroke="#e0e0e0"
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
                 domain={['auto', 'auto']}
                 tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
                 tick={{ fontSize: 11, fill: '#6c757d' }}
                 stroke="#e0e0e0"
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar 
-                yAxisId="left" 
-                dataKey="monthly_total" 
-                name="Total mes" 
+              <Bar
+                yAxisId="left"
+                dataKey="monthly_total"
+                name="Total mes"
                 fill="url(#colorBar)"
                 barSize={28}
                 radius={[8, 8, 0, 0]}
               />
-              <Line 
-                yAxisId="right" 
-                type="monotone" 
-                dataKey="var_pct" 
-                stroke="#00B43F" 
-                strokeWidth={3} 
-                dot={{ r: 5, fill: '#00B43F', strokeWidth: 2, stroke: '#ffffff' }} 
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="var_pct"
+                stroke="#00B43F"
+                strokeWidth={3}
+                dot={{ r: 5, fill: '#00B43F', strokeWidth: 2, stroke: '#ffffff' }}
                 name="Var % mensual"
               />
             </ComposedChart>
@@ -509,7 +598,7 @@ export default function DashboardISPVenta() {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={distributionCategoria.slice(0,8)}
+                    data={distributionCategoria.slice(0, 8)}
                     dataKey="total"
                     nameKey="key"
                     innerRadius={48}
@@ -517,10 +606,10 @@ export default function DashboardISPVenta() {
                     paddingAngle={2}
                     labelLine={false}
                   >
-                    {distributionCategoria.slice(0,8).map((entry, idx) => (
-                      <Cell 
-                        key={`cell-${idx}`} 
-                        fill={['#10b981','#06b6d4','#f59e0b','#ef4444','#8b5cf6','#3b82f6','#84cc16','#f97316'][idx % 8]} 
+                    {distributionCategoria.slice(0, 8).map((entry, idx) => (
+                      <Cell
+                        key={`cell-${idx}`}
+                        fill={['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6', '#84cc16', '#f97316'][idx % 8]}
                       />
                     ))}
                   </Pie>
@@ -536,14 +625,14 @@ export default function DashboardISPVenta() {
 
             {/* resumen: top items */}
             <div className={styles.dashipscolxdsSummaryList}>
-              {distributionCategoria.slice(0,8).map((row, i) => (
+              {distributionCategoria.slice(0, 8).map((row, i) => (
                 <div key={row.key} className={styles.dashipscolxdsSummaryItem}>
                   <div className={styles.dashipscolxdsSummaryLeft}>
-                    <span 
-                      className={styles.dashipscolxdsColorBox} 
-                      style={{ 
-                        background: ['#10b981','#06b6d4','#f59e0b','#ef4444','#8b5cf6','#3b82f6','#84cc16','#f97316'][i % 8] 
-                      }} 
+                    <span
+                      className={styles.dashipscolxdsColorBox}
+                      style={{
+                        background: ['#10b981', '#06b6d4', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6', '#84cc16', '#f97316'][i % 8]
+                      }}
                     />
                     <div className={styles.dashipscolxdsSummaryKey}>{row.key}</div>
                   </div>
@@ -617,49 +706,49 @@ export default function DashboardISPVenta() {
           <table className={styles.dashipscolxdsDataTable}>
             <thead>
               <tr>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('nombre_cliente')}
                 >
                   Cliente {renderSortIcon('nombre_cliente')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('monto_facturado')}
                 >
                   Total Facturado {renderSortIcon('monto_facturado')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('ciudad')}
                 >
                   Ciudad {renderSortIcon('ciudad')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('segmento')}
                 >
                   Segmento {renderSortIcon('segmento')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('nombre_plan')}
                 >
                   Plan {renderSortIcon('nombre_plan')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('categoria_plan')}
                 >
                   Categoría Plan {renderSortIcon('categoria_plan')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('fecha_inicio')}
                 >
                   Fecha Inicio {renderSortIcon('fecha_inicio')}
                 </th>
-                <th 
+                <th
                   className={styles.dashipscolxdsSortableHeader}
                   onClick={() => handleSort('estado_suscripcion')}
                 >
@@ -723,19 +812,19 @@ export default function DashboardISPVenta() {
         {/* Paginación */}
         {filteredTableData.length > itemsPerPage && (
           <div className={styles.dashipscolxdsPagination}>
-            <button 
+            <button
               className={styles.dashipscolxdsPaginationBtn}
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
               ‹ Anterior
             </button>
-            
+
             <div className={styles.dashipscolxdsPaginationInfo}>
               Página {currentPage} de {totalPages}
             </div>
 
-            <button 
+            <button
               className={styles.dashipscolxdsPaginationBtn}
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}

@@ -53,9 +53,9 @@
   padding: 0;
 }
 
-/* Mantengo el azul original para el logo textual */
+/* Color verde #00b43f para el logo textual */
 .logoText {
-  color: #0a66c2;            /* Azul LinkedIn / color principal light */
+  color: #00b43f;            /* Verde #00b43f / color principal light */
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
@@ -94,14 +94,14 @@
   position: absolute;
   top: 0; left: 0;
   width: 4px; height: 100%;
-  background-color: #0a66c2;
+  background-color: #00b43f;
   opacity: 0;
   transition: all 0.3s ease;
   pointer-events: none;
 }
 .button:hover {
-  background-color: #f0f8ff;
-  color: #0a66c2;
+  background-color: #f0fff4;
+  color: #00b43f;
 }
 .button:hover::before {
   opacity: 1;
@@ -110,7 +110,7 @@
 /* Iconos y emojis (estilo light) */
 .emojiWhite {
   /* filtro para ajustar el color del emoji/icón en el tema light */
-  filter: invert(32%) sepia(95%) saturate(500%) hue-rotate(180deg) brightness(90%) contrast(90%);
+  filter: invert(47%) sepia(96%) saturate(1232%) hue-rotate(95deg) brightness(98%) contrast(101%);
   font-size: 1.2em;
   transition: var(--transition);
 }
@@ -120,7 +120,7 @@
 }
 .button:hover .icon {
   transform: scale(1.1);
-  color: #0a66c2;
+  color: #00b43f;
 }
 
 /* Texto de botón */
@@ -130,15 +130,15 @@
 
 /* Estado activo */
 .active {
-  background-color: #e3f0ff !important;
-  color: #0a66c2 !important;
+  background-color: #f0fff4 !important;
+  color: #00b43f !important;
   font-weight: 600;
 }
 .active::before {
   opacity: 1 !important;
 }
 .active .icon {
-  color: #0a66c2;
+  color: #00b43f;
 }
 
 /* Toggle collapse */
@@ -152,7 +152,7 @@
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
-  color: #0a66c2;
+  color: #00b43f;
   transition: all 0.3s ease;
 }
 .toggleButton:hover {
@@ -165,7 +165,7 @@
   padding-top: 1rem;
 }
 .planText {
-  color: #0a66c2;           /* Azul también para el plan */
+  color: #00b43f;           /* Verde también para el plan */
   font-size: 0.85rem;
   text-align: center;
   margin-bottom: 0.25rem;
@@ -174,7 +174,7 @@
 .accentLine {
   height: 1px;
   width: 100%;
-  background: linear-gradient(to right, transparent, #0a66c2, transparent);
+  background: linear-gradient(to right, transparent, #00b43f, transparent);
   margin-bottom: 0.5rem;
 }
 .footerText {

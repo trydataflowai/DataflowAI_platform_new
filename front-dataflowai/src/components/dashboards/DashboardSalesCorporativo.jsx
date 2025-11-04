@@ -805,9 +805,6 @@ const DashboardVentasCorporativo = () => {
         dataKey="valor"
         nameKey="categoria"
         outerRadius={110}
-        label={(entry) =>
-          `${entry.categoria} (${entry.porcentaje.toFixed(1)}%)`
-        }
       >
         {analisisAdicional.dataPorCategoria.map((entry, index) => {
           const hue = (index * 137.508) % 360;
