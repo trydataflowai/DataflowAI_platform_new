@@ -366,156 +366,144 @@ export default function DashboardISPVenta() {
       </div>
 
       {/* KPIs Grid */}
-      <div className={styles.dashipscolxdsKpiGrid}>
-        <div className={styles.dashipscolxdsKpiCard}>
-          <div className={styles.dashipscolxdsKpiIcon}>👥</div>
-          <div className={styles.dashipscolxdsKpiContent}>
-            <div className={styles.dashipscolxdsKpiLabel}>Clientes Activos</div>
-            <div className={styles.dashipscolxdsKpiValue}>
-              {loading ? '...' : kpis.totalClientes.toLocaleString('es-CO')}
-            </div>
-            <div className={styles.dashipscolxdsKpiSub}>{filteredVentas.length.toLocaleString('es-CO')} registros</div>
-          </div>
-          <div className={styles.dashipscolxdsKpiGlow}></div>
-        </div>
-
-        <div className={styles.dashipscolxdsKpiCard}>
-          <div className={styles.dashipscolxdsKpiIcon}>⚠️</div>
-          <div className={styles.dashipscolxdsKpiContent}>
-            <div className={styles.dashipscolxdsKpiLabel}>Clientes Cancelados</div>
-            <div className={styles.dashipscolxdsKpiValue}>
-              {loading ? '...' : (kpis.customersCanceled ?? 0).toLocaleString('es-CO')}
-            </div>
-            <div className={styles.dashipscolxdsKpiSub}>Estado: Cancelada</div>
-          </div>
-          <div className={styles.dashipscolxdsKpiGlow}></div>
-        </div>
-
-        <div className={styles.dashipscolxdsKpiCard}>
-          <div className={styles.dashipscolxdsKpiIcon}>💰</div>
-          <div className={styles.dashipscolxdsKpiContent}>
-            <div className={styles.dashipscolxdsKpiLabel}>Total Facturado</div>
-            <div className={styles.dashipscolxdsKpiValue}>
-              {loading ? '...' : `$${kpis.totalFacturado.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
-            </div>
-            <div className={styles.dashipscolxdsKpiSub}>Suma total período</div>
-          </div>
-          <div className={styles.dashipscolxdsKpiGlow}></div>
-        </div>
-
-        <div className={styles.dashipscolxdsKpiCard}>
-          <div className={styles.dashipscolxdsKpiIcon}>📉</div>
-          <div className={styles.dashipscolxdsKpiContent}>
-            <div className={styles.dashipscolxdsKpiLabel}>Churn Rate</div>
-            <div className={styles.dashipscolxdsKpiValue}>
-              {loading ? '...' : `${(extended.churnRate * 100).toFixed(2)}%`}
-            </div>
-            <div className={styles.dashipscolxdsKpiSub}>Tasa de cancelación</div>
-          </div>
-          <div className={styles.dashipscolxdsKpiGlow}></div>
-        </div>
-
-        <div className={styles.dashipscolxdsKpiCard}>
-          <div className={styles.dashipscolxdsKpiIcon}>📈</div>
-          <div className={styles.dashipscolxdsKpiContent}>
-            <div className={styles.dashipscolxdsKpiLabel}>MRR</div>
-            <div className={styles.dashipscolxdsKpiValue}>
-              {loading ? '...' : `$${extended.MRR.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
-            </div>
-            <div className={styles.dashipscolxdsKpiSub}>Monthly Recurring Revenue</div>
-
-
-          </div>
-          <div className={styles.dashipscolxdsKpiGlow}></div>
-        </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>📊</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>ARPU</div>
-            <div className={styles.kpiValue}>$ 148.392,37</div>
-            <div className={styles.kpiSub}>Ingreso promedio mensual por cliente</div>
-          </div>
-          <div className={styles.kpiGlow}></div>
-        </div>
-
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>⏱️</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>AVR Time on boarding</div>
-            <div className={styles.kpiValue}>15 dias</div>
-            <div className={styles.kpiSub}>Tiempo desde venta hasta instalacion</div>
-          </div>
-          <div className={styles.kpiGlow}></div>
-        </div>
-
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>🛠️</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>MTTR</div>
-            <div className={styles.kpiValue}>12 horas</div>
-            <div className={styles.kpiSub}>AVR solucion de fallas tecnicas</div>
-          </div>
-          <div className={styles.kpiGlow}></div>
-        </div>
-
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>💸</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>CAC</div>
-            <div className={styles.kpiValue}>$100.000</div>
-            <div className={styles.kpiSub}>Costo de adquisicion de usuario</div>
-          </div>
-          <div className={styles.kpiGlow}></div>
-        </div>
-
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiIcon}>📶</div>
-          <div className={styles.kpiContent}>
-            <div className={styles.kpiLabel}>Revenue per Mbps</div>
-            <div className={styles.kpiValue}>$ 1.350 / Mbps</div>
-            <div className={styles.kpiSub}>Ingreso mensual por megabit</div>
-          </div>
-          <div className={styles.kpiGlow}></div>
-        </div>
-
+     <div className={styles.dashipscolxdsKpiGrid}>
+  {/* 🔹 FILA SUPERIOR (6 tarjetas) */}
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>👥</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Clientes Activos</div>
+      <div className={styles.dashipscolxdsKpiValue}>
+        {loading ? '...' : kpis.totalClientes.toLocaleString('es-CO')}
       </div>
+      <div className={styles.dashipscolxdsKpiSub}>
+        {filteredVentas.length.toLocaleString('es-CO')} registros
+      </div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>⚠️</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Clientes Cancelados</div>
+      <div className={styles.dashipscolxdsKpiValue}>
+        {loading ? '...' : (kpis.customersCanceled ?? 0).toLocaleString('es-CO')}
+      </div>
+      <div className={styles.dashipscolxdsKpiSub}>Estado: Cancelada</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>💰</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Total Facturado</div>
+      <div className={styles.dashipscolxdsKpiValue}>
+        {loading ? '...' : `$${kpis.totalFacturado.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
+      </div>
+      <div className={styles.dashipscolxdsKpiSub}>Suma total período</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>📉</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Churn Rate</div>
+      <div className={styles.dashipscolxdsKpiValue}>
+        {loading ? '...' : `${(extended.churnRate * 100).toFixed(2)}%`}
+      </div>
+      <div className={styles.dashipscolxdsKpiSub}>Tasa de cancelación</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>📈</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>MRR</div>
+      <div className={styles.dashipscolxdsKpiValue}>
+        {loading ? '...' : `$${extended.MRR.toLocaleString('es-CO', { minimumFractionDigits: 0 })}`}
+      </div>
+      <div className={styles.dashipscolxdsKpiSub}>Monthly Recurring Revenue</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>📦</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Clientes Nuevos</div>
+      <div className={styles.dashipscolxdsKpiValue}>
+        {loading ? '...' : (kpis.nuevosClientes ?? 0).toLocaleString('es-CO')}
+      </div>
+      <div className={styles.dashipscolxdsKpiSub}>Altas del mes</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  {/* 🔹 FILA INFERIOR (6 tarjetas) */}
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>📊</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>ARPU</div>
+      <div className={styles.dashipscolxdsKpiValue}>$ 148.392,37</div>
+      <div className={styles.dashipscolxdsKpiSub}>Ingreso promedio mensual por cliente</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>⏱️</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>AVR Time on boarding</div>
+      <div className={styles.dashipscolxdsKpiValue}>15 días</div>
+      <div className={styles.dashipscolxdsKpiSub}>Tiempo desde venta hasta instalación</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>🛠️</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>MTTR</div>
+      <div className={styles.dashipscolxdsKpiValue}>12 horas</div>
+      <div className={styles.dashipscolxdsKpiSub}>AVR solución de fallas técnicas</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>💸</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>CAC</div>
+      <div className={styles.dashipscolxdsKpiValue}>$100.000</div>
+      <div className={styles.dashipscolxdsKpiSub}>Costo de adquisición de usuario</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>📶</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Revenue per Mbps</div>
+      <div className={styles.dashipscolxdsKpiValue}>$ 1.350 / Mbps</div>
+      <div className={styles.dashipscolxdsKpiSub}>Ingreso mensual por megabit</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+
+  <div className={styles.dashipscolxdsKpiCard}>
+    <div className={styles.dashipscolxdsKpiIcon}>🌐</div>
+    <div className={styles.dashipscolxdsKpiContent}>
+      <div className={styles.dashipscolxdsKpiLabel}>Cobertura Total</div>
+      <div className={styles.dashipscolxdsKpiValue}>25 ciudades</div>
+      <div className={styles.dashipscolxdsKpiSub}>Regiones activas de servicio</div>
+    </div>
+    <div className={styles.dashipscolxdsKpiGlow}></div>
+  </div>
+</div>
+
 
       {/* Gráfico principal */}
       <div className={styles.dashipscolxdsChartCard}>
