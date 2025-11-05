@@ -1,0 +1,620 @@
+:root {
+  /* Paleta de colores mejorada */
+  --cotiCorpoColxd-bg-primary: #f8fafc;
+  --cotiCorpoColxd-bg-secondary: #ffffff;
+  --cotiCorpoColxd-bg-tertiary: #f1f5f9;
+  
+  /* Colores principales */
+  --cotiCorpoColxd-primary-dark: #003440;
+  --cotiCorpoColxd-primary-mid: #00566b;
+  --cotiCorpoColxd-primary-light: #0088a8;
+  --cotiCorpoColxd-accent: #5D5C5F;
+  --cotiCorpoColxd-accent-light: #7a7a7d;
+  
+  /* Colores de texto */
+  --cotiCorpoColxd-text-primary: #0f172a;
+  --cotiCorpoColxd-text-secondary: #475569;
+  --cotiCorpoColxd-text-muted: #94a3b8;
+  --cotiCorpoColxd-text-light: #cbd5e1;
+  
+  /* Colores funcionales */
+  --cotiCorpoColxd-success: #10b981;
+  --cotiCorpoColxd-success-light: #d1fae5;
+  --cotiCorpoColxd-warning: #f59e0b;
+  --cotiCorpoColxd-warning-light: #fef3c7;
+  --cotiCorpoColxd-danger: #ef4444;
+  --cotiCorpoColxd-danger-light: #fee2e2;
+  --cotiCorpoColxd-info: #3b82f6;
+  --cotiCorpoColxd-info-light: #dbeafe;
+
+  /* Colores adicionales */
+  --cotiCorpoColxd-color-50: #00B43F;
+  
+  /* Bordes */
+  --cotiCorpoColxd-border-light: #e2e8f0;
+  --cotiCorpoColxd-border-medium: #cbd5e1;
+  --cotiCorpoColxd-border-dark: #94a3b8;
+  
+  /* Sombras mejoradas */
+  --cotiCorpoColxd-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --cotiCorpoColxd-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --cotiCorpoColxd-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --cotiCorpoColxd-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --cotiCorpoColxd-shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.15);
+  --cotiCorpoColxd-shadow-glow: 0 0 20px rgba(0, 86, 107, 0.15);
+  
+  /* Radiuses */
+  --cotiCorpoColxd-radius-sm: 6px;
+  --cotiCorpoColxd-radius-md: 10px;
+  --cotiCorpoColxd-radius-lg: 14px;
+  --cotiCorpoColxd-radius-xl: 18px;
+  
+  /* Transiciones */
+  --cotiCorpoColxd-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --cotiCorpoColxd-transition-medium: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --cotiCorpoColxd-transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Fuentes */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxd {
+  padding: 32px;
+  background: var(--cotiCorpoColxd-bg-primary);
+  color: var(--cotiCorpoColxd-text-primary);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Titulo principal mejorado */
+.cotiCorpoColxd > h1 {
+  color: var(--cotiCorpoColxd-primary-dark);
+  font-size: 2.75rem;
+  margin-bottom: 32px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.cotiCorpoColxd > h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--cotiCorpoColxd-primary-dark), var(--cotiCorpoColxd-primary-light));
+  border-radius: 2px;
+}
+
+/* ============================================
+   BOTONES DASHBOARD - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdDashboardButtonsContainer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.cotiCorpoColxdDashboardBtn {
+  padding: 10px 18px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform .12s, opacity .12s;
+}
+
+.cotiCorpoColxdInicio {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.cotiCorpoColxdMetas {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.cotiCorpoColxdCotizaciones {
+  background-color: #ffc107;
+  color: #222;
+}
+
+.cotiCorpoColxdDashboardBtn:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+/* ============================================
+   ACCIONES Y BOTONES - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Estilo base de botones mejorado */
+.cotiCorpoColxd button {
+  background: linear-gradient(135deg, var(--cotiCorpoColxd-primary-dark) 0%, var(--cotiCorpoColxd-primary-mid) 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  cursor: pointer;
+  border-radius: var(--cotiCorpoColxd-radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: var(--cotiCorpoColxd-shadow-sm);
+  transition: all var(--cotiCorpoColxd-transition-fast);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.3px;
+}
+
+/* Efecto de brillo al hover */
+.cotiCorpoColxd button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left var(--cotiCorpoColxd-transition-medium);
+}
+
+.cotiCorpoColxd button:hover::before {
+  left: 100%;
+}
+
+.cotiCorpoColxd button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cotiCorpoColxd-shadow-lg);
+}
+
+.cotiCorpoColxd button:active {
+  transform: translateY(0);
+  box-shadow: var(--cotiCorpoColxd-shadow-sm);
+}
+
+/* Variantes de botones */
+.cotiCorpoColxdBtnGhost {
+  background: transparent;
+  border: 2px solid var(--cotiCorpoColxd-border-medium);
+  color: var(--cotiCorpoColxd-text-primary);
+  box-shadow: none;
+}
+
+.cotiCorpoColxdBtnGhost:hover {
+  background: var(--cotiCorpoColxd-bg-tertiary);
+  border-color: var(--cotiCorpoColxd-primary-dark);
+  color: var(--cotiCorpoColxd-primary-dark);
+}
+
+.cotiCorpoColxdBtnPrimary {
+  background: linear-gradient(135deg, var(--cotiCorpoColxd-primary-dark), var(--cotiCorpoColxd-primary-light));
+  color: #ffffff;
+  box-shadow: var(--cotiCorpoColxd-shadow-md);
+}
+
+.cotiCorpoColxdBtnPrimary:hover {
+  box-shadow: var(--cotiCorpoColxd-shadow-glow);
+}
+
+.cotiCorpoColxdBtnDanger {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: #ffffff;
+}
+
+.cotiCorpoColxdBtnSuccess {
+  background: linear-gradient(135deg, var(--cotiCorpoColxd-success), #059669);
+  color: #ffffff;
+}
+
+.cotiCorpoColxdBtnWarning {
+  background: linear-gradient(135deg, var(--cotiCorpoColxd-warning), #d97706);
+  color: #ffffff;
+}
+
+/* ============================================
+   FILTROS - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdFiltrosContainer {
+  background: var(--cotiCorpoColxd-bg-secondary);
+  border: 1px solid var(--cotiCorpoColxd-border-light);
+  border-radius: var(--cotiCorpoColxd-radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--cotiCorpoColxd-shadow-sm);
+  transition: all var(--cotiCorpoColxd-transition-fast);
+}
+
+.cotiCorpoColxdFiltrosContainer:hover {
+  box-shadow: var(--cotiCorpoColxd-shadow-md);
+}
+
+.cotiCorpoColxdFiltrosHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cotiCorpoColxd-border-light);
+}
+
+.cotiCorpoColxdFiltrosHeader h3 {
+  color: var(--cotiCorpoColxd-primary-dark);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cotiCorpoColxdFiltrosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.cotiCorpoColxdFiltroItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cotiCorpoColxdFiltroItem label {
+  display: block;
+  font-weight: 600;
+  color: var(--cotiCorpoColxd-text-secondary);
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.cotiCorpoColxdFiltroInput,
+.cotiCorpoColxdFiltroSelect {
+  padding: 12px 14px;
+  border: 2px solid var(--cotiCorpoColxd-border-light);
+  border-radius: var(--cotiCorpoColxd-radius-md);
+  font-size: 15px;
+  background: var(--cotiCorpoColxd-bg-secondary);
+  color: var(--cotiCorpoColxd-text-primary);
+  transition: all var(--cotiCorpoColxd-transition-fast);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.cotiCorpoColxdFiltroInput:focus,
+.cotiCorpoColxdFiltroSelect:focus {
+  outline: none;
+  border-color: var(--cotiCorpoColxd-primary-dark);
+  box-shadow: 0 0 0 3px rgba(0, 86, 107, 0.1);
+  transform: translateY(-1px);
+}
+
+.cotiCorpoColxdFiltroInput::placeholder {
+  color: var(--cotiCorpoColxd-text-muted);
+}
+
+/* ============================================
+   TABLA - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdTableContainer {
+  overflow-x: auto;
+  border-radius: var(--cotiCorpoColxd-radius-lg);
+  box-shadow: var(--cotiCorpoColxd-shadow-md);
+  margin: 24px 0;
+  background: var(--cotiCorpoColxd-bg-secondary);
+  border: 1px solid var(--cotiCorpoColxd-border-light);
+}
+
+.cotiCorpoColxdTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--cotiCorpoColxd-bg-secondary);
+  font-family: inherit;
+}
+
+/* Encabezado de tabla mejorado */
+.cotiCorpoColxdTable thead {
+  background: linear-gradient(135deg, var(--cotiCorpoColxd-primary-dark) 0%, var(--cotiCorpoColxd-primary-mid) 100%);
+  color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.cotiCorpoColxdTable th {
+  padding: 16px 14px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+/* Celdas de tabla */
+.cotiCorpoColxdTable td {
+  padding: 14px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--cotiCorpoColxd-border-light);
+  font-size: 15px;
+  color: var(--cotiCorpoColxd-text-primary);
+  transition: background var(--cotiCorpoColxd-transition-fast);
+}
+
+/* Filas alternadas y hover mejorado */
+.cotiCorpoColxdTable tbody tr {
+  transition: all var(--cotiCorpoColxd-transition-fast);
+}
+
+.cotiCorpoColxdTable tbody tr:nth-child(even) {
+  background: var(--cotiCorpoColxd-bg-tertiary);
+}
+
+.cotiCorpoColxdTable tbody tr:hover {
+  background: var(--cotiCorpoColxd-info-light);
+  transform: scale(1.005);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+/* ============================================
+   ACCIONES EN TABLA - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdAcciones {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.cotiCorpoColxdBtnEdit,
+.cotiCorpoColxdBtnDelete,
+.cotiCorpoColxdBtnView {
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--cotiCorpoColxd-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all var(--cotiCorpoColxd-transition-fast);
+  position: relative;
+}
+
+.cotiCorpoColxdBtnEdit {
+  background: var(--cotiCorpoColxd-info-light);
+  color: var(--cotiCorpoColxd-info);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.cotiCorpoColxdBtnEdit:hover {
+  background: var(--cotiCorpoColxd-info);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--cotiCorpoColxd-shadow-md);
+}
+
+.cotiCorpoColxdBtnDelete {
+  background: var(--cotiCorpoColxd-danger-light);
+  color: var(--cotiCorpoColxd-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.cotiCorpoColxdBtnDelete:hover {
+  background: var(--cotiCorpoColxd-danger);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--cotiCorpoColxd-shadow-md);
+}
+
+.cotiCorpoColxdBtnView {
+  background: var(--cotiCorpoColxd-success-light);
+  color: var(--cotiCorpoColxd-success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.cotiCorpoColxdBtnView:hover {
+  background: var(--cotiCorpoColxd-success);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--cotiCorpoColxd-shadow-md);
+}
+
+/* ============================================
+   FORMULARIOS - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdForm {
+  margin-bottom: 20px;
+}
+
+.cotiCorpoColxdFormGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cotiCorpoColxdFormGrid input {
+  padding: 12px 14px;
+  border: 2px solid var(--cotiCorpoColxd-border-light);
+  border-radius: var(--cotiCorpoColxd-radius-md);
+  font-size: 15px;
+  background: var(--cotiCorpoColxd-bg-secondary);
+  color: var(--cotiCorpoColxd-text-primary);
+  transition: all var(--cotiCorpoColxd-transition-fast);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.cotiCorpoColxdFormGrid input:focus {
+  outline: none;
+  border-color: var(--cotiCorpoColxd-primary-dark);
+  box-shadow: 0 0 0 3px rgba(0, 86, 107, 0.1);
+  transform: translateY(-1px);
+}
+
+.cotiCorpoColxdFormActions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+/* ============================================
+   VALORES Y FORMATOS - COTIZACIONES
+   ============================================ */
+.cotiCorpoColxdValorMonetario {
+  text-align: right;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-weight: 700;
+  color: var(--cotiCorpoColxd-success);
+  padding-right: 8px;
+  font-size: 15px;
+}
+
+.cotiCorpoColxdValorPorcentaje {
+  font-weight: 600;
+  color: var(--cotiCorpoColxd-primary-dark);
+}
+
+/* ============================================
+   ESTADOS DE CARGA Y VACIOS
+   ============================================ */
+.cotiCorpoColxdLoading,
+.cotiCorpoColxdEmptyRow {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--cotiCorpoColxd-text-muted);
+  font-size: 16px;
+}
+
+.cotiCorpoColxdLoading::after {
+  content: '...';
+  animation: dots 1.5s steps(3, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
+/* ============================================
+   RESPONSIVE - COTIZACIONES
+   ============================================ */
+@media (max-width: 1024px) {
+  .cotiCorpoColxd {
+    padding: 24px;
+  }
+  
+  .cotiCorpoColxdFiltrosGrid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+  
+  .cotiCorpoColxdFormGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cotiCorpoColxd {
+    padding: 16px;
+  }
+  
+  .cotiCorpoColxd > h1 {
+    font-size: 2rem;
+  }
+  
+  .cotiCorpoColxdDashboardButtonsContainer {
+    justify-content: center;
+  }
+  
+  .cotiCorpoColxdActions {
+    justify-content: center;
+    flex-direction: column;
+  }
+  
+  .cotiCorpoColxdActions button {
+    width: 100%;
+  }
+  
+  .cotiCorpoColxdFiltrosGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cotiCorpoColxdFormGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cotiCorpoColxdTableContainer {
+    margin: 16px 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .cotiCorpoColxdTable {
+    min-width: 700px;
+  }
+  
+  .cotiCorpoColxd > h1 {
+    font-size: 1.75rem;
+  }
+  
+  .cotiCorpoColxdDashboardBtn {
+    width: 100%;
+  }
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cotiCorpoColxd-bg-tertiary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cotiCorpoColxd-primary-mid);
+  border-radius: 5px;
+  transition: background var(--cotiCorpoColxd-transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cotiCorpoColxd-primary-dark);
+}

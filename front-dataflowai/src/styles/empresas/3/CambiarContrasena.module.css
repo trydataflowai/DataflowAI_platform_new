@@ -1,0 +1,282 @@
+/* CambiarContrasena.module.css
+   Un único archivo con variantes Light y Dark.
+   Aplica la clase raíz .CambiarcontrasenaDark o .CambiarcontrasenaLight
+   junto a las clases existentes (ej: .cambiarcontrasenacontainer)
+*/
+
+/* -------------------------
+   VARIANT: DARK
+   ------------------------- */
+.CambiarcontrasenaDark {
+  --black-void: #000000;
+  --black-cosmos: #050505;
+  --black-deep: #0a0a0a;
+
+  --accent-neon: #00ff88;
+  --accent-turquoise: #00e173;
+  --accent-cyan: #00c25c;
+  --accent-dark: #009947;
+
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+
+  --success: #00ffaa;
+  --warning: #ffcc00;
+  --danger: #ff3366;
+
+  --glass: rgba(255,255,255,0.03);
+
+  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  --card-border: rgba(255,255,255,0.04);
+
+  --btn-bg: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+  --btn-text: #001803;
+
+  --transition: all 0.22s cubic-bezier(.2,.9,.3,1);
+  --shadow-card: 0 12px 30px rgba(0,0,0,0.6);
+}
+
+/* -------------------------
+   VARIANT: LIGHT (paleta que pediste)
+   ------------------------- */
+.CambiarcontrasenaLight {
+  --bg: #ffffff;
+  --panel: #f7fff7;
+  --primary-green: #00b43f;
+  --primary-green-600: #008530;
+  --text: #0b1a2b;
+  --muted: #6b7785;
+  --muted-2: #8a97a6;
+  --surface: #ffffff;
+  --border: #e6f8ec;
+  --shadow: 0 8px 30px rgba(0,180,63,0.06);
+  --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
+
+  /* map to shared var names used by component */
+  --accent-neon: var(--primary-green);
+  --accent-turquoise: var(--primary-green-600);
+  --accent-cyan: #00d44f;
+
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+
+  --success: #0fa969;
+  --warning: #ffcc00;
+  --danger: #d0445a;
+
+  --glass: rgba(18,59,35,0.03);
+
+  --container-bg: linear-gradient(180deg, var(--panel), var(--surface));
+  --card-bg: linear-gradient(180deg, var(--surface), #fbfffb);
+  --card-border: var(--border);
+
+  --btn-bg: linear-gradient(135deg, var(--primary-green), var(--primary-green-600));
+  --btn-text: #ffffff;
+
+  --transition: var(--transition);
+  --shadow-card: var(--shadow);
+}
+
+/* =========================
+   Estilos compartidos (usan las variables de la variante activa)
+   ========================= */
+
+.cambiarcontrasenacontainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 28px 18px;
+  box-sizing: border-box;
+  font-family: 'Inter', Arial, sans-serif;
+  background: var(--container-bg);
+  color: var(--text-primary);
+  transition: background 220ms, color 220ms;
+}
+
+.cambiarcontrasenacard {
+  width: 100%;
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.cambiarcontrasenaheader {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.cambiarcontrasenatitle {
+  font-size: 1.4rem;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cambiarcontrasenasubtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.cambiarcontrasenaerrorBox {
+  background: rgba(255,51,102,0.08);
+  color: var(--danger);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 3px solid rgba(255,51,102,0.22);
+}
+
+.cambiarcontrasenasuccessBox {
+  background: rgba(0,255,170,0.06);
+  color: var(--success);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 3px solid rgba(0,255,170,0.14);
+}
+
+.cambiarcontrasenaform {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cambiarcontrasenalabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cambiarcontrasenalabelText {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.cambiarcontrasenainputRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cambiarcontrasenainput {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--glass);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 10px;
+  color: var(--text-primary);
+  outline: none;
+  font-size: 0.98rem;
+  transition: var(--transition);
+  box-shadow: inset 0 4px 14px rgba(0,0,0,0.03);
+}
+
+.cambiarcontrasenainput::placeholder {
+  color: rgba(0,0,0,0.24);
+}
+
+.cambiarcontrasenainput:focus {
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
+}
+
+.cambiarcontrasenashowBtn {
+  min-width: 74px;
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.06);
+  color: var(--accent-neon);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.cambiarcontrasenashowBtn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.cambiarcontrasenastrengthBar {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.cambiarcontrasenastrengthSegment {
+  flex: 1;
+  height: 6px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+/* clase 'on' usada desde el JSX */
+.cambiarcontrasenaon {
+  background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+/* Si quieres tener un color diferente para modo light cuando 'on' */
+.CambiarcontrasenaLight .cambiarcontrasenaon {
+  box-shadow: 0 8px 18px rgba(0,180,63,0.06);
+}
+
+.cambiarcontrasenaactions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.cambiarcontrasenaprimaryButton {
+  padding: 12px 18px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+  transition: var(--transition);
+}
+
+.cambiarcontrasenaprimaryButton:disabled {
+  opacity: 0.55;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.cambiarcontrasenaprimaryButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+}
+
+/* pequeños detalles visuales */
+.cambiarcontrasenalabelText + .cambiarcontrasenainputRow .cambiarcontrasenainput {
+  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+}
+
+.cambiarcontrasenacard::after {
+  /* sutil borde / brillo según variante */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .cambiarcontrasenacard { padding: 18px; }
+  .cambiarcontrasenatitle { font-size: 1.2rem; }
+  .cambiarcontrasenashowBtn { min-width: 64px; font-size: 0.82rem; }
+}

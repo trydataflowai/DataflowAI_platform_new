@@ -1,7 +1,6 @@
 // src/components/.../AsgDashboardAsignarDashboards.jsx
 import React, { useEffect, useState, useCallback } from 'react';
-import styles from '../../../styles/Profile/AsignarDashboard.module.css';
-import { useTheme } from "../../componentes/ThemeContext"; // ajusta ruta si es necesario
+import { useTheme } from "../../componentes/ThemeContext";
 import {
   AsgDashboard_obtenerUsuariosEmpresa,
   AsgDashboard_obtenerProductos,
@@ -9,6 +8,34 @@ import {
   AsgDashboard_asignarProductoUsuario,
   AsgDashboard_eliminarAsignacionUsuario
 } from '../../../api/Profile';
+import { obtenerInfoUsuario } from '../../../api/Usuario';
+
+// Función para cargar los estilos dinámicamente
+const cargarEstilosEmpresa = async (empresaId, planId) => {
+  const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
+  
+  try {
+    // Verificar si el plan es especial y si existe la carpeta de la empresa
+    if (planesEspeciales.includes(planId)) {
+      try {
+        // Intentar importar los estilos de la carpeta de la empresa
+        const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/AsignarDashboard.module.css`);
+        return estilosEmpresa.default;
+      } catch (error) {
+        console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
+      }
+    }
+    
+    // Cargar estilos por defecto
+    const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
+    return estilosPorDefecto.default;
+  } catch (error) {
+    console.error('Error cargando estilos:', error);
+    // Fallback a estilos por defecto
+    const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
+    return estilosPorDefecto.default;
+  }
+};
 
 const AsgDashboardAsignarDashboards = () => {
   const { theme } = useTheme();
@@ -22,10 +49,44 @@ const AsgDashboardAsignarDashboards = () => {
   const [error, setError] = useState(null);
   const [modalType, setModalType] = useState(''); // 'asignar' o 'quitar'
   const [modalLoading, setModalLoading] = useState(false);
+  const [styles, setStyles] = useState({});
+  const [cargandoEstilos, setCargandoEstilos] = useState(true);
+
+  // Cargar información del usuario y estilos
+  useEffect(() => {
+    const cargarUsuarioYEstilos = async () => {
+      setCargandoEstilos(true);
+      try {
+        const usuarioInfo = await obtenerInfoUsuario();
+        const empresaId = usuarioInfo.empresa?.id;
+        const planId = usuarioInfo.empresa?.plan?.id;
+        
+        if (empresaId && planId) {
+          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
+          setStyles(estilosCargados);
+        } else {
+          // Fallback a estilos por defecto si no hay info de empresa/plan
+          const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
+          setStyles(estilosPorDefecto.default);
+        }
+      } catch (error) {
+        console.error('Error cargando información del usuario:', error);
+        // Fallback a estilos por defecto
+        const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
+        setStyles(estilosPorDefecto.default);
+      } finally {
+        setCargandoEstilos(false);
+      }
+    };
+
+    cargarUsuarioYEstilos();
+  }, []);
 
   // Cargar datos iniciales
   useEffect(() => {
     const cargarDatosIniciales = async () => {
+      if (cargandoEstilos) return; // Esperar a que carguen los estilos
+      
       setLoading(true);
       try {
         const [usuariosData, productosData] = await Promise.all([
@@ -43,7 +104,7 @@ const AsgDashboardAsignarDashboards = () => {
     };
 
     cargarDatosIniciales();
-  }, []);
+  }, [cargandoEstilos]);
 
   // Evita scroll de fondo cuando el modal está abierto
   useEffect(() => {
@@ -173,6 +234,15 @@ const AsgDashboardAsignarDashboards = () => {
     setMsg(null);
     Promise.all([cargarUsuarios(), cargarProductos()]);
   }, [cargarUsuarios, cargarProductos]);
+
+  // Si aún se están cargando los estilos, mostrar loading
+  if (cargandoEstilos) {
+    return (
+      <div className="cargando-estilos">
+        <div>Cargando estilos...</div>
+      </div>
+    );
+  }
 
   // clase variante (light/dark) aplicada al contenedor principal
   const variantClass = theme === 'light' ? styles.asignardashboardLight : styles.asignardashboardDark;

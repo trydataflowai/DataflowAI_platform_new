@@ -52,15 +52,15 @@ import DashboardVentasColtradeOdoo from "../components/dashboards/DashboardColtr
 
 
 
-//DAHABOARD
+//Rutas correspondientes al DASHBOARD de sales corporativo
 
-import CrudDashboardSalesCorporativo from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativo";
-
-import DashboardSalesCorporativo from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoInicio";
-
+import CrudDashboardSalesCorporativoCotizaciones from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoCotiza";
 import CrudDashboardSalesCorporativoMetas from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoMetas";
+import DashboardVentasCorporativo from "../components/dashboards/DashboardSalesCorporativo";
 
-import DashboardISPVentas from "../components/pages/dashboardcrud/DashboardISPVentas";
+//Rutas correspondientes al dashboard de IPS
+import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
+
 
 
 import ShopifyJsx from "../components/pages/Shopify";
@@ -150,7 +150,7 @@ export const Rutas = () => {
           <Route path="/login" element={<Login />} />
           <Route path="Servitel/login" element={<LoginServitel />} />
           <Route path="Coltrade/login" element={<LoginColtrade />} />
-           
+
           <Route path="/crear-empresa" element={<CreacionEmpresa />} />
           <Route path="/crear-usuario" element={<CreacionUsuario />} />
           <Route path="/pagos" element={<PagosStripe />} />
@@ -360,7 +360,7 @@ export const Rutas = () => {
           <Route
             path={("/DashboardSalesReview/settingsDashSalesReview")}
             element={
-              <RutaProtegida> 
+              <RutaProtegida>
                 <SideBarLayout>
                   <CrudDashboardSalesReview />
                 </SideBarLayout>
@@ -383,7 +383,7 @@ export const Rutas = () => {
 
 
 
-            <Route
+          <Route
             path={p("/Shopify/Prueba/deApi")}
             element={
               <RutaProtegida>
@@ -394,7 +394,7 @@ export const Rutas = () => {
             }
           />
 
-             <Route
+          <Route
             path={("/DashboardVentasOdoo")}
             element={
               <RutaProtegida>
@@ -407,31 +407,30 @@ export const Rutas = () => {
 
 
 
-
-             <Route
-            path={("/dashboardSalescorporativo/Cotizaciones")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <CrudDashboardSalesCorporativo />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-             <Route
+          //Rutas correspondientes al DASHBOARD de sales corporativo
+          <Route
             path={("/DashboardSalescorporativo")}
             element={
               <RutaProtegida>
                 <SideBarLayout>
-                  <DashboardSalesCorporativo />
+                  <DashboardVentasCorporativo />
                 </SideBarLayout>
               </RutaProtegida>
             }
           />
 
+          <Route
+            path={("/dashboardSalescorporativo/Cotizaciones")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <CrudDashboardSalesCorporativoCotizaciones />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
 
-             <Route
+          <Route
             path={("/dashboardSalescorporativo/Metas")}
             element={
               <RutaProtegida>
@@ -442,22 +441,18 @@ export const Rutas = () => {
             }
           />
 
-
-             <Route
+          //Rutas correspondientes al DASHBOARD Ips
+          <Route
             path={("/DashboardISPventas")}
             element={
               <RutaProtegida>
                 <SideBarLayout>
-                  <DashboardISPVentas />
+                  <DashboardISPVenta />
                 </SideBarLayout>
               </RutaProtegida>
             }
           />
-
-
-        
-
-
+          
         </Routes>
       </ThemeProvider>
     </BrowserRouter>

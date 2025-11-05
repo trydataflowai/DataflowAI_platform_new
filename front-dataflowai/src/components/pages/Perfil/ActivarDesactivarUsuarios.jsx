@@ -1,6 +1,5 @@
 // src/components/.../ActivarDesactivarUsuarios.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import styles from '../../../styles/Profile/ActivarDesactivar.module.css';
 import {
   obtenerUsuariosEmpresa,
   cambiarEstadoUsuario,
@@ -11,7 +10,35 @@ import {
   obtenerMiPerfil,
   obtenerAreas
 } from '../../../api/Profile';
-import { useTheme } from "../../componentes/ThemeContext"; // ajusta ruta si tu ThemeContext está en otra carpeta
+import { useTheme } from "../../componentes/ThemeContext";
+import { obtenerInfoUsuario } from '../../../api/Usuario';
+
+// Función para cargar los estilos dinámicamente
+const cargarEstilosEmpresa = async (empresaId, planId) => {
+  const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
+  
+  try {
+    // Verificar si el plan es especial y si existe la carpeta de la empresa
+    if (planesEspeciales.includes(planId)) {
+      try {
+        // Intentar importar los estilos de la carpeta de la empresa
+        const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/ActivarDesactivar.module.css`);
+        return estilosEmpresa.default;
+      } catch (error) {
+        console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
+      }
+    }
+    
+    // Cargar estilos por defecto
+    const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
+    return estilosPorDefecto.default;
+  } catch (error) {
+    console.error('Error cargando estilos:', error);
+    // Fallback a estilos por defecto
+    const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
+    return estilosPorDefecto.default;
+  }
+};
 
 const INACTIVE_STATE_ID = 2;
 const ACTIVE_STATE_ID = 1;
@@ -25,6 +52,8 @@ const ActivarDesactivarUsuarios = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [styles, setStyles] = useState({});
+  const [cargandoEstilos, setCargandoEstilos] = useState(true);
 
   // Form crear
   const [creando, setCreando] = useState(false);
@@ -39,13 +68,45 @@ const ActivarDesactivarUsuarios = () => {
   const [areas, setAreas] = useState([]);
   const [nuevoAreaId, setNuevoAreaId] = useState('');
 
+  // Cargar información del usuario y estilos
   useEffect(() => {
-    fetchUsuarios();
-    fetchPermisos();
-    fetchAreas();
-    fetchMiPerfil();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const cargarUsuarioYEstilos = async () => {
+      setCargandoEstilos(true);
+      try {
+        const usuarioInfo = await obtenerInfoUsuario();
+        const empresaId = usuarioInfo.empresa?.id;
+        const planId = usuarioInfo.empresa?.plan?.id;
+        
+        if (empresaId && planId) {
+          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
+          setStyles(estilosCargados);
+        } else {
+          // Fallback a estilos por defecto si no hay info de empresa/plan
+          const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
+          setStyles(estilosPorDefecto.default);
+        }
+      } catch (error) {
+        console.error('Error cargando información del usuario:', error);
+        // Fallback a estilos por defecto
+        const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
+        setStyles(estilosPorDefecto.default);
+      } finally {
+        setCargandoEstilos(false);
+      }
+    };
+
+    cargarUsuarioYEstilos();
   }, []);
+
+  useEffect(() => {
+    if (!cargandoEstilos) {
+      fetchUsuarios();
+      fetchPermisos();
+      fetchAreas();
+      fetchMiPerfil();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargandoEstilos]);
 
   const fetchUsuarios = async () => {
     setLoading(true);
@@ -252,6 +313,15 @@ const ActivarDesactivarUsuarios = () => {
   /* build options for custom selects */
   const areaOptions = areas.map(a => ({ value: a.id_area, label: a.area_trabajo }));
   const permisoOptions = permisos.map(p => ({ value: p.id_permiso_acceso, label: p.rol }));
+
+  // Si aún se están cargando los estilos, mostrar loading
+  if (cargandoEstilos) {
+    return (
+      <div className="cargando-estilos">
+        <div>Cargando estilos...</div>
+      </div>
+    );
+  }
 
   // clase variante (light/dark)
   const variantClass = theme === 'light' ? styles.PerfilactivardesactivarLight : styles.PerfilactivardesactivarDark;

@@ -1,6 +1,6 @@
 // CrudDashboardSalesCorporativoMetas.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CrudSalesCorporativo.module.css';
+import styles from '../../../styles/CrudDashboard/CrudSalesCorporativoMetas.module.css';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchDashMetas,
@@ -22,7 +22,6 @@ const emptyForm = {
 
 const CrudDashboardSalesCorporativoMetas = () => {
   const navigate = useNavigate();
-
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -182,81 +181,100 @@ const CrudDashboardSalesCorporativoMetas = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.metaCorpoColxd}>
       <h1>Metas Corporativas</h1>
 
-      <div className={styles.dashboardButtonsContainer}>
-              <button
-                onClick={() => navigate("/DashboardSalescorporativo")}
-                className={`${styles.dashboardBtn} ${styles.inicio}`}
-                type="button"
-              >
-                INICIO
-              </button>
-      
-              <button
-                onClick={() => navigate("/dashboardSalescorporativo/Metas")}
-                className={`${styles.dashboardBtn} ${styles.metas}`}
-                type="button"
-              >
-                METAS
-              </button>
-      
-              <button
-                onClick={() => navigate("/dashboardSalescorporativo/Cotizaciones")}
-                className={`${styles.dashboardBtn} ${styles.cotizaciones}`}
-                type="button"
-              >
-                COTIZACIONES
-              </button>
-            </div>
+      <div className={styles.metaCorpoColxdDashboardButtonsContainer}>
+        <button
+          onClick={() => navigate("/DashboardSalescorporativo")}
+          className={`${styles.metaCorpoColxdDashboardBtn} ${styles.metaCorpoColxdInicio}`}
+          type="button"
+        >
+          INICIO
+        </button>
 
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+        <button
+          onClick={() => navigate("/dashboardSalescorporativo/Metas")}
+          className={`${styles.metaCorpoColxdDashboardBtn} ${styles.metaCorpoColxdMetas}`}
+          type="button"
+        >
+          METAS
+        </button>
 
-      <div style={{ marginBottom: 12 }}>
+        <button
+          onClick={() => navigate("/dashboardSalescorporativo/Cotizaciones")}
+          className={`${styles.metaCorpoColxdDashboardBtn} ${styles.metaCorpoColxdCotizaciones}`}
+          type="button"
+        >
+          COTIZACIONES
+        </button>
+      </div>
+
+      {error && <div className={styles.metaCorpoColxdError}>{error}</div>}
+
+      <div className={styles.metaCorpoColxdActions}>
         <button onClick={openCreateForm}>{showForm ? 'Cerrar formulario' : 'Nuevo registro'}</button>
-        <button onClick={() => loadItems(buildFilters())} style={{ marginLeft: 8 }}>Refrescar</button>
+        <button onClick={() => loadItems(buildFilters())}>Refrescar</button>
       </div>
 
       {/* filtros */}
-      <div style={{ marginBottom: 12, border: '1px solid #ddd', padding: 10, borderRadius: 6 }}>
-        <strong>Filtros:</strong>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+      <div className={styles.metaCorpoColxdFiltrosContainer}>
+        <div className={styles.metaCorpoColxdFiltrosHeader}>
+          <h3>Filtros</h3>
+        </div>
+        <div className={styles.metaCorpoColxdFiltrosGrid}>
+          <div className={styles.metaCorpoColxdFiltroItem}>
+            <label>Año:</label>
+            <input 
+              placeholder="ano" 
+              value={filterAno} 
+              onChange={(e) => setFilterAno(e.target.value)}
+              className={styles.metaCorpoColxdFiltroInput}
+            />
+          </div>
 
-            <label>
-                Año:
-                <input placeholder="ano" value={filterAno} onChange={(e) => setFilterAno(e.target.value)} />
-            </label>
+          <div className={styles.metaCorpoColxdFiltroItem}>
+            <label>Mes:</label>
+            <input 
+              placeholder="mes" 
+              value={filterMes} 
+              onChange={(e) => setFilterMes(e.target.value)}
+              className={styles.metaCorpoColxdFiltroInput}
+            />
+          </div>
 
-          <label>
-            Mes:
-            <input placeholder="mes" value={filterMes} onChange={(e) => setFilterMes(e.target.value)} />
-          </label>
+          <div className={styles.metaCorpoColxdFiltroItem}>
+            <label>Categoria Cliente:</label>
+            <input 
+              placeholder="categoria cliente" 
+              value={filterCategoriaCliente} 
+              onChange={(e) => setFilterCategoriaCliente(e.target.value)}
+              className={styles.metaCorpoColxdFiltroInput}
+            />
+          </div>
 
-          <label>
-            Categoria Cliente:
-            <input placeholder="categoria cliente" value={filterCategoriaCliente} onChange={(e) => setFilterCategoriaCliente(e.target.value)} />
-          </label>
+          <div className={styles.metaCorpoColxdFiltroItem}>
+            <button onClick={applyFilter}>Aplicar filtro</button>
+            <button onClick={() => { setFilterAno(''); setFilterMes(''); setFilterCategoriaCliente(''); loadItems(); }}>
+              Limpiar filtros
+            </button>
+          </div>
 
-          <button onClick={applyFilter}>Aplicar filtro</button>
-          <button onClick={() => { setFilterAno(''); setFilterMes(''); setFilterCategoriaCliente(''); loadItems(); }} style={{ marginLeft: 8 }}>
-            Limpiar filtros
-          </button>
-
-          <button onClick={handleDeleteFiltered} style={{ marginLeft: 12, background: '#ef5350', color: 'white' }}>
-            Eliminar registros filtrados
-          </button>
-
-          <button onClick={handleExport} style={{ marginLeft: 12, background: '#1976d2', color: 'white' }}>
-            Exportar Excel
-          </button>
+          <div className={styles.metaCorpoColxdFiltroItem}>
+            <button onClick={handleDeleteFiltered} className={styles.metaCorpoColxdBtnDanger}>
+              Eliminar registros filtrados
+            </button>
+            <button onClick={handleExport} className={styles.metaCorpoColxdBtnPrimary}>
+              Exportar Excel
+            </button>
+          </div>
         </div>
       </div>
 
       {/* form */}
       {showForm && (
-        <form onSubmit={editingId ? handleUpdate : handleCreate} style={{ marginBottom: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <form onSubmit={editingId ? handleUpdate : handleCreate} className={styles.metaCorpoColxdForm}>
+          <div className={styles.metaCorpoColxdFormGrid}>
             <input name="ano" type="number" placeholder="ano" value={form.ano} onChange={handleChange} />
             <input name="mes" placeholder="mes" value={form.mes} onChange={handleChange} />
             <input name="categoria_cliente" placeholder="categoria_cliente" value={form.categoria_cliente} onChange={handleChange} />
@@ -266,9 +284,9 @@ const CrudDashboardSalesCorporativoMetas = () => {
             <input name="meta" type="number" step="0.01" placeholder="meta" value={form.meta} onChange={handleChange} />
           </div>
 
-          <div style={{ marginTop: 10 }}>
+          <div className={styles.metaCorpoColxdFormActions}>
             <button type="submit">{editingId ? 'Actualizar' : 'Crear'}</button>
-            <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); setEditingId(null); }} style={{ marginLeft: 8 }}>
+            <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); setEditingId(null); }}>
               Cancelar
             </button>
           </div>
@@ -276,11 +294,11 @@ const CrudDashboardSalesCorporativoMetas = () => {
       )}
 
       {/* table */}
-      <div>
+      <div className={styles.metaCorpoColxdTableContainer}>
         {loading ? (
-          <div>Cargando...</div>
+          <div className={styles.metaCorpoColxdLoading}>Cargando...</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className={styles.metaCorpoColxdTable}>
             <thead>
               <tr>
                 <th>#</th>
@@ -297,22 +315,24 @@ const CrudDashboardSalesCorporativoMetas = () => {
               {items && items.length ? items.map((it, idx) => {
                 const id = it.id || it.pk || it.id_registro || it._id;
                 return (
-                  <tr key={idx} style={{ borderTop: '1px solid #ddd' }}>
+                  <tr key={idx}>
                     <td>{idx + 1}</td>
                     <td>{it.ano}</td>
                     <td>{it.mes}</td>
                     <td>{it.categoria_cliente}</td>
                     <td>{it.nombre_cliente}</td>
                     <td>{it.categoria_producto}</td>
-                    <td>{it.meta}</td>
+                    <td className={styles.metaCorpoColxdValorMeta}>{it.meta}</td>
                     <td>
-                      <button onClick={() => handleEdit(it)} disabled={!id}>Editar</button>
-                      <button onClick={() => handleDelete(id)} disabled={!id} style={{ marginLeft: 8 }}>Eliminar</button>
+                      <div className={styles.metaCorpoColxdAcciones}>
+                        <button onClick={() => handleEdit(it)} disabled={!id} className={styles.metaCorpoColxdBtnEdit}>Editar</button>
+                        <button onClick={() => handleDelete(id)} disabled={!id} className={styles.metaCorpoColxdBtnDelete}>Eliminar</button>
+                      </div>
                     </td>
                   </tr>
                 );
               }) : (
-                <tr><td colSpan={8}>No hay registros</td></tr>
+                <tr><td colSpan={8} className={styles.metaCorpoColxdEmptyRow}>No hay registros</td></tr>
               )}
             </tbody>
           </table>

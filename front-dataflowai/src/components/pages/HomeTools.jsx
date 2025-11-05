@@ -1,3 +1,4 @@
+// src/components/pages/HomeTools.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import darkStyles from '../../styles/ToolsDark.module.css';
 import lightStyles from '../../styles/ToolsLight.module.css';
@@ -5,11 +6,24 @@ import { obtenerHerramientaUsuario } from '../../api/HerramientaUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { useTheme } from '../componentes/ThemeContext';
 
+/*
+  Lógica de selección de estilos por empresa (solo override LIGHT aquí):
+  - Busca módulos: src/styles/empresas/{companyId}/ToolsLight.module.css
+  - Si (planId === 3 || planId === 6) && existe el archivo de la empresa -> usarlo en theme 'light'
+  - Si no existe -> fallback a ../../styles/ToolsLight.module.css
+  - Si el plan no permite toggle -> forzar darkStyles
+*/
+const empresaLightModules = import.meta.glob(
+  '../../styles/empresas/*/ToolsLight.module.css',
+  { eager: true }
+);
+
 const HomeTools = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [planId, setPlanId] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
   const [styles, setStyles] = useState(darkStyles);
 
   // UI filters
@@ -26,33 +40,48 @@ const HomeTools = () => {
     return () => clearTimeout(t);
   }, [query]);
 
-  // Obtener información del usuario y plan
+  // Obtener información del usuario y plan (ahora también companyId)
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         const userInfo = await obtenerInfoUsuario();
-        const pid = userInfo.empresa?.plan?.id;
+        const pid = userInfo.empresa?.plan?.id ?? null;
+        const cid = userInfo.empresa?.id ?? null;
         setPlanId(pid);
+        setCompanyId(cid);
       } catch (err) {
         console.error('Error al obtener info del usuario:', err);
         // Si no se puede obtener el plan, usar modo oscuro por defecto
         setPlanId(null);
+        setCompanyId(null);
       }
     };
-    
+
     fetchUserInfo();
   }, []);
 
-  // Actualizar estilos cuando cambie planId o theme
+  // Selección de estilos según planId, companyId y theme (NO rompe funcionalidad)
   useEffect(() => {
+    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
+
+    const lightKey = `../../styles/empresas/${companyId}/ToolsLight.module.css`;
+    const foundCompanyLight = empresaLightModules[lightKey];
+
+    const extract = (mod) => (mod ? (mod.default ?? mod) : null);
+    const companyLight = extract(foundCompanyLight);
+
     if (planId === 3 || planId === 6) {
-      // Si el plan permite cambiar el tema
-      setStyles(theme === 'dark' ? darkStyles : lightStyles);
+      // permite toggle
+      if (theme === 'dark') {
+        setStyles(darkStyles);
+      } else {
+        setStyles(useCompanyStyles && companyLight ? companyLight : lightStyles);
+      }
     } else {
-      // Si el plan no lo permite, forzar modo oscuro
+      // forzar dark si el plan no lo permite
       setStyles(darkStyles);
     }
-  }, [theme, planId]);
+  }, [theme, planId, companyId]);
 
   useEffect(() => {
     let mounted = true;
@@ -175,7 +204,7 @@ const HomeTools = () => {
               Gestiona y accede a todas tus herramientas de trabajo en un solo lugar
             </p>
           </div>
-          
+
           <div className={styles.headerStats}>
             <div className={styles.statCard}>
               <span className={styles.statNumber}>{productos.length}</span>
@@ -284,9 +313,9 @@ const HomeTools = () => {
 
                 <div className={viewMode === 'grid' ? styles.toolsGrid : styles.toolsList}>
                   {items.map(prod => (
-                    <ToolCard 
-                      key={prod.id_producto} 
-                      product={prod} 
+                    <ToolCard
+                      key={prod.id_producto}
+                      product={prod}
                       viewMode={viewMode}
                       getInitials={getInitials}
                       styles={styles}
@@ -309,9 +338,9 @@ const HomeTools = () => {
 
               <div className={viewMode === 'grid' ? styles.toolsGrid : styles.toolsList}>
                 {(grouped[selectedArea] || []).map(prod => (
-                  <ToolCard 
-                    key={prod.id_producto} 
-                    product={prod} 
+                  <ToolCard
+                    key={prod.id_producto}
+                    product={prod}
                     viewMode={viewMode}
                     getInitials={getInitials}
                     styles={styles}
@@ -327,7 +356,7 @@ const HomeTools = () => {
             <p className={styles.noResultsText}>
               No se encontraron herramientas que coincidan con tu búsqueda.
             </p>
-            <button 
+            <button
               className={styles.clearFiltersBtn}
               onClick={() => {
                 setQuery('');
@@ -346,7 +375,7 @@ const HomeTools = () => {
 // Componente separado para las tarjetas de herramientas
 const ToolCard = ({ product, viewMode, getInitials, styles }) => {
   const cardClass = viewMode === 'grid' ? styles.toolCard : styles.toolCardList;
-  
+
   return (
     <article className={cardClass}>
       <div className={styles.toolCardContent}>
@@ -360,7 +389,7 @@ const ToolCard = ({ product, viewMode, getInitials, styles }) => {
               </div>
             )}
           </div>
-          
+
           <div className={styles.toolInfo}>
             <h3 className={styles.toolName}>{product.producto}</h3>
             <div className={styles.toolMeta}>

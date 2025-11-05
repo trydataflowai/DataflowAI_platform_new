@@ -1,28 +1,46 @@
 // src/components/pages/HomeDashboard.jsx
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { obtenerProductosUsuario } from '../../api/ProductoUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 
-// Importa ambos archivos de estilos
-import darkStyles from '../../styles/HomeDashboard.module.css';
-import lightStyles from '../../styles/HomeDashboardLight.module.css';
+// Importa estilos por defecto
+import defaultDarkStyles from '../../styles/HomeDashboard.module.css';
+import defaultLightStyles from '../../styles/HomeDashboardLight.module.css';
 
 // IMPORTAR EL HOOK DE TEMA
 import { useTheme } from '../componentes/ThemeContext';
 
 const images = import.meta.glob('../../assets/*.jpg', { eager: true });
 
+/*
+  Lógica de estilos por empresa:
+  - Buscamos módulos:
+      src/styles/empresas/{companyId}/HomeDashboard.module.css      (dark)
+      src/styles/empresas/{companyId}/HomeDashboardLight.module.css (light)
+  - Si el plan es 3 o 6 y los archivos por empresa existen, los usamos según el theme.
+  - Si no, fallback a los estilos por defecto importados arriba.
+  - Usamos import.meta.glob(..., { eager: true }) para incluirlos en el bundle con Vite.
+*/
+const empresaLightModules = import.meta.glob(
+  '../../styles/empresas/*/HomeDashboardLight.module.css',
+  { eager: true }
+);
+const empresaDarkModules = import.meta.glob(
+  '../../styles/empresas/*/HomeDashboard.module.css',
+  { eager: true }
+);
+
 export const HomeDashboard = () => {
   // USAR EL HOOK DE TEMA
   const { theme } = useTheme();
-  
-  const [styles, setStyles] = useState(darkStyles);
+
+  const [styles, setStyles] = useState(defaultDarkStyles);
   const [productos, setProductos] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [planId, setPlanId] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -30,11 +48,11 @@ export const HomeDashboard = () => {
   const [selectedAreas, setSelectedAreas] = useState([]);
   const [showAreaFilter, setShowAreaFilter] = useState(false);
   const [notification, setNotification] = useState(null);
-  
+
   // NUEVOS ESTADOS PARA EL IFRAME EMBEBIDO
   const [iframeUrl, setIframeUrl] = useState(null);
   const [iframeName, setIframeName] = useState('');
-  
+
   const searchRef = useRef(null);
   const areaFilterRef = useRef(null);
   const navigate = useNavigate();
@@ -50,11 +68,15 @@ export const HomeDashboard = () => {
         setProductos(prodData);
         setFilteredProducts(prodData);
         setUsuario(userData);
-        if (userData && userData.empresa && userData.empresa.plan && userData.empresa.plan.id) {
-          setPlanId(userData.empresa.plan.id);
-        }
+
+        const pid = userData?.empresa?.plan?.id ?? null;
+        const cid = userData?.empresa?.id ?? null;
+
+        setPlanId(pid);
+        setCompanyId(cid);
       } catch (err) {
         showNotification('Error loading data', 'error');
+        console.error(err);
       }
     }
     fetchData();
@@ -74,12 +96,47 @@ export const HomeDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (planId === 3 || planId === 6) {
-      setStyles(theme === 'dark' ? darkStyles : lightStyles);
+    /*
+      Selección de estilos:
+      - Solo intentamos usar estilos por empresa si el plan es 3 o 6.
+      - Buscamos módulos incluidos por import.meta.glob.
+      - Si encontramos el módulo correspondiente a la empresa, lo usamos.
+      - Si no, fallback al default (light/dark).
+    */
+    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
+
+    const lightKey = `../../styles/empresas/${companyId}/HomeDashboardLight.module.css`;
+    const darkKey = `../../styles/empresas/${companyId}/HomeDashboard.module.css`;
+
+    const foundCompanyLight = empresaLightModules[lightKey];
+    const foundCompanyDark = empresaDarkModules[darkKey];
+
+    const extract = (mod) => {
+      if (!mod) return null;
+      return mod.default ?? mod;
+    };
+
+    const companyLight = extract(foundCompanyLight);
+    const companyDark = extract(foundCompanyDark);
+
+    let chosenStyles = defaultDarkStyles;
+    if (theme === 'dark') {
+      if (useCompanyStyles && companyDark) {
+        chosenStyles = companyDark;
+      } else {
+        chosenStyles = defaultDarkStyles;
+      }
     } else {
-      setStyles(darkStyles);
+      // light
+      if (useCompanyStyles && companyLight) {
+        chosenStyles = companyLight;
+      } else {
+        chosenStyles = defaultLightStyles;
+      }
     }
-  }, [theme, planId]);
+
+    setStyles(chosenStyles);
+  }, [theme, planId, companyId]);
 
   useEffect(() => {
     let filtered = productos;
@@ -173,10 +230,6 @@ export const HomeDashboard = () => {
     setIframeName('');
   };
 
-  // ---> LÓGICA ACTUALIZADA PARA ABRIR DASHBOARDS SEGÚN CATEGORÍA <---
-  // - 'externo' -> usar link_dashboard_externo (MOSTRAR EN IFRAME EMBEBIDO)
-  // - 'power' -> usar link_pb (abre en nueva pestaña)
-  // - 'javascript' -> usar slug (navegación interna)
   const handleOpenDashboard = (prod) => {
     const slug = prod.slug;
     const linkPb = prod.link_pb || prod.linkPb || prod.link;
@@ -184,7 +237,6 @@ export const HomeDashboard = () => {
     const categoria = (prod.categoria_producto || prod.categoria || '').toString().toLowerCase();
     const prodName = prod.nombre || prod.producto || prod.name || 'Dashboard';
 
-    // EXTERNO: mostrar en iframe embebido (reemplaza el contenido)
     if (categoria.includes('externo')) {
       if (linkExterno) {
         setIframeUrl(linkExterno);
@@ -200,7 +252,6 @@ export const HomeDashboard = () => {
       return;
     }
 
-    // POWER: abrir link_pb en nueva pestaña
     if (categoria.includes('power')) {
       if (linkPb) {
         window.open(linkPb, '_blank', 'noopener,noreferrer');
@@ -210,13 +261,11 @@ export const HomeDashboard = () => {
       return;
     }
 
-    // JAVASCRIPT (o casos internos): navegar por slug si existe
     if (categoria.includes('javascript') && slug) {
       navigate(`/${slug}`);
       return;
     }
 
-    // Fallback general
     if (slug) {
       navigate(`/${slug}`);
       return;
@@ -546,7 +595,7 @@ export const HomeDashboard = () => {
                                 </svg>
                                 Open Dashboard
                               </button>
-                              
+
                               {!prodCategoria.includes('power') && (
                                 <button
                                   onClick={() => handleConfiguraciones(prodId)}

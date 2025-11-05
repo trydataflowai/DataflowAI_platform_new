@@ -1,15 +1,33 @@
 // src/components/pages/SoporteUsuario.jsx
 import React, { useEffect, useState } from 'react';
-import darkStyles from '../../styles/SoporteUsuario.module.css';
-import lightStyles from '../../styles/SoporteUsuarioLight.module.css';
+import defaultDarkStyles from '../../styles/SoporteUsuario.module.css';
+import defaultLightStyles from '../../styles/SoporteUsuarioLight.module.css';
 
 import { obtenerTickets, crearTicket, obtenerDetalleTicket } from '../../api/SoporteUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { useTheme } from '../componentes/ThemeContext';
 
+/*
+  Lógica de estilos por empresa:
+  - Buscamos módulos:
+      src/styles/empresas/{companyId}/SoporteUsuario.module.css      (dark)
+      src/styles/empresas/{companyId}/SoporteUsuarioLight.module.css (light)
+  - Si el plan es 3 o 6 y los archivos por empresa existen, usamos los estilos por empresa.
+  - Si no, fallback a los estilos por defecto importados arriba.
+  - Utilizamos import.meta.glob(..., { eager: true }) para que Vite incluya los módulos en el bundle.
+*/
+const empresaLightModules = import.meta.glob(
+  '../../styles/empresas/*/SoporteUsuarioLight.module.css',
+  { eager: true }
+);
+const empresaDarkModules = import.meta.glob(
+  '../../styles/empresas/*/SoporteUsuario.module.css',
+  { eager: true }
+);
+
 const SoporteUsuario = () => {
   const { theme } = useTheme(); // 'dark' | 'light'
-  const [activeStyles, setActiveStyles] = useState(darkStyles);
+  const [activeStyles, setActiveStyles] = useState(defaultDarkStyles);
 
   const [allTickets, setAllTickets] = useState([]);
   const [tickets, setTickets] = useState([]);
@@ -29,14 +47,16 @@ const SoporteUsuario = () => {
   // Plan & permissions
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState('');
+  const [companyId, setCompanyId] = useState(null);
 
-  // Fetch user info (para obtener planId)
+  // Fetch user info (para obtener planId y companyId)
   const fetchUsuario = async () => {
     try {
       const user = await obtenerInfoUsuario();
       const pid = user?.empresa?.plan?.id ?? null;
       setPlanId(pid);
       setPlanName(user?.empresa?.plan?.tipo ?? '');
+      setCompanyId(user?.empresa?.id ?? null);
     } catch (err) {
       console.warn('No se pudo obtener info usuario:', err);
     }
@@ -61,18 +81,45 @@ const SoporteUsuario = () => {
   useEffect(() => {
     fetchUsuario();
     fetchTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Determinar estilos activos según plan y theme
+  // Determinar estilos activos según plan, company y theme
   useEffect(() => {
-    // Planes 3 y 6 permiten toggle (el toggle está en el sidebar).
-    // Si el plan no es 3 o 6 forzamos el modo dark.
-    if (planId === 3 || planId === 6) {
-      setActiveStyles(theme === 'dark' ? darkStyles : lightStyles);
+    // Planes 3 y 6 permiten toggle y/o estilos por empresa.
+    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
+
+    const lightKey = `../../styles/empresas/${companyId}/SoporteUsuarioLight.module.css`;
+    const darkKey = `../../styles/empresas/${companyId}/SoporteUsuario.module.css`;
+
+    const foundCompanyLight = empresaLightModules[lightKey];
+    const foundCompanyDark = empresaDarkModules[darkKey];
+
+    const extract = (mod) => {
+      if (!mod) return null;
+      return mod.default ?? mod;
+    };
+
+    const companyLight = extract(foundCompanyLight);
+    const companyDark = extract(foundCompanyDark);
+
+    let chosenStyles = defaultDarkStyles;
+    if (theme === 'dark') {
+      if (useCompanyStyles && companyDark) {
+        chosenStyles = companyDark;
+      } else {
+        chosenStyles = defaultDarkStyles;
+      }
     } else {
-      setActiveStyles(darkStyles);
+      if (useCompanyStyles && companyLight) {
+        chosenStyles = companyLight;
+      } else {
+        chosenStyles = defaultLightStyles;
+      }
     }
-  }, [theme, planId]);
+
+    setActiveStyles(chosenStyles);
+  }, [theme, planId, companyId]);
 
   // bloquear scroll cuando hay modal
   useEffect(() => {

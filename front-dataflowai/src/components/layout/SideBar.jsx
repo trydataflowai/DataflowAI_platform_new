@@ -4,11 +4,31 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { cerrarSesion } from "../../api/Login";
 import { obtenerInfoUsuario } from "../../api/Usuario";
 
-import darkStyles from "../../styles/SideBar.module.css";
-import lightStyles from "../../styles/SideBarLight.module.css";
+import defaultDarkStyles from "../../styles/SideBar.module.css";
+import defaultLightStyles from "../../styles/SideBarLight.module.css";
 
 import { useTheme } from "../componentes/ThemeContext";
 import { ThemeToggle } from "../componentes/ThemeToggle";
+
+/*
+  Lógica:
+  - Intentamos resolver estilos específicos por empresa buscando archivos:
+      src/styles/empresas/{companyId}/SideBar.module.css     (dark)
+      src/styles/empresas/{companyId}/SideBarLight.module.css (light)
+  - Si existen y el plan del usuario es 3 o 6, usamos los estilos por empresa.
+  - Si no existen o el plan no aplica, usamos los estilos por defecto (importados arriba).
+  - Implementación con import.meta.glob(..., { eager: true }) para que Vite incluya
+    los módulos CSS en el bundle y podamos accederlos por ruta construida.
+*/
+
+const empresaLightModules = import.meta.glob(
+  "../../styles/empresas/*/SideBarLight.module.css",
+  { eager: true }
+);
+const empresaDarkModules = import.meta.glob(
+  "../../styles/empresas/*/SideBar.module.css",
+  { eager: true }
+);
 
 export const SideBar = () => {
   const navigate = useNavigate();
@@ -23,7 +43,7 @@ export const SideBar = () => {
   const [companyName, setCompanyName] = useState("DataFlow AI");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
-  const [styles, setStyles] = useState(darkStyles);
+  const [styles, setStyles] = useState(defaultDarkStyles);
 
   // logo states
   const [logoUrl, setLogoUrl] = useState(null);
@@ -107,12 +127,49 @@ export const SideBar = () => {
   }, [companyId]);
 
   useEffect(() => {
-    if (planId === 3 || planId === 6) {
-      setStyles(theme === "dark" ? darkStyles : lightStyles);
+    /*
+      Selección de estilos:
+      - Solo intentamos usar estilos por empresa si el plan es 3 o 6.
+      - Buscamos módulos previamente incluidos por import.meta.glob.
+      - Si encontramos el módulo correspondiente a la empresa, lo usamos.
+      - Si no, fallback al default (light/dark).
+    */
+    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
+
+    // construir rutas tal como las keys de import.meta.glob usan rutas relativas
+    const lightKey = `../../styles/empresas/${companyId}/SideBarLight.module.css`;
+    const darkKey = `../../styles/empresas/${companyId}/SideBar.module.css`;
+
+    const foundCompanyLight = empresaLightModules[lightKey];
+    const foundCompanyDark = empresaDarkModules[darkKey];
+
+    // helper: algunos bundlers ponen el mapping en .default, otros directamente
+    const extract = (mod) => {
+      if (!mod) return null;
+      return mod.default ?? mod;
+    };
+
+    const companyLight = extract(foundCompanyLight);
+    const companyDark = extract(foundCompanyDark);
+
+    let chosenStyles = defaultDarkStyles;
+    if (theme === "dark") {
+      if (useCompanyStyles && companyDark) {
+        chosenStyles = companyDark;
+      } else {
+        chosenStyles = defaultDarkStyles;
+      }
     } else {
-      setStyles(darkStyles);
+      // light theme
+      if (useCompanyStyles && companyLight) {
+        chosenStyles = companyLight;
+      } else {
+        chosenStyles = defaultLightStyles;
+      }
     }
-  }, [theme, planId]);
+
+    setStyles(chosenStyles);
+  }, [theme, planId, companyId]);
 
   const handleLogout = () => {
     cerrarSesion();
@@ -231,7 +288,7 @@ export const SideBar = () => {
         </button>
       </div>
 
-      <div className={styles.footer}> 
+      <div className={styles.footer}>
         <div className={styles.accentLine} />
         <p className={styles.footerText}>By DataFlow AI</p>
       </div>

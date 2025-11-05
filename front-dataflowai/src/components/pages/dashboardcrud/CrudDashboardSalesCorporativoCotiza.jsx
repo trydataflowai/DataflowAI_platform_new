@@ -1,6 +1,6 @@
 // CrudDashboardSalesCorporativo.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CrudSalesCorporativo.module.css';
+import styles from '../../../styles/CrudDashboard/CrudSalesCorporativoCoti.module.css';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchDashCorp,
@@ -31,7 +31,7 @@ const todayISO = () => {
   return d.toISOString().slice(0, 10);
 };
 
-const CrudDashboardSalesCorporativo = () => {
+const CrudDashboardSalesCorporativoCotizaciones = () => {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
@@ -206,13 +206,13 @@ const CrudDashboardSalesCorporativo = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.cotiCorpoColxd}>
       <h1>Cotizaciones Corporativas</h1>
 
-    <div className={styles.dashboardButtonsContainer}>
+      <div className={styles.cotiCorpoColxdDashboardButtonsContainer}>
         <button
           onClick={() => navigate("/DashboardSalescorporativo")}
-          className={`${styles.dashboardBtn} ${styles.inicio}`}
+          className={`${styles.cotiCorpoColxdDashboardBtn} ${styles.cotiCorpoColxdInicio}`}
           type="button"
         >
           INICIO
@@ -220,7 +220,7 @@ const CrudDashboardSalesCorporativo = () => {
 
         <button
           onClick={() => navigate("/dashboardSalescorporativo/Metas")}
-          className={`${styles.dashboardBtn} ${styles.metas}`}
+          className={`${styles.cotiCorpoColxdDashboardBtn} ${styles.cotiCorpoColxdMetas}`}
           type="button"
         >
           METAS
@@ -228,7 +228,7 @@ const CrudDashboardSalesCorporativo = () => {
 
         <button
           onClick={() => navigate("/dashboardSalescorporativo/Cotizaciones")}
-          className={`${styles.dashboardBtn} ${styles.cotizaciones}`}
+          className={`${styles.cotiCorpoColxdDashboardBtn} ${styles.cotiCorpoColxdCotizaciones}`}
           type="button"
         >
           COTIZACIONES
@@ -237,54 +237,79 @@ const CrudDashboardSalesCorporativo = () => {
 
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
-      <div style={{ marginBottom: 12 }}>
+      <div className={styles.cotiCorpoColxdActions}>
         <button onClick={openCreateForm}>{showForm ? 'Cerrar formulario' : 'Nuevo registro'}</button>
-        <button onClick={() => loadItems(buildFilters())} style={{ marginLeft: 8 }}>Refrescar</button>
+        <button onClick={() => loadItems(buildFilters())}>Refrescar</button>
       </div>
 
       {/* FILTROS */}
-      <div style={{ marginBottom: 12, border: '1px solid #ddd', padding: 10, borderRadius: 6 }}>
-        <strong>Filtros:</strong>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
-          <label>
-            Desde:
-            <input type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} />
-          </label>
+      <div className={styles.cotiCorpoColxdFiltrosContainer}>
+        <div className={styles.cotiCorpoColxdFiltrosHeader}>
+          <h3>Filtros</h3>
+        </div>
+        <div className={styles.cotiCorpoColxdFiltrosGrid}>
+          <div className={styles.cotiCorpoColxdFiltroItem}>
+            <label>Desde:</label>
+            <input 
+              type="date" 
+              value={filterFrom} 
+              onChange={(e) => setFilterFrom(e.target.value)}
+              className={styles.cotiCorpoColxdFiltroInput}
+            />
+          </div>
 
-          <label>
-            Hasta:
-            <input type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} />
-          </label>
+          <div className={styles.cotiCorpoColxdFiltroItem}>
+            <label>Hasta:</label>
+            <input 
+              type="date" 
+              value={filterTo} 
+              onChange={(e) => setFilterTo(e.target.value)}
+              className={styles.cotiCorpoColxdFiltroInput}
+            />
+          </div>
 
-          <label>
-            Cliente:
-            <input placeholder="nombre cliente" value={filterCliente} onChange={(e) => setFilterCliente(e.target.value)} />
-          </label>
+          <div className={styles.cotiCorpoColxdFiltroItem}>
+            <label>Cliente:</label>
+            <input 
+              placeholder="nombre cliente" 
+              value={filterCliente} 
+              onChange={(e) => setFilterCliente(e.target.value)}
+              className={styles.cotiCorpoColxdFiltroInput}
+            />
+          </div>
 
-          <label>
-            Marca:
-            <input placeholder="marca" value={filterMarca} onChange={(e) => setFilterMarca(e.target.value)} />
-          </label>
+          <div className={styles.cotiCorpoColxdFiltroItem}>
+            <label>Marca:</label>
+            <input 
+              placeholder="marca" 
+              value={filterMarca} 
+              onChange={(e) => setFilterMarca(e.target.value)}
+              className={styles.cotiCorpoColxdFiltroInput}
+            />
+          </div>
 
-          <button onClick={applyFilter}>Aplicar filtro</button>
-          <button onClick={() => { setFilterFrom(''); setFilterTo(''); setFilterCliente(''); setFilterMarca(''); loadItems(); }} style={{ marginLeft: 8 }}>
-            Limpiar filtros
-          </button>
+          <div className={styles.cotiCorpoColxdFiltroItem}>
+            <button onClick={applyFilter}>Aplicar filtro</button>
+            <button onClick={() => { setFilterFrom(''); setFilterTo(''); setFilterCliente(''); setFilterMarca(''); loadItems(); }}>
+              Limpiar filtros
+            </button>
+          </div>
 
-          <button onClick={handleDeleteFiltered} style={{ marginLeft: 12, background: '#ef5350', color: 'white' }}>
-            Borrar registros filtrados
-          </button>
-
-          <button onClick={handleExport} style={{ marginLeft: 12, background: '#1976d2', color: 'white' }}>
-            Exportar Excel
-          </button>
+          <div className={styles.cotiCorpoColxdFiltroItem}>
+            <button onClick={handleDeleteFiltered} className={styles.cotiCorpoColxdBtnDanger}>
+              Borrar registros filtrados
+            </button>
+            <button onClick={handleExport} className={styles.cotiCorpoColxdBtnPrimary}>
+              Exportar Excel
+            </button>
+          </div>
         </div>
       </div>
 
       {/* FORM */}
       {showForm && (
-        <form onSubmit={editingId ? handleUpdate : handleCreate} style={{ marginBottom: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <form onSubmit={editingId ? handleUpdate : handleCreate} className={styles.cotiCorpoColxdForm}>
+          <div className={styles.cotiCorpoColxdFormGrid}>
             <input name="orden_compra" placeholder="orden_compra" value={form.orden_compra} onChange={handleChange} />
             <input type="date" name="fecha" placeholder="fecha" value={form.fecha || ''} onChange={handleChange} />
             <input name="mes_nombre" placeholder="mes_nombre" value={form.mes_nombre} onChange={handleChange} />
@@ -302,9 +327,9 @@ const CrudDashboardSalesCorporativo = () => {
             <input name="observaciones" placeholder="observaciones" value={form.observaciones} onChange={handleChange} />
           </div>
 
-          <div style={{ marginTop: 10 }}>
+          <div className={styles.cotiCorpoColxdFormActions}>
             <button type="submit">{editingId ? 'Actualizar' : 'Crear'}</button>
-            <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); setEditingId(null); }} style={{ marginLeft: 8 }}>
+            <button type="button" onClick={() => { setShowForm(false); setForm(emptyForm); setEditingId(null); }}>
               Cancelar
             </button>
           </div>
@@ -312,11 +337,11 @@ const CrudDashboardSalesCorporativo = () => {
       )}
 
       {/* TABLE */}
-      <div>
+      <div className={styles.cotiCorpoColxdTableContainer}>
         {loading ? (
-          <div>Cargando...</div>
+          <div className={styles.cotiCorpoColxdLoading}>Cargando...</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className={styles.cotiCorpoColxdTable}>
             <thead>
               <tr>
                 <th>#</th>
@@ -336,7 +361,7 @@ const CrudDashboardSalesCorporativo = () => {
               {items && items.length ? items.map((it, idx) => {
                 const id = it.id || it.pk || it.id_registro || it._id;
                 return (
-                  <tr key={idx} style={{ borderTop: '1px solid #ddd' }}>
+                  <tr key={idx}>
                     <td>{idx + 1}</td>
                     <td>{it.orden_compra}</td>
                     <td>{it.fecha}</td>
@@ -346,15 +371,17 @@ const CrudDashboardSalesCorporativo = () => {
                     <td>{it.producto}</td>
                     <td>{it.estado_cotizacion}</td>
                     <td>{it.unidades}</td>
-                    <td>{it.precio_unitario}</td>
+                    <td className={styles.cotiCorpoColxdValorMonetario}>{it.precio_unitario}</td>
                     <td>
-                      <button onClick={() => handleEdit(it)} disabled={!id}>Editar</button>
-                      <button onClick={() => handleDelete(id)} disabled={!id} style={{ marginLeft: 8 }}>Borrar</button>
+                      <div className={styles.cotiCorpoColxdAcciones}>
+                        <button onClick={() => handleEdit(it)} disabled={!id} className={styles.cotiCorpoColxdBtnEdit}>Editar</button>
+                        <button onClick={() => handleDelete(id)} disabled={!id} className={styles.cotiCorpoColxdBtnDelete}>Borrar</button>
+                      </div>
                     </td>
                   </tr>
                 );
               }) : (
-                <tr><td colSpan={11}>No hay registros</td></tr>
+                <tr><td colSpan={11} className={styles.cotiCorpoColxdEmptyRow}>No hay registros</td></tr>
               )}
             </tbody>
           </table>
@@ -364,4 +391,4 @@ const CrudDashboardSalesCorporativo = () => {
   );
 };
 
-export default CrudDashboardSalesCorporativo;
+export default CrudDashboardSalesCorporativoCotizaciones;
