@@ -8,16 +8,6 @@ import { obtenerInfoUsuario } from '../../api/Usuario';
 
 const ALLOWED_USER_IDS = [1, 2, 3];
 
-/*
-  Lógica de estilos por empresa:
-  - Intentamos resolver estilos específicos por empresa buscando archivos:
-      src/styles/empresas/{companyId}/ChatBot.module.css      (dark)
-      src/styles/empresas/{companyId}/ChatBotLight.module.css (light)
-  - Si existen y el plan del usuario es 3 o 6 usamos los estilos por empresa.
-  - Si no existen o el plan no aplica, usamos los estilos por defecto importados arriba.
-  - Usamos import.meta.glob(..., { eager: true }) para que Vite incluya
-    los módulos CSS en el bundle y podamos accederlos por ruta construida.
-*/
 const empresaLightModules = import.meta.glob(
   '../../styles/empresas/*/ChatBotLight.module.css',
   { eager: true }
@@ -28,21 +18,20 @@ const empresaDarkModules = import.meta.glob(
 );
 
 const Chatbot = () => {
-  const { theme } = useTheme(); // 'dark' | 'light'
+  const { theme } = useTheme();
   const [activeStyles, setActiveStyles] = useState(darkStylesDefault);
 
   const [planId, setPlanId] = useState(null);
   const [companyId, setCompanyId] = useState(null);
 
   const [dots, setDots] = useState('');
-  const [particles, setParticles] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState([
     { id: 'sys-1', role: 'bot', text: 'Bienvenido. Soy su asistente virtual.' }
   ]);
   const [isSending, setIsSending] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
 
-  // --- autorización usuario ---
   const [userId, setUserId] = useState(null);
   const [isAllowed, setIsAllowed] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -56,19 +45,6 @@ const Chatbot = () => {
       setDots(prev => (prev.length >= 3 ? '' : prev + '.'));
     }, 500);
     return () => clearInterval(interval);
-  }, []);
-
-  // partículas
-  useEffect(() => {
-    const newParticles = Array.from({ length: 14 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      speed: Math.random() * 10 + 8,
-      delay: Math.random() * 4,
-      opacity: Math.random() * 0.36 + 0.12
-    }));
-    setParticles(newParticles);
   }, []);
 
   // OBTENER INFORMACIÓN DEL USUARIO Y PLAN
@@ -146,13 +122,26 @@ const Chatbot = () => {
   // scroll al final cuando hay mensajes nuevos
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages]);
+  }, [messages, isBotTyping]);
+
+  // Simular typing del bot
+  const simulateBotTyping = async (text, delay = 1000) => {
+    setIsBotTyping(true);
+    
+    // Simular tiempo de escritura basado en la longitud del texto
+    const typingTime = Math.min(Math.max(text.length * 20, 1000), 3000);
+    
+    await new Promise(resolve => setTimeout(resolve, typingTime));
+    
+    const botMsg = { id: `b-${Date.now()}`, role: 'bot', text };
+    setMessages(prev => [...prev, botMsg]);
+    setIsBotTyping(false);
+  };
 
   const sendMessage = async () => {
     const text = inputValue.trim();
     if (!text) return;
 
-    // bloqueo por permisos: sólo enviar si isAllowed === true
     if (!isAllowed) {
       setMessages(prev => [
         ...prev,
@@ -170,8 +159,10 @@ const Chatbot = () => {
     try {
       const res = await sendMessageToBackend(text);
       const botReply = res?.reply ?? "No hay respuesta.";
-      const botMsg = { id: `b-${Date.now()}`, role: 'bot', text: botReply };
-      setMessages(prev => [...prev, botMsg]);
+      
+      // Simular typing effect en lugar de mostrar mensaje inmediatamente
+      await simulateBotTyping(botReply);
+      
     } catch (err) {
       const errText = (err && err.message) ? err.message : "Error enviando mensaje";
       const botMsg = { id: `b-err-${Date.now()}`, role: 'bot', text: `Error: ${errText}` };
@@ -184,29 +175,21 @@ const Chatbot = () => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!isSending) sendMessage();
+      if (!isSending && !isBotTyping) sendMessage();
     }
+  };
+
+  // Función para formatear texto con saltos de línea
+  const formatMessageText = (text) => {
+    return text.split('\n').map((line, index) => (
+      <div key={index} className={activeStyles.messageLine}>
+        {line}
+      </div>
+    ));
   };
 
   return (
     <div className={activeStyles.container}>
-      <div className={activeStyles.particles} aria-hidden="true">
-        {particles.map((p) => (
-          <span
-            key={p.id}
-            className={activeStyles.particle}
-            style={{
-              left: `${p.x}%`,
-              width: `${p.size}px`,
-              height: `${p.size}px`,
-              opacity: p.opacity,
-              animationDuration: `${p.speed}s`,
-              animationDelay: `${p.delay}s`
-            }}
-          />
-        ))}
-      </div>
-
       <div className={activeStyles.layout}>
         <aside className={activeStyles.leftPanel}>
           <header className={activeStyles.leftHeader}>
@@ -242,9 +225,9 @@ const Chatbot = () => {
               <div className={activeStyles.headerMeta}>
                 <h3 className={activeStyles.assistantName}>Asistente Virtual</h3>
                 <p className={activeStyles.statusLine}>
-                  <span className={activeStyles.statusDot} /> En línea
+                  <span className={activeStyles.statusDot} /> 
+                  {isBotTyping ? 'Escribiendo...' : 'En línea'}
                 </p>
-                {/* Estado de autorización mostrado de forma discreta */}
                 <p className={activeStyles.smallNote} aria-live="polite">
                   {authLoading ? 'Validando usuario...' : (
                     isAllowed
@@ -259,20 +242,42 @@ const Chatbot = () => {
           <section className={activeStyles.messagesArea} aria-live="polite">
             {/* Mensajes */}
             {messages.map((msg) => (
-              <div key={msg.id} className={activeStyles.blurredMessage}>
+              <div 
+                key={msg.id} 
+                className={`${activeStyles.messageContainer} ${
+                  msg.role === 'user' ? activeStyles.messageContainerUser : activeStyles.messageContainerBot
+                }`}
+              >
                 <div
-                  className={`${activeStyles.messageBubble} ${msg.role === 'user' ? activeStyles.messageUser : activeStyles.messageBot}`}
+                  className={`${activeStyles.messageBubble} ${
+                    msg.role === 'user' ? activeStyles.messageUser : activeStyles.messageBot
+                  }`}
                 >
-                  {msg.text}
+                  <div className={activeStyles.messageContent}>
+                    {formatMessageText(msg.text)}
+                  </div>
                 </div>
               </div>
             ))}
+            
+            {/* Efecto de typing del bot */}
+            {isBotTyping && (
+              <div className={`${activeStyles.messageContainer} ${activeStyles.messageContainerBot}`}>
+                <div className={`${activeStyles.messageBubble} ${activeStyles.messageBot} ${activeStyles.typingIndicator}`}>
+                  <div className={activeStyles.typingDots}>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </section>
 
           <footer className={activeStyles.inputArea}>
             <div className={activeStyles.inputRow}>
-              {/* Si el usuario no está permitido, el textarea se deshabilita y mostramos placeholder explicativo */}
               <textarea
                 rows={1}
                 placeholder={
@@ -286,14 +291,14 @@ const Chatbot = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyPress}
                 className={activeStyles.inputField}
-                disabled={isSending || !isAllowed || authLoading}
-                aria-disabled={isSending || !isAllowed || authLoading}
+                disabled={isSending || !isAllowed || authLoading || isBotTyping}
+                aria-disabled={isSending || !isAllowed || authLoading || isBotTyping}
               />
               <button
                 onClick={sendMessage}
-                disabled={isSending || !isAllowed || authLoading}
+                disabled={isSending || !isAllowed || authLoading || isBotTyping}
                 className={activeStyles.sendBtn}
-                aria-disabled={isSending || !isAllowed || authLoading}
+                aria-disabled={isSending || !isAllowed || authLoading || isBotTyping}
                 type="button"
                 title={(!isAllowed && !authLoading) ? 'No tienes permiso para enviar prompts' : 'Enviar'}
               >

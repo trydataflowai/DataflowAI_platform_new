@@ -3012,296 +3012,6 @@ class OdooSales2025View(APIView):
 
 
 
-#CHATBOT
-# views.py
-import re
-import json
-import jwt
-import requests
-import time
-from datetime import datetime
-from decimal import Decimal
-
-from django.conf import settings
-from django.db.models import Sum, F, Value, IntegerField, DecimalField, Q
-from django.db.models.functions import Coalesce
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.parsers import JSONParser
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.authentication import get_authorization_header
-
-# Importa tus modelos (ajusta si Usuario está en otro app)
-from .models import DashboardVentas, Usuario
-
-# -----------------------
-# Config desde settings (ya en settings.py via decouple)
-# -----------------------
-OPENAI_API_KEY = getattr(settings, "OPENAI_API_KEY", None)
-OPENAI_API_BASE = getattr(settings, "OPENAI_API_BASE", "https://api.openai.com/v1")
-DEFAULT_MODEL = getattr(settings, "OPENAI_DEFAULT_MODEL", "gpt-4o-mini")
-
-# -----------------------
-# Helpers para parsing
-# -----------------------
-SPANISH_MONTHS = {
-    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
-    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
-    "septiembre": 9, "setiembre": 9, "octubre": 10,
-    "noviembre": 11, "diciembre": 12
-}
-
-METRIC_KEYWORDS = {
-    "cantidad_vendida": ("cantidad_vendida", "int"),
-    "cantidad": ("cantidad_vendida", "int"),
-    "unidades": ("cantidad_vendida", "int"),
-    "dinero_vendido": ("dinero_vendido", "decimal"),
-    "dinero": ("dinero_vendido", "decimal"),
-    "monto": ("dinero_vendido", "decimal"),
-    "ventas": ("dinero_vendido", "decimal"),
-    "numero_transacciones": ("numero_transacciones", "int"),
-    "transacciones": ("numero_transacciones", "int"),
-    "devoluciones": ("devoluciones", "int"),
-    "dinero_devoluciones": ("dinero_devoluciones", "decimal"),
-    "descuento_total": ("descuento_total", "decimal"),
-    "unidades_promocionadas": ("unidades_promocionadas", "int"),
-}
-
-def find_metric(text):
-    t = text.lower()
-    for k in sorted(METRIC_KEYWORDS.keys(), key=lambda x: -len(x)):
-        if k in t:
-            return METRIC_KEYWORDS[k]
-    return None
-
-def extract_year(text):
-    m = re.search(r'\b(19|20)\d{2}\b', text)
-    if m:
-        try:
-            return int(m.group(0))
-        except:
-            return None
-    return None
-
-def extract_month(text):
-    t = text.lower()
-    for name, num in SPANISH_MONTHS.items():
-        if name in t:
-            return num
-    m = re.search(r'\bmes(?:\s+de)?\s+(\d{1,2})\b', t)
-    if m:
-        try:
-            val = int(m.group(1))
-            if 1 <= val <= 12:
-                return val
-        except:
-            pass
-    return None
-
-def extract_brand(text):
-    m = re.search(r'marca\s+[:\-]?\s*["\']?([A-Za-z0-9\-\_\. ]{1,60})["\']?', text, re.IGNORECASE)
-    if m:
-        return m.group(1).strip()
-    return None
-
-def extract_sku(text):
-    m = re.search(r'\bsku\s*[:\-]?\s*([A-Za-z0-9\-\_]{1,60})\b', text, re.IGNORECASE)
-    if m:
-        return m.group(1).strip()
-    return None
-
-def extract_producto(text):
-    m = re.search(r'producto\s+[:\-]?\s*["\']?([A-Za-z0-9\-\_\. ]{1,80})["\']?', text, re.IGNORECASE)
-    if m:
-        return m.group(1).strip()
-    return None
-
-# -----------------------
-# Vista principal
-# -----------------------
-class ChatbotAPIView(APIView):
-    """
-    Endpoint que:
-     - valida JWT (usa id_usuario del payload para obtener Usuario)
-     - si detecta consulta de métrica + filtros, consulta DashboardVentas filtrando por id_empresa
-       del usuario y devuelve SOLO el total agregado en 'reply'.
-     - si no detecta métrica, reenvía el mensaje a OpenAI (chat/completions) como fallback.
-    """
-
-    parser_classes = [JSONParser]
-
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-    def post(self, request):
-        # Validar token JWT
-        auth_header = get_authorization_header(request).split()
-        if not auth_header or auth_header[0].lower() != b'bearer':
-            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        try:
-            token = auth_header[1].decode('utf-8')
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.DecodeError:
-            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
-            return Response({'error': 'Error validando token', 'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
-        id_usuario = payload.get('id_usuario')
-        if not id_usuario:
-            return Response({'error': 'Token no contiene id_usuario'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Obtener usuario y su empresa
-        try:
-            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
-        except Usuario.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
-            return Response({'error': 'Error buscando usuario', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        empresa = getattr(usuario, 'id_empresa', None)
-        if not empresa:
-            return Response({'error': 'Usuario no pertenece a ninguna empresa'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Body
-        data = request.data
-        user_message = (data.get('message') or "").strip()
-        if not user_message:
-            return Response({'error': 'No se envió message'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Intent: detectar métrica y filtros
-        metric = find_metric(user_message)  # (campo, tipo) o None
-        year = extract_year(user_message)
-        month = extract_month(user_message)
-        brand = extract_brand(user_message)
-        sku = extract_sku(user_message)
-        producto = extract_producto(user_message)
-
-        # Si detectamos métrica -> hacemos consulta a la DB
-        if metric:
-            campo, tipo = metric
-            # Construir filtros
-            q = Q(id_empresa=empresa)
-
-            if year:
-                q &= Q(anio=year)
-            if month:
-                q &= Q(mes=month)
-            if brand:
-                q &= Q(marca__icontains=brand)
-            if sku:
-                q &= Q(sku__iexact=sku)
-            if producto:
-                q &= Q(nombre_producto__icontains=producto)
-
-            # Agregación
-            try:
-                if tipo == 'int':
-                    output_field = IntegerField()
-                    zero_value = Value(0, output_field=IntegerField())
-                    agg = DashboardVentas.objects.filter(q).aggregate(
-                        total=Coalesce(
-                            Sum(F(campo), output_field=output_field),
-                            zero_value,
-                            output_field=output_field
-                        )
-                    )
-                    total = agg.get('total')
-                    try:
-                        total_int = int(total) if total is not None else 0
-                        reply_value = str(total_int)
-                    except Exception:
-                        reply_value = str(total)
-                else:
-                    output_field = DecimalField(max_digits=20, decimal_places=2)
-                    zero_value = Value(Decimal('0.00'), output_field=output_field)
-                    agg = DashboardVentas.objects.filter(q).aggregate(
-                        total=Coalesce(
-                            Sum(F(campo), output_field=output_field),
-                            zero_value,
-                            output_field=output_field
-                        )
-                    )
-                    total = agg.get('total')
-                    if total is None:
-                        total = Decimal('0.00')
-                    try:
-                        reply_value = f"{Decimal(total):.2f}"
-                    except Exception:
-                        reply_value = str(total)
-            except Exception as e:
-                return Response({'error': 'Error al agregar datos', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            # Responder SOLO con el total en `reply`
-            return Response({
-                "reply": reply_value,
-                "metric": campo,
-                "filters": {
-                    "anio": year,
-                    "mes": month,
-                    "marca": brand,
-                    "sku": sku,
-                    "producto": producto
-                },
-                "total": reply_value
-            }, status=status.HTTP_200_OK)
-
-        # -----------------------
-        # Fallback: reenviar a OpenAI (si no detectamos métrica)
-        # -----------------------
-        if not OPENAI_API_KEY:
-            return Response({'error': 'Falta configuración de OPENAI_API_KEY en settings/.env'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        payload = {
-            "model": data.get("model", DEFAULT_MODEL),
-            "messages": [
-                {"role": "user", "content": user_message}
-            ],
-            "max_tokens": data.get("max_tokens", 800),
-            "temperature": data.get("temperature", 0.2),
-        }
-
-        headers = {
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-            "Content-Type": "application/json",
-        }
-
-        try:
-            resp = requests.post(
-                f"{OPENAI_API_BASE}/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
-        except requests.RequestException as e:
-            return Response({'error': 'Error conectando con la API externa', 'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
-
-        if resp.status_code != 200:
-            try:
-                err_body = resp.json()
-            except Exception:
-                err_body = resp.text
-            return Response({'error': 'Error desde la API de OpenAI', 'status': resp.status_code, 'detail': err_body}, status=status.HTTP_502_BAD_GATEWAY)
-
-        try:
-            body = resp.json()
-            choices = body.get("choices", [])
-            if not choices:
-                return Response({'error': 'No choices devueltos por OpenAI', 'raw': body}, status=status.HTTP_502_BAD_GATEWAY)
-
-            assistant_text = choices[0].get("message", {}).get("content", "")
-            return Response({
-                "reply": assistant_text,
-                "raw": body
-            }, status=status.HTTP_200_OK)
-        except ValueError:
-            return Response({'error': 'Respuesta inválida de OpenAI', 'raw': resp.text}, status=status.HTTP_502_BAD_GATEWAY)
-
 
 
 
@@ -4061,3 +3771,326 @@ class DashboardIspVentas_List(APIView):
 
         serializer = DashboardIspVentasSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#CHATBOT
+# views.py
+import re
+import json
+import jwt
+import requests
+import time
+from datetime import datetime
+from decimal import Decimal
+
+from django.conf import settings
+from django.db.models import Sum, F, Value, IntegerField, DecimalField, Q
+from django.db.models.functions import Coalesce
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import JSONParser
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authentication import get_authorization_header
+
+# Importa tus modelos (ajusta si Usuario está en otro app)
+from .models import DashboardVentas, Usuario
+
+# -----------------------
+# Config desde settings (ya en settings.py via decouple)
+# -----------------------
+OPENAI_API_KEY = getattr(settings, "OPENAI_API_KEY", None)
+OPENAI_API_BASE = getattr(settings, "OPENAI_API_BASE", "https://api.openai.com/v1")
+DEFAULT_MODEL = getattr(settings, "OPENAI_DEFAULT_MODEL", "gpt-4o-mini")
+
+# -----------------------
+# Helpers para parsing
+# -----------------------
+SPANISH_MONTHS = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+    "septiembre": 9, "setiembre": 9, "octubre": 10,
+    "noviembre": 11, "diciembre": 12
+}
+
+METRIC_KEYWORDS = {
+    "cantidad_vendida": ("cantidad_vendida", "int"),
+    "cantidad": ("cantidad_vendida", "int"),
+    "unidades": ("cantidad_vendida", "int"),
+    "dinero_vendido": ("dinero_vendido", "decimal"),
+    "dinero": ("dinero_vendido", "decimal"),
+    "monto": ("dinero_vendido", "decimal"),
+    "ventas": ("dinero_vendido", "decimal"),
+    "numero_transacciones": ("numero_transacciones", "int"),
+    "transacciones": ("numero_transacciones", "int"),
+    "devoluciones": ("devoluciones", "int"),
+    "dinero_devoluciones": ("dinero_devoluciones", "decimal"),
+    "descuento_total": ("descuento_total", "decimal"),
+    "unidades_promocionadas": ("unidades_promocionadas", "int"),
+}
+
+def find_metric(text):
+    t = text.lower()
+    for k in sorted(METRIC_KEYWORDS.keys(), key=lambda x: -len(x)):
+        if k in t:
+            return METRIC_KEYWORDS[k]
+    return None
+
+def extract_year(text):
+    m = re.search(r'\b(19|20)\d{2}\b', text)
+    if m:
+        try:
+            return int(m.group(0))
+        except:
+            return None
+    return None
+
+def extract_month(text):
+    t = text.lower()
+    for name, num in SPANISH_MONTHS.items():
+        if name in t:
+            return num
+    m = re.search(r'\bmes(?:\s+de)?\s+(\d{1,2})\b', t)
+    if m:
+        try:
+            val = int(m.group(1))
+            if 1 <= val <= 12:
+                return val
+        except:
+            pass
+    return None
+
+def extract_brand(text):
+    m = re.search(r'marca\s+[:\-]?\s*["\']?([A-Za-z0-9\-\_\. ]{1,60})["\']?', text, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+    return None
+
+def extract_sku(text):
+    m = re.search(r'\bsku\s*[:\-]?\s*([A-Za-z0-9\-\_]{1,60})\b', text, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+    return None
+
+def extract_producto(text):
+    m = re.search(r'producto\s+[:\-]?\s*["\']?([A-Za-z0-9\-\_\. ]{1,80})["\']?', text, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+    return None
+
+# -----------------------
+# Vista principal
+# -----------------------
+class ChatbotAPIView(APIView):
+    """
+    Endpoint que:
+     - valida JWT (usa id_usuario del payload para obtener Usuario)
+     - si detecta consulta de métrica + filtros, consulta DashboardVentas filtrando por id_empresa
+       del usuario y devuelve SOLO el total agregado en 'reply'.
+     - si no detecta métrica, reenvía el mensaje a OpenAI (chat/completions) como fallback.
+    """
+
+    parser_classes = [JSONParser]
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        # Validar token JWT
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer':
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            token = auth_header[1].decode('utf-8')
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': 'Error validando token', 'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        id_usuario = payload.get('id_usuario')
+        if not id_usuario:
+            return Response({'error': 'Token no contiene id_usuario'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Obtener usuario y su empresa
+        try:
+            usuario = Usuario.objects.select_related('id_empresa').get(id_usuario=id_usuario)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': 'Error buscando usuario', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if not empresa:
+            return Response({'error': 'Usuario no pertenece a ninguna empresa'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Body
+        data = request.data
+        user_message = (data.get('message') or "").strip()
+        if not user_message:
+            return Response({'error': 'No se envió message'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Intent: detectar métrica y filtros
+        metric = find_metric(user_message)  # (campo, tipo) o None
+        year = extract_year(user_message)
+        month = extract_month(user_message)
+        brand = extract_brand(user_message)
+        sku = extract_sku(user_message)
+        producto = extract_producto(user_message)
+
+        # Si detectamos métrica -> hacemos consulta a la DB
+        if metric:
+            campo, tipo = metric
+            # Construir filtros
+            q = Q(id_empresa=empresa)
+
+            if year:
+                q &= Q(anio=year)
+            if month:
+                q &= Q(mes=month)
+            if brand:
+                q &= Q(marca__icontains=brand)
+            if sku:
+                q &= Q(sku__iexact=sku)
+            if producto:
+                q &= Q(nombre_producto__icontains=producto)
+
+            # Agregación
+            try:
+                if tipo == 'int':
+                    output_field = IntegerField()
+                    zero_value = Value(0, output_field=IntegerField())
+                    agg = DashboardVentas.objects.filter(q).aggregate(
+                        total=Coalesce(
+                            Sum(F(campo), output_field=output_field),
+                            zero_value,
+                            output_field=output_field
+                        )
+                    )
+                    total = agg.get('total')
+                    try:
+                        total_int = int(total) if total is not None else 0
+                        reply_value = str(total_int)
+                    except Exception:
+                        reply_value = str(total)
+                else:
+                    output_field = DecimalField(max_digits=20, decimal_places=2)
+                    zero_value = Value(Decimal('0.00'), output_field=output_field)
+                    agg = DashboardVentas.objects.filter(q).aggregate(
+                        total=Coalesce(
+                            Sum(F(campo), output_field=output_field),
+                            zero_value,
+                            output_field=output_field
+                        )
+                    )
+                    total = agg.get('total')
+                    if total is None:
+                        total = Decimal('0.00')
+                    try:
+                        reply_value = f"{Decimal(total):.2f}"
+                    except Exception:
+                        reply_value = str(total)
+            except Exception as e:
+                return Response({'error': 'Error al agregar datos', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Responder SOLO con el total en `reply`
+            return Response({
+                "reply": reply_value,
+                "metric": campo,
+                "filters": {
+                    "anio": year,
+                    "mes": month,
+                    "marca": brand,
+                    "sku": sku,
+                    "producto": producto
+                },
+                "total": reply_value
+            }, status=status.HTTP_200_OK)
+
+        # -----------------------
+        # Fallback: reenviar a OpenAI (si no detectamos métrica)
+        # -----------------------
+        if not OPENAI_API_KEY:
+            return Response({'error': 'Falta configuración de OPENAI_API_KEY en settings/.env'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        payload = {
+            "model": data.get("model", DEFAULT_MODEL),
+            "messages": [
+                {"role": "user", "content": user_message}
+            ],
+            "max_tokens": data.get("max_tokens", 800),
+            "temperature": data.get("temperature", 0.2),
+        }
+
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            resp = requests.post(
+                f"{OPENAI_API_BASE}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+        except requests.RequestException as e:
+            return Response({'error': 'Error conectando con la API externa', 'detail': str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        if resp.status_code != 200:
+            try:
+                err_body = resp.json()
+            except Exception:
+                err_body = resp.text
+            return Response({'error': 'Error desde la API de OpenAI', 'status': resp.status_code, 'detail': err_body}, status=status.HTTP_502_BAD_GATEWAY)
+
+        try:
+            body = resp.json()
+            choices = body.get("choices", [])
+            if not choices:
+                return Response({'error': 'No choices devueltos por OpenAI', 'raw': body}, status=status.HTTP_502_BAD_GATEWAY)
+
+            assistant_text = choices[0].get("message", {}).get("content", "")
+            return Response({
+                "reply": assistant_text,
+                "raw": body
+            }, status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({'error': 'Respuesta inválida de OpenAI', 'raw': resp.text}, status=status.HTTP_502_BAD_GATEWAY)
+
