@@ -1,5 +1,4 @@
-
-Ayudame modificando las clases y el selector del estilo para el css, ósea usa como prefijo "**cotiCorpoColxd**"
+Ayudame modificando las clases y el selector del estilo para el css, ósea usa como prefijo "**pantalones-dos**"
 
 Ejemplo mira dice
 
@@ -7,9 +6,9 @@ className={styles.container}
 
 quisiera que mejor fuera
 
-className={styles.**cotiCorpoColxd**}
+className={styles**.pantalones-dos}**
 
-y también en las variables de root usa cotiCorpoColxd ejemplo
+y también en las variables de root usa **pantalones-dos** ejemplo
 
 :root {
   /* Paleta de colores mejorada */

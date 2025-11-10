@@ -43,8 +43,6 @@ from .views import (
     EmpresaView,
     AreasListView,
 
-#
-
 
 #ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
     AsgDashboardUsuariosEmpresaView,
@@ -100,6 +98,11 @@ from .views import (
 
 #URL de Dashboard ISP Ventas
     DashboardIspVentas_List,
+
+
+        #DASHBOARD CHURN RATE PARA SERVITEL
+
+    DashboardChurnRateView
 
 
 )
@@ -215,6 +218,14 @@ urlpatterns = [
 
     #URL de Dashboard ISP Ventas
     path('dashboard_isp_ventas/list/', DashboardIspVentas_List.as_view(), name='dashboard_isp_ventas_list'),
+
+
+
+
+    #DASHBOARD CHURN RATE PARA SERVITEL
+    path('dashboard/churn/rate/', DashboardChurnRateView.as_view(), name='dashboard-churn-kpi'),
+
+
 
 ]
     

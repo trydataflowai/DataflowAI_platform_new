@@ -678,3 +678,62 @@ class DashboardIspVentasAdmin(admin.ModelAdmin):
     )
 
     ordering = ('-ano', '-mes')
+
+
+
+
+ #DASHBOARD CHURN RATE PARA SERVITEL
+
+from django.contrib import admin
+from .models import DashboardChurnRate
+
+@admin.register(DashboardChurnRate)
+class DashboardChurnRateAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'id_cliente',
+        'nombre_cliente',
+        'tipo_plan',
+        'region',
+        'departamento',
+        'estado_cliente',
+        'fecha_contratacion',
+        'fecha_baja',
+        'fecha_ultima_transaccion',
+        'monto_facturado_mensual',
+        'margen_bruto',
+        'arpu',
+        'satisfaccion_cliente',
+        'recomendacion_nps',
+    )
+
+    # Campos de búsqueda (relacionales y de texto)
+    search_fields = (
+        'id_cliente',
+        'nombre_cliente',
+        'id_empresa__nombre_empresa',
+        'region',
+        'departamento',
+    )
+
+    # Filtros útiles en el panel admin
+    list_filter = (
+        'tipo_plan',
+        'estado_cliente',
+        'region',
+        'departamento',
+        'fecha_contratacion',
+        'fecha_baja',
+        'fecha_ultima_transaccion',
+    )
+
+    # Orden por fecha más reciente
+    ordering = ('-fecha_ultima_transaccion',)
+
+    # Opcional: hacer que ciertos campos sean de solo lectura
+    readonly_fields = ('id_registro',)
+
+    # Opcional: ajustar cantidad de registros por página
+    list_per_page = 25

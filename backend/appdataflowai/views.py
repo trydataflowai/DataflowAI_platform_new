@@ -501,7 +501,7 @@ class StripeWebhookAPIView(APIView):
 
 #DashboardVentasDataflow de PRUEBA
 # appdataflowai/views.py
-
+#
 from rest_framework.permissions import IsAuthenticated
 from django.utils.dateparse import parse_date
 from .serializers import DashboardVentasDataflowSerializer
@@ -528,6 +528,8 @@ class DashboardVentasDataflowView(APIView):
         return Response(serializer.data, status=200)
 
 
+
+#####
 class DashboardVentasView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -4094,3 +4096,67 @@ class ChatbotAPIView(APIView):
         except ValueError:
             return Response({'error': 'Respuesta inválida de OpenAI', 'raw': resp.text}, status=status.HTTP_502_BAD_GATEWAY)
 
+
+
+
+
+
+
+
+
+
+ #DASHBOARD CHURN RATE PARA SERVITEL
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.utils.dateparse import parse_date
+
+from .models import DashboardChurnRate
+from .serializers import DashboardChurnRateSerializer
+
+class DashboardChurnRateView(APIView):
+    """
+    Listado de DashboardChurnRate filtrado automáticamente por id_empresa del usuario autenticado.
+    Permisos: solo usuarios autenticados (IsAuthenticated).
+    Query params opcionales:
+      - start : fecha mínima para fecha_ultima_transaccion (YYYY-MM-DD)
+      - end   : fecha máxima para fecha_ultima_transaccion (YYYY-MM-DD)
+      - estado: filtrar por estado_cliente (ej. activo, cancelado, inactivo)
+      - tipo   : filtrar por tipo_plan (ej. basico, estandar, premium)
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        usuario = request.user
+
+        # Verificamos que el user tenga id_empresa (sigue tu convención de usuario)
+        if not hasattr(usuario, 'id_empresa') or usuario.id_empresa is None:
+            return Response({'error': 'Usuario inválido en request o sin id_empresa.'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # Filtrado base por la empresa del usuario
+        queryset = DashboardChurnRate.objects.filter(id_empresa=usuario.id_empresa).order_by('-fecha_ultima_transaccion')
+
+        # Filtros opcionales por query params
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        if start:
+            fecha = parse_date(start)
+            if fecha:
+                queryset = queryset.filter(fecha_ultima_transaccion__gte=fecha)
+        if end:
+            fecha = parse_date(end)
+            if fecha:
+                queryset = queryset.filter(fecha_ultima_transaccion__lte=fecha)
+
+        estado = request.query_params.get('estado')
+        if estado:
+            queryset = queryset.filter(estado_cliente=estado)
+
+        tipo = request.query_params.get('tipo')
+        if tipo:
+            queryset = queryset.filter(tipo_plan=tipo)
+
+        serializer = DashboardChurnRateSerializer(queryset, many=True, context={'usuario': usuario})
+        return Response(serializer.data, status=status.HTTP_200_OK)

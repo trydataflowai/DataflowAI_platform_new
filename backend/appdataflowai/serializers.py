@@ -663,3 +663,55 @@ class DashboardIspVentasSerializer(serializers.ModelSerializer):
     class Meta:
         model = DashboardIspVentas
         fields = '__all__'
+
+
+
+
+
+
+
+
+ #DASHBOARD CHURN RATE PARA SERVITEL
+from rest_framework import serializers
+from .models import DashboardChurnRate
+
+class DashboardChurnRateSerializer(serializers.ModelSerializer):
+    # Serializamos las FK como PKs de solo lectura (puedes cambiar a nested si prefieres)
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    id_producto = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = DashboardChurnRate
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_producto',
+
+            'id_cliente',
+            'nombre_cliente',
+
+            'tipo_plan',
+            'region',
+            'departamento',
+
+            'fecha_contratacion',
+            'fecha_baja',
+            'fecha_ultima_transaccion',
+
+            'estado_cliente',
+
+            'monto_facturado_mensual',
+            'margen_bruto',
+            'arpu',
+
+            'numero_quejas',
+            'total_reclamos',
+            'interacciones_servicio',
+
+            'satisfaccion_cliente',
+            'valor_percibido',
+            'recomendacion_nps',
+
+            'observacion_cliente',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa']

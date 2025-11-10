@@ -889,3 +889,142 @@ class RegistrosSesion(models.Model):
 
     def __str__(self):
         return f"{self.id_registro} - {self.nombre_empresa} / {self.nombres} - {self.fecha_inicio_sesion}"
+
+
+
+
+
+
+
+ #DASHBOARD CHURN RATE PARA SERVITEL
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+"""
+Mira, ahora estos son los campos dame 20 registros donde en las fechas ssolo coloques datos del 2025, osea en las 3 fechas si hay valores en fecha de baja osea si colocas datos en fecha de baja es pq el cliente le debes colocar inactivo osea primero si efectivamente una fecha de contrataciion y si está inactivo debe tener fecha de baja si el usuario está activo no debe tener fecha de baja debe ser null TIPO_PLAN_CHOICES = [ ('basico', 'Básico'), ('estandar', 'Estándar'), ('premium', 'Premium'), ] ESTADO_CLIENTE_CHOICES = [ ('activo', 'Activo'), ('cancelado', 'Cancelado'), ('inactivo', 'Inactivo'), ] INSERT INTO public.dashboard_churn_rate( id_registro, id_cliente, nombre_cliente, tipo_plan, region, departamento, fecha_contratacion, fecha_baja, fecha_ultima_transaccion, estado_cliente, monto_facturado_mensual, margen_bruto, arpu, numero_quejas, total_reclamos, interacciones_servicio, satisfaccion_cliente, valor_percibido, recomendacion_nps, observacion_cliente, id_empresa, id_producto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); En Id_empresa colocarás el valor 3 En id_producto colocarás el valor 19
+
+
+"""
+class DashboardChurnRate(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores clave obligatorios
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+    id_producto = models.ForeignKey(
+        'Producto',
+        on_delete=models.PROTECT,
+        db_column='id_producto',
+        null=True,
+        blank=True
+    )
+
+    # Datos del cliente
+    id_cliente = models.IntegerField(db_column='id_cliente', db_index=True)
+    nombre_cliente = models.CharField(db_column='nombre_cliente', max_length=255)
+
+    # Categorización
+    TIPO_PLAN_CHOICES = [
+        ('basico', 'Básico'),
+        ('estandar', 'Estándar'),
+        ('premium', 'Premium'),
+    ]
+    tipo_plan = models.CharField(
+        db_column='tipo_plan',
+        max_length=20,
+        choices=TIPO_PLAN_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    region = models.CharField(db_column='region', max_length=100, null=True, blank=True)
+    departamento = models.CharField(db_column='departamento', max_length=100, null=True, blank=True)
+
+    # Fechas (solo fecha — DateField)
+    fecha_contratacion = models.DateField(db_column='fecha_contratacion', null=True, blank=True)
+    fecha_baja = models.DateField(db_column='fecha_baja', null=True, blank=True)
+    fecha_ultima_transaccion = models.DateField(db_column='fecha_ultima_transaccion', null=True, blank=True)
+
+    # Estado del cliente
+    ESTADO_CLIENTE_CHOICES = [
+        ('activo', 'Activo'),
+        ('cancelado', 'Cancelado'),
+        ('inactivo', 'Inactivo'),
+    ]
+    estado_cliente = models.CharField(
+        db_column='estado_cliente',
+        max_length=20,
+        choices=ESTADO_CLIENTE_CHOICES,
+        null=True,
+        blank=True
+    )
+
+    # Métricas financieras (usar DecimalField para precisión)
+    monto_facturado_mensual = models.DecimalField(
+        db_column='monto_facturado_mensual',
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    margen_bruto = models.DecimalField(
+        db_column='margen_bruto',
+        max_digits=12,
+        decimal_places=4,
+        null=True,
+        blank=True
+    )
+    arpu = models.DecimalField(
+        db_column='arpu',
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    # Interacciones y reclamos
+    numero_quejas = models.IntegerField(db_column='numero_quejas', default=0)
+    total_reclamos = models.IntegerField(db_column='total_reclamos', default=0)
+    interacciones_servicio = models.IntegerField(db_column='interacciones_servicio', default=0)
+
+    # Satisfacción y percepciones (validadores para rangos)
+    satisfaccion_cliente = models.DecimalField(
+        db_column='satisfaccion_cliente',
+        max_digits=3,
+        decimal_places=1,
+        validators=[MinValueValidator(1.0), MaxValueValidator(5.0)],
+        null=True,
+        blank=True
+    )
+    valor_percibido = models.DecimalField(
+        db_column='valor_percibido',
+        max_digits=3,
+        decimal_places=1,
+        validators=[MinValueValidator(1.0), MaxValueValidator(5.0)],
+        null=True,
+        blank=True
+    )
+    recomendacion_nps = models.DecimalField(
+        db_column='recomendacion_nps',
+        max_digits=3,
+        decimal_places=1,
+        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)],
+        null=True,
+        blank=True
+    )
+
+    # Observación del cliente (texto libre)
+    observacion_cliente = models.TextField(db_column='observacion_cliente', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_churn_rate'
+        verbose_name = 'Dashboard Churn Rate'
+        verbose_name_plural = 'Dashboard Churn Rates'
+        ordering = ['-fecha_ultima_transaccion']
+
+    def __str__(self):
+        return f'{self.id_cliente} — {self.nombre_cliente} ({self.estado_cliente or "sin estado"})'

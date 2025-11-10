@@ -23,3 +23,14 @@ SELECT setval('detalle_producto_herramientas_id_seq', (SELECT MAX(id) FROM detal
 SELECT setval('detalle_producto_id_seq', (SELECT MAX(id) FROM detalle_producto));
 SELECT setval('detalle_producto_vendido_id_seq', (SELECT MAX(id) FROM detalle_producto_vendido));
 SELECT setval('detalle_empresa_dashboard_id_seq', (SELECT MAX(id) FROM detalle_empresa_dashboard));
+
+
+
+
+DASHBOARD
+
+SELECT setval(
+  pg_get_serial_sequence('public.dashboard_churn_kpi','id_registro'),
+  COALESCE((SELECT MAX(id_registro) FROM public.dashboard_churn_kpi), 0) + 1,
+  false
+);

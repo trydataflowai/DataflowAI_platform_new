@@ -61,6 +61,9 @@ import DashboardVentasCorporativo from "../components/dashboards/DashboardSalesC
 //Rutas correspondientes al dashboard de IPS
 import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
 
+//Dashboard Churn Kpi
+import DashboardChurnKpi from "../components/dashboards/DashboardChurnKpi";
+
 
 
 import ShopifyJsx from "../components/pages/Shopify";
@@ -452,7 +455,22 @@ export const Rutas = () => {
               </RutaProtegida>
             }
           />
-          
+
+
+
+          //Rutas correspondientes al Dashboard Churn
+          <Route
+            path={("/dashboard-kpi-churn")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <DashboardChurnKpi />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+        
         </Routes>
       </ThemeProvider>
     </BrowserRouter>
