@@ -102,7 +102,8 @@ from .views import (
 
         #DASHBOARD CHURN RATE PARA SERVITEL
 
-    DashboardChurnRateView
+    DashboardChurnRateView,
+    DashboardChurnChatView
 
 
 )
@@ -224,6 +225,7 @@ urlpatterns = [
 
     #DASHBOARD CHURN RATE PARA SERVITEL
     path('dashboard/churn/rate/', DashboardChurnRateView.as_view(), name='dashboard-churn-kpi'),
+    path('dashboard/churn/chat/', DashboardChurnChatView.as_view(), name='dashboard-churn-chat'),
 
 
 

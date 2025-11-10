@@ -1,6 +1,5 @@
-
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import jwt
 from django.conf import settings
@@ -32,7 +31,7 @@ class LoginView(APIView):
             usuario = Usuario.objects.get(correo=correo, contrasena=contrasena)
         except Usuario.DoesNotExist:
             return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
+        except Exception:
             logger.exception("Error buscando usuario")
             return Response({'error': 'Error interno'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -45,16 +44,20 @@ class LoginView(APIView):
         if estado_id != 1:
             return Response({'error': 'usuario inactivo'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Generamos token JWT
+        # Generamos token JWT usando timezone para evitar problemas de shadowing y para datetimes "aware"
+        now = timezone.now()
+        exp_time = now + timedelta(hours=1)
         payload = {
             'id_usuario': usuario.id_usuario,
             'correo': usuario.correo,
-            'exp': datetime.utcnow() + timedelta(hours=1),
-            'iat': datetime.utcnow()
+            # JWT suele usar timestamps en segundos desde epoch; usar enteros evita problemas con serialización
+            'exp': int(exp_time.timestamp()),
+            'iat': int(now.timestamp())
         }
 
         try:
             token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+            # pyjwt puede devolver bytes en algunas versiones; aseguramos cadena
             if isinstance(token, bytes):
                 token = token.decode('utf-8')
         except Exception:
@@ -64,26 +67,21 @@ class LoginView(APIView):
         # Intentamos crear el registro de sesión.
         registro_data = None
         try:
-            # Usamos transaction.on_commit para asegurar consistencia, pero igualmente
-            # creamos sin bloquear el flujo de login si falla.
+            # Usamos transaction.atomic para consistencia; si falla, no bloqueamos el login.
             with transaction.atomic():
-                # Asumo que Usuario tiene campo id_empresa FK y es instancia válida
                 id_empresa_fk = getattr(usuario, 'id_empresa', None)
-                # Creación: pasamos instancias FK directamente
                 registro = RegistrosSesion.objects.create(
                     id_empresa=id_empresa_fk,
                     id_usuario=usuario,
                     fecha_inicio_sesion=timezone.now()
                 )
-                # Aseguramos que nombre_empresa/nombres queden rellenados por save()
                 registro.refresh_from_db()
 
                 registro_data = {
                     'id_registro': registro.id_registro,
                     'fecha_inicio_sesion': registro.fecha_inicio_sesion.isoformat()
                 }
-        except Exception as e:
-            # No detenemos el login si hay error creando el registro; lo logueamos.
+        except Exception:
             logger.exception("No se pudo crear RegistrosSesion tras login para usuario %s", getattr(usuario, 'id_usuario', None))
             registro_data = None
 
@@ -100,9 +98,6 @@ class LoginView(APIView):
             'usuario': respuesta_usuario,
             'registro_sesion': registro_data
         }, status=status.HTTP_200_OK)
-
-
-
 
 
 
@@ -4160,3 +4155,193 @@ class DashboardChurnRateView(APIView):
 
         serializer = DashboardChurnRateSerializer(queryset, many=True, context={'usuario': usuario})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+# dashboard_churn/views.py (añadir al final del archivo donde ya está DashboardChurnRateView)
+# appdataflowai/views.py  (actualizado)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.utils.dateparse import parse_date
+from django.db.models import Count, Avg
+from django.conf import settings
+import requests
+import json
+import datetime
+
+from .models import DashboardChurnRate
+
+class DashboardChurnChatView(APIView):
+    """
+    POST { "message": "..." }
+    -> Responde usando OpenAI SOLO con base en los AGREGADOS/RESUMENES de la empresa.
+    Minimiza el contexto enviado para ahorrar tokens y proteger PII.
+    Query params:
+      - start, end (opcional): filtros por fecha_ultima_transaccion
+      - include_examples (opcional, 'true'|'1' to enable): incluir hasta 2 muestras no sensibles
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def _top_por_tipo(self, por_tipo_qs, top_n=5):
+        # por_tipo_qs: list of dicts {'tipo_plan':..., 'c': count}
+        sorted_list = sorted(por_tipo_qs, key=lambda x: x['c'], reverse=True)
+        trimmed = sorted_list[:top_n]
+        # convert to compact mapping, replacing None/'' with 'sin_tipo'
+        return { (item.get('tipo_plan') or 'sin_tipo'): item['c'] for item in trimmed }
+
+    def _minimal_muestras(self, queryset, limit=2):
+        # Devuelve muestras NO SENSIBLES (sin id ni nombre)
+        rows = list(queryset.order_by('-fecha_ultima_transaccion').values(
+            'estado_cliente', 'tipo_plan', 'arpu', 'fecha_ultima_transaccion'
+        )[:limit])
+        # Formatear fechas y arpu
+        for r in rows:
+            f = r.get('fecha_ultima_transaccion')
+            if isinstance(f, (datetime.datetime, datetime.date)):
+                try:
+                    r['fecha_ultima_transaccion'] = f.isoformat()
+                except Exception:
+                    r['fecha_ultima_transaccion'] = str(f)
+            a = r.get('arpu')
+            if a is not None and not isinstance(a, (int, float)):
+                r['arpu'] = str(a)
+        return rows
+
+    def post(self, request):
+        usuario = request.user
+        if not hasattr(usuario, 'id_empresa') or usuario.id_empresa is None:
+            return Response({'error': 'Usuario inválido en request o sin id_empresa.'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        message = request.data.get('message')
+        if not message:
+            return Response({'error': 'Falta el campo "message".'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Protecciones básicas sobre el tamaño del prompt del usuario
+        if not isinstance(message, str) or len(message) > 2000:
+            return Response({'error': 'El campo "message" es demasiado largo o inválido (max 2000 caracteres).'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Base de datos filtrada por empresa
+        queryset = DashboardChurnRate.objects.filter(id_empresa=usuario.id_empresa)
+
+        # filtros start/end opcionales
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        if start:
+            fecha = parse_date(start)
+            if fecha:
+                queryset = queryset.filter(fecha_ultima_transaccion__gte=fecha)
+        if end:
+            fecha = parse_date(end)
+            if fecha:
+                queryset = queryset.filter(fecha_ultima_transaccion__lte=fecha)
+
+        # Agregados esenciales (rápidos)
+        total = queryset.count()
+        activos = queryset.filter(estado_cliente='activo').count()
+        inactivos = queryset.filter(estado_cliente='inactivo').count()
+        cancelados = queryset.filter(estado_cliente='cancelado').count()
+        por_tipo_qs = list(queryset.values('tipo_plan').annotate(c=Count('id_registro')))
+        por_tipo_plan = self._top_por_tipo(por_tipo_qs, top_n=5)
+        arpu_promedio = queryset.aggregate(avg_arpu=Avg('arpu'))['avg_arpu']
+        arpu_promedio = float(arpu_promedio) if arpu_promedio is not None else None
+
+        # include_examples controlado por query param (por defecto false)
+        include_examples = request.query_params.get('include_examples', 'false').lower() in ('1', 'true', 'yes')
+        muestras = self._minimal_muestras(queryset, limit=2) if include_examples else []
+
+        contexto = {
+            "total_registros": total,
+            "activos": activos,
+            "inactivos": inactivos,
+            "cancelados": cancelados,
+            "por_tipo_plan": por_tipo_plan,
+            "arpu_promedio": arpu_promedio,
+        }
+        # solo anexar muestras si explicitly requested
+        if include_examples and muestras:
+            contexto["muestras_recentes"] = muestras
+
+        # Construcción del prompt - texto del sistema breve
+        system_instruction = (
+            "Eres un asistente de métricas de churn. RESPONDE SOLO con base en el CONTEXTO PROPORCIONADO. "
+            "Si la información no es suficiente, indica exactamente qué endpoint o filtro usar para obtenerla. "
+            "Responde en español y no inventes cifras."
+        )
+
+        # Compactar el contexto JSON (menos tokens)
+        contexto_json = json.dumps(contexto, ensure_ascii=False, separators=(',',':'))
+
+        user_prompt = (
+            f"Pregunta: {message}\n\nContexto:\n{contexto_json}\n\n"
+            "Responde en español y usa solamente los valores provistos."
+        )
+
+        # Configuración OpenAI (seguridad: no imprimir la key)
+        OPENAI_API_KEY = getattr(settings, "OPENAI_API_KEY", None)
+        OPENAI_API_BASE = getattr(settings, "OPENAI_API_BASE", "https://api.openai.com/v1")
+        DEFAULT_MODEL = getattr(settings, "OPENAI_DEFAULT_MODEL", "gpt-4o-mini")
+
+        if not OPENAI_API_KEY:
+            return Response({'error': 'OpenAI API key no configurada.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Evitar prompts extremadamente largos (doble seguridad)
+        if len(system_instruction) + len(user_prompt) > 10000:
+            # si llegara a ocurrir (muy improbable con las reducciones), pedimos al caller reducir alcance
+            return Response({'error': 'El contexto resultó demasiado grande. Intenta reducir filtros o desactivar examples.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Payload más comedido
+        url = f"{OPENAI_API_BASE.rstrip('/')}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": DEFAULT_MODEL,
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.0,
+            # límite razonable para respuestas cortas/concisas
+            "max_tokens": 256
+        }
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            resp.raise_for_status()
+            resp_json = resp.json()
+
+            assistant_text = None
+            if 'choices' in resp_json and len(resp_json['choices']) > 0:
+                choice = resp_json['choices'][0]
+                if 'message' in choice and 'content' in choice['message']:
+                    assistant_text = choice['message']['content']
+                elif 'text' in choice:
+                    assistant_text = choice['text']
+            if assistant_text is None:
+                assistant_text = "No se obtuvo una respuesta válida del modelo."
+
+            # Estimación simple de tokens (aprox: 1 token ≈ 4 caracteres)
+            prompt_len = len(system_instruction) + len(user_prompt)
+            estimated_input_tokens = max(1, int(prompt_len / 4))
+            estimated_output_tokens = min(256, max(1, int(len(assistant_text) / 4)))
+            token_estimate = {
+                "estimated_input_tokens": estimated_input_tokens,
+                "estimated_output_tokens": estimated_output_tokens
+            }
+
+            return Response({
+                "assistant": assistant_text,
+                "contexto": contexto,
+                "token_estimate": token_estimate
+            }, status=status.HTTP_200_OK)
+        except requests.exceptions.RequestException as e:
+            return Response({"error": "Error al comunicarse con OpenAI", "detail": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
