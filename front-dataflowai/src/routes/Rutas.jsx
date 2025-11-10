@@ -63,6 +63,7 @@ import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
 
 //Dashboard Churn Kpi
 import DashboardChurnKpi from "../components/dashboards/DashboardChurnKpi";
+import ChatDashboardChurn from "../components/dashboard_chat/ChatDashboardChurn";
 
 
 
@@ -465,6 +466,17 @@ export const Rutas = () => {
               <RutaProtegida>
                 <SideBarLayout>
                   <DashboardChurnKpi />
+                </SideBarLayout>
+              </RutaProtegida>
+            }
+          />
+
+            <Route
+            path={("/dashboard-kpi-churn/chat-ai-consultas")}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <ChatDashboardChurn />
                 </SideBarLayout>
               </RutaProtegida>
             }

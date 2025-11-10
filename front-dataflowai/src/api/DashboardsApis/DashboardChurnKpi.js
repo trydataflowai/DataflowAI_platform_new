@@ -1,31 +1,33 @@
-// DashboardChurnKpi.js
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// DashboardChurnKpi.js (robusto contra barras duplicadas)
+const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || ""; // puede ser "" o "https://mi-backend.com/api" o "/api"
+const API_BASE = RAW_API_BASE.replace(/\/+$/, ""); // elimina barras finales
+
+function getAuthHeader() {
+  const token = localStorage.getItem('token') || localStorage.getItem('access') || "";
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
 
 /**
  * Obtener datos del endpoint dashboard/churn/rate/
- * Retorna el JSON de la API o lanza un error si falla.
  */
-export const obtenerChurnKpi = async () => {
-  const token = localStorage.getItem('token');
-
-  const res = await fetch(`${API_BASE_URL}dashboard/churn/rate/`, {
+export const obtenerChurnKpi = async (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  // construimos URL de forma segura
+  const url = `${API_BASE}/dashboard/churn/rate/${qs ? `?${qs}` : ''}`.replace(/\/{2,}/g, '/').replace('http:/', 'http://').replace('https:/', 'https://');
+  const res = await fetch(url, {
     headers: {
-      Authorization: token ? `Bearer ${token}` : '',
+      ...getAuthHeader(),
       'Content-Type': 'application/json',
     },
   });
 
   if (!res.ok) {
-    // Intentamos leer mensaje de error si existe
     let msg = `Error al obtener Churn KPI (${res.status})`;
     try {
       const errJson = await res.json();
-      if (errJson && errJson.detail) msg = `${msg}: ${errJson.detail}`;
-    } catch (e) {
-      // noop
-    }
+      if (errJson && (errJson.detail || errJson.error)) msg = `${msg}: ${errJson.detail || errJson.error}`;
+    } catch (e) { /* noop */ }
     throw new Error(msg);
   }
-
   return await res.json();
 };

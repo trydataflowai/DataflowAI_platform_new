@@ -8,6 +8,7 @@ import styles from '../../styles/Dashboards/DashboardChurn.module.css';
 import { obtenerChurnKpi } from '../../api/DashboardsApis/DashboardChurnKpi';
 
 const YEAR_FOR_PERIOD = 2025;
+const REGISTROS_POR_PAGINA = 10;
 
 const parseNumber = (val) => {
   if (val === null || val === undefined || val === '') return 0;
@@ -26,6 +27,21 @@ const formatCurrency = (n) => {
     }).format(n);
   } catch {
     return `${n.toFixed(2)}`;
+  }
+};
+
+// Función para formatear fecha
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  } catch {
+    return dateString;
   }
 };
 
@@ -266,6 +282,22 @@ const calcularTopChurnFactors = (data) => {
   return resultado.sort((a, b) => b.promedio - a.promedio);
 };
 
+// Función para obtener datos paginados para la tabla
+const obtenerDatosTabla = (data, paginaActual) => {
+  const inicio = (paginaActual - 1) * REGISTROS_POR_PAGINA;
+  const fin = inicio + REGISTROS_POR_PAGINA;
+  
+  return data.slice(inicio, fin).map((cliente, index) => ({
+    id: inicio + index + 1,
+    nombre_cliente: cliente.nombre_cliente || 'N/A',
+    fecha_contratacion: cliente.fecha_contratacion,
+    fecha_baja: cliente.fecha_baja,
+    estado_cliente: cliente.estado_cliente || 'N/A',
+    observacion_cliente: cliente.observacion_cliente || '-',
+    arpu: cliente.arpu ? formatCurrency(parseNumber(cliente.arpu)) : '-'
+  }));
+};
+
 const DashboardChurnKpi = () => {
   const [churnRate, setChurnRate] = useState(null);
   const [totalCustomers, setTotalCustomers] = useState(null);
@@ -276,6 +308,10 @@ const DashboardChurnKpi = () => {
   const [churnByPlanData, setChurnByPlanData] = useState([]);
   const [customersLostNewData, setCustomersLostNewData] = useState([]);
   const [topChurnFactorsData, setTopChurnFactorsData] = useState([]);
+  const [tablaData, setTablaData] = useState([]);
+  const [allClientesData, setAllClientesData] = useState([]);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -298,6 +334,9 @@ const DashboardChurnKpi = () => {
           setChurnByPlanData([]);
           setCustomersLostNewData([]);
           setTopChurnFactorsData([]);
+          setTablaData([]);
+          setAllClientesData([]);
+          setTotalPaginas(1);
           setLoading(false);
           return;
         }
@@ -359,6 +398,13 @@ const DashboardChurnKpi = () => {
         const planData = calcularChurnPorTipoPlan(data, YEAR_FOR_PERIOD);
         const lostNewData = calcularClientesNuevosVsPerdidos(data, YEAR_FOR_PERIOD);
         const churnFactorsData = calcularTopChurnFactors(data);
+        
+        // Configurar paginación
+        setAllClientesData(data);
+        const totalPags = Math.ceil(data.length / REGISTROS_POR_PAGINA);
+        setTotalPaginas(totalPags);
+        const tablaClientes = obtenerDatosTabla(data, 1);
+        setTablaData(tablaClientes);
 
         // Guardar estados
         setTotalCustomers(total);
@@ -383,6 +429,15 @@ const DashboardChurnKpi = () => {
       mounted = false;
     };
   }, []);
+
+  // Función para cambiar de página
+  const cambiarPagina = (nuevaPagina) => {
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+      setPaginaActual(nuevaPagina);
+      const nuevaTablaData = obtenerDatosTabla(allClientesData, nuevaPagina);
+      setTablaData(nuevaTablaData);
+    }
+  };
 
   // Tooltip personalizado para la gráfica de líneas
   const CustomTooltipLine = ({ active, payload, label }) => {
@@ -794,6 +849,85 @@ const DashboardChurnKpi = () => {
                   />
                 </BarChart>
               </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* TABLA DE CLIENTES */}
+      <div className={styles.tableSection}>
+        <div className={styles.chartCard}>
+          <div className={styles.chartHeader}>
+            <h2 className={styles.chartTitle}>Clientes</h2>
+            <div className={styles.chartSubtitle}>
+              Lista de clientes ({allClientesData.length} registros totales)
+            </div>
+          </div>
+          <div className={styles.tableContainer}>
+            {loading ? (
+              <div className={styles.loading}>Cargando tabla...</div>
+            ) : error ? (
+              <div className={styles.error}>Error: {error}</div>
+            ) : tablaData.length === 0 ? (
+              <div className={styles.noData}>No hay datos disponibles para mostrar</div>
+            ) : (
+              <>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nombre del Cliente</th>
+                      <th>Fecha Contratación</th>
+                      <th>Fecha Baja</th>
+                      <th>Estado</th>
+                      <th>ARPU</th>
+                      <th>Observaciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tablaData.map((cliente) => (
+                      <tr key={cliente.id}>
+                        <td className={styles.numberCell}>{cliente.id}</td>
+                        <td className={styles.nameCell}>{cliente.nombre_cliente}</td>
+                        <td className={styles.dateCell}>{formatDate(cliente.fecha_contratacion)}</td>
+                        <td className={styles.dateCell}>{formatDate(cliente.fecha_baja)}</td>
+                        <td className={styles.statusCell}>
+                          <span className={`${styles.statusBadge} ${
+                            cliente.estado_cliente.toLowerCase() === 'activo' ? styles.active : styles.inactive
+                          }`}>
+                            {cliente.estado_cliente}
+                          </span>
+                        </td>
+                        <td className={styles.currencyCell}>{cliente.arpu}</td>
+                        <td className={styles.observationCell}>{cliente.observacion_cliente}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {/* PAGINACIÓN */}
+                <div className={styles.pagination}>
+                  <button 
+                    className={`${styles.paginationButton} ${paginaActual === 1 ? styles.disabled : ''}`}
+                    onClick={() => cambiarPagina(paginaActual - 1)}
+                    disabled={paginaActual === 1}
+                  >
+                    Anterior
+                  </button>
+                  
+                  <div className={styles.paginationInfo}>
+                    Página {paginaActual} de {totalPaginas}
+                  </div>
+                  
+                  <button 
+                    className={`${styles.paginationButton} ${paginaActual === totalPaginas ? styles.disabled : ''}`}
+                    onClick={() => cambiarPagina(paginaActual + 1)}
+                    disabled={paginaActual === totalPaginas}
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
