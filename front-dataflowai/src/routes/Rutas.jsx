@@ -471,7 +471,7 @@ export const Rutas = () => {
             }
           />
 
-            <Route
+          <Route
             path={("/dashboard-kpi-churn/chat-ai-consultas")}
             element={
               <RutaProtegida>
@@ -482,7 +482,7 @@ export const Rutas = () => {
             }
           />
 
-        
+
         </Routes>
       </ThemeProvider>
     </BrowserRouter>

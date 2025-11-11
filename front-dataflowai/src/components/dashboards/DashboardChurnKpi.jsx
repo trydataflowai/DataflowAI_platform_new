@@ -4,10 +4,10 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   BarChart, Bar, ComposedChart
 } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/Dashboards/DashboardChurn.module.css';
 import { obtenerChurnKpi } from '../../api/DashboardsApis/DashboardChurnKpi';
 
-const YEAR_FOR_PERIOD = 2025;
 const REGISTROS_POR_PAGINA = 10;
 
 const parseNumber = (val) => {
@@ -298,6 +298,40 @@ const obtenerDatosTabla = (data, paginaActual) => {
   }));
 };
 
+// Función para extraer años únicos de los datos
+const extraerAnosDisponibles = (data) => {
+  const anosSet = new Set();
+  
+  data.forEach((cliente) => {
+    // Extraer año de fecha_contratacion
+    if (cliente.fecha_contratacion) {
+      try {
+        const fecha = new Date(cliente.fecha_contratacion);
+        if (!isNaN(fecha.getTime())) {
+          anosSet.add(fecha.getFullYear());
+        }
+      } catch (error) {
+        console.warn('Fecha de contratación inválida:', cliente.fecha_contratacion);
+      }
+    }
+    
+    // Extraer año de fecha_baja
+    if (cliente.fecha_baja) {
+      try {
+        const fecha = new Date(cliente.fecha_baja);
+        if (!isNaN(fecha.getTime())) {
+          anosSet.add(fecha.getFullYear());
+        }
+      } catch (error) {
+        console.warn('Fecha de baja inválida:', cliente.fecha_baja);
+      }
+    }
+  });
+  
+  const anosArray = Array.from(anosSet).sort((a, b) => b - a);
+  return anosArray.length > 0 ? anosArray : [new Date().getFullYear()];
+};
+
 const DashboardChurnKpi = () => {
   const [churnRate, setChurnRate] = useState(null);
   const [totalCustomers, setTotalCustomers] = useState(null);
@@ -312,8 +346,13 @@ const DashboardChurnKpi = () => {
   const [allClientesData, setAllClientesData] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [availableYears, setAvailableYears] = useState([]);
+  const [showAIModal, setShowAIModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -337,8 +376,18 @@ const DashboardChurnKpi = () => {
           setTablaData([]);
           setAllClientesData([]);
           setTotalPaginas(1);
+          setAvailableYears([new Date().getFullYear()]);
           setLoading(false);
           return;
+        }
+
+        // Extraer años disponibles de los datos
+        const anosDisponibles = extraerAnosDisponibles(data);
+        setAvailableYears(anosDisponibles);
+        
+        // Si el año seleccionado no está en los disponibles, seleccionar el más reciente
+        if (!anosDisponibles.includes(selectedYear)) {
+          setSelectedYear(anosDisponibles[0]);
         }
 
         // === CÁLCULOS EXISTENTES ===
@@ -361,7 +410,7 @@ const DashboardChurnKpi = () => {
 
         const clientesTotalesPeriodo = new Set(
           data
-            .filter((r) => r.fecha_contratacion && new Date(r.fecha_contratacion).getFullYear() === YEAR_FOR_PERIOD)
+            .filter((r) => r.fecha_contratacion && new Date(r.fecha_contratacion).getFullYear() === selectedYear)
             .map((r) => String(r.id_cliente))
         );
 
@@ -370,7 +419,7 @@ const DashboardChurnKpi = () => {
             .filter(
               (r) =>
                 r.fecha_baja &&
-                new Date(r.fecha_baja).getFullYear() === YEAR_FOR_PERIOD &&
+                new Date(r.fecha_baja).getFullYear() === selectedYear &&
                 String(r.estado_cliente).toLowerCase() === 'inactivo'
             )
             .map((r) => String(r.id_cliente))
@@ -394,9 +443,9 @@ const DashboardChurnKpi = () => {
         for (const v of mapInactiveWithBaja.values()) revenueSum += v;
 
         // === NUEVO: TODOS LOS DATOS ===
-        const monthlyData = calcularChurnMensual(data, YEAR_FOR_PERIOD);
-        const planData = calcularChurnPorTipoPlan(data, YEAR_FOR_PERIOD);
-        const lostNewData = calcularClientesNuevosVsPerdidos(data, YEAR_FOR_PERIOD);
+        const monthlyData = calcularChurnMensual(data, selectedYear);
+        const planData = calcularChurnPorTipoPlan(data, selectedYear);
+        const lostNewData = calcularClientesNuevosVsPerdidos(data, selectedYear);
         const churnFactorsData = calcularTopChurnFactors(data);
         
         // Configurar paginación
@@ -428,7 +477,7 @@ const DashboardChurnKpi = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [selectedYear]);
 
   // Función para cambiar de página
   const cambiarPagina = (nuevaPagina) => {
@@ -439,21 +488,31 @@ const DashboardChurnKpi = () => {
     }
   };
 
+  // Función para abrir modal de AI
+  const abrirModalAI = () => {
+    setShowAIModal(true);
+  };
+
+  // Función para cerrar modal de AI
+  const cerrarModalAI = () => {
+    setShowAIModal(false);
+  };
+
   // Tooltip personalizado para la gráfica de líneas
   const CustomTooltipLine = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className={styles.tooltip}>
-          <p className={styles.tooltipLabel}>{`Mes: ${label}`}</p>
-          <p className={styles.tooltipItem}>
+        <div className={styles['churn-dash-tooltip']}>
+          <p className={styles['churn-dash-tooltip-label']}>{`Mes: ${label}`}</p>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Churn Rate: </span>
             <strong>{payload[0].value}%</strong>
           </p>
-          <p className={styles.tooltipItem}>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Totales: </span>
             <strong>{payload[0].payload.clientesTotales}</strong>
           </p>
-          <p className={styles.tooltipItem}>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Perdidos: </span>
             <strong>{payload[0].payload.clientesPerdidos}</strong>
           </p>
@@ -467,17 +526,17 @@ const DashboardChurnKpi = () => {
   const CustomTooltipBar = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className={styles.tooltip}>
-          <p className={styles.tooltipLabel}>{`Plan: ${label}`}</p>
-          <p className={styles.tooltipItem}>
+        <div className={styles['churn-dash-tooltip']}>
+          <p className={styles['churn-dash-tooltip-label']}>{`Plan: ${label}`}</p>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Churn Rate: </span>
             <strong>{payload[0].value}%</strong>
           </p>
-          <p className={styles.tooltipItem}>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Totales: </span>
             <strong>{payload[0].payload.clientesTotales}</strong>
           </p>
-          <p className={styles.tooltipItem}>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Perdidos: </span>
             <strong>{payload[0].payload.clientesPerdidos}</strong>
           </p>
@@ -491,10 +550,10 @@ const DashboardChurnKpi = () => {
   const CustomTooltipLostNew = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className={styles.tooltip}>
-          <p className={styles.tooltipLabel}>{`Mes: ${label}`}</p>
+        <div className={styles['churn-dash-tooltip']}>
+          <p className={styles['churn-dash-tooltip-label']}>{`Mes: ${label}`}</p>
           {payload.map((entry, index) => (
-            <p key={index} className={styles.tooltipItem} style={{ color: entry.color }}>
+            <p key={index} className={styles['churn-dash-tooltip-item']} style={{ color: entry.color }}>
               <span>{entry.name}: </span>
               <strong>{entry.value}</strong>
             </p>
@@ -509,13 +568,13 @@ const DashboardChurnKpi = () => {
   const CustomTooltipChurnFactors = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className={styles.tooltip}>
-          <p className={styles.tooltipLabel}>{`Factor: ${label}`}</p>
-          <p className={styles.tooltipItem}>
+        <div className={styles['churn-dash-tooltip']}>
+          <p className={styles['churn-dash-tooltip-label']}>{`Factor: ${label}`}</p>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Promedio: </span>
             <strong>{payload[0].value}</strong>
           </p>
-          <p className={styles.tooltipItem}>
+          <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Considerados: </span>
             <strong>{payload[0].payload.totalClientes}</strong>
           </p>
@@ -539,400 +598,453 @@ const DashboardChurnKpi = () => {
   };
 
   return (
-    <div className={styles.container}>
-      {/* KPI CARDS */}
-      <div className={styles.kpiGrid}>
-        {/* CHURN RATE */}
-        <div className={styles.card} role="region" aria-label="Churn Rate">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.title}>Churn Rate</h2>
-            <div className={styles.subtitle}>
-              Fórmula: Clientes perdidos ÷ Clientes totales (inicio periodo) × 100
+    <>
+      <div className={styles['churn-dash-container']}>
+        {/* FILTRO POR AÑO Y BOTÓN AI */}
+        <div className={styles['churn-dash-header']}>
+          <div className={styles['churn-dash-filter']}>
+            <div className={styles['churn-dash-filter-content']}>
+              <label htmlFor="year-select" className={styles['churn-dash-filter-label']}>
+                Filtrar por Año:
+              </label>
+              <select
+                id="year-select"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className={styles['churn-dash-filter-select']}
+              >
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-          <div className={styles.cardBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : (
-              <div className={styles.count}>{churnRate}%</div>
-            )}
-          </div>
+          
+          {/* BOTÓN AI */}
+          <button 
+            className={styles['churn-dash-ai-button']}
+            onClick={abrirModalAI}
+          >
+            ¿Deseas analizar tus datos con AI?
+          </button>
         </div>
 
-        {/* TOTAL CUSTOMERS */}
-        <div className={styles.card} role="region" aria-label="Total Customers">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.title}>Total Customers</h2>
-            <div className={styles.subtitle}>Recuento único por id_cliente</div>
-          </div>
-          <div className={styles.cardBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : (
-              <div className={styles.count}>{totalCustomers}</div>
-            )}
-          </div>
-        </div>
-
-        {/* ACTIVE CUSTOMERS */}
-        <div className={styles.card} role="region" aria-label="Active Customers">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.title}>Active Customers</h2>
-            <div className={styles.subtitle}>id_cliente únicos con estado = activo</div>
-          </div>
-          <div className={styles.cardBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : (
-              <div className={styles.count}>{activeCustomers}</div>
-            )}
-          </div>
-        </div>
-
-        {/* INACTIVE CUSTOMERS */}
-        <div className={styles.card} role="region" aria-label="Inactive Customers">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.title}>Inactive Customers</h2>
-            <div className={styles.subtitle}>id_cliente únicos con estado = inactivo</div>
-          </div>
-          <div className={styles.cardBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : (
-              <div className={styles.count}>{inactiveCustomers}</div>
-            )}
-          </div>
-        </div>
-
-        {/* CHURN REVENUE */}
-        <div className={styles.card} role="region" aria-label="Churn Revenue">
-          <div className={styles.cardHeader}>
-            <h2 className={styles.title}>Churn Revenue</h2>
-            <div className={styles.subtitle}>
-              Suma de ARPU por clientes inactivos (con fecha_baja)
+        {/* KPI CARDS */}
+        <div className={styles['churn-dash-kpi-grid']}>
+          {/* CHURN RATE */}
+          <div className={styles['churn-dash-card']} role="region" aria-label="Churn Rate">
+            <div className={styles['churn-dash-card-header']}>
+              <h2 className={styles['churn-dash-title']}>Churn Rate</h2>
+            </div>
+            <div className={styles['churn-dash-card-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : (
+                <div className={styles['churn-dash-count']}>{churnRate}%</div>
+              )}
             </div>
           </div>
-          <div className={styles.cardBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : (
-              <div className={styles.count}>{churnRevenue}</div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* GRÁFICAS */}
-      <div className={styles.chartsGrid}>
-        {/* GRÁFICA MONTHLY CHURN RATE */}
-        <div className={styles.chartCard}>
-          <div className={styles.chartHeader}>
-            <h2 className={styles.chartTitle}>Monthly Churn Rate - {YEAR_FOR_PERIOD}</h2>
-            <div className={styles.chartSubtitle}>
-              Evolución mensual del Churn Rate: Clientes perdidos ÷ Clientes totales del mes × 100
+          {/* TOTAL CUSTOMERS */}
+          <div className={styles['churn-dash-card']} role="region" aria-label="Total Customers">
+            <div className={styles['churn-dash-card-header']}>
+              <h2 className={styles['churn-dash-title']}>Total Customers</h2>
+            </div>
+            <div className={styles['churn-dash-card-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : (
+                <div className={styles['churn-dash-count']}>{totalCustomers}</div>
+              )}
             </div>
           </div>
-          <div className={styles.chartBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando gráfica...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : monthlyChurnData.length === 0 ? (
-              <div className={styles.noData}>No hay datos disponibles para el año {YEAR_FOR_PERIOD}</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart
-                  data={monthlyChurnData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 20,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="nombreMes" 
-                    tick={{ fill: '#666' }}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fill: '#666' }}
-                    tickLine={false}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Tooltip content={<CustomTooltipLine />} />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="churnRate"
-                    name="Churn Rate"
-                    stroke="#ff6b6b"
-                    strokeWidth={3}
-                    dot={{ fill: '#ff6b6b', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8, fill: '#ff4757' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
+
+          {/* ACTIVE CUSTOMERS */}
+          <div className={styles['churn-dash-card']} role="region" aria-label="Active Customers">
+            <div className={styles['churn-dash-card-header']}>
+              <h2 className={styles['churn-dash-title']}>Active Customers</h2>
+            </div>
+            <div className={styles['churn-dash-card-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : (
+                <div className={styles['churn-dash-count']}>{activeCustomers}</div>
+              )}
+            </div>
+          </div>
+
+          {/* INACTIVE CUSTOMERS */}
+          <div className={styles['churn-dash-card']} role="region" aria-label="Inactive Customers">
+            <div className={styles['churn-dash-card-header']}>
+              <h2 className={styles['churn-dash-title']}>Inactive Customers</h2>
+            </div>
+            <div className={styles['churn-dash-card-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : (
+                <div className={styles['churn-dash-count']}>{inactiveCustomers}</div>
+              )}
+            </div>
+          </div>
+
+          {/* CHURN REVENUE */}
+          <div className={styles['churn-dash-card']} role="region" aria-label="Churn Revenue">
+            <div className={styles['churn-dash-card-header']}>
+              <h2 className={styles['churn-dash-title']}>Churn Revenue</h2>
+            </div>
+            <div className={styles['churn-dash-card-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : (
+                <div className={styles['churn-dash-count']}>{churnRevenue}</div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* GRÁFICA CHURN RATE BY PLAN TYPE */}
-        <div className={styles.chartCard}>
-          <div className={styles.chartHeader}>
-            <h2 className={styles.chartTitle}>Churn Rate by Plan Type - {YEAR_FOR_PERIOD}</h2>
-            <div className={styles.chartSubtitle}>
-              Comparación del Churn Rate por tipo de plan
+        {/* GRÁFICAS - PRIMERA FILA */}
+        <div className={styles['churn-dash-charts-grid']}>
+
+          
+          {/* GRÁFICA MONTHLY CHURN RATE */}
+          <div className={styles['churn-dash-chart-card']}>
+            <div className={styles['churn-dash-chart-header']}>
+              <h2 className={styles['churn-dash-chart-title']}>Monthly Churn Rate - {selectedYear}</h2>
+              <div className={styles['churn-dash-chart-subtitle']}>
+                Evolución mensual del Churn Rate
+              </div>
+            </div>
+            <div className={styles['churn-dash-chart-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando gráfica...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : monthlyChurnData.length === 0 ? (
+                <div className={styles['churn-dash-no-data']}>No hay datos disponibles para el año {selectedYear}</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart
+                    data={monthlyChurnData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 20,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="nombreMes" 
+                      tick={{ fill: '#666' }}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      tick={{ fill: '#666' }}
+                      tickLine={false}
+                      tickFormatter={(value) => `${value}%`}
+                    />
+                    <Tooltip content={<CustomTooltipLine />} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="churnRate"
+                      name="Churn Rate"
+                      stroke="#ff6b6b"
+                      strokeWidth={3}
+                      dot={{ fill: '#ff6b6b', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, fill: '#ff4757' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
-          <div className={styles.chartBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando gráfica...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : churnByPlanData.length === 0 ? (
-              <div className={styles.noData}>No hay datos disponibles por tipo de plan</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart
-                  data={churnByPlanData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 20,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="tipoPlan" 
-                    tick={{ fill: '#666', fontSize: 12 }}
-                    tickLine={false}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    tick={{ fill: '#666' }}
-                    tickLine={false}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Tooltip content={<CustomTooltipBar />} />
-                  <Legend />
-                  <Bar
-                    dataKey="churnRate"
-                    name="Churn Rate"
-                    fill="#8884d8"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+
+          {/* GRÁFICA CHURN RATE BY PLAN TYPE */}
+          <div className={styles['churn-dash-chart-card']}>
+            <div className={styles['churn-dash-chart-header']}>
+              <h2 className={styles['churn-dash-chart-title']}>Churn Rate by Plan Type - {selectedYear}</h2>
+              <div className={styles['churn-dash-chart-subtitle']}>
+                Comparación del Churn Rate por tipo de plan
+              </div>
+            </div>
+            <div className={styles['churn-dash-chart-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando gráfica...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : churnByPlanData.length === 0 ? (
+                <div className={styles['churn-dash-no-data']}>No hay datos disponibles por tipo de plan</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={churnByPlanData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 20,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="tipoPlan" 
+                      tick={{ fill: '#666', fontSize: 12 }}
+                      tickLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis 
+                      tick={{ fill: '#666' }}
+                      tickLine={false}
+                      tickFormatter={(value) => `${value}%`}
+                    />
+                    <Tooltip content={<CustomTooltipBar />} />
+                    <Legend />
+                    <Bar
+                      dataKey="churnRate"
+                      name="Churn Rate"
+                      fill="#8884d8"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* GRÁFICA CUSTOMERS LOST & NEW */}
-        <div className={`${styles.chartCard} ${styles.fullWidth}`}>
-          <div className={styles.chartHeader}>
-            <h2 className={styles.chartTitle}>Customers Lost & New - {YEAR_FOR_PERIOD}</h2>
-            <div className={styles.chartSubtitle}>
-              Comparación mensual entre clientes nuevos y clientes perdidos
+        {/* GRÁFICAS - SEGUNDA FILA */}
+        <div className={styles['churn-dash-charts-grid']}>
+          {/* GRÁFICA CUSTOMERS LOST & NEW */}
+          <div className={styles['churn-dash-chart-card']}>
+            <div className={styles['churn-dash-chart-header']}>
+              <h2 className={styles['churn-dash-chart-title']}>Customers Lost & New - {selectedYear}</h2>
+              <div className={styles['churn-dash-chart-subtitle']}>
+                Comparación mensual entre clientes nuevos y clientes perdidos
+              </div>
+            </div>
+            <div className={styles['churn-dash-chart-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando gráfica...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : customersLostNewData.length === 0 ? (
+                <div className={styles['churn-dash-no-data']}>No hay datos disponibles para el año {selectedYear}</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <ComposedChart
+                    data={customersLostNewData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 20,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="nombreMes" 
+                      tick={{ fill: '#666' }}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      tick={{ fill: '#666' }}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltipLostNew />} />
+                    <Legend />
+                    <Bar
+                      dataKey="clientesPerdidos"
+                      name="Lost Customers"
+                      fill="#ef4444"
+                      radius={[4, 4, 0, 0]}
+                      barSize={25}
+                    />
+                    <Bar
+                      dataKey="nuevosClientes"
+                      name="New Customers"
+                      fill="#10b981"
+                      radius={[4, 4, 0, 0]}
+                      barSize={25}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
-          <div className={styles.chartBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando gráfica...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : customersLostNewData.length === 0 ? (
-              <div className={styles.noData}>No hay datos disponibles para el año {YEAR_FOR_PERIOD}</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart
-                  data={customersLostNewData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 20,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="nombreMes" 
-                    tick={{ fill: '#666' }}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fill: '#666' }}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltipLostNew />} />
-                  <Legend />
-                  <Bar
-                    dataKey="clientesPerdidos"
-                    name="Lost Customers"
-                    fill="#ef4444"
-                    radius={[4, 4, 0, 0]}
-                    barSize={25}
-                  />
-                  <Bar
-                    dataKey="nuevosClientes"
-                    name="New Customers"
-                    fill="#10b981"
-                    radius={[4, 4, 0, 0]}
-                    barSize={25}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            )}
+
+          {/* GRÁFICA TOP CHURN FACTORS */}
+          <div className={styles['churn-dash-chart-card']}>
+            <div className={styles['churn-dash-chart-header']}>
+              <h2 className={styles['churn-dash-chart-title']}>Top Churn Factors</h2>
+              <div className={styles['churn-dash-chart-subtitle']}>
+                Promedio de factores que influyen en el churn rate de los clientes
+              </div>
+            </div>
+            <div className={styles['churn-dash-chart-body']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando gráfica...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : topChurnFactorsData.length === 0 ? (
+                <div className={styles['churn-dash-no-data']}>No hay datos disponibles para factores de churn</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={topChurnFactorsData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 20,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="factor" 
+                      tick={{ fill: '#666', fontSize: 12 }}
+                      tickLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis 
+                      tick={{ fill: '#666' }}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltipChurnFactors />} />
+                    <Legend />
+                    <Bar
+                      dataKey="promedio"
+                      name="Valor Promedio"
+                      fill={(data) => getFactorColor(data.factor)}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* GRÁFICA TOP CHURN FACTORS */}
-        <div className={`${styles.chartCard} ${styles.fullWidth}`}>
-          <div className={styles.chartHeader}>
-            <h2 className={styles.chartTitle}>Top Churn Factors</h2>
-            <div className={styles.chartSubtitle}>
-              Promedio de factores que influyen en el churn rate de los clientes
+        {/* TABLA DE CLIENTES */}
+        <div className={styles['churn-dash-table-section']}>
+          <div className={styles['churn-dash-chart-card']}>
+            <div className={styles['churn-dash-chart-header']}>
+              <h2 className={styles['churn-dash-chart-title']}>Clientes</h2>
+              <div className={styles['churn-dash-chart-subtitle']}>
+                Lista de clientes ({allClientesData.length} registros totales)
+              </div>
             </div>
-          </div>
-          <div className={styles.chartBody}>
-            {loading ? (
-              <div className={styles.loading}>Cargando gráfica...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : topChurnFactorsData.length === 0 ? (
-              <div className={styles.noData}>No hay datos disponibles para factores de churn</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart
-                  data={topChurnFactorsData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 20,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="factor" 
-                    tick={{ fill: '#666', fontSize: 12 }}
-                    tickLine={false}
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis 
-                    tick={{ fill: '#666' }}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltipChurnFactors />} />
-                  <Legend />
-                  <Bar
-                    dataKey="promedio"
-                    name="Valor Promedio"
-                    fill={(data) => getFactorColor(data.factor)}
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* TABLA DE CLIENTES */}
-      <div className={styles.tableSection}>
-        <div className={styles.chartCard}>
-          <div className={styles.chartHeader}>
-            <h2 className={styles.chartTitle}>Clientes</h2>
-            <div className={styles.chartSubtitle}>
-              Lista de clientes ({allClientesData.length} registros totales)
-            </div>
-          </div>
-          <div className={styles.tableContainer}>
-            {loading ? (
-              <div className={styles.loading}>Cargando tabla...</div>
-            ) : error ? (
-              <div className={styles.error}>Error: {error}</div>
-            ) : tablaData.length === 0 ? (
-              <div className={styles.noData}>No hay datos disponibles para mostrar</div>
-            ) : (
-              <>
-                <table className={styles.dataTable}>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Nombre del Cliente</th>
-                      <th>Fecha Contratación</th>
-                      <th>Fecha Baja</th>
-                      <th>Estado</th>
-                      <th>ARPU</th>
-                      <th>Observaciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tablaData.map((cliente) => (
-                      <tr key={cliente.id}>
-                        <td className={styles.numberCell}>{cliente.id}</td>
-                        <td className={styles.nameCell}>{cliente.nombre_cliente}</td>
-                        <td className={styles.dateCell}>{formatDate(cliente.fecha_contratacion)}</td>
-                        <td className={styles.dateCell}>{formatDate(cliente.fecha_baja)}</td>
-                        <td className={styles.statusCell}>
-                          <span className={`${styles.statusBadge} ${
-                            cliente.estado_cliente.toLowerCase() === 'activo' ? styles.active : styles.inactive
-                          }`}>
-                            {cliente.estado_cliente}
-                          </span>
-                        </td>
-                        <td className={styles.currencyCell}>{cliente.arpu}</td>
-                        <td className={styles.observationCell}>{cliente.observacion_cliente}</td>
+            <div className={styles['churn-dash-table-container']}>
+              {loading ? (
+                <div className={styles['churn-dash-loading']}>Cargando tabla...</div>
+              ) : error ? (
+                <div className={styles['churn-dash-error']}>Error: {error}</div>
+              ) : tablaData.length === 0 ? (
+                <div className={styles['churn-dash-no-data']}>No hay datos disponibles para mostrar</div>
+              ) : (
+                <>
+                  <table className={styles['churn-dash-data-table']}>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Nombre del Cliente</th>
+                        <th>Fecha Contratación</th>
+                        <th>Fecha Baja</th>
+                        <th>Estado</th>
+                        <th>ARPU</th>
+                        <th>Observaciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                
-                {/* PAGINACIÓN */}
-                <div className={styles.pagination}>
-                  <button 
-                    className={`${styles.paginationButton} ${paginaActual === 1 ? styles.disabled : ''}`}
-                    onClick={() => cambiarPagina(paginaActual - 1)}
-                    disabled={paginaActual === 1}
-                  >
-                    Anterior
-                  </button>
+                    </thead>
+                    <tbody>
+                      {tablaData.map((cliente) => (
+                        <tr key={cliente.id}>
+                          <td className={styles['churn-dash-number-cell']}>{cliente.id}</td>
+                          <td className={styles['churn-dash-name-cell']}>{cliente.nombre_cliente}</td>
+                          <td className={styles['churn-dash-date-cell']}>{formatDate(cliente.fecha_contratacion)}</td>
+                          <td className={styles['churn-dash-date-cell']}>{formatDate(cliente.fecha_baja)}</td>
+                          <td className={styles['churn-dash-status-cell']}>
+                            <span className={`${styles['churn-dash-status-badge']} ${
+                              cliente.estado_cliente.toLowerCase() === 'activo' ? styles['churn-dash-active'] : styles['churn-dash-inactive']
+                            }`}>
+                              {cliente.estado_cliente}
+                            </span>
+                          </td>
+                          <td className={styles['churn-dash-currency-cell']}>{cliente.arpu}</td>
+                          <td className={styles['churn-dash-observation-cell']}>{cliente.observacion_cliente}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                   
-                  <div className={styles.paginationInfo}>
-                    Página {paginaActual} de {totalPaginas}
+                  {/* PAGINACIÓN */}
+                  <div className={styles['churn-dash-pagination']}>
+                    <button 
+                      className={`${styles['churn-dash-pagination-button']} ${paginaActual === 1 ? styles['churn-dash-disabled'] : ''}`}
+                      onClick={() => cambiarPagina(paginaActual - 1)}
+                      disabled={paginaActual === 1}
+                    >
+                      Anterior
+                    </button>
+                    
+                    <div className={styles['churn-dash-pagination-info']}>
+                      Página {paginaActual} de {totalPaginas}
+                    </div>
+                    
+                    <button 
+                      className={`${styles['churn-dash-pagination-button']} ${paginaActual === totalPaginas ? styles['churn-dash-disabled'] : ''}`}
+                      onClick={() => cambiarPagina(paginaActual + 1)}
+                      disabled={paginaActual === totalPaginas}
+                    >
+                      Siguiente
+                    </button>
                   </div>
-                  
-                  <button 
-                    className={`${styles.paginationButton} ${paginaActual === totalPaginas ? styles.disabled : ''}`}
-                    onClick={() => cambiarPagina(paginaActual + 1)}
-                    disabled={paginaActual === totalPaginas}
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* MODAL AI */}
+      {showAIModal && (
+        <div className={styles['churn-dash-ai-modal']}>
+          <div className={styles['churn-dash-ai-modal-header']}>
+            <h2 className={styles['churn-dash-ai-modal-title']}>
+              🤖 Análisis de Datos con Inteligencia Artificial
+            </h2>
+            <button 
+              className={styles['churn-dash-ai-modal-close']}
+              onClick={cerrarModalAI}
+            >
+              ✕ Cerrar
+            </button>
+          </div>
+          <div className={styles['churn-dash-ai-modal-content']}>
+            <iframe
+              src="/dashboard-kpi-churn/chat-ai-consultas"
+              className={styles['churn-dash-ai-iframe']}
+              title="Chat AI para análisis de datos"
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

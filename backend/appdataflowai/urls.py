@@ -103,10 +103,11 @@ from .views import (
         #DASHBOARD CHURN RATE PARA SERVITEL
 
     DashboardChurnRateView,
-    DashboardChurnChatView
-
 
 )
+
+from .views_chat.chat_dashboard_churn import DashboardChurnChatView
+
 
 urlpatterns = [
     # --- Autenticación y usuario ---
