@@ -128,8 +128,8 @@ const ChatDashboardChurn = () => {
               <h4>Inicia una conversación</h4>
               <p>Pregunta sobre análisis de churn, clientes inactivos o tendencias</p>
               <div className={styles.suggestions}>
-                <div className={styles.suggestion} onClick={() => setInput("¿Cuántos clientes inactivos tengo este mes?")}>
-                  ¿Cuántos clientes inactivos tengo?
+                <div className={styles.suggestion} onClick={() => setInput("¿Qué puedes hacer??")}>
+                  ¿Qué puedes hacer?
                 </div>
                 <div className={styles.suggestion} onClick={() => setInput("Muestra la tendencia de churn por segmento")}>
                   Tendencias de churn por segmento

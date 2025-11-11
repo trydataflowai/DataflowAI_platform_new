@@ -49,29 +49,80 @@ class CalculosChatBotDashboardChurn:
         v = float(avg) if avg is not None else None
         return {"value": v, "meta": {"method": "orm_aggregate", "field": "arpu"}}
 
-    def calcular_churn(self, queryset, fecha_inicio=None, fecha_fin=None, **params):
+
+    def calcular_churn_rate(self, queryset, fecha_inicio=None, fecha_fin=None, **params):
         """
-        Ejemplo simple de churn: (clientes con fecha_baja dentro del rango) / total clientes
+        Calcula el churn rate (%) según:
+        Churn Rate = Clientes perdidos durante el periodo / Clientes totales al inicio del periodo * 100
+
         - fecha_inicio, fecha_fin: strings 'YYYY-MM-DD' o None.
-        Ajusta la lógica a tus reglas de negocio si necesitas cohortes u otro cálculo.
         """
         qs = queryset
-        if fecha_inicio:
-            f = parse_date(fecha_inicio)
-            if f:
-                qs = qs.filter(fecha_baja__gte=f)
-        if fecha_fin:
-            f = parse_date(fecha_fin)
-            if f:
-                qs = qs.filter(fecha_baja__lte=f)
-        bajas = qs.exclude(fecha_baja__isnull=True).count()
-        total = queryset.count()
-        rate = (bajas / total) if total > 0 else None
+
+        # Parseo fechas
+        f_inicio = parse_date(fecha_inicio) if fecha_inicio else None
+        f_fin = parse_date(fecha_fin) if fecha_fin else None
+
+        # Clientes totales al inicio del periodo (fecha_contratacion <= fecha_fin)
+        clientes_totales = qs
+        if f_fin:
+            clientes_totales = clientes_totales.filter(fecha_contratacion__lte=f_fin)
+        total_inicio = clientes_totales.count()
+
+        # Clientes perdidos durante el periodo (fecha_baja entre fechas y estado inactivo o cancelado)
+        clientes_perdidos = qs.filter(
+            fecha_baja__isnull=False,
+            estado_cliente__in=['inactivo', 'cancelado']
+        )
+        if f_inicio:
+            clientes_perdidos = clientes_perdidos.filter(fecha_baja__gte=f_inicio)
+        if f_fin:
+            clientes_perdidos = clientes_perdidos.filter(fecha_baja__lte=f_fin)
+        
+        perdidos = clientes_perdidos.count()
+
+        rate = (perdidos / total_inicio * 100) if total_inicio > 0 else None
+
         return {
             "value": rate,
-            "meta": {"method": "simple_bajas_sobre_total", "bajas": bajas, "total": total,
-                     "fecha_inicio": fecha_inicio, "fecha_fin": fecha_fin}
+            "meta": {
+                "method": "clientes_perdidos_sobre_total_inicio",
+                "clientes_perdidos": perdidos,
+                "clientes_totales_inicio": total_inicio,
+                "fecha_inicio": fecha_inicio,
+                "fecha_fin": fecha_fin
+            }
         }
+    
+    # Función para listar clientes por estado
+    # Función para listar clientes por estado
+    # Función para listar solo nombres de clientes por estado
+    def listar_nombres_clientes_por_estado(self, queryset, estado=None, **params):
+        """
+        Devuelve un listado de nombres de clientes filtrados por estado:
+        - estado: 'activo', 'inactivo' o 'cancelado'. Si None, devuelve todos.
+        Retorna un string organizado, con un nombre por línea.
+        """
+        qs = queryset
+        if estado in ['activo', 'inactivo', 'cancelado']:
+            qs = qs.filter(estado_cliente=estado)
+        
+        nombres = qs.values_list('nombre_cliente', flat=True)
+        if not nombres:
+            return f"No hay clientes con estado '{estado}'."
+        
+        # Crear texto organizado
+        texto = f"Listado de clientes {estado or 'todos'}:\n"
+        texto += "\n".join(f"- {nombre}" for nombre in nombres)
+        return {
+            "value": texto,
+            "meta": {
+                "estado_filtrado": estado,
+                "total": len(nombres)
+            }
+        }
+
+
 
 
 
@@ -80,8 +131,8 @@ class CalculosChatBotDashboardChurn:
 # ---------------------------
 METRIC_AYUDA = {
     "que_puedo_hacer": {
-        "text": "Puedo ejecutar métricas como 'clientes_activos', 'arpu_promedio' y 'hallar_churn'. Usa 'listar metricas' para verlas.",
-        "aliases": ["qué puedo hacer", "que puedo hacer", "ayuda", "help"]
+        "text": "Puedo ayudar con información sobre tu data del KPI Churn, si deseas listar la las cosas que puedo hacer por ti, dime.",
+        "aliases": ["qué puedes hacer", "que puedes hacer", "ayuda", "help"]
     },
     "listar_metricas": {
         "text": "Lista de métricas: clientes_activos, inactivos, total_registros, arpu_promedio, hallar_churn.",
@@ -90,6 +141,11 @@ METRIC_AYUDA = {
     "sobre_churn": {
         "text": "La tasa de churn se calcula típicamente como clientes que se dieron de baja / total de clientes en el periodo.",
         "aliases": ["qué es churn", "definición churn", "sobre churn"]
+    },
+
+    "esperanza": {
+        "text": "no se",
+        "aliases": ["quien es esperanza"]
     }
 }
 
@@ -146,11 +202,27 @@ class DashboardChurnChatView(APIView):
             "aliases": ["arpu promedio", "promedio arpu", "arpu_promedio"]
         },
         "hallar_churn": {
-            "func": calc.calcular_churn,
+            "func": calc.calcular_churn_rate,
             "descripcion": "Tasa de churn: clientes con fecha_baja en rango / total clientes.",
             "params": ["fecha_inicio", "fecha_fin"],
             "aliases": ["churn", "tasa de churn", "hallar churn", "hallar_churn"]
+        },
+        "listar_clientes": {
+            "func": calc.listar_nombres_clientes_por_estado,
+            "descripcion": "Devuelve un listado de nombres de clientes filtrados por estado: activo, inactivo o cancelado, en formato texto organizado.",
+            "params": ["estado"],  # se espera que el usuario indique el estado
+            "aliases": [
+                "listado clientes",
+                "listado de clientes",
+                "listado clientes activos",
+                "listado clientes inactivos",
+                "listado clientes cancelados",
+                "clientes activos",
+                "clientes inactivos",
+                "clientes cancelados"
+            ]
         }
+
     }
 
     # ---------------------------
@@ -169,7 +241,7 @@ class DashboardChurnChatView(APIView):
         if self.THANKS.search(m):
             return True, "De nada — cuando quieras."
         if self.SHORT_HELP.search(m):
-            return True, ("Puedo ejecutar métricas registradas o devolver ayudas rápidas. Usa 'listar metricas' para ver opciones.")
+            return True, ("Puedo ayudar con información sobre tu data del KPI Churn, si deseas listar las cosas que puedo hacer por ti, dime.")
         return False, ""
 
     # ---------------------------
