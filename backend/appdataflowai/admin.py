@@ -737,3 +737,55 @@ class DashboardChurnRateAdmin(admin.ModelAdmin):
 
     # Opcional: ajustar cantidad de registros por página
     list_per_page = 25
+
+
+
+
+
+
+
+
+#DASHBOARD ARPU
+
+from django.contrib import admin
+from .models import DashboardARPU
+
+@admin.register(DashboardARPU)
+class DashboardARPUAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'periodo_mes',
+        'cliente_id',
+        'estado',
+        'tarifa_plan',
+        'velocidad_mbps',
+        'promo_id',
+        'ingresos_totales',
+        'mrr',
+        'usuarios_promedio',
+        'subs_inicio',
+        'subs_final',
+        'arpu',
+        'churn',
+        'created_at',
+        'updated_at',
+    )
+
+    list_filter = (
+        'periodo_mes',
+        'id_empresa',
+        'id_producto',
+        'estado',
+        'velocidad_mbps',
+        'promo_id',
+    )
+
+    search_fields = (
+        'cliente_id',
+        'promo_id',
+        'metadata',
+    )
+
+    ordering = ('-periodo_mes',)

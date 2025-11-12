@@ -66,6 +66,11 @@ import DashboardChurnKpi from "../components/dashboards/DashboardChurnKpi";
 import ChatDashboardChurn from "../components/dashboard_chat/ChatDashboardChurn";
 
 
+// Rutas correspondientes al dashboard ARPU ISP
+import DashboardARPUisp from "../components/dashboards/DashboardARPUisp";
+
+
+
 
 import ShopifyJsx from "../components/pages/Shopify";
 
@@ -475,12 +480,27 @@ export const Rutas = () => {
             path={("/dashboard-kpi-churn/chat-ai-consultas")}
             element={
               <RutaProtegida>
-                <SideBarLayout>
+
                   <ChatDashboardChurn />
+              </RutaProtegida>
+            }
+          />
+
+
+
+
+// Rutas correspondientes al DASHBOARD ARPU ISP
+          <Route
+            path={"/DashboardARPUisp"}
+            element={
+              <RutaProtegida>
+                <SideBarLayout>
+                  <DashboardARPUisp />
                 </SideBarLayout>
               </RutaProtegida>
             }
           />
+
 
 
         </Routes>

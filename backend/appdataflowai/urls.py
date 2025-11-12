@@ -104,6 +104,16 @@ from .views import (
 
     DashboardChurnRateView,
 
+
+    
+    #URL de Dashboard ISP Arpu
+
+    DashboardARPUListView,
+    DashboardARPUForecastView,
+    DashboardARPUUpsertView,
+
+
+
 )
 
 from .views_chat.chat_dashboard_churn import DashboardChurnChatView
@@ -227,6 +237,24 @@ urlpatterns = [
     #DASHBOARD CHURN RATE PARA SERVITEL
     path('dashboard/churn/rate/', DashboardChurnRateView.as_view(), name='dashboard-churn-kpi'),
     path('dashboard/churn/chat/', DashboardChurnChatView.as_view(), name='dashboard-churn-chat'),
+
+
+
+
+     # ======================
+# URLs de Dashboard ARPU
+# ======================
+
+     # Listado general filtrado por empresa y fechas
+    path('dashboard_arpu/list/', DashboardARPUListView.as_view(), name='dashboard_arpu_list'),
+
+    # Generación de forecast usando statsmodels (ExponentialSmoothing)
+    path('dashboard_arpu/forecast/', DashboardARPUForecastView.as_view(), name='dashboard_arpu_forecast'),
+
+    # Crear o actualizar (upsert) registro de ARPU
+    path('dashboard_arpu/upsert/', DashboardARPUUpsertView.as_view(), name='dashboard_arpu_upsert'),
+
+
 
 
 

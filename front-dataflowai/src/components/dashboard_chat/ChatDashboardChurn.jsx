@@ -1,38 +1,64 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import styles from '../../styles/dashboard_chat/ChatDashboardChurn.module.css';
 import { enviarMensajeChatDashboardChurn } from '../../api/dashboard_chat/ChatDashboardChurnKpi';
+
+const SCROLL_THRESHOLD = 150; // px desde el bottom para considerar "estás en el final"
 
 const ChatDashboardChurn = () => {
   const [data, setData] = useState(null);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [sending, setSending] = useState(false);
+
   const listRef = useRef(null);
   const inputRef = useRef(null);
+  const bottomRef = useRef(null);
+  const userScrolledUpRef = useRef(false); // marca si el usuario está leyendo arriba
 
-  // Efecto de scroll suave
+  // Mantener referencia del último scrollTop para detectar scroll manual
   useEffect(() => {
-    if (listRef.current) {
-      const scrollToBottom = () => {
-        listRef.current.scrollTo({
-          top: listRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
-      };
-      
-      const timeoutId = setTimeout(scrollToBottom, 50);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [messages, sending]);
+    const list = listRef.current;
+    if (!list) return;
+    const onScroll = () => {
+      const distanceToBottom = list.scrollHeight - (list.scrollTop + list.clientHeight);
+      userScrolledUpRef.current = distanceToBottom > SCROLL_THRESHOLD;
+    };
+    list.addEventListener('scroll', onScroll, { passive: true });
+    // inicial check
+    onScroll();
+    return () => list.removeEventListener('scroll', onScroll);
+  }, []);
 
-  // Efecto de focus al cargar
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
+  // Scroll al final cuando cambian mensajes o cambia sending,
+  // pero solo si el usuario está *cerca* del final (no forzar si leyó hacia arriba)
+  useLayoutEffect(() => {
+    const shouldAuto = !userScrolledUpRef.current;
+    if (!bottomRef.current) return;
+
+    // espera al layout, luego usa requestAnimationFrame
+    const raf = requestAnimationFrame(() => {
+      try {
+        if (shouldAuto) {
+          bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      } catch (e) {
+        // fallback
+        const list = listRef.current;
+        if (list && shouldAuto) {
+          try {
+            list.scrollTop = list.scrollHeight;
+          } catch (err) { /* ignore */ }
+        }
       }
-    }, 500);
-    return () => clearTimeout(timeoutId);
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [messages.length, sending]);
+
+  // Focus al cargar
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 400);
+    return () => clearTimeout(t);
   }, []);
 
   async function handleSend(e) {
@@ -40,33 +66,33 @@ const ChatDashboardChurn = () => {
     const text = input.trim();
     if (!text) return;
 
-    // Agregar mensaje del usuario
-    const userMessage = { role: 'user', text, id: Date.now() };
+    const userMessage = { role: 'user', text, id: `u-${Date.now()}` };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setSending(true);
 
     try {
       const resp = await enviarMensajeChatDashboardChurn(text);
-      
-      const assistant = (resp && (resp.assistant || resp.text)) || 'Sin respuesta del asistente.';
-      const assistantMessage = { role: 'assistant', text: assistant, id: Date.now() + 1 };
-      
-      setMessages(prev => [...prev, assistantMessage]);
 
-      if (resp && resp.contexto) {
-        setData(resp.contexto);
-      }
+      const assistant = (resp && (resp.assistant || resp.text)) || 'Sin respuesta del asistente.';
+      const assistantMessage = { role: 'assistant', text: assistant, id: `a-${Date.now() + 1}` };
+
+      // añadir con pequeño timeout para simular streaming y dar chance al scroll
+      setTimeout(() => setMessages(prev => [...prev, assistantMessage]), 80);
+
+      if (resp && resp.contexto) setData(resp.contexto);
     } catch (err) {
       console.error(err);
-      const errorMessage = { 
-        role: 'assistant', 
+      const errorMessage = {
+        role: 'assistant',
         text: `Error: ${err.message || 'falló la petición'}`,
-        id: Date.now() + 1
+        id: `err-${Date.now()}`
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setSending(false);
+      // re-focus input
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
   }
 
@@ -79,17 +105,21 @@ const ChatDashboardChurn = () => {
 
   const clearChat = () => {
     setMessages([]);
+    // asegurar scroll al top (vacío)
+    if (listRef.current) listRef.current.scrollTop = 0;
   };
+
+  // helper para renderizar texto (evita HTML injection)
+  const renderText = (text) => text;
 
   return (
     <div className={styles.container}>
-      {/* Header limpio y minimalista */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.titleSection}>
             <div className={styles.chatIcon}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" 
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
                       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
@@ -98,15 +128,15 @@ const ChatDashboardChurn = () => {
               <p className={styles.subtitle}>Analiza el comportamiento de tus clientes</p>
             </div>
           </div>
-          
+
           {messages.length > 0 && (
-            <button 
+            <button
               className={styles.clearButton}
               onClick={clearChat}
               aria-label="Limpiar conversación"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 10v4m-4-4v4m8-4v4" 
+                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m-6 10v4m-4-4v4m8-4v4"
                       strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </button>
@@ -114,14 +144,13 @@ const ChatDashboardChurn = () => {
         </div>
       </div>
 
-      {/* Chat area minimalista */}
       <div className={styles.chat}>
-        <div className={styles.messages} ref={listRef}>
+        <div className={styles.messages} ref={listRef} aria-live="polite">
           {messages.length === 0 && (
             <div className={styles.placeholder}>
               <div className={styles.placeholderIcon}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" 
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
@@ -141,24 +170,24 @@ const ChatDashboardChurn = () => {
             </div>
           )}
 
-          {messages.map((m, i) => (
+          {messages.map((m) => (
             <div
               key={m.id}
               className={`${styles.msg} ${m.role === 'user' ? styles.user : styles.assistant}`}
             >
               <div className={styles.msgContent}>
                 {m.role === 'assistant' && (
-                  <div className={styles.assistantIndicator}>
+                  <div className={styles.assistantIndicator} aria-hidden>
                     <span>AI</span>
                   </div>
                 )}
                 <div className={styles.msgBubble}>
                   <div className={styles.msgText}>
-                    {m.text}
+                    {renderText(m.text)}
                   </div>
                 </div>
                 {m.role === 'user' && (
-                  <div className={styles.userIndicator}>
+                  <div className={styles.userIndicator} aria-hidden>
                     <span>Tú</span>
                   </div>
                 )}
@@ -174,17 +203,17 @@ const ChatDashboardChurn = () => {
                 </div>
                 <div className={styles.msgBubble}>
                   <div className={styles.typingAnimation}>
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <span></span><span></span><span></span>
                   </div>
                 </div>
               </div>
             </div>
           )}
+
+          {/* sentinel */}
+          <div ref={bottomRef} style={{ height: 1, width: '100%' }} />
         </div>
 
-        {/* Input area limpia */}
         <form className={styles.inputRow} onSubmit={handleSend}>
           <div className={styles.inputContainer}>
             <input
@@ -195,17 +224,19 @@ const ChatDashboardChurn = () => {
               placeholder="Escribe tu pregunta sobre análisis de churn..."
               disabled={sending}
               className={styles.chatInput}
+              aria-label="Escribe un mensaje"
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
               className={styles.sendButton}
+              aria-label="Enviar mensaje"
             >
               {sending ? (
-                <div className={styles.sendSpinner}></div>
+                <div className={styles.sendSpinner} aria-hidden />
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" 
+                  <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"
                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               )}
