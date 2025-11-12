@@ -902,7 +902,18 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 """
-Mira, ahora estos son los campos dame 20 registros donde en las fechas ssolo coloques datos del 2025, osea en las 3 fechas si hay valores en fecha de baja osea si colocas datos en fecha de baja es pq el cliente le debes colocar inactivo osea primero si efectivamente una fecha de contrataciion y si está inactivo debe tener fecha de baja si el usuario está activo no debe tener fecha de baja debe ser null TIPO_PLAN_CHOICES = [ ('basico', 'Básico'), ('estandar', 'Estándar'), ('premium', 'Premium'), ] ESTADO_CLIENTE_CHOICES = [ ('activo', 'Activo'), ('cancelado', 'Cancelado'), ('inactivo', 'Inactivo'), ] INSERT INTO public.dashboard_churn_rate( id_registro, id_cliente, nombre_cliente, tipo_plan, region, departamento, fecha_contratacion, fecha_baja, fecha_ultima_transaccion, estado_cliente, monto_facturado_mensual, margen_bruto, arpu, numero_quejas, total_reclamos, interacciones_servicio, satisfaccion_cliente, valor_percibido, recomendacion_nps, observacion_cliente, id_empresa, id_producto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); En Id_empresa colocarás el valor 3 En id_producto colocarás el valor 19
+Mira, ahora estos son los campos dame 20 registros donde en las fechas ssolo coloques datos del 2025
+, osea en las 3 fechas si hay valores en fecha de baja osea si colocas datos en fecha de baja es pq 
+el cliente le debes colocar inactivo osea primero si efectivamente una fecha de contrataciion y 
+si está inactivo debe tener fecha de baja si el usuario está activo no debe tener fecha de baja 
+debe ser null TIPO_PLAN_CHOICES = [ ('basico', 'Básico'), ('estandar', 'Estándar'), ('premium', 'Premium'),
+ ] ESTADO_CLIENTE_CHOICES = [ ('activo', 'Activo'), ('cancelado', 'Cancelado'), ('inactivo', 'Inactivo'),]
+ INSERT INTO public.dashboard_churn_rate( id_registro, id_cliente, nombre_cliente, tipo_plan, region, 
+ departamento, fecha_contratacion, fecha_baja, fecha_ultima_transaccion, estado_cliente, 
+ monto_facturado_mensual, margen_bruto, arpu, numero_quejas, total_reclamos, interacciones_servicio,
+ satisfaccion_cliente, valor_percibido, recomendacion_nps, observacion_cliente, id_empresa, id_producto) 
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); 
+ En Id_empresa colocarás el valor 3 En id_producto colocarás el valor 19
 
 
 """

@@ -45,7 +45,7 @@ const formatDate = (dateString) => {
   }
 };
 
-// Función para calcular el churn rate mensual
+// Función CORREGIDA para calcular el churn rate mensual
 const calcularChurnMensual = (data, year) => {
   const meses = [
     'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -54,52 +54,57 @@ const calcularChurnMensual = (data, year) => {
 
   const datosMensuales = {};
   
+  // Inicializar estructura de datos
   meses.forEach((mes, index) => {
     datosMensuales[index + 1] = {
       mes: index + 1,
       nombreMes: mes,
-      clientesTotales: 0,
+      clientesActivos: 0,
       clientesPerdidos: 0,
       churnRate: 0
     };
   });
 
-  const clientesPorMes = new Map();
-  const clientesPerdidosPorMes = new Map();
-
-  for (let i = 1; i <= 12; i++) {
-    clientesPorMes.set(i, new Set());
-    clientesPerdidosPorMes.set(i, new Set());
-  }
-
-  data.forEach((cliente) => {
-    const idCliente = String(cliente.id_cliente);
-    
-    if (cliente.fecha_contratacion) {
-      const fechaContratacion = new Date(cliente.fecha_contratacion);
-      if (fechaContratacion.getFullYear() === year) {
-        const mesContratacion = fechaContratacion.getMonth() + 1;
-        clientesPorMes.get(mesContratacion).add(idCliente);
-      }
-    }
-    
-    if (cliente.fecha_baja && String(cliente.estado_cliente).toLowerCase() === 'inactivo') {
-      const fechaBaja = new Date(cliente.fecha_baja);
-      if (fechaBaja.getFullYear() === year) {
-        const mesBaja = fechaBaja.getMonth() + 1;
-        clientesPerdidosPorMes.get(mesBaja).add(idCliente);
-      }
-    }
-  });
-
+  // Para cada mes, determinar qué clientes estaban activos y cuáles se perdieron
   for (let mes = 1; mes <= 12; mes++) {
-    const clientesTotales = clientesPorMes.get(mes).size;
-    const clientesPerdidos = clientesPerdidosPorMes.get(mes).size;
+    const clientesActivosMes = new Set();
+    const clientesPerdidosMes = new Set();
+
+    data.forEach((cliente) => {
+      const idCliente = String(cliente.id_cliente);
+      const fechaContratacion = cliente.fecha_contratacion ? new Date(cliente.fecha_contratacion) : null;
+      const fechaBaja = cliente.fecha_baja ? new Date(cliente.fecha_baja) : null;
+      
+      // Verificar si el cliente estaba activo durante este mes
+      if (fechaContratacion && fechaContratacion.getFullYear() <= year) {
+        const mesContratacion = fechaContratacion.getMonth() + 1;
+        const anoContratacion = fechaContratacion.getFullYear();
+        
+        // El cliente está activo si:
+        // 1. Se contrató en o antes del mes actual del año seleccionado
+        // 2. No tiene fecha de baja O tiene fecha de baja después del final del mes actual
+        if (anoContratacion < year || (anoContratacion === year && mesContratacion <= mes)) {
+          // Verificar si no fue dado de baja antes o durante este mes
+          if (!fechaBaja || fechaBaja.getFullYear() > year || 
+              (fechaBaja.getFullYear() === year && fechaBaja.getMonth() + 1 > mes)) {
+            clientesActivosMes.add(idCliente);
+          }
+        }
+      }
+
+      // Verificar si el cliente se perdió en este mes específico
+      if (fechaBaja && fechaBaja.getFullYear() === year && fechaBaja.getMonth() + 1 === mes) {
+        clientesPerdidosMes.add(idCliente);
+      }
+    });
+
+    const activos = clientesActivosMes.size;
+    const perdidos = clientesPerdidosMes.size;
     
-    datosMensuales[mes].clientesTotales = clientesTotales;
-    datosMensuales[mes].clientesPerdidos = clientesPerdidos;
-    datosMensuales[mes].churnRate = clientesTotales > 0 
-      ? Number(((clientesPerdidos / clientesTotales) * 100).toFixed(2))
+    datosMensuales[mes].clientesActivos = activos;
+    datosMensuales[mes].clientesPerdidos = perdidos;
+    datosMensuales[mes].churnRate = activos > 0 
+      ? Number(((perdidos / activos) * 100).toFixed(2))
       : 0;
   }
 
@@ -221,7 +226,7 @@ const calcularClientesNuevosVsPerdidos = (data, year) => {
   return Object.values(datosMensuales);
 };
 
-// Función para calcular promedios de factores de churn
+// Función MODIFICADA para calcular promedios de factores de churn con cantidad
 const calcularTopChurnFactors = (data) => {
   const factores = {
     numero_quejas: { suma: 0, count: 0, nombre: 'Número de Quejas' },
@@ -275,27 +280,12 @@ const calcularTopChurnFactors = (data) => {
   const resultado = Object.entries(factores).map(([key, factor]) => ({
     factor: factor.nombre,
     promedio: factor.count > 0 ? Number((factor.suma / factor.count).toFixed(2)) : 0,
-    totalClientes: factor.count
+    totalClientes: factor.count,
+    cantidadTotal: factor.suma // Nueva métrica: cantidad total
   }));
 
   // Ordenar por promedio descendente
   return resultado.sort((a, b) => b.promedio - a.promedio);
-};
-
-// Función para obtener datos paginados para la tabla
-const obtenerDatosTabla = (data, paginaActual) => {
-  const inicio = (paginaActual - 1) * REGISTROS_POR_PAGINA;
-  const fin = inicio + REGISTROS_POR_PAGINA;
-  
-  return data.slice(inicio, fin).map((cliente, index) => ({
-    id: inicio + index + 1,
-    nombre_cliente: cliente.nombre_cliente || 'N/A',
-    fecha_contratacion: cliente.fecha_contratacion,
-    fecha_baja: cliente.fecha_baja,
-    estado_cliente: cliente.estado_cliente || 'N/A',
-    observacion_cliente: cliente.observacion_cliente || '-',
-    arpu: cliente.arpu ? formatCurrency(parseNumber(cliente.arpu)) : '-'
-  }));
 };
 
 // Función para extraer años únicos de los datos
@@ -337,15 +327,10 @@ const DashboardChurnKpi = () => {
   const [totalCustomers, setTotalCustomers] = useState(null);
   const [activeCustomers, setActiveCustomers] = useState(null);
   const [inactiveCustomers, setInactiveCustomers] = useState(null);
-  const [churnRevenue, setChurnRevenue] = useState(null);
   const [monthlyChurnData, setMonthlyChurnData] = useState([]);
   const [churnByPlanData, setChurnByPlanData] = useState([]);
   const [customersLostNewData, setCustomersLostNewData] = useState([]);
   const [topChurnFactorsData, setTopChurnFactorsData] = useState([]);
-  const [tablaData, setTablaData] = useState([]);
-  const [allClientesData, setAllClientesData] = useState([]);
-  const [paginaActual, setPaginaActual] = useState(1);
-  const [totalPaginas, setTotalPaginas] = useState(1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState([]);
   const [showAIModal, setShowAIModal] = useState(false);
@@ -368,14 +353,10 @@ const DashboardChurnKpi = () => {
           setTotalCustomers(0);
           setActiveCustomers(0);
           setInactiveCustomers(0);
-          setChurnRevenue(formatCurrency(0));
           setMonthlyChurnData([]);
           setChurnByPlanData([]);
           setCustomersLostNewData([]);
           setTopChurnFactorsData([]);
-          setTablaData([]);
-          setAllClientesData([]);
-          setTotalPaginas(1);
           setAvailableYears([new Date().getFullYear()]);
           setLoading(false);
           return;
@@ -429,38 +410,17 @@ const DashboardChurnKpi = () => {
         const perdidosPeriodo = clientesPerdidosPeriodo.size;
         const tasa = totalPeriodo > 0 ? ((perdidosPeriodo / totalPeriodo) * 100).toFixed(2) : '0.00';
 
-        const mapInactiveWithBaja = new Map();
-        for (const r of data) {
-          const id = r.id_cliente != null ? String(r.id_cliente) : null;
-          if (!id) continue;
-          if (r.fecha_baja && String(r.estado_cliente).toLowerCase() === 'inactivo') {
-            if (!mapInactiveWithBaja.has(id)) {
-              mapInactiveWithBaja.set(id, parseNumber(r.arpu ?? r.monto_facturado_mensual ?? 0));
-            }
-          }
-        }
-        let revenueSum = 0;
-        for (const v of mapInactiveWithBaja.values()) revenueSum += v;
-
         // === NUEVO: TODOS LOS DATOS ===
         const monthlyData = calcularChurnMensual(data, selectedYear);
         const planData = calcularChurnPorTipoPlan(data, selectedYear);
         const lostNewData = calcularClientesNuevosVsPerdidos(data, selectedYear);
         const churnFactorsData = calcularTopChurnFactors(data);
-        
-        // Configurar paginación
-        setAllClientesData(data);
-        const totalPags = Math.ceil(data.length / REGISTROS_POR_PAGINA);
-        setTotalPaginas(totalPags);
-        const tablaClientes = obtenerDatosTabla(data, 1);
-        setTablaData(tablaClientes);
 
         // Guardar estados
         setTotalCustomers(total);
         setActiveCustomers(totalActive);
         setInactiveCustomers(totalInactive);
         setChurnRate(tasa);
-        setChurnRevenue(formatCurrency(revenueSum));
         setMonthlyChurnData(monthlyData);
         setChurnByPlanData(planData);
         setCustomersLostNewData(lostNewData);
@@ -478,15 +438,6 @@ const DashboardChurnKpi = () => {
       mounted = false;
     };
   }, [selectedYear]);
-
-  // Función para cambiar de página
-  const cambiarPagina = (nuevaPagina) => {
-    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-      setPaginaActual(nuevaPagina);
-      const nuevaTablaData = obtenerDatosTabla(allClientesData, nuevaPagina);
-      setTablaData(nuevaTablaData);
-    }
-  };
 
   // Función para abrir modal de AI
   const abrirModalAI = () => {
@@ -509,8 +460,8 @@ const DashboardChurnKpi = () => {
             <strong>{payload[0].value}%</strong>
           </p>
           <p className={styles['churn-dash-tooltip-item']}>
-            <span>Clientes Totales: </span>
-            <strong>{payload[0].payload.clientesTotales}</strong>
+            <span>Clientes Activos: </span>
+            <strong>{payload[0].payload.clientesActivos}</strong>
           </p>
           <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Perdidos: </span>
@@ -564,7 +515,7 @@ const DashboardChurnKpi = () => {
     return null;
   };
 
-  // Tooltip personalizado para Top Churn Factors
+  // Tooltip MODIFICADO para Top Churn Factors con cantidad
   const CustomTooltipChurnFactors = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -573,6 +524,10 @@ const DashboardChurnKpi = () => {
           <p className={styles['churn-dash-tooltip-item']}>
             <span>Promedio: </span>
             <strong>{payload[0].value}</strong>
+          </p>
+          <p className={styles['churn-dash-tooltip-item']}>
+            <span>Cantidad Total: </span>
+            <strong>{payload[0].payload.cantidadTotal}</strong>
           </p>
           <p className={styles['churn-dash-tooltip-item']}>
             <span>Clientes Considerados: </span>
@@ -696,34 +651,16 @@ const DashboardChurnKpi = () => {
               )}
             </div>
           </div>
-
-          {/* CHURN REVENUE */}
-          <div className={styles['churn-dash-card']} role="region" aria-label="Churn Revenue">
-            <div className={styles['churn-dash-card-header']}>
-              <h2 className={styles['churn-dash-title']}>Churn Revenue</h2>
-            </div>
-            <div className={styles['churn-dash-card-body']}>
-              {loading ? (
-                <div className={styles['churn-dash-loading']}>Cargando...</div>
-              ) : error ? (
-                <div className={styles['churn-dash-error']}>Error: {error}</div>
-              ) : (
-                <div className={styles['churn-dash-count']}>{churnRevenue}</div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* GRÁFICAS - PRIMERA FILA */}
         <div className={styles['churn-dash-charts-grid']}>
-
-          
-          {/* GRÁFICA MONTHLY CHURN RATE */}
+          {/* GRÁFICA MONTHLY CHURN RATE CORREGIDA */}
           <div className={styles['churn-dash-chart-card']}>
             <div className={styles['churn-dash-chart-header']}>
               <h2 className={styles['churn-dash-chart-title']}>Monthly Churn Rate - {selectedYear}</h2>
               <div className={styles['churn-dash-chart-subtitle']}>
-                Evolución mensual del Churn Rate
+                Evolución mensual del Churn Rate (calculado sobre clientes activos del mes)
               </div>
             </div>
             <div className={styles['churn-dash-chart-body']}>
@@ -887,12 +824,12 @@ const DashboardChurnKpi = () => {
             </div>
           </div>
 
-          {/* GRÁFICA TOP CHURN FACTORS */}
+          {/* GRÁFICA TOP CHURN FACTORS MODIFICADA */}
           <div className={styles['churn-dash-chart-card']}>
             <div className={styles['churn-dash-chart-header']}>
               <h2 className={styles['churn-dash-chart-title']}>Top Churn Factors</h2>
               <div className={styles['churn-dash-chart-subtitle']}>
-                Promedio de factores que influyen en el churn rate de los clientes
+                Promedio y cantidad total de factores que influyen en el churn rate
               </div>
             </div>
             <div className={styles['churn-dash-chart-body']}>
@@ -936,85 +873,6 @@ const DashboardChurnKpi = () => {
                     />
                   </BarChart>
                 </ResponsiveContainer>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* TABLA DE CLIENTES */}
-        <div className={styles['churn-dash-table-section']}>
-          <div className={styles['churn-dash-chart-card']}>
-            <div className={styles['churn-dash-chart-header']}>
-              <h2 className={styles['churn-dash-chart-title']}>Clientes</h2>
-              <div className={styles['churn-dash-chart-subtitle']}>
-                Lista de clientes ({allClientesData.length} registros totales)
-              </div>
-            </div>
-            <div className={styles['churn-dash-table-container']}>
-              {loading ? (
-                <div className={styles['churn-dash-loading']}>Cargando tabla...</div>
-              ) : error ? (
-                <div className={styles['churn-dash-error']}>Error: {error}</div>
-              ) : tablaData.length === 0 ? (
-                <div className={styles['churn-dash-no-data']}>No hay datos disponibles para mostrar</div>
-              ) : (
-                <>
-                  <table className={styles['churn-dash-data-table']}>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nombre del Cliente</th>
-                        <th>Fecha Contratación</th>
-                        <th>Fecha Baja</th>
-                        <th>Estado</th>
-                        <th>ARPU</th>
-                        <th>Observaciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tablaData.map((cliente) => (
-                        <tr key={cliente.id}>
-                          <td className={styles['churn-dash-number-cell']}>{cliente.id}</td>
-                          <td className={styles['churn-dash-name-cell']}>{cliente.nombre_cliente}</td>
-                          <td className={styles['churn-dash-date-cell']}>{formatDate(cliente.fecha_contratacion)}</td>
-                          <td className={styles['churn-dash-date-cell']}>{formatDate(cliente.fecha_baja)}</td>
-                          <td className={styles['churn-dash-status-cell']}>
-                            <span className={`${styles['churn-dash-status-badge']} ${
-                              cliente.estado_cliente.toLowerCase() === 'activo' ? styles['churn-dash-active'] : styles['churn-dash-inactive']
-                            }`}>
-                              {cliente.estado_cliente}
-                            </span>
-                          </td>
-                          <td className={styles['churn-dash-currency-cell']}>{cliente.arpu}</td>
-                          <td className={styles['churn-dash-observation-cell']}>{cliente.observacion_cliente}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  
-                  {/* PAGINACIÓN */}
-                  <div className={styles['churn-dash-pagination']}>
-                    <button 
-                      className={`${styles['churn-dash-pagination-button']} ${paginaActual === 1 ? styles['churn-dash-disabled'] : ''}`}
-                      onClick={() => cambiarPagina(paginaActual - 1)}
-                      disabled={paginaActual === 1}
-                    >
-                      Anterior
-                    </button>
-                    
-                    <div className={styles['churn-dash-pagination-info']}>
-                      Página {paginaActual} de {totalPaginas}
-                    </div>
-                    
-                    <button 
-                      className={`${styles['churn-dash-pagination-button']} ${paginaActual === totalPaginas ? styles['churn-dash-disabled'] : ''}`}
-                      onClick={() => cambiarPagina(paginaActual + 1)}
-                      disabled={paginaActual === totalPaginas}
-                    >
-                      Siguiente
-                    </button>
-                  </div>
-                </>
               )}
             </div>
           </div>
