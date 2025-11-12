@@ -270,7 +270,8 @@ class DashboardChurnChatView(APIView):
                 "mostrar clientes inactivos",
                 "quienes son los clientes inactivos",
                 "clientes que están inactivos",
-                "listado de inactivos"
+                "listado de inactivos",
+                "dame el listado de clientes inactivos"
             ]
         },
         "listar_clientes_activos": {

@@ -192,7 +192,7 @@ export default function DashboardISPVenta() {
         <div className={styles.dashipscolxdsHeaderContent}>
           <h1 className={styles.dashipscolxdsTitulo}>
             <span className={styles.dashipscolxdsTituloIcon}>📊</span>
-            Dashboard ISP Ventas
+            Dashboard General
             <span className={styles.dashipscolxdsBadge}>v1.0</span>
           </h1>
           <div className={styles.dashipscolxdsHeaderDate}>
