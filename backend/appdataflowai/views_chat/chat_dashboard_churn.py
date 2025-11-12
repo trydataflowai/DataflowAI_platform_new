@@ -121,8 +121,60 @@ class CalculosChatBotDashboardChurn:
                 "total": len(nombres)
             }
         }
-
-
+    def listar_nombres_clientes_inactivos(self, queryset, **params):
+        """
+        Devuelve un listado de nombres de clientes con estado 'inactivo'.
+        Retorna un string organizado, con un nombre por línea.
+        """
+        qs = queryset.filter(estado_cliente='inactivo')
+        
+        nombres = qs.values_list('nombre_cliente', flat=True)
+        if not nombres:
+            return {
+                "value": "No hay clientes inactivos en los datos filtrados.",
+                "meta": {
+                    "estado_filtrado": "inactivo",
+                    "total": 0
+                }
+            }
+        
+        # Crear texto organizado
+        texto = "Listado de clientes inactivos:\n"
+        texto += "\n".join(f"- {nombre}" for nombre in nombres)
+        return {
+            "value": texto,
+            "meta": {
+                "estado_filtrado": "inactivo",
+                "total": len(nombres)
+            }
+        }
+    def listar_nombres_clientes_activos(self, queryset, **params):
+        """
+        Devuelve un listado de nombres de clientes con estado 'activo'.
+        Retorna un string organizado, con un nombre por línea.
+        """
+        qs = queryset.filter(estado_cliente='activo')
+        
+        nombres = qs.values_list('nombre_cliente', flat=True)
+        if not nombres:
+            return {
+                "value": "No hay clientes activos en los datos filtrados.",
+                "meta": {
+                    "estado_filtrado": "activo",
+                    "total": 0
+                }
+            }
+        
+        # Crear texto organizado
+        texto = "Listado de clientes activos:\n"
+        texto += "\n".join(f"- {nombre}" for nombre in nombres)
+        return {
+            "value": texto,
+            "meta": {
+                "estado_filtrado": "activo",
+                "total": len(nombres)
+            }
+        }
 
 
 
@@ -207,21 +259,35 @@ class DashboardChurnChatView(APIView):
             "params": ["fecha_inicio", "fecha_fin"],
             "aliases": ["churn", "tasa de churn", "hallar churn", "hallar_churn"]
         },
-        "listar_clientes": {
-            "func": calc.listar_nombres_clientes_por_estado,
-            "descripcion": "Devuelve un listado de nombres de clientes filtrados por estado: activo, inactivo o cancelado, en formato texto organizado.",
-            "params": ["estado"],  # se espera que el usuario indique el estado
+        "listar_clientes_inactivos": {
+            "func": calc.listar_nombres_clientes_inactivos,
+            "descripcion": "Devuelve un listado de nombres de clientes inactivos en formato texto organizado.",
+            "params": [],  # Ya no necesita parámetro 'estado'
             "aliases": [
-                "listado clientes",
-                "listado de clientes",
-                "listado clientes activos",
                 "listado clientes inactivos",
-                "listado clientes cancelados",
-                "clientes activos",
                 "clientes inactivos",
-                "clientes cancelados"
+                "listar inactivos", 
+                "mostrar clientes inactivos",
+                "quienes son los clientes inactivos",
+                "clientes que están inactivos",
+                "listado de inactivos"
             ]
-        }
+        },
+        "listar_clientes_activos": {
+                "func": calc.listar_nombres_clientes_activos,
+                "descripcion": "Devuelve un listado de nombres de clientes activos en formato texto organizado.",
+                "params": [],  # No necesita parámetros
+                "aliases": [
+                    "listado clientes activos",
+                    "clientes activos",
+                    "listar activos", 
+                    "mostrar clientes activos",
+                    "quienes son los clientes activos",
+                    "clientes que están activos",
+                    "listado de activos",
+                    "clientes actuales"
+                ]
+            }
 
     }
 
