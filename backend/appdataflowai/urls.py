@@ -102,6 +102,12 @@ from .views import (
     DashboardIspVentas_List,
 
 
+#URL de Dashboard ISP Arpu
+
+    DashboardARPUListView,
+    DashboardARPUForecastView,
+    DashboardARPUUpsertView,
+
 )
 
 urlpatterns = [
@@ -216,5 +222,18 @@ urlpatterns = [
     #URL de Dashboard ISP Ventas
     path('dashboard_isp_ventas/list/', DashboardIspVentas_List.as_view(), name='dashboard_isp_ventas_list'),
 
+
+
+    # ======================
+# URLs de Dashboard ARPU
+# ======================
+
+     # Listado general filtrado por empresa y fechas
+    path('dashboard_arpu/list/', DashboardARPUListView.as_view(), name='dashboard_arpu_list'),
+
+    # Generación de forecast usando statsmodels (ExponentialSmoothing)
+    path('dashboard_arpu/forecast/', DashboardARPUForecastView.as_view(), name='dashboard_arpu_forecast'),
+
+    # Crear o actualizar (upsert) registro de ARPU
+    path('dashboard_arpu/upsert/', DashboardARPUUpsertView.as_view(), name='dashboard_arpu_upsert'),
 ]
-    

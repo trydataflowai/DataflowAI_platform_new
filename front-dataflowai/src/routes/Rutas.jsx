@@ -66,6 +66,10 @@ import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
 import ShopifyJsx from "../components/pages/Shopify";
 
 
+// Rutas correspondientes al dashboard ARPU ISP
+import DashboardARPUisp from "../components/dashboards/DashboardARPUisp";
+
+
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
 
@@ -452,6 +456,19 @@ export const Rutas = () => {
               </RutaProtegida>
             }
           />
+
+
+          // Rutas correspondientes al DASHBOARD ARPU ISP
+          <Route
+  path={"/DashboardARPUisp"}
+  element={
+    <RutaProtegida>
+      <SideBarLayout>
+        <DashboardARPUisp />
+      </SideBarLayout>
+    </RutaProtegida>
+  }
+/>
           
         </Routes>
       </ThemeProvider>

@@ -733,6 +733,91 @@ class DashboardIspVentas(models.Model):
 
 
 
+
+
+#------------------------DASHBOARD CASO DE USO ARPU SERVITEL-------------------------
+
+
+from django.db import models
+from django.contrib.postgres.indexes import GinIndex
+
+class DashboardARPU(models.Model):
+    """
+    Modelo unico que contiene:
+    - campos identificadores obligatorios (id_registro, id_empresa, id_producto)
+    - campos para eventos/ingresos atomicos
+    - campos para snapshot / suscriptor
+    - campos agregados para dashboard (ARPU, MRR, churn, etc)
+    - campo doc (JSONB) para breakdowns flexibles y forecast
+    """
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios segun tu requerimiento
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa', null=True, blank=True)
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto', null=True, blank=True)
+
+    # --- Campos basicos de tiempo / cliente / evento (para trazabilidad) ---
+    cliente_id = models.CharField(max_length=100, db_column='cliente_id', null=True, blank=True)  # id externo cliente
+    fecha_evento = models.DateTimeField(db_column='fecha_evento', null=True, blank=True)  # timestamp del evento si aplica
+    periodo_mes = models.DateField(db_column='periodo_mes', null=False)  # primer dia del mes (clave de agregacion)
+
+    # --- Campos para eventos atomicos de ingreso (si quieres guardar un evento junto al registro) ---
+    tipo_evento = models.CharField(max_length=50, db_column='tipo_evento', null=True, blank=True)  # factura, pago, ajuste, descuento
+    monto_evento = models.DecimalField(max_digits=14, decimal_places=2, db_column='monto_evento', null=True, blank=True)
+    moneda = models.CharField(max_length=10, db_column='moneda', default='COP')
+
+    # --- Campos del snapshot / suscriptor (estado mensual por cliente) ---
+    estado = models.CharField(max_length=20, db_column='estado', null=True, blank=True)  # activo, suspendido, cancelado
+    fecha_alta = models.DateField(db_column='fecha_alta', null=True, blank=True)
+    fecha_baja = models.DateField(db_column='fecha_baja', null=True, blank=True)
+    tarifa_plan = models.DecimalField(max_digits=12, decimal_places=2, db_column='tarifa_plan', null=True, blank=True)
+    velocidad_mbps = models.IntegerField(db_column='velocidad_mbps', null=True, blank=True)
+    canal_adquisicion = models.CharField(max_length=50, db_column='canal_adquisicion', null=True, blank=True)
+
+    # --- Campos agregados para dashboard (precalculados) ---
+    ingresos_totales = models.DecimalField(max_digits=18, decimal_places=2, db_column='ingresos_totales', null=False, default=0)
+    mrr = models.DecimalField(max_digits=18, decimal_places=2, db_column='mrr', null=False, default=0)
+    usuarios_promedio = models.IntegerField(db_column='usuarios_promedio', null=False, default=0)
+    subs_inicio = models.IntegerField(db_column='subs_inicio', null=True, blank=True)
+    subs_final = models.IntegerField(db_column='subs_final', null=True, blank=True)
+    arpu = models.DecimalField(max_digits=14, decimal_places=2, db_column='arpu', null=False, default=0)
+    churn = models.DecimalField(max_digits=8, decimal_places=6, db_column='churn', null=True, blank=True)  # proporción (ej 0.032)
+
+    # --- Promociones, etiquetas y metadatos ---
+    promo_id = models.CharField(max_length=100, db_column='promo_id', null=True, blank=True)
+    tags = models.JSONField(db_column='tags', null=True, blank=True)  # lista de tags utiles para filtros, ej ["fibra","zona_norte"]
+    metadata = models.JSONField(db_column='metadata', null=True, blank=True)  # libre para datos adicionales
+
+    # --- Documento JSONB flexible que puede contener breakdowns, historico detallado y forecast ---
+    doc = models.JSONField(db_column='doc', null=True, blank=True)
+    # doc sugerido: { "ingresos_por_fuente": {...}, "kpis": {...}, "promociones":[...], "forecast": {...}, "eventos":[...] }
+
+    created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
+    updated_at = models.DateTimeField(auto_now=True, db_column='updated_at')
+
+    class Meta:
+        db_table = 'dashboard_arpu'
+        verbose_name_plural = 'Dashboard ISP ARPU'
+        ordering = ['-periodo_mes']
+        indexes = [
+            models.Index(fields=['id_empresa', 'id_producto', 'periodo_mes']),
+            models.Index(fields=['id_empresa', 'periodo_mes']),
+            GinIndex(fields=['doc'], name='dashboard_arpu_doc_gin'),
+        ]
+
+    def __str__(self):
+        return f"ARPU {self.id_registro} - emp:{self.id_empresa_id} prod:{self.id_producto_id} periodo:{self.periodo_mes}"
+
+
+
+
+#------------------------DASHBOARD CASO DE USO ARPU SERVITEL-------------------------
+
+
+
+
+
+
 """
 Modelos de los dashboard a vender.
 """

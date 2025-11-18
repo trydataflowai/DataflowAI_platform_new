@@ -4094,3 +4094,249 @@ class ChatbotAPIView(APIView):
         except ValueError:
             return Response({'error': 'Respuesta inválida de OpenAI', 'raw': resp.text}, status=status.HTTP_502_BAD_GATEWAY)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------Dashboard ISP ARPU-------------------------------
+
+
+# views.py
+# views.py (version sin autenticacion)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils.dateparse import parse_date
+from django.db import transaction
+
+from .models import DashboardARPU
+from .serializers import DashboardARPUSerializer
+
+from datetime import datetime
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+
+class DashboardARPUListView(APIView):
+    """
+    GET: lista registros DashboardARPU filtrados por parametros.
+    Parametros opcionales: start (YYYY-MM-DD), end (YYYY-MM-DD), producto (id), empresa (id)
+    """
+
+    def get(self, request):
+        qs = DashboardARPU.objects.all().order_by('periodo_mes')
+
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        producto = request.query_params.get('producto')
+        empresa = request.query_params.get('empresa')
+
+        if empresa:
+            qs = qs.filter(id_empresa_id=empresa)
+        if producto:
+            qs = qs.filter(id_producto_id=producto)
+        if start:
+            try:
+                qs = qs.filter(periodo_mes__gte=parse_date(start))
+            except Exception:
+                return Response({'error': 'start no es una fecha valida (YYYY-MM-DD)'}, status=status.HTTP_400_BAD_REQUEST)
+        if end:
+            try:
+                qs = qs.filter(periodo_mes__lte=parse_date(end))
+            except Exception:
+                return Response({'error': 'end no es una fecha valida (YYYY-MM-DD)'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DashboardARPUSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DashboardARPUForecastView(APIView):
+    """
+    GET: calculo de forecast on-the-fly para una combinacion (empresa, producto).
+    Params requeridos: producto, empresa. Opcional: periods (int) default 6.
+    """
+
+    def get(self, request):
+        empresa = request.query_params.get('empresa')
+        producto = request.query_params.get('producto')
+        if not empresa or not producto:
+            return Response({'error': 'parametros empresa y producto son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            empresa_id = int(empresa)
+            producto_id = int(producto)
+        except Exception:
+            return Response({'error': 'empresa y producto deben ser enteros'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periods = int(request.query_params.get('periods', 6))
+        except Exception:
+            periods = 6
+
+        qs = DashboardARPU.objects.filter(id_empresa_id=empresa_id, id_producto_id=producto_id).order_by('periodo_mes')
+        if not qs.exists():
+            return Response({'error': 'No hay datos historicos para esa combinacion empresa/producto'}, status=status.HTTP_404_NOT_FOUND)
+
+        df = pd.DataFrame.from_records(qs.values('periodo_mes', 'arpu'))
+        df['periodo_mes'] = pd.to_datetime(df['periodo_mes'])
+        df = df.set_index('periodo_mes').sort_index()
+
+        if df['arpu'].isnull().all():
+            return Response({'error': 'serie arpu vacia'}, status=status.HTTP_400_BAD_REQUEST)
+        df['arpu'] = df['arpu'].fillna(method='ffill').fillna(method='bfill').fillna(0)
+        series = df['arpu'].astype(float)
+
+        try:
+            seasonal = 'add' if len(series) >= 24 else None
+            seasonal_periods = 12 if seasonal else None
+            model = ExponentialSmoothing(
+                series,
+                trend='add',
+                seasonal=seasonal,
+                seasonal_periods=seasonal_periods,
+                initialization_method='estimated'
+            )
+            fit = model.fit(optimized=True)
+            forecast_vals = fit.forecast(steps=periods)
+            residuals = fit.resid
+            sigma = residuals.std(ddof=1) if len(residuals) > 1 else max(1.0, series.std() if len(series) > 1 else 1.0)
+        except Exception as e:
+            try:
+                model = ExponentialSmoothing(series, trend='add', seasonal=None, initialization_method='estimated')
+                fit = model.fit(optimized=True)
+                forecast_vals = fit.forecast(steps=periods)
+                residuals = fit.resid
+                sigma = residuals.std(ddof=1) if len(residuals) > 1 else max(1.0, series.std() if len(series) > 1 else 1.0)
+            except Exception as e2:
+                return Response({'error': 'Error al entrenar modelo statsmodels: %s' % str(e2)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        last_index = series.index.max()
+        preds = []
+        for i, val in enumerate(forecast_vals, start=1):
+            periodo = (last_index + pd.DateOffset(months=i)).to_pydatetime().date().replace(day=1)
+            lower = float(val) - 1.96 * float(sigma)
+            upper = float(val) + 1.96 * float(sigma)
+            preds.append({
+                'periodo': periodo.isoformat(),
+                'arpu_pred': round(float(val), 2),
+                'lower': round(max(0.0, lower), 2),
+                'upper': round(max(0.0, upper), 2),
+            })
+
+        response = {
+            'empresa': empresa_id,
+            'producto': producto_id,
+            'horizonte': periods,
+            'modelo': 'ExponentialSmoothing_hw' if seasonal else 'ExponentialSmoothing_trend',
+            'trained_at': datetime.utcnow().isoformat() + 'Z',
+            'predicciones': preds
+        }
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class DashboardARPUUpsertView(APIView):
+    """
+    POST: crea o actualiza (upsert) un registro DashboardARPU por (id_empresa, id_producto, periodo_mes).
+    """
+
+    @transaction.atomic
+    def post(self, request):
+        data = request.data.copy()
+
+        periodo = data.get('periodo_mes')
+        if not periodo:
+            return Response({'error': 'periodo_mes es requerido (YYYY-MM-DD)'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            periodo_date = parse_date(periodo) if isinstance(periodo, str) else periodo
+            if periodo_date is None:
+                raise ValueError()
+        except Exception:
+            return Response({'error': 'periodo_mes no es una fecha valida (YYYY-MM-DD)'}, status=status.HTTP_400_BAD_REQUEST)
+
+        producto = data.get('id_producto') or data.get('id_producto_id')
+        empresa = data.get('id_empresa') or data.get('id_empresa_id')
+        if not producto or not empresa:
+            return Response({'error': 'id_producto e id_empresa son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            producto_id = int(producto)
+            empresa_id = int(empresa)
+        except Exception:
+            return Response({'error': 'id_producto e id_empresa deben ser enteros'}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance = DashboardARPU.objects.filter(id_empresa_id=empresa_id, id_producto_id=producto_id, periodo_mes=periodo_date).first()
+
+        if instance:
+            serializer = DashboardARPUSerializer(instance, data=data, partial=True)
+        else:
+            serializer = DashboardARPUSerializer(data=data)
+
+        if not serializer.is_valid():
+            return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(DashboardARPUSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+
+#---------------------------------------Dashboard ISP ARPU------------------------

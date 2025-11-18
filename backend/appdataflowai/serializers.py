@@ -663,3 +663,179 @@ class DashboardIspVentasSerializer(serializers.ModelSerializer):
     class Meta:
         model = DashboardIspVentas
         fields = '__all__'
+
+
+
+
+#-------------------Dashboard ISP ARPU-------------------
+
+# serializers.py
+from rest_framework import serializers
+from .models import DashboardARPU
+from datetime import date
+
+# PONER AQUI EL ID POR DEFECTO DEL PRODUCTO
+DEFAULT_PRODUCT_ID = 15  # <-- ID DEL PRODUCTO POR DEFECTO
+
+class ForecastPredictionSerializer(serializers.Serializer):
+    periodo = serializers.DateField()
+    arpu_pred = serializers.DecimalField(max_digits=14, decimal_places=2)
+    lower = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, allow_null=True)
+    upper = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, allow_null=True)
+
+class ForecastSerializer(serializers.Serializer):
+    horizonte = serializers.IntegerField()
+    modelo = serializers.CharField(max_length=100)
+    trained_at = serializers.DateTimeField(required=False, allow_null=True)
+    predicciones = ForecastPredictionSerializer(many=True)
+
+
+class DashboardARPUSerializer(serializers.ModelSerializer):
+    """
+    Serializador para CRUD del modelo DashboardARPU.
+    Forzamos id_producto a DEFAULT_PRODUCT_ID en create y update.
+    """
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    # Exponer doc.forecast de forma opciona como campo anidado para validacion/representacion
+    forecast = serializers.SerializerMethodField(read_only=False)
+
+    class Meta:
+        model = DashboardARPU
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            # tiempo / cliente / evento
+            'periodo_mes',
+            'cliente_id',
+            'fecha_evento',
+            'tipo_evento',
+            'monto_evento',
+
+            # snapshot
+            'estado',
+            'fecha_alta',
+            'fecha_baja',
+            'tarifa_plan',
+            'velocidad_mbps',
+            'canal_adquisicion',
+
+            # agregados
+            'ingresos_totales',
+            'mrr',
+            'usuarios_promedio',
+            'subs_inicio',
+            'subs_final',
+            'arpu',
+            'churn',
+
+            # promos / tags / metadata
+            'promo_id',
+            'tags',
+            'metadata',
+
+            # doc libre (JSON) y campo virtual forecast para facilitar inputs
+            'doc',
+            'forecast',
+
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto', 'created_at', 'updated_at')
+
+    def get_id(self, obj):
+        return getattr(obj, 'id_registro', getattr(obj, 'pk', None))
+
+    def get_forecast(self, obj):
+        """
+        Retorna doc.forecast si existe; esto es solo para representation.
+        """
+        doc = getattr(obj, 'doc', None) or {}
+        return doc.get('forecast', None)
+
+    def validate_periodo_mes(self, value):
+        """
+        Validacion basica del periodo_mes: debe ser una fecha y no ser muy antigua/futura.
+        """
+        if not isinstance(value, (date,)):
+            raise serializers.ValidationError("periodo_mes debe ser una fecha valida (date).")
+        # opcional: evitar anos fuera de rango
+        if value.year < 1900 or value.year > 2100:
+            raise serializers.ValidationError("periodo_mes fuera de rango.")
+        return value
+
+    def validate_doc(self, value):
+        """
+        Validacion basica del campo doc.
+        Si contiene 'forecast' valida su estructura minima esperada.
+        """
+        if value is None:
+            return value
+
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("doc debe ser un objecto JSON.")
+
+        forecast = value.get('forecast')
+        if forecast is not None:
+            # validar campos basicos de forecast con el serializer de forecast
+            ser = ForecastSerializer(data=forecast)
+            if not ser.is_valid():
+                raise serializers.ValidationError({'forecast': ser.errors})
+        return value
+
+    def validate_arpu(self, value):
+        # validacion opcional: no negativo
+        if value is not None and value < 0:
+            raise serializers.ValidationError("arpu no puede ser negativo.")
+        return value
+
+    def create(self, validated_data):
+        """
+        Asigna id_empresa desde el contexto (si se provee) y fija id_producto al DEFAULT_PRODUCT_ID.
+        Admite que el cliente envie campo 'forecast' en la raiz: lo movemos dentro de doc.
+        """
+        empresa = self.context.get('empresa', None)
+        if empresa is None:
+            # si prefieres no forzar empresa desde contexto puedes comentar la siguiente linea
+            raise serializers.ValidationError("No se pudo determinar la empresa desde el contexto.")
+
+        # si el payload traia 'forecast' como campo separado (no es parte del modelo), capturarlo
+        forecast_input = self.initial_data.get('forecast', None)
+
+        # forzamos FK por id para evitar query extra
+        validated_data['id_empresa'] = empresa
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID
+
+        # si doc no existe lo inicializamos
+        doc = validated_data.get('doc') or {}
+        if forecast_input is not None:
+            doc['forecast'] = forecast_input
+            validated_data['doc'] = doc
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Ignora id_empresa/id_producto enviados por el cliente y vuelve a forzar id_producto.
+        Maneja tambien 'forecast' en initial_data moviendolo dentro de doc.
+        """
+        # eliminar actualizaciones a FK para que no se puedan cambiar via API
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_producto_id'] = DEFAULT_PRODUCT_ID
+
+        forecast_input = self.initial_data.get('forecast', None)
+        if forecast_input is not None:
+            doc = validated_data.get('doc') or instance.doc or {}
+            doc['forecast'] = forecast_input
+            validated_data['doc'] = doc
+
+        return super().update(instance, validated_data)
+
+
+#---------------Dashboard isp Arpu-----------------
