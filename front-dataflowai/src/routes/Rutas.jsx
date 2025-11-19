@@ -117,9 +117,19 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
     ];
 
     // Verificar si la ruta actual es pública
-    const esRutaPublica = rutasPublicas.some(ruta => 
-      location.pathname === ruta || location.pathname.startsWith(ruta + '/')
-    );
+    const esRutaPublica = rutasPublicas.some(ruta => {
+      // Comparación exacta para rutas principales
+      if (location.pathname === ruta) return true;
+      
+      // Para rutas como /Servitel/login que pueden tener diferentes formatos
+      if (ruta.includes('/login') && location.pathname.includes('/login')) {
+        return true;
+      }
+      
+      return false;
+    });
+
+    console.log('Ruta actual:', location.pathname, 'Es pública:', esRutaPublica);
 
     // Solo verificar autenticación en rutas protegidas
     if (!esRutaPublica) {
@@ -128,6 +138,7 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
         
         if (!token || tokenEstaExpirado()) {
           // Redirigir a login si no hay token o está expirado en ruta protegida
+          console.log('Redirigiendo a login desde ruta protegida');
           limpiarDetectorInactividad();
           window.location.href = '/login';
           return false;
@@ -142,6 +153,8 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
       if (estaAutenticado) {
         inicializarDetectorInactividad();
       }
+    } else {
+      console.log('Ruta pública, no se verifica autenticación');
     }
 
     // Cleanup al desmontar o cambiar de ruta
