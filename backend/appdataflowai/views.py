@@ -44,36 +44,53 @@ class LoginView(APIView):
         if estado_id != 1:
             return Response({'error': 'usuario inactivo'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Generamos token JWT usando timezone para evitar problemas de shadowing y para datetimes "aware"
+        # Generamos access token (2 horas) y refresh token (7 días)
         now = timezone.now()
-        exp_time = now + timedelta(hours=1)
-        payload = {
+        access_token_exp = now + timedelta(hours=2)
+        refresh_token_exp = now + timedelta(days=7)
+
+        # Payload para access token
+        access_payload = {
             'id_usuario': usuario.id_usuario,
             'correo': usuario.correo,
-            # JWT suele usar timestamps en segundos desde epoch; usar enteros evita problemas con serialización
-            'exp': int(exp_time.timestamp()),
+            'type': 'access',
+            'exp': int(access_token_exp.timestamp()),
+            'iat': int(now.timestamp())
+        }
+
+        # Payload para refresh token
+        refresh_payload = {
+            'id_usuario': usuario.id_usuario,
+            'correo': usuario.correo,
+            'type': 'refresh',
+            'exp': int(refresh_token_exp.timestamp()),
             'iat': int(now.timestamp())
         }
 
         try:
-            token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-            # pyjwt puede devolver bytes en algunas versiones; aseguramos cadena
-            if isinstance(token, bytes):
-                token = token.decode('utf-8')
+            access_token = jwt.encode(access_payload, settings.SECRET_KEY, algorithm='HS256')
+            refresh_token = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm='HS256')
+            
+            # Aseguramos que sean strings
+            if isinstance(access_token, bytes):
+                access_token = access_token.decode('utf-8')
+            if isinstance(refresh_token, bytes):
+                refresh_token = refresh_token.decode('utf-8')
+                
         except Exception:
-            logger.exception("Error generando token JWT")
-            return Response({'error': 'Error generando token'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("Error generando tokens JWT")
+            return Response({'error': 'Error generando tokens'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Intentamos crear el registro de sesión.
+        # Intentamos crear el registro de sesión (SIN refresh_token para no modificar el modelo)
         registro_data = None
         try:
-            # Usamos transaction.atomic para consistencia; si falla, no bloqueamos el login.
             with transaction.atomic():
                 id_empresa_fk = getattr(usuario, 'id_empresa', None)
                 registro = RegistrosSesion.objects.create(
                     id_empresa=id_empresa_fk,
                     id_usuario=usuario,
                     fecha_inicio_sesion=timezone.now()
+                    # NO incluimos refresh_token aquí para no modificar el modelo
                 )
                 registro.refresh_from_db()
 
@@ -94,10 +111,85 @@ class LoginView(APIView):
         }
 
         return Response({
-            'token': token,
+            'token': access_token,  # Mantenemos 'token' para compatibilidad
+            'refresh_token': refresh_token,  # Añadimos refresh_token
             'usuario': respuesta_usuario,
-            'registro_sesion': registro_data
+            'registro_sesion': registro_data,
+            'expires_in': 7200  # 2 horas en segundos
         }, status=status.HTTP_200_OK)
+
+
+
+class RefreshTokenView(APIView):
+    """
+    Vista para renovar el access token usando el refresh token.
+    No requiere modificar el modelo RegistrosSesion.
+    """
+    def post(self, request):
+        refresh_token = request.data.get('refresh_token')
+        
+        if not refresh_token:
+            return Response({'error': 'Refresh token es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Verificamos el refresh token
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            
+            # Verificamos que sea un refresh token
+            if payload.get('type') != 'refresh':
+                return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Buscamos el usuario
+            usuario = Usuario.objects.get(id_usuario=payload['id_usuario'])
+            
+            # Verificamos que el usuario esté activo
+            if usuario.id_estado.id_estado != 1:
+                return Response({'error': 'Usuario inactivo'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Generamos nuevo access token
+            now = timezone.now()
+            access_token_exp = now + timedelta(hours=2)
+            
+            access_payload = {
+                'id_usuario': usuario.id_usuario,
+                'correo': usuario.correo,
+                'type': 'access',
+                'exp': int(access_token_exp.timestamp()),
+                'iat': int(now.timestamp())
+            }
+            
+            access_token = jwt.encode(access_payload, settings.SECRET_KEY, algorithm='HS256')
+            if isinstance(access_token, bytes):
+                access_token = access_token.decode('utf-8')
+                
+            return Response({
+                'token': access_token,  # Devolvemos como 'token' para compatibilidad
+                'access_token': access_token,  # Y también como 'access_token'
+                'expires_in': 7200  # 2 horas en segundos
+            }, status=status.HTTP_200_OK)
+            
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Refresh token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Refresh token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            logger.exception("Error renovando token")
+            return Response({'error': 'Error interno'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
