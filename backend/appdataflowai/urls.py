@@ -5,6 +5,7 @@
 from django.urls import path
 from .views import (
     LoginView,
+    RefreshTokenView,
     ProductosUsuarioView,
     
     UsuarioInfoView,
@@ -122,6 +123,7 @@ from .views_chat.chat_dashboard_churn import DashboardChurnChatView
 urlpatterns = [
     # --- Autenticación y usuario ---
     path('login/', LoginView.as_view(), name='login'),
+    path('refresh-token/', RefreshTokenView.as_view(), name='refresh-token'),
     path('usuario/productos/', ProductosUsuarioView.as_view(), name='usuario-productos'),
     path('usuario/info/', UsuarioInfoView.as_view(), name='usuario-info'),
 
