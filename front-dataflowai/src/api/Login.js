@@ -1,9 +1,29 @@
 // src/api/Login.js
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/';
 
+// Variables para control de inactividad
+let inactivityTimer;
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutos de inactividad
+
 // Variable para controlar si estamos refrescando el token
 let isRefreshing = false;
 let refreshSubscribers = [];
+
+// Función para reiniciar el timer de inactividad
+export const reiniciarTimerInactividad = () => {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  
+  inactivityTimer = setTimeout(() => {
+    // Verificar si el token sigue siendo válido
+    if (!tokenEstaExpirado()) {
+      // Si el token es válido pero el usuario estuvo inactivo, cerrar sesión
+      console.log('Sesión cerrada por inactividad');
+      cerrarSesion();
+    }
+  }, INACTIVITY_TIMEOUT);
+};
 
 // Función para suscribirse al refresh del token
 function subscribeTokenRefresh(callback) {
@@ -48,6 +68,9 @@ export const iniciarSesion = async ({ correo, contrasena }) => {
     
     if (data.usuario) localStorage.setItem('usuario', JSON.stringify(data.usuario));
     if (data.registro_sesion) localStorage.setItem('registro_sesion', JSON.stringify(data.registro_sesion));
+
+    // Iniciar el timer de inactividad después del login
+    reiniciarTimerInactividad();
 
     return data;
   } catch (error) {
@@ -100,6 +123,9 @@ export const refrescarToken = async () => {
     
     const expiresAt = Date.now() + (data.expires_in * 1000);
     localStorage.setItem('token_expires_at', expiresAt.toString());
+
+    // Reiniciar timer de inactividad después de refrescar
+    reiniciarTimerInactividad();
 
     onRefreshed(newToken);
     
@@ -214,6 +240,19 @@ export const apiDelete = async (url) => {
 };
 
 export const cerrarSesion = () => {
+  // Limpiar timer de inactividad
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  
+  // Remover event listeners
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousemove', reiniciarTimerInactividad);
+    window.removeEventListener('keypress', reiniciarTimerInactividad);
+    window.removeEventListener('click', reiniciarTimerInactividad);
+    window.removeEventListener('scroll', reiniciarTimerInactividad);
+  }
+
   localStorage.removeItem('token');
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
@@ -223,4 +262,32 @@ export const cerrarSesion = () => {
   
   // Redirigir al login
   window.location.href = '/login';
+};
+
+// Función para inicializar el detector de inactividad
+export const inicializarDetectorInactividad = () => {
+  if (typeof window !== 'undefined') {
+    // Agregar event listeners para detectar actividad
+    window.addEventListener('mousemove', reiniciarTimerInactividad);
+    window.addEventListener('keypress', reiniciarTimerInactividad);
+    window.addEventListener('click', reiniciarTimerInactividad);
+    window.addEventListener('scroll', reiniciarTimerInactividad);
+    
+    // Iniciar el timer por primera vez
+    reiniciarTimerInactividad();
+  }
+};
+
+// Función para limpiar el detector de inactividad (útil al hacer logout)
+export const limpiarDetectorInactividad = () => {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousemove', reiniciarTimerInactividad);
+    window.removeEventListener('keypress', reiniciarTimerInactividad);
+    window.removeEventListener('click', reiniciarTimerInactividad);
+    window.removeEventListener('scroll', reiniciarTimerInactividad);
+  }
 };
