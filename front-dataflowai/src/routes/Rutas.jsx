@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 // API
 import { obtenerInfoUsuario } from "../api/Usuario";
+import { tokenEstaExpirado, inicializarDetectorInactividad, limpiarDetectorInactividad } from "../api/Login";
 
 // Componentes globales
 import { Navbar } from "../components/layout/Navbar";
@@ -44,13 +45,9 @@ import DashboardSalesreview from "../components/dashboards/DashboardSalesreview"
 import SalesDashboard from "../components/dashboards/SalesDashboard";
 import ApacheEcharts from "../components/dashboards/00Echarts";
 
-
-
 import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
 
 import DashboardVentasColtradeOdoo from "../components/dashboards/DashboardColtradeOdoo";
-
-
 
 //Rutas correspondientes al DASHBOARD de sales corporativo
 
@@ -65,15 +62,10 @@ import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
 import DashboardChurnKpi from "../components/dashboards/DashboardChurnKpi";
 import ChatDashboardChurn from "../components/dashboard_chat/ChatDashboardChurn";
 
-
 // Rutas correspondientes al dashboard ARPU ISP
 import DashboardARPUisp from "../components/dashboards/DashboardARPUisp";
 
-
-
-
 import ShopifyJsx from "../components/pages/Shopify";
-
 
 // Protección de rutas
 import RutaProtegida from "../components/componentes/RutaProtegida";
@@ -98,14 +90,71 @@ const DefaultLayout = ({ children }) => {
 };
 
 // Layout con Sidebar
-// <-- MODIFICACIÓN: quitamos marginLeft y dejamos que el layout en flex gestione el ancho -->
 const SideBarLayout = ({ children }) => (
   <div style={{ display: "flex", minHeight: "100vh" }}>
     <SideBar />
-    {/* main ya no tiene marginLeft: el flex hace que el contenido esté al lado del sidebar */}
     <main style={{ flexGrow: 1 }}>{children}</main>
   </div>
 );
+
+/**
+ * Componente para verificar autenticación SOLO en rutas protegidas
+ */
+const VerificadorAutenticacionGlobal = ({ children }) => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Lista de rutas públicas que NO requieren autenticación
+    const rutasPublicas = [
+      '/',
+      '/login',
+      '/Servitel/login',
+      '/Coltrade/login',
+      '/crear-empresa',
+      '/crear-usuario',
+      '/pagos',
+      '/homeLogin'
+    ];
+
+    // Verificar si la ruta actual es pública
+    const esRutaPublica = rutasPublicas.some(ruta => 
+      location.pathname === ruta || location.pathname.startsWith(ruta + '/')
+    );
+
+    // Solo verificar autenticación en rutas protegidas
+    if (!esRutaPublica) {
+      const verificarAutenticacion = () => {
+        const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+        
+        if (!token || tokenEstaExpirado()) {
+          // Redirigir a login si no hay token o está expirado en ruta protegida
+          limpiarDetectorInactividad();
+          window.location.href = '/login';
+          return false;
+        }
+        return true;
+      };
+
+      // Verificar autenticación inmediatamente
+      const estaAutenticado = verificarAutenticacion();
+
+      // Inicializar detector de inactividad si está autenticado en ruta protegida
+      if (estaAutenticado) {
+        inicializarDetectorInactividad();
+      }
+    }
+
+    // Cleanup al desmontar o cambiar de ruta
+    return () => {
+      // Solo limpiar si salimos de una ruta protegida
+      if (!esRutaPublica) {
+        limpiarDetectorInactividad();
+      }
+    };
+  }, [location.pathname]);
+
+  return children;
+};
 
 /**
  * Rutas principales.
@@ -138,7 +187,13 @@ export const Rutas = () => {
       }
     };
 
-    fetchUser();
+    // Solo intentar obtener info de usuario si hay token y no está expirado
+    const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+    if (token && !tokenEstaExpirado()) {
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
 
     return () => {
       mounted = false;
@@ -153,357 +208,342 @@ export const Rutas = () => {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <Routes>
-          <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
+        <VerificadorAutenticacionGlobal>
+          <Routes>
+            {/* RUTAS PÚBLICAS - Sin protección */}
+            <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/Servitel/login" element={<LoginServitel />} />
+            <Route path="/Coltrade/login" element={<LoginColtrade />} />
+            <Route path="/crear-empresa" element={<CreacionEmpresa />} />
+            <Route path="/crear-usuario" element={<CreacionUsuario />} />
+            <Route path="/pagos" element={<PagosStripe />} />
+            <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="Servitel/login" element={<LoginServitel />} />
-          <Route path="Coltrade/login" element={<LoginColtrade />} />
+            {/* RUTAS PROTEGIDAS - Con RutaProtegida */}
+            <Route
+              path={p("/home")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <HomeDashboard />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route path="/crear-empresa" element={<CreacionEmpresa />} />
-          <Route path="/crear-usuario" element={<CreacionUsuario />} />
-          <Route path="/pagos" element={<PagosStripe />} />
+            <Route
+              path={p("/marketplace")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Marketplace />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
+            <Route
+              path={("/dashboard-prueba")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardPrueba />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/home")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <HomeDashboard />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/dashboard-ventas")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/marketplace")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <Marketplace />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/dashboard-finanzas")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardFinanzas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/dashboard-prueba")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardPrueba />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/dashboard-compras")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardCompras />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/dashboard-ventas")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardVentas />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/Apache")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ApacheEcharts />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/dashboard-finanzas")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardFinanzas />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/configuraciones-dashboard")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ConfiguracionesDashboard />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/dashboard-compras")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardCompras />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/sales-dashboard")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <SalesDashboard />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/Apache")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ApacheEcharts />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/configuracion-perfil")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ConfiguracionUsuarios />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/configuraciones-dashboard")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ConfiguracionesDashboard />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/cambiar-contrasena")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <AppCambiarContrasena />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/sales-dashboard")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <SalesDashboard />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/desactivar-activar-usuarios")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ActivarDesactivarUsuario />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/configuracion-perfil")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ConfiguracionUsuarios />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/ModificarInformacionPersonal")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ModificarInformacionPersonal />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/cambiar-contrasena")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <AppCambiarContrasena />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/AsignarDashboards")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <AsgDashboardAsignarDashboards />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/desactivar-activar-usuarios")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ActivarDesactivarUsuario />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/DashboardSalesReview")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardSalesreview />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/ModificarInformacionPersonal")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ModificarInformacionPersonal />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/SoporteUsuario")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <SoporteUsuario />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/AsignarDashboards")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <AsgDashboardAsignarDashboards />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/SoporteDetalleUsuario")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <SoporteDetalleUsuario />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/DashboardSalesReview")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardSalesreview />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/HomeTools")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <HomeTools />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
+            <Route
+              path={("/DashboardSalesReview/settingsDashSalesReview")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <CrudDashboardSalesReview />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/SoporteUsuario")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <SoporteUsuario />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/ChatBot")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ChatBot />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/SoporteDetalleUsuario")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <SoporteDetalleUsuario />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={p("/Shopify/Prueba/deApi")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ShopifyJsx />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/HomeTools")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <HomeTools />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/DashboardVentasOdoo")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentasColtradeOdoo />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
+            {/* Rutas correspondientes al DASHBOARD de sales corporativo */}
+            <Route
+              path={("/DashboardSalescorporativo")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentasCorporativo />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={("/DashboardSalesReview/settingsDashSalesReview")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <CrudDashboardSalesReview />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/dashboardSalescorporativo/Cotizaciones")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <CrudDashboardSalesCorporativoCotizaciones />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-          <Route
-            path={p("/ChatBot")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ChatBot />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
+            <Route
+              path={("/dashboardSalescorporativo/Metas")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <CrudDashboardSalesCorporativoMetas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
+            {/* Rutas correspondientes al DASHBOARD Ips */}
+            <Route
+              path={("/DashboardISPventas")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardISPVenta />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
+            {/* Rutas correspondientes al Dashboard Churn */}
+            <Route
+              path={("/dashboard-kpi-churn")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardChurnKpi />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-
-
-          <Route
-            path={p("/Shopify/Prueba/deApi")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <ShopifyJsx />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-          <Route
-            path={("/DashboardVentasOdoo")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardVentasColtradeOdoo />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-
-
-          //Rutas correspondientes al DASHBOARD de sales corporativo
-          <Route
-            path={("/DashboardSalescorporativo")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardVentasCorporativo />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-          <Route
-            path={("/dashboardSalescorporativo/Cotizaciones")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <CrudDashboardSalesCorporativoCotizaciones />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-          <Route
-            path={("/dashboardSalescorporativo/Metas")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <CrudDashboardSalesCorporativoMetas />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-          //Rutas correspondientes al DASHBOARD Ips
-          <Route
-            path={("/DashboardISPventas")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardISPVenta />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-
-
-          //Rutas correspondientes al Dashboard Churn
-          <Route
-            path={("/dashboard-kpi-churn")}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardChurnKpi />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-          <Route
-            path={("/dashboard-kpi-churn/chat-ai-consultas")}
-            element={
-              <RutaProtegida>
-
+            <Route
+              path={("/dashboard-kpi-churn/chat-ai-consultas")}
+              element={
+                <RutaProtegida>
                   <ChatDashboardChurn />
-              </RutaProtegida>
-            }
-          />
+                </RutaProtegida>
+              }
+            />
 
+            {/* Rutas correspondientes al DASHBOARD ARPU ISP */}
+            <Route
+              path={"/DashboardARPUisp"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardARPUisp />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
-
-
-// Rutas correspondientes al DASHBOARD ARPU ISP
-          <Route
-            path={"/DashboardARPUisp"}
-            element={
-              <RutaProtegida>
-                <SideBarLayout>
-                  <DashboardARPUisp />
-                </SideBarLayout>
-              </RutaProtegida>
-            }
-          />
-
-
-
-        </Routes>
+          </Routes>
+        </VerificadorAutenticacionGlobal>
       </ThemeProvider>
     </BrowserRouter>
   );
