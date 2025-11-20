@@ -4430,3 +4430,287 @@ class DashboardARPUUpsertView(APIView):
 
         obj = serializer.save()
         return Response(DashboardARPUSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Formulario de creación
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+from .models import Formulario, Pregunta, Respuesta
+from .serializers import FormularioCreateSerializer, FormularioDetailSerializer, RespuestaSerializer
+
+class FormularioViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para formularios:
+    - create/list/retrieve/update/destroy (lookup por slug)
+    - submit (public) -> /api/formularios/{slug}/submit/
+    - respuestas (auth'd) -> /api/formularios/{slug}/respuestas/
+    """
+    queryset = Formulario.objects.all()
+    lookup_field = 'slug'
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return FormularioCreateSerializer
+        return FormularioDetailSerializer
+
+    def perform_create(self, serializer):
+        """
+        Asigna automaticamente empresa y usuario desde request.user si no vienen en payload.
+        request.user debe ser tu modelo Usuario (el que tiene id_empresa).
+        """
+        request = self.request
+        user = getattr(request, 'user', None)
+
+        empresa_obj = None
+        if user:
+            empresa_obj = getattr(user, 'id_empresa', None)
+
+        usuario_obj = None
+        if user:
+            usuario_obj = user if hasattr(user, 'id_usuario') else None
+
+        if empresa_obj and usuario_obj:
+            serializer.save(empresa=empresa_obj, usuario=usuario_obj)
+        elif empresa_obj:
+            serializer.save(empresa=empresa_obj)
+        elif usuario_obj:
+            serializer.save(usuario=usuario_obj)
+        else:
+            serializer.save()
+
+    def _evaluate_branching_rule(self, pregunta, answer_value):
+        """
+        Dada una pregunta (instancia Pregunta) y el valor respondido, devolvemos:
+           - 'end'  => terminar
+           - index (int) => índice destino
+           - None => sin regla aplicable
+        Asume pregunta.branching es un array de { when, goto }.
+        Para checkbox (answer_value: array) devolvemos la primera regla que coincida con alguna opción marcada.
+        """
+        rules = getattr(pregunta, 'branching', None) or []
+        if not rules:
+            return None
+
+        # checkbox: comprobar si alguna opción marcada coincide con 'when' de una regla
+        if pregunta.tipo == 'checkbox' and isinstance(answer_value, (list, tuple)):
+            for rule in rules:
+                if rule is None:
+                    continue
+                when = rule.get('when', None)
+                goto = rule.get('goto', None)
+                if when is None or when == '':
+                    continue
+                # si any option equals when
+                for marked in answer_value:
+                    if str(marked) == str(when):
+                        return goto
+            return None
+
+        # para resto de tipos: comparar igualdad como strings
+        for rule in rules:
+            if rule is None:
+                continue
+            when = rule.get('when', None)
+            goto = rule.get('goto', None)
+            if when is None or when == '':
+                continue
+            if str(when) == str(answer_value):
+                return goto
+        return None
+
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny], url_path='submit')
+    def submit(self, request, slug=None):
+        """
+        Endpoint público para recibir respuestas.
+
+        Cambios clave:
+        - Simula el flujo empezando en la primera pregunta (orden asc).
+        - Aplica branching usando las respuestas recibidas (payload.data).
+        - Valida sólo las preguntas que fueron "visitadas" en el flujo.
+        - Guarda en Respuesta.data únicamente las respuestas de las preguntas visitadas (con claves legibles).
+        """
+        formulario = get_object_or_404(Formulario, slug=slug)
+        payload = request.data or {}
+        answers = payload.get('data', {}) or {}
+        errors = {}
+        stored = {}
+
+        # Ordenar preguntas por 'orden' y construir lista indexable por posición
+        preguntas_qs = list(formulario.preguntas.all().order_by('orden'))
+        if not preguntas_qs:
+            return Response({'error': 'Formulario sin preguntas'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mapa id_pregunta -> pregunta (instancia)
+        preguntas_by_id = {str(p.id_pregunta): p for p in preguntas_qs}
+
+        # Obtener id_empresa desde request.user o formulario
+        id_empresa_value = None
+        user = getattr(request, 'user', None)
+        if user:
+            id_empresa_value = getattr(user, 'id_empresa_id', None) or getattr(user, 'id_empresa', None)
+            if hasattr(id_empresa_value, 'id_empresa'):
+                id_empresa_value = id_empresa_value.id_empresa
+        if id_empresa_value is None:
+            id_empresa_value = getattr(formulario, 'empresa_id', None)
+
+        # Simulamos el recorrido desde el primer índice (0) hasta terminar
+        visited_question_ids = []  # recoger id_pregunta (int) que fueron mostradas
+        visited_indices = set()
+        current_index = 0
+        # para evitar loops infinitos: max iter = len(preguntas_qs) * 5 (arbitrario) o detectar revisitas
+        max_steps = len(preguntas_qs) * 5
+        step = 0
+        while True:
+            step += 1
+            if step > max_steps:
+                # protección contra ciclos
+                return Response({'error': 'Error en reglas de ramificación (posible bucle infinito).'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if current_index is None or current_index < 0 or current_index >= len(preguntas_qs):
+                break
+
+            pregunta = preguntas_qs[current_index]
+            pid_str = str(pregunta.id_pregunta)
+
+            # marcar visitada
+            visited_question_ids.append(pregunta.id_pregunta)
+            visited_indices.add(current_index)
+
+            # obtener respuesta (si existe)
+            answer_present = pid_str in answers and answers.get(pid_str) not in [None, "", []]
+            answer_value = answers.get(pid_str) if answer_present else None
+
+            # Validar requeridos SOLO si la pregunta fue mostrada (estamos en el flujo) y es requerida
+            if pregunta.requerido and not answer_present:
+                errors[pid_str] = 'Campo requerido'
+                # no rompemos aún: se devolverá al final
+
+            # Evaluar branching usando la respuesta (si no hay respuesta, no habrá coincidencia y se seguirá secuencialmente)
+            goto = None
+            if answer_present:
+                goto = self._evaluate_branching_rule(pregunta, answer_value)
+
+            if goto == 'end':
+                # terminamos flujo
+                break
+
+            if goto is not None and goto != '':
+                # goto debería indicar un índice (0-based) según diseño frontend
+                try:
+                    target_index = int(goto)
+                    if target_index < 0 or target_index >= len(preguntas_qs):
+                        # índice inválido, terminamos el flujo por seguridad
+                        break
+                    # prevenir loops sencillos: si ya visitamos target muchas veces, abortamos (detección simple)
+                    if target_index in visited_indices and step > len(preguntas_qs) * 2:
+                        return Response({'error': 'Bucle detectado en ramificación.'}, status=status.HTTP_400_BAD_REQUEST)
+                    current_index = target_index
+                    continue
+                except Exception:
+                    # si goto no es convertible a int, ignoramos y seguimos secuencialmente
+                    current_index = current_index + 1
+                    if current_index >= len(preguntas_qs):
+                        break
+                    continue
+
+            # si no hay regla aplicable, vamos secuencialmente a la siguiente pregunta
+            current_index = current_index + 1
+            if current_index >= len(preguntas_qs):
+                break
+
+        # Si hubo errores de validación en preguntas visitadas, responder con esos errores
+        # Convertimos claves a id_pregunta (string) en el dict errors (ya lo guardamos así)
+        if errors:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Construimos stored sólo con las preguntas visitadas y sus respuestas (si las tienen)
+        for pregunta in preguntas_qs:
+            if pregunta.id_pregunta not in visited_question_ids:
+                continue
+            pid_str = str(pregunta.id_pregunta)
+            if pid_str not in answers:
+                continue
+            raw = answers.get(pid_str)
+            # normalizamos por tipo (mismo comportamiento previo)
+            if pregunta.tipo == 'int':
+                try:
+                    val = int(raw)
+                except Exception:
+                    # si invalido pero no fue requerido (o validado antes), dejar como raw
+                    try:
+                        val = int(float(raw))
+                    except Exception:
+                        val = raw
+            elif pregunta.tipo == 'float':
+                try:
+                    val = float(raw)
+                except Exception:
+                    val = raw
+            elif pregunta.tipo == 'checkbox':
+                val = raw if isinstance(raw, (list, tuple)) else [raw]
+            else:
+                val = raw
+
+            question_key = pregunta.texto.strip() if pregunta.texto else f"pregunta_{pid_str}"
+            stored[question_key] = val
+
+        # Agregar id_empresa
+        if id_empresa_value is not None:
+            stored_with_empresa = {'id_empresa': id_empresa_value, **stored}
+        else:
+            stored_with_empresa = stored
+
+        # Guardar respuesta
+        with transaction.atomic():
+            respuesta = Respuesta.objects.create(formulario=formulario, data=stored_with_empresa)
+            serializer = RespuestaSerializer(respuesta)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='respuestas')
+    def listar_respuestas(self, request, slug=None):
+        usuario = request.user
+        formulario = get_object_or_404(Formulario, slug=slug)
+
+        user_empresa_id = getattr(usuario, 'id_empresa_id', None)
+        if user_empresa_id is None:
+            try:
+                user_empresa_id = usuario.id_empresa.id_empresa
+            except Exception:
+                user_empresa_id = None
+
+        if user_empresa_id is None or formulario.empresa_id != user_empresa_id:
+            return Response({'error': 'No autorizado para ver respuestas'}, status=status.HTTP_403_FORBIDDEN)
+
+        qs = formulario.respuestas.all().order_by('-fecha')
+        serializer = RespuestaSerializer(qs, many=True)
+        return Response(serializer.data)

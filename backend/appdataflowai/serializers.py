@@ -889,3 +889,79 @@ class DashboardARPUSerializer(serializers.ModelSerializer):
             validated_data['doc'] = doc
 
         return super().update(instance, validated_data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Formulario de creación
+from rest_framework import serializers
+from django.db import transaction
+from .models import Formulario, Pregunta, Respuesta, Empresa, Usuario
+
+class PreguntaSerializer(serializers.ModelSerializer):
+    id_pregunta = serializers.IntegerField(read_only=True)
+    branching = serializers.JSONField(required=False, allow_null=True)
+
+    class Meta:
+        model = Pregunta
+        fields = ['id_pregunta', 'texto', 'tipo', 'orden', 'requerido', 'opciones', 'branching']
+
+
+class FormularioCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para crear Formulario con preguntas anidadas.
+    'empresa' y 'usuario' son opcionales: la vista puede asignarlos desde request.user.
+    """
+    empresa = serializers.PrimaryKeyRelatedField(queryset=Empresa.objects.all(), required=False, allow_null=True)
+    usuario = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all(), required=False, allow_null=True)
+    preguntas = PreguntaSerializer(many=True, required=False)
+
+    class Meta:
+        model = Formulario
+        fields = ['id_formulario', 'empresa', 'usuario', 'nombre', 'descripcion', 'slug', 'preguntas']
+        read_only_fields = ['id_formulario', 'slug']
+
+    def create(self, validated_data):
+        preguntas_data = validated_data.pop('preguntas', [])
+        with transaction.atomic():
+            formulario = Formulario.objects.create(**validated_data)
+            for i, p in enumerate(preguntas_data):
+                Pregunta.objects.create(
+                    formulario=formulario,
+                    texto=p.get('texto'),
+                    tipo=p.get('tipo'),
+                    orden=p.get('orden', i),
+                    requerido=p.get('requerido', False),
+                    opciones=p.get('opciones', None),
+                    branching=p.get('branching', None),
+                )
+        return formulario
+
+
+class FormularioDetailSerializer(serializers.ModelSerializer):
+    preguntas = PreguntaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Formulario
+        fields = ['id_formulario', 'empresa', 'usuario', 'nombre', 'descripcion', 'slug', 'fecha_creacion', 'preguntas']
+
+
+class RespuestaSerializer(serializers.ModelSerializer):
+    id_respuesta = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Respuesta
+        fields = ['id_respuesta', 'formulario', 'data', 'fecha']
+        read_only_fields = ['id_respuesta', 'fecha']
