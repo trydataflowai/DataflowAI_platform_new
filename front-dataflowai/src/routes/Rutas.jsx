@@ -26,6 +26,8 @@ import CreacionUsuario from "../components/pages/CreacionUsuario";
 import SoporteUsuario from "../components/pages/SoporteUsuario";
 import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
 import ChatBot from "../components/pages/ChatBot";
+import FormBuilder from '../components/pages/FormBuilder';
+import FormPublic from '../components/pages/FormPublic';
 
 import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
@@ -120,12 +122,12 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
     const esRutaPublica = rutasPublicas.some(ruta => {
       // Comparación exacta para rutas principales
       if (location.pathname === ruta) return true;
-      
+
       // Para rutas como /Servitel/login que pueden tener diferentes formatos
       if (ruta.includes('/login') && location.pathname.includes('/login')) {
         return true;
       }
-      
+
       return false;
     });
 
@@ -135,7 +137,7 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
     if (!esRutaPublica) {
       const verificarAutenticacion = () => {
         const token = localStorage.getItem('token') || localStorage.getItem('access_token');
-        
+
         if (!token || tokenEstaExpirado()) {
           // Redirigir a login si no hay token o está expirado en ruta protegida
           console.log('Redirigiendo a login desde ruta protegida');
@@ -552,6 +554,29 @@ export const Rutas = () => {
                     <DashboardARPUisp />
                   </SideBarLayout>
                 </RutaProtegida>
+              }
+            />
+
+
+
+            <Route
+              path="/FormBuilder"
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <FormBuilder />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            {/* Ruta pública distinta: /forms/:slug */}
+            <Route
+              path="/forms/:slug"
+              element={
+                <SideBarLayout>
+                  <FormPublic />
+                </SideBarLayout>
               }
             />
 

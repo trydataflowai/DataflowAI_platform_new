@@ -1116,3 +1116,100 @@ class DashboardARPU(models.Model):
 
     def __str__(self):
         return f"ARPU {self.id_registro} - emp:{self.id_empresa_id} prod:{self.id_producto_id} periodo:{self.periodo_mes}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Formulario de creación
+
+# backend/appdataflowai/models.py
+import uuid
+from django.db import models
+
+class Formulario(models.Model):
+    id_formulario = models.AutoField(primary_key=True)
+    empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa', related_name='formularios')
+    usuario = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, blank=True, db_column='id_usuario', related_name='formularios')
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    slug = models.SlugField(unique=True, blank=True, max_length=120)
+
+    class Meta:
+        db_table = 'formularios'
+        ordering = ['-fecha_creacion']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base = slugify(self.nombre) or "form"
+            self.slug = f"{base}-{uuid.uuid4().hex[:6]}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.slug})"
+
+
+class Pregunta(models.Model):
+    TIPO = (
+        ('text', 'Texto'),
+        ('textarea', 'Área de texto'),
+        ('date', 'Fecha'),
+        ('int', 'Número entero'),
+        ('float', 'Número decimal'),
+        ('email', 'Email'),
+        ('select', 'Selección'),
+        ('checkbox', 'Checkbox (múltiple)'),
+    )
+
+    id_pregunta = models.AutoField(primary_key=True)
+    formulario = models.ForeignKey(Formulario, on_delete=models.CASCADE, related_name='preguntas')
+    texto = models.CharField(max_length=512)
+    tipo = models.CharField(max_length=20, choices=TIPO)
+    orden = models.PositiveIntegerField(default=0)
+    requerido = models.BooleanField(default=False)
+    opciones = models.JSONField(null=True, blank=True)  # lista de strings si tipo == select/checkbox
+
+    # NUEVO: reglas de ramificación. Estructura esperada (ejemplo):
+    # [ {"when": "Zona Sur", "goto": 1}, {"when": "Zona Norte", "goto": 2}, {"when":"other","goto":"end"} ]
+    branching = models.JSONField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'preguntas'
+        ordering = ['orden']
+
+    def __str__(self):
+        return f"{self.texto} ({self.tipo})"
+
+
+class Respuesta(models.Model):
+    id_respuesta = models.AutoField(primary_key=True)
+    formulario = models.ForeignKey(Formulario, on_delete=models.CASCADE, related_name='respuestas')
+    data = models.JSONField()  # { "id_empresa": 1, "Nombre usuario": "Julian", "Ventas": 5, ... }
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'respuestas'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"Respuesta {self.id_respuesta} - {self.formulario.slug}"

@@ -789,3 +789,41 @@ class DashboardARPUAdmin(admin.ModelAdmin):
     )
 
     ordering = ('-periodo_mes',)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# backend/appdataflowai/admin.py
+from django.contrib import admin
+from .models import Formulario, Pregunta, Respuesta
+
+class PreguntaInline(admin.TabularInline):
+    model = Pregunta
+    extra = 0
+
+@admin.register(Formulario)
+class FormularioAdmin(admin.ModelAdmin):
+    list_display = ('id_formulario', 'nombre', 'empresa', 'usuario', 'fecha_creacion', 'slug')
+    search_fields = ('nombre', 'slug', 'empresa__nombre_empresa')
+    inlines = [PreguntaInline]
+
+@admin.register(Pregunta)
+class PreguntaAdmin(admin.ModelAdmin):
+    list_display = ('id_pregunta', 'texto', 'tipo', 'formulario', 'orden', 'requerido')
+    list_filter = ('tipo', 'requerido')
+
+@admin.register(Respuesta)
+class RespuestaAdmin(admin.ModelAdmin):
+    list_display = ('id_respuesta', 'formulario', 'fecha')
+    readonly_fields = ('data',)

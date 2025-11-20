@@ -1,5 +1,19 @@
 #HOLA JULI, ESTO ES POR PARTE D DANI
 
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import FormularioViewSet
+
+router = DefaultRouter()
+router.register(r'formularios', FormularioViewSet, basename='formularios')
+
+
+
+submit_view = FormularioViewSet.as_view({'post': 'submit'})
+respuestas_view = FormularioViewSet.as_view({'get': 'listar_respuestas'})
+retrieve_view = FormularioViewSet.as_view({'get': 'retrieve'})
+
+
 
 
 from django.urls import path
@@ -255,6 +269,14 @@ urlpatterns = [
 
     # Crear o actualizar (upsert) registro de ARPU
     path('dashboard_arpu/upsert/', DashboardARPUUpsertView.as_view(), name='dashboard_arpu_upsert'),
+
+
+
+    path('', include(router.urls)),
+    # paths explícitos (opcionales — el router ya los crea, pero te los muestro en estilo "path(...)"):
+    path('formularios/<slug:slug>/submit/', submit_view, name='formularios-submit'),
+    path('formularios/<slug:slug>/respuestas/', respuestas_view, name='formularios-respuestas'),
+    path('formularios/<slug:slug>/', retrieve_view, name='formularios-retrieve'),
 
 
 
