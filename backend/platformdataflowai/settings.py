@@ -134,3 +134,23 @@ ODOO_SALES_YEAR = config("ODOO_SALES_YEAR", cast=int, default=2025)
 OPENAI_API_KEY = config("OPENAI_API_KEY", default=None)
 OPENAI_API_BASE = config("OPENAI_API_BASE", default="https://api.openai.com/v1")
 OPENAI_DEFAULT_MODEL = config("OPENAI_DEFAULT_MODEL", default="gpt-4o-mini")
+
+
+
+
+
+
+
+
+
+# CHATN8N
+from decouple import config
+
+CHAT_TARGET_WEBHOOK_URL = config("CHAT_TARGET_WEBHOOK_URL", default=None)
+
+WEBHOOK_JWT_SECRET = config("WEBHOOK_JWT_SECRET", default="mi-clave-super-secreta-jwt-2024-palacios-webhook")
+WEBHOOK_JWT_ALGORITHM = config("WEBHOOK_JWT_ALGORITHM", default="HS256")
+WEBHOOK_JWT_EXP_SECONDS = config("WEBHOOK_JWT_EXP_SECONDS", cast=int, default=3600)
+
+# Si quieres que, cuando el cliente mande Authorization, el proxy lo reenvíe tal cual:
+WEBHOOK_FORWARD_INCOMING_AUTH = config("WEBHOOK_FORWARD_INCOMING_AUTH", default="false").lower() in ("1","true","yes")

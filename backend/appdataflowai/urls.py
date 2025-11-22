@@ -129,6 +129,11 @@ from .views import (
 
 
 
+    #CHAT N8N
+    ChatWebhookProxyAPIView,
+
+
+
 )
 
 from .views_chat.chat_dashboard_churn import DashboardChurnChatView
@@ -277,6 +282,10 @@ urlpatterns = [
     path('formularios/<slug:slug>/submit/', submit_view, name='formularios-submit'),
     path('formularios/<slug:slug>/respuestas/', respuestas_view, name='formularios-respuestas'),
     path('formularios/<slug:slug>/', retrieve_view, name='formularios-retrieve'),
+
+
+    #Chatbot N8N
+    path("n8n/webhook-proxy/", ChatWebhookProxyAPIView.as_view(), name="webhook-proxy"),
 
 
 

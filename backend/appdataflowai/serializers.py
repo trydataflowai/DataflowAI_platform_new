@@ -965,3 +965,22 @@ class RespuestaSerializer(serializers.ModelSerializer):
         model = Respuesta
         fields = ['id_respuesta', 'formulario', 'data', 'fecha']
         read_only_fields = ['id_respuesta', 'fecha']
+
+
+
+
+
+
+
+
+#CHATBOT DE N8N# myapp/serializers.py
+# myapp/serializers.py
+# myapp/serializers.py
+from rest_framework import serializers
+
+class WebhookProxySerializer(serializers.Serializer):
+    chatInput = serializers.CharField()
+    sessionId = serializers.CharField()
+    # table es opcional: si el cliente la envía la usamos, si no usamos el nombre del modelo
+    table = serializers.CharField(required=False, allow_blank=True)
+    # NO aceptamos empresaId desde el cliente por seguridad

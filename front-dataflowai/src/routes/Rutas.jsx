@@ -26,6 +26,7 @@ import CreacionUsuario from "../components/pages/CreacionUsuario";
 import SoporteUsuario from "../components/pages/SoporteUsuario";
 import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
 import ChatBot from "../components/pages/ChatBot";
+import ChatPostgre from "../components/pages/Chxtbut";
 import FormBuilder from '../components/pages/FormBuilder';
 import FormPublic from '../components/pages/FormPublic';
 
@@ -579,6 +580,22 @@ export const Rutas = () => {
                 </SideBarLayout>
               }
             />
+
+
+
+               <Route
+              path={p("/ChatPg")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <ChatPostgre />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+            
 
           </Routes>
         </VerificadorAutenticacionGlobal>
