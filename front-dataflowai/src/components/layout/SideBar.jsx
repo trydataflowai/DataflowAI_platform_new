@@ -205,6 +205,7 @@ export const SideBar = () => {
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/ChatBot", icon: "🤖", label: "AI Insights" },
     { to: "/SoporteUsuario", icon: "🆘", label: "Support" },
+    { to: "/ChatPg", icon: "🆘", label: "ChatGptxd" },
   ];
 
   const filteredLinks = links.filter((link) => {

@@ -296,6 +296,7 @@ class DetalleProductoHerramientas(models.Model):
 class DetalleProducto(models.Model):
     id_producto = models.ForeignKey(Producto, on_delete=models.PROTECT, db_column='id_producto')
     id_usuario = models.ForeignKey(Usuario, on_delete=models.PROTECT, db_column='id_usuario')
+    db_name = models.CharField(max_length=255, null=True, blank=True, db_column='db_name')
 
     class Meta:
         db_table = 'detalle_producto'
@@ -303,7 +304,9 @@ class DetalleProducto(models.Model):
         unique_together = (('id_producto', 'id_usuario'),)
 
     def __str__(self):
-        return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}"
+        # opcional: incluir db_name si quieres verlo en admin/representación
+        return f"Producto {self.id_producto_id} - Usuario {self.id_usuario_id}" + (f" - DB: {self.db_name}" if self.db_name else "")
+
 
 
 class DetalleProductoVendido(models.Model):
