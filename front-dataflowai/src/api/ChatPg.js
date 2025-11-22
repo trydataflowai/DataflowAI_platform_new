@@ -1,12 +1,17 @@
 // src/api/ChatPg.js
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export async function sendChatMessage(chatInput) {
+export async function sendChatMessage(chatInput, table) {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('No se encontró token. Haz login primero.');
 
+  // EN ESTA IMPLEMENTACIÓN la vista BACKEND exige table, así que preferible pasarla siempre.
+  if (!table) {
+    throw new Error('Debes seleccionar un dashboard antes de enviar mensajes.');
+  }
+
   const url = `${API_BASE_URL}n8n/webhook-proxy/`;
-  const body = { chatInput, sessionId: 'dataflowai' };
+  const body = { chatInput, sessionId: 'dataflowai', table };
 
   const res = await fetch(url, {
     method: 'POST',
@@ -18,14 +23,12 @@ export async function sendChatMessage(chatInput) {
   });
 
   if (!res.ok) {
-    // manejar 504 separado para UX
     if (res.status === 504) {
-      // leer detalle si hay
       let detail = 'Timeout: la operación tardó demasiado. Intente nuevamente más tarde.';
       try {
         const j = await res.json();
         if (j && j.detail) detail = j.detail;
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
       throw new Error(detail);
     }
 
@@ -42,3 +45,5 @@ export async function sendChatMessage(chatInput) {
   if (!('response_from_webhook' in data)) return data;
   return data.response_from_webhook;
 }
+
+export default { sendChatMessage };

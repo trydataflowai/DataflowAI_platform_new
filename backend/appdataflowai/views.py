@@ -302,7 +302,6 @@ class ProductosUsuarioView(APIView):
         except Usuario.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
 
-        # Traemos productos con relaciones (estado y área) para evitar N+1 queries
         detalles = DetalleProducto.objects.select_related(
             'id_producto',
             'id_producto__id_estado',
@@ -321,13 +320,13 @@ class ProductosUsuarioView(APIView):
                 'estado': getattr(prod.id_estado, 'estado', None) if getattr(prod, 'id_estado', None) else None,
                 'link_pb': getattr(prod, 'link_pb', None),
                 'categoria_producto': getattr(prod, 'categoria_producto', None),
-                # 🔹 Nueva info del área
                 'area': {
                     'id_area': getattr(prod.id_area, 'id_area', None),
                     'nombre': getattr(prod.id_area, 'area_trabajo', None),
                 },
-                # 🔹 Nuevo campo solicitado: link_dashboard_externo
                 'link_dashboard_externo': getattr(prod, 'link_dashboard_externo', None),
+                # <-- nuevo campo traído desde DetalleProducto
+                'db_name': getattr(dp, 'db_name', None),
                 'usuario': {
                     'id': usuario.id_usuario,
                     'nombres': usuario.nombres,
@@ -338,6 +337,7 @@ class ProductosUsuarioView(APIView):
             })
 
         return JsonResponse(productos, safe=False)
+
 
 
 
@@ -4723,7 +4723,8 @@ class FormularioViewSet(viewsets.ModelViewSet):
 
 
 #CHATBOT DE N8N# myapp/serializers.py
-# myapp/views.py  (reemplaza la definición anterior por este contenido)
+# myapp/views.py  (reemplaza la clase ChatWebhookProxyAPIView por esta versión)
+# myapp/views.py
 import time
 import jwt
 import requests
@@ -4737,31 +4738,24 @@ from rest_framework import status
 from django.conf import settings
 
 from .serializers import WebhookProxySerializer
-from .models import DashboardChurnRate, Usuario
+from .models import DashboardChurnRate, Usuario, DetalleProducto
 
-# Config desde settings (asegúrate de definir en settings.py/.env si quieres sobreescribir)
+# Config (igual que antes)
 TARGET_WEBHOOK_URL = getattr(settings, "CHAT_TARGET_WEBHOOK_URL", None)
 WEBHOOK_JWT_SECRET = getattr(settings, "WEBHOOK_JWT_SECRET", None)
 WEBHOOK_JWT_ALGORITHM = getattr(settings, "WEBHOOK_JWT_ALGORITHM", "HS256")
 WEBHOOK_JWT_EXP_SECONDS = int(getattr(settings, "WEBHOOK_JWT_EXP_SECONDS", 3600))
 
-# Timeout/retries configurables
-N8N_REQUEST_TIMEOUT = float(getattr(settings, "N8N_REQUEST_TIMEOUT", 120.0))  # segundos
+N8N_REQUEST_TIMEOUT = float(getattr(settings, "N8N_REQUEST_TIMEOUT", 120.0))
 N8N_MAX_RETRIES = int(getattr(settings, "N8N_MAX_RETRIES", 1))
 N8N_BACKOFF_FACTOR = float(getattr(settings, "N8N_BACKOFF_FACTOR", 0.5))
 
-# Algoritmo del token de login (según tu LoginView)
 LOGIN_TOKEN_ALGORITHM = "HS256"
 
 
 def _make_jwt_for_webhook():
-    """Genera un JWT firmado con WEBHOOK_JWT_SECRET para autenticar la petición a n8n."""
     now = int(time.time())
-    payload = {
-        "sub": "webhook",
-        "iat": now,
-        "exp": now + WEBHOOK_JWT_EXP_SECONDS
-    }
+    payload = {"sub": "webhook", "iat": now, "exp": now + WEBHOOK_JWT_EXP_SECONDS}
     token = jwt.encode(payload, WEBHOOK_JWT_SECRET, algorithm=WEBHOOK_JWT_ALGORITHM)
     return token.decode("utf-8") if isinstance(token, bytes) else token
 
@@ -4786,14 +4780,14 @@ class ChatWebhookProxyAPIView(APIView):
     """
     Endpoint /api/n8n/webhook-proxy/
     - Requiere header Authorization: Bearer <token_de_login>
-    - Body: { "chatInput": "...", "sessionId": "..." } (opcional "table")
+    - Body: { "chatInput": "...", "sessionId": "...", "table": "db_name" }
+      -> table ahora ES OBLIGATORIO y debe pertenecer al usuario.
     - Internamente obtiene empresaId desde el usuario y lo inyecta en el payload enviado a n8n.
     - Responde: { "response_from_webhook": <cuerpo> } o mensajes de error claros.
     """
 
     def post(self, request, *args, **kwargs):
         try:
-            # 0. Chequeos de configuración
             if TARGET_WEBHOOK_URL is None:
                 return Response({"detail": "Falta configuración: CHAT_TARGET_WEBHOOK_URL"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             if WEBHOOK_JWT_SECRET is None:
@@ -4812,7 +4806,6 @@ class ChatWebhookProxyAPIView(APIView):
             except jwt.InvalidTokenError:
                 return Response({"detail": "Token inválido"}, status=status.HTTP_401_UNAUTHORIZED)
 
-            # Verificar tipo si existe
             if client_payload.get("type") and client_payload.get("type") != "access":
                 return Response({"detail": "Token no es de tipo 'access'."}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -4833,27 +4826,34 @@ class ChatWebhookProxyAPIView(APIView):
             if estado_id != 1:
                 return Response({"detail": "Usuario inactivo"}, status=status.HTTP_403_FORBIDDEN)
 
-            # 3. Validar body con serializer
+            # 3. Validar body con serializer (AHORA exige 'table')
             serializer = WebhookProxySerializer(data=request.data)
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             validated = serializer.validated_data
 
-            # 4. Determinar table_name (si no viene, usar el db_table del modelo DashboardChurnRate)
-            table_name = validated.get("table") or DashboardChurnRate._meta.db_table
+            # 4. Verificar que la tabla solicitada pertenezca al usuario (por seguridad)
+            requested_table = validated.get("table")
+            if not requested_table:
+                return Response({"detail": "Debe indicar 'table' con el db_name del dashboard seleccionado."},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-            # 5. Obtener empresaId desde el usuario (sobrescribe cualquier valor del cliente)
+            exists = DetalleProducto.objects.filter(id_usuario=usuario, db_name=requested_table).exists()
+            if not exists:
+                return Response({"detail": "Tabla no permitida / no asociada al usuario"}, status=status.HTTP_403_FORBIDDEN)
+
+            # 5. Obtener empresaId desde usuario
             try:
                 empresa_id_val = usuario.id_empresa.id_empresa
             except Exception:
                 return Response({"detail": "El usuario no tiene empresa asociada"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # 6. Construir payload final que se enviará a n8n
+            # 6. Construir payload final
             payload_to_send = {
                 "chatInput": validated["chatInput"],
                 "sessionId": validated["sessionId"],
-                "table": table_name,
-                "empresaId": empresa_id_val  # entero
+                "table": requested_table,
+                "empresaId": empresa_id_val
             }
 
             # 7. Preparar headers para n8n (firmados con WEBHOOK_JWT_SECRET)
@@ -4862,7 +4862,7 @@ class ChatWebhookProxyAPIView(APIView):
                 "Authorization": f"Bearer {_make_jwt_for_webhook()}"
             }
 
-            # 8. Enviar al webhook de n8n usando Session con retries y timeout configurable
+            # 8. Enviar a n8n con timeout/retries
             session = _requests_session_with_retries()
 
             try:
@@ -4873,10 +4873,8 @@ class ChatWebhookProxyAPIView(APIView):
                     timeout=N8N_REQUEST_TIMEOUT
                 )
             except Timeout:
-                return Response(
-                    {"detail": "Timeout al contactar el webhook. El análisis está tomando más tiempo del esperado."},
-                    status=status.HTTP_504_GATEWAY_TIMEOUT
-                )
+                return Response({"detail": "Timeout al contactar el webhook. El análisis está tomando más tiempo del esperado."},
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
             except RequestException as e:
                 return Response({"detail": "Error contactando el webhook.", "error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
@@ -4890,10 +4888,7 @@ class ChatWebhookProxyAPIView(APIView):
             except ValueError:
                 data = resp.text
 
-            # 10. Responder con el contenido del webhook
             return Response({"response_from_webhook": data}, status=status.HTTP_200_OK)
 
         except Exception as exc:
-            # Cualquier error inesperado: devolver 500 con mensaje y log reducido
-            # (En producción registra con logger.exception)
             return Response({"detail": "Error interno en el servidor.", "error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

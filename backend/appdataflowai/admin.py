@@ -118,9 +118,9 @@ class ProductoAdmin(admin.ModelAdmin):
 
 @admin.register(DetalleProducto)
 class DetalleProductoAdmin(admin.ModelAdmin):
-    list_display = ('id_producto', 'id_usuario')
-    search_fields = ('id_producto__producto', 'id_usuario__nombres')
-    list_filter = ('id_producto', 'id_usuario')
+    list_display = ('id_producto', 'id_usuario', 'db_name')
+    search_fields = ('id_producto__producto', 'id_usuario__nombres', 'db_name')
+    list_filter = ('id_producto', 'id_usuario', 'db_name')
 
 
 @admin.register(DetalleProductoVendido)
