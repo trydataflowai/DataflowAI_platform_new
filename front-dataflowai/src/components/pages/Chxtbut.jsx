@@ -1,4 +1,3 @@
-// File: src/components/pages/Chxtbut.jsx
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../../styles/Chxtbut.module.css";
 import { sendChatMessage } from "../../api/ChatPg";
@@ -13,13 +12,9 @@ export default function ChatPostgrePremium() {
   const [error, setError] = useState(null);
   const [products, setProducts] = useState([]);
   const [showProducts, setShowProducts] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("selectedProduct")) || null;
-    } catch {
-      return null;
-    }
-  });
+
+  // IMPORTANT: never auto-select a product on mount (the user must always choose)
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const messagesEndRef = useRef(null);
   useEffect(() => {
@@ -30,7 +25,16 @@ export default function ChatPostgrePremium() {
     setShowProducts((s) => !s);
     if (products.length === 0 && !showProducts) {
       try {
-        const list = await obtenerProductosUsuario();
+        let list = await obtenerProductosUsuario();
+        // filter out items with db_name null, undefined, empty string, 0 or "0"
+        if (Array.isArray(list)) {
+          list = list.filter((p) => {
+            const v = p?.db_name;
+            return v !== null && v !== undefined && v !== "" && v !== 0 && v !== "0";
+          });
+        } else {
+          list = [];
+        }
         setProducts(list || []);
       } catch (err) {
         console.error(err);
@@ -40,48 +44,76 @@ export default function ChatPostgrePremium() {
   };
 
   const handleSelectProduct = (prod) => {
+    // allow selection, save it but DO NOT auto-apply on mount
     setSelectedProduct(prod);
-    localStorage.setItem("selectedProduct", JSON.stringify(prod));
+    try {
+      localStorage.setItem("selectedProduct", JSON.stringify(prod));
+    } catch {}
     setShowProducts(false);
 
     const infoMsg = {
       id: Date.now(),
       role: "system",
-      text: `Conectado al dashboard "${prod.producto}" (tabla: ${prod.db_name}). Ahora puedes escribir.`,
+      text: `Conectado al dashboard "${prod.producto}"${prod.db_name ? ` (tabla: ${prod.db_name})` : ""}. Ahora puedes escribir.`,
     };
     setMessages((m) => [...m, infoMsg]);
   };
 
   const handleClearSelection = () => {
     setSelectedProduct(null);
-    localStorage.removeItem("selectedProduct");
+    // don't auto-select again — keep localStorage but user must explicitly pick
+    try {
+      localStorage.removeItem("selectedProduct");
+    } catch {}
     setMessages((m) => [
       ...m,
       { id: Date.now(), role: "system", text: "Selección eliminada. Selecciona un dashboard para habilitar el chat." },
     ]);
   };
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text) return;
+  // Helper to send any prompt to backend and append messages (used for normal sends and the "da click acá" flow)
+  const sendPromptToBackend = async (promptText) => {
     if (!selectedProduct) {
       setError("Selecciona un dashboard antes de enviar mensajes.");
       return;
     }
-
     setError(null);
-    const userMsg = { id: Date.now(), role: "user", text, time: new Date().toISOString() };
+    const userMsg = { id: Date.now(), role: "user", text: promptText, time: new Date().toISOString() };
     setMessages((m) => [...m, userMsg]);
-    setInput("");
     setLoading(true);
 
     try {
-      const reply = await sendChatMessage(text, selectedProduct.db_name);
-      const replyText = typeof reply === "string" ? reply : JSON.stringify(reply, null, 2);
-      const botMsg = { id: Date.now() + 1, role: "bot", text: replyText, time: new Date().toISOString() };
-      // small UX delay for typing feel
-      await new Promise((r) => setTimeout(r, 180));
-      setMessages((m) => [...m, botMsg]);
+      const reply = await sendChatMessage(promptText, selectedProduct.db_name);
+
+      // determine if reply contains useful info
+      let isEmpty = false;
+      if (!reply) isEmpty = true;
+      else if (typeof reply === "object") {
+        // empty object or empty array => treat as empty
+        if (Array.isArray(reply) && reply.length === 0) isEmpty = true;
+        else if (!Array.isArray(reply) && Object.keys(reply).length === 0) isEmpty = true;
+      } else if (typeof reply === "string") {
+        const trimmed = reply.trim();
+        if (trimmed === "" || trimmed === "{}" || trimmed === "null") isEmpty = true;
+      }
+
+      if (isEmpty) {
+        // append the special bot message with action
+        const botEmpty = {
+          id: Date.now() + 1,
+          role: "bot",
+          text: "Lo siento, no puedo ayudarte con eso.",
+          emptyAction: true,
+          actionLabel: "da click acá",
+        };
+        setMessages((m) => [...m, botEmpty]);
+      } else {
+        const replyText = typeof reply === "string" ? reply : JSON.stringify(reply, null, 2);
+        const botMsg = { id: Date.now() + 1, role: "bot", text: replyText, time: new Date().toISOString() };
+        // small UX delay for typing feel
+        await new Promise((r) => setTimeout(r, 180));
+        setMessages((m) => [...m, botMsg]);
+      }
     } catch (err) {
       console.error(err);
       setError(err?.message || "Error conectando con el servidor");
@@ -90,6 +122,19 @@ export default function ChatPostgrePremium() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSend = async () => {
+    const text = input.trim();
+    if (!text) return;
+    await sendPromptToBackend(text);
+    setInput("");
+  };
+
+  // When user clicks the "da click acá" action in the bot message:
+  const handleEmptyActionClick = async () => {
+    const followUp = "Indicame en que puedes ayudarme basado en la tabla que estes conectado";
+    await sendPromptToBackend(followUp);
   };
 
   const onKeyDown = (e) => {
@@ -114,7 +159,7 @@ export default function ChatPostgrePremium() {
                 <>
                   <div className={styles.selectedLabel}>
                     <strong>{selectedProduct.producto}</strong>
-                    <span className={styles.dbName}>{selectedProduct.db_name}</span>
+                    {selectedProduct.db_name && <span className={styles.dbName}>{selectedProduct.db_name}</span>}
                   </div>
                   <button className={styles.clearBtn} onClick={handleClearSelection} aria-label="Quitar selección">
                     Quitar
@@ -140,7 +185,7 @@ export default function ChatPostgrePremium() {
           <div className={styles.productList}>
             <div className={styles.productListTitle}>Selecciona un dashboard</div>
             {products.length === 0 ? (
-              <div className={styles.productEmpty}>Cargando o no hay dashboards...</div>
+              <div className={styles.productEmpty}>Cargando o no hay dashboards disponibles con db_name válido...</div>
             ) : (
               <div className={styles.productGrid}>
                 {products.map((p) => {
@@ -170,6 +215,23 @@ export default function ChatPostgrePremium() {
               >
                 {m.role === "system" ? (
                   <div className={styles.systemBubble}>{m.text}</div>
+                ) : m.role === "bot" && m.emptyAction ? (
+                  // bot special empty action bubble
+                  <div className={styles.bubbleWrap}>
+                    <div className={`${styles.bubble} ${styles.botBubble}`}>
+                      <div className={styles.botTextInline}>
+                        <span>{m.text} , si quieres </span>
+                        <button
+                          className={styles.actionBtn}
+                          onClick={handleEmptyActionClick}
+                          aria-label="Solicitar ayuda basada en la tabla conectada"
+                        >
+                          {m.actionLabel}
+                        </button>
+                        <span> para indicarte en qué puedo ayudarte.</span>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <div className={styles.bubbleWrap}>
                     <div className={`${styles.bubble} ${m.role === "user" ? styles.userBubble : styles.botBubble}`}>

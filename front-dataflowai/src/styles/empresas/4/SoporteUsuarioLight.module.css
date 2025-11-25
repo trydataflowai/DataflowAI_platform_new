@@ -2,15 +2,15 @@
 /* Light theme inspired by LinkedIn (white + naranja) */
 :root {
   --bg: #ffffff;
-  --panel: #fffaf5;
+  --panel: #ffffff;
   --primary-green: #F58220;
   --primary-green-600: #D26900;
   --text: #0b1a2b;
   --muted: #6b7785;
   --muted-2: #8a97a6;
   --surface: #ffffff;
-  --border: #f8e6d6;
-  --shadow: 0 8px 30px rgba(245,130,32,0.06);
+  --border: #e1e8ed;
+  --shadow: 0 8px 30px rgba(0,0,0,0.06);
   --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
 }
 
@@ -18,7 +18,7 @@
 .container{
   min-height:100vh;
   padding:28px;
-  background: linear-gradient(180deg, #ffffff 0%, #fff5f0 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
   color: var(--text);
   font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
   transition: var(--transition);
@@ -70,7 +70,7 @@
   outline:none;
   transition: var(--transition);
 }
-.dateInput:focus{ box-shadow: 0 8px 20px rgba(245,130,32,0.06); transform: translateY(-1px); }
+.dateInput:focus{ box-shadow: 0 8px 20px rgba(0,0,0,0.08); transform: translateY(-1px); border-color: #F58220; }
 
 /* Buttons */
 .filterBtn, .clearBtn, .primaryButton, .primarySmall, .secondaryBtn {
@@ -82,14 +82,23 @@
   transition: var(--transition);
 }
 .filterBtn{
-  background: linear-gradient(90deg, rgba(245,130,32,0.08), rgba(245,130,32,0.04));
+  background: #ffffff;
   color: var(--text);
-  border: 1px solid rgba(245,130,32,0.06);
+  border: 1px solid var(--border);
+}
+.filterBtn:hover{
+  background: #F58220;
+  color: #ffffff;
+  border-color: #F58220;
 }
 .clearBtn{
   background: transparent;
   color:var(--text);
-  border: 1px solid rgba(245,130,32,0.03);
+  border: 1px solid var(--border);
+}
+.clearBtn:hover{
+  background: #f8f9fa;
+  border-color: #F58220;
 }
 .primaryButton{
   background: linear-gradient(90deg, var(--primary-green), var(--primary-green-600));
@@ -98,6 +107,10 @@
   border-radius:12px;
   box-shadow: 0 10px 30px rgba(245,130,32,0.12);
 }
+.primaryButton:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(245,130,32,0.2);
+}
 .primaryButton:active{ transform: translateY(1px); }
 
 .primarySmall{
@@ -105,6 +118,9 @@
   color: #ffffff;
   padding:6px 10px;
   border-radius:8px;
+}
+.primarySmall:hover{
+  background: var(--primary-green-600);
 }
 
 /* Errors & messages */
@@ -148,7 +164,7 @@
   vertical-align: middle;
   color:var(--text);
   font-size:13px;
-  border-bottom:1px solid #fdf6f0;
+  border-bottom:1px solid #f8f9fa;
 }
 .noData{
   text-align:center;
@@ -161,7 +177,7 @@
   transition: var(--transition);
 }
 .row:hover{
-  background: linear-gradient(90deg, rgba(245,130,32,0.02), rgba(245,130,32,0.01));
+  background: #f8f9fa;
   transform: translateY(-2px);
 }
 .cellAsunto{ font-weight:600; letter-spacing: -0.2px; }
@@ -177,7 +193,7 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  background: rgba(13,26,45,0.08); /* Fondo más claro y neutral */
+  background: rgba(13,26,45,0.08);
   z-index:1200;
   padding:20px;
   backdrop-filter: blur(3px);
@@ -196,8 +212,8 @@
   justify-content:space-between;
   align-items:center;
   padding:18px;
-  border-bottom:1px solid #fdf6f0;
-  background: #fffaf5;
+  border-bottom:1px solid #f8f9fa;
+  background: #ffffff;
 }
 .modalTitle{ margin:0; font-size:18px; color:var(--text); }
 .modalSubtitle{ color:var(--muted); font-size:13px; margin-top:6px; }
@@ -212,7 +228,7 @@
   transition: var(--transition);
 }
 .closeBtn:hover{
-  background: rgba(245,130,32,0.05);
+  background: #f8f9fa;
 }
 .modalBody{ padding:18px; display:flex; flex-direction:column; gap:12px; }
 .label{ display:flex; flex-direction:column; gap:6px; }
@@ -231,9 +247,9 @@
   color: var(--muted);
 }
 .input:focus, .textarea:focus{ 
-  box-shadow: 0 12px 40px rgba(245,130,32,0.08); 
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
   transform: translateY(-1px); 
-  border-color: rgba(245,130,32,0.3);
+  border-color: #F58220;
 }
 
 .modalFooter{
@@ -241,8 +257,8 @@
   justify-content:flex-end;
   gap:12px;
   padding:16px;
-  border-top:1px solid #fdf6f0;
-  background: #fffaf5;
+  border-top:1px solid #f8f9fa;
+  background: #ffffff;
 }
 .secondaryBtn{
   background: transparent;
@@ -253,7 +269,8 @@
   transition: var(--transition);
 }
 .secondaryBtn:hover{
-  background: rgba(245,130,32,0.03);
+  background: #f8f9fa;
+  border-color: #F58220;
 }
 
 /* Detail view */
@@ -265,7 +282,7 @@
   color:var(--text);
 }
 .detailBlock{ 
-  background: #fffaf5; 
+  background: #ffffff; 
   padding:8px 12px; 
   border-radius:8px; 
   color:var(--text);

@@ -10,16 +10,8 @@ import defaultLightStyles from "../../styles/SideBarLight.module.css";
 import { useTheme } from "../componentes/ThemeContext";
 import { ThemeToggle } from "../componentes/ThemeToggle";
 
-/*
-  Lógica:
-  - Intentamos resolver estilos específicos por empresa buscando archivos:
-      src/styles/empresas/{companyId}/SideBar.module.css     (dark)
-      src/styles/empresas/{companyId}/SideBarLight.module.css (light)
-  - Si existen y el plan del usuario es 3 o 6, usamos los estilos por empresa.
-  - Si no existen o el plan no aplica, usamos los estilos por defecto (importados arriba).
-  - Implementación con import.meta.glob(..., { eager: true }) para que Vite incluya
-    los módulos CSS en el bundle y podamos accederlos por ruta construida.
-*/
+// 🔥 IMPORTANTE: accesos por empresa
+import accesosEmpresa from "../../data/accesos";
 
 const empresaLightModules = import.meta.glob(
   "../../styles/empresas/*/SideBarLight.module.css",
@@ -38,19 +30,18 @@ export const SideBar = () => {
 
   const [collapsed, setCollapsed] = useState(false);
 
-  // info usuario
   const [companyId, setCompanyId] = useState(null);
   const [companyName, setCompanyName] = useState("DataFlow AI");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
   const [styles, setStyles] = useState(defaultDarkStyles);
 
-  // logo states
   const [logoUrl, setLogoUrl] = useState(null);
   const [logoFound, setLogoFound] = useState(false);
-
-  // segmento de empresa (nombre_corto normalizado) -> p.e. "Coltrade"
   const [companySegment, setCompanySegment] = useState("");
+
+  // ⛔ Evitar PARPADEO
+  const [loaded, setLoaded] = useState(false);
 
   const NO_PREFIX = [
     "/homeLogin",
@@ -66,6 +57,7 @@ export const SideBar = () => {
 
   useEffect(() => {
     let mounted = true;
+
     async function fetchUsuario() {
       try {
         const user = await obtenerInfoUsuario();
@@ -79,15 +71,21 @@ export const SideBar = () => {
 
         setPlanId(pid);
         setPlanName(pname);
-        setCompanyName((pid === 3 || pid === 6) ? cname : "DataFlow AI");
+        setCompanyName(pid === 3 || pid === 6 ? cname : "DataFlow AI");
         setCompanyId(cid);
         setCompanySegment(normalizeSegment(nombreCorto));
+
+        // 🔥 Datos mínimos cargados → NO PARPADEO
+        setLoaded(true);
       } catch (err) {
         console.error("Error al obtener info usuario:", err);
       }
     }
+
     fetchUsuario();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -123,49 +121,27 @@ export const SideBar = () => {
     };
 
     tryLoad();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [companyId]);
 
   useEffect(() => {
-    /*
-      Selección de estilos:
-      - Solo intentamos usar estilos por empresa si el plan es 3 o 6.
-      - Buscamos módulos previamente incluidos por import.meta.glob.
-      - Si encontramos el módulo correspondiente a la empresa, lo usamos.
-      - Si no, fallback al default (light/dark).
-    */
     const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
 
-    // construir rutas tal como las keys de import.meta.glob usan rutas relativas
     const lightKey = `../../styles/empresas/${companyId}/SideBarLight.module.css`;
     const darkKey = `../../styles/empresas/${companyId}/SideBar.module.css`;
 
-    const foundCompanyLight = empresaLightModules[lightKey];
-    const foundCompanyDark = empresaDarkModules[darkKey];
+    const extract = (mod) => (mod ? mod.default ?? mod : null);
 
-    // helper: algunos bundlers ponen el mapping en .default, otros directamente
-    const extract = (mod) => {
-      if (!mod) return null;
-      return mod.default ?? mod;
-    };
-
-    const companyLight = extract(foundCompanyLight);
-    const companyDark = extract(foundCompanyDark);
+    const companyLight = extract(empresaLightModules[lightKey]);
+    const companyDark = extract(empresaDarkModules[darkKey]);
 
     let chosenStyles = defaultDarkStyles;
     if (theme === "dark") {
-      if (useCompanyStyles && companyDark) {
-        chosenStyles = companyDark;
-      } else {
-        chosenStyles = defaultDarkStyles;
-      }
+      chosenStyles = useCompanyStyles && companyDark ? companyDark : defaultDarkStyles;
     } else {
-      // light theme
-      if (useCompanyStyles && companyLight) {
-        chosenStyles = companyLight;
-      } else {
-        chosenStyles = defaultLightStyles;
-      }
+      chosenStyles = useCompanyStyles && companyLight ? companyLight : defaultLightStyles;
     }
 
     setStyles(chosenStyles);
@@ -192,46 +168,41 @@ export const SideBar = () => {
     return hash ? `${fullBase}#${hash}` : fullBase;
   };
 
-  const handleLogoClick = () => {
-    navigate(buildTo("/homeLogin#home"));
-  };
-
+  const handleLogoClick = () => navigate(buildTo("/homeLogin#home"));
   const toggleCollapsed = () => setCollapsed((c) => !c);
 
+  // 💥 Menú
   const links = [
     { to: "/home", icon: "📊", label: "Dashboards" },
     { to: "/HomeTools", icon: "🛠️", label: "Tools" },
     { to: "/configuracion-perfil", icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
     { to: "/SoporteUsuario", icon: "🆘", label: "Support" },
-    { to: "/ChatPg", icon: "🆘", label: "AI Insights" },
-    { to: "/FormBuilder", icon: "🆘", label: "Formbuilder" },
-
-
-    
+    { to: "/ChatPg", icon: "🤖", label: "AI Insights" },
+    { to: "/FormBuilder", icon: "🧩", label: "FormBuilder" },
   ];
 
+  // 🔥 Aplicar permisos (lo que NO quiero que se vea)
+  const denied = companyId ? accesosEmpresa[String(companyId)] ?? [] : [];
+
   const filteredLinks = links.filter((link) => {
-    if (link.to === "/marketplace" && (planId === 3 || planId === 6)) {
-      return false;
-    }
+    if (link.to === "/marketplace" && (planId === 3 || planId === 6)) return false;
+    if (denied.includes(link.label)) return false;
     return true;
   });
 
   const isActiveLink = (to) => {
     const built = buildTo(to);
-    const base = built.split("#")[0];
-    return pathname === base;
+    return pathname === built.split("#")[0];
   };
+
+  // ⛔ NO RENDERIZAR hasta tener loaded → elimina PARPADEO
+  if (!loaded) return null;
 
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
       <div className={styles.logoContainer}>
-        <button
-          className={styles.logoButton}
-          onClick={handleLogoClick}
-          aria-label="View Home"
-        >
+        <button className={styles.logoButton} onClick={handleLogoClick}>
           {logoFound ? (
             <img
               src={logoUrl}
@@ -262,7 +233,6 @@ export const SideBar = () => {
               key={builtTo}
               className={`${styles.button} ${isActiveLink(to) ? styles.active : ""}`}
               onClick={() => navigate(builtTo)}
-              aria-label={`View ${label}`}
             >
               <span className={`${styles.icon} ${styles.emojiWhite}`}>{icon}</span>
               <span className={styles.text}>{label}</span>
@@ -271,11 +241,7 @@ export const SideBar = () => {
           );
         })}
 
-        <button
-          className={styles.button}
-          onClick={handleLogout}
-          aria-label="Log out"
-        >
+        <button className={styles.button} onClick={handleLogout}>
           <span className={`${styles.icon} ${styles.emojiWhite}`}>🚪</span>
           <span className={styles.text}>Log out</span>
           <span className={styles.highlight} />
@@ -283,11 +249,7 @@ export const SideBar = () => {
       </nav>
 
       <div className={styles.toggleContainer}>
-        <button
-          className={styles.toggleButton}
-          onClick={toggleCollapsed}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
+        <button className={styles.toggleButton} onClick={toggleCollapsed}>
           {collapsed ? "➡️" : "⬅️"}
         </button>
       </div>
