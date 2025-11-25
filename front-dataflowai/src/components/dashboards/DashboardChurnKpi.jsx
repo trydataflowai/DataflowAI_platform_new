@@ -61,14 +61,14 @@ const calcularChurnMensual = (data, year) => {
       const idCliente = String(cliente.id_cliente);
       const fechaContratacion = cliente.fecha_contratacion ? new Date(cliente.fecha_contratacion) : null;
       const fechaBaja = cliente.fecha_baja ? new Date(cliente.fecha_baja) : null;
-      
+
       if (fechaContratacion && fechaContratacion.getFullYear() <= year) {
         const mesContratacion = fechaContratacion.getMonth() + 1;
         const anoContratacion = fechaContratacion.getFullYear();
-        
+
         if (anoContratacion < year || (anoContratacion === year && mesContratacion <= mes)) {
-          if (!fechaBaja || fechaBaja.getFullYear() > year || 
-              (fechaBaja.getFullYear() === year && fechaBaja.getMonth() + 1 > mes)) {
+          if (!fechaBaja || fechaBaja.getFullYear() > year ||
+            (fechaBaja.getFullYear() === year && fechaBaja.getMonth() + 1 > mes)) {
             clientesActivosMes.add(idCliente);
           }
         }
@@ -81,10 +81,10 @@ const calcularChurnMensual = (data, year) => {
 
     const activos = clientesActivosMes.size;
     const perdidos = clientesPerdidosMes.size;
-    
+
     datosMensuales[mes].clientesActivos = activos;
     datosMensuales[mes].clientesPerdidos = perdidos;
-    datosMensuales[mes].churnRate = activos > 0 
+    datosMensuales[mes].churnRate = activos > 0
       ? Number(((perdidos / activos) * 100).toFixed(2))
       : 0;
   }
@@ -95,7 +95,7 @@ const calcularChurnMensual = (data, year) => {
 // Función para calcular churn rate por tipo de plan
 const calcularChurnPorTipoPlan = (data, year) => {
   const planesMap = new Map();
-  
+
   data.forEach((cliente) => {
     const tipoPlan = cliente.tipo_plan || 'Sin Plan';
     if (!planesMap.has(tipoPlan)) {
@@ -111,7 +111,7 @@ const calcularChurnPorTipoPlan = (data, year) => {
     const idCliente = String(cliente.id_cliente);
     const tipoPlan = cliente.tipo_plan || 'Sin Plan';
     const planData = planesMap.get(tipoPlan);
-    
+
     if (!planData) return;
 
     if (cliente.fecha_contratacion) {
@@ -133,7 +133,7 @@ const calcularChurnPorTipoPlan = (data, year) => {
   for (const [tipoPlan, data] of planesMap) {
     const clientesTotales = data.clientesTotales.size;
     const clientesPerdidos = data.clientesPerdidos.size;
-    const churnRate = clientesTotales > 0 
+    const churnRate = clientesTotales > 0
       ? Number(((clientesPerdidos / clientesTotales) * 100).toFixed(2))
       : 0;
 
@@ -172,7 +172,7 @@ const calcularClientesNuevosVsPerdidos = (data, year) => {
 
   data.forEach((cliente) => {
     const idCliente = String(cliente.id_cliente);
-    
+
     if (cliente.fecha_contratacion) {
       const fechaContratacion = new Date(cliente.fecha_contratacion);
       if (fechaContratacion.getFullYear() === year) {
@@ -180,7 +180,7 @@ const calcularClientesNuevosVsPerdidos = (data, year) => {
         nuevosClientesPorMes.get(mesContratacion).add(idCliente);
       }
     }
-    
+
     if (cliente.fecha_baja && String(cliente.estado_cliente).toLowerCase() === 'inactivo') {
       const fechaBaja = new Date(cliente.fecha_baja);
       if (fechaBaja.getFullYear() === year) {
@@ -193,7 +193,7 @@ const calcularClientesNuevosVsPerdidos = (data, year) => {
   for (let mes = 1; mes <= 12; mes++) {
     const nuevos = nuevosClientesPorMes.get(mes).size;
     const perdidos = clientesPerdidosPorMes.get(mes).size;
-    
+
     datosMensuales[mes].nuevosClientes = nuevos;
     datosMensuales[mes].clientesPerdidos = perdidos;
   }
@@ -257,7 +257,7 @@ const calcularTopChurnFactors = (data) => {
 // Función para extraer años únicos de los datos
 const extraerAnosDisponibles = (data) => {
   const anosSet = new Set();
-  
+
   data.forEach((cliente) => {
     if (cliente.fecha_contratacion) {
       try {
@@ -269,7 +269,7 @@ const extraerAnosDisponibles = (data) => {
         console.warn('Fecha de contratación inválida:', cliente.fecha_contratacion);
       }
     }
-    
+
     if (cliente.fecha_baja) {
       try {
         const fecha = new Date(cliente.fecha_baja);
@@ -281,7 +281,7 @@ const extraerAnosDisponibles = (data) => {
       }
     }
   });
-  
+
   const anosArray = Array.from(anosSet).sort((a, b) => b - a);
   return anosArray.length > 0 ? anosArray : [new Date().getFullYear()];
 };
@@ -300,7 +300,7 @@ const DashboardChurnKpi = () => {
   const [showAIModal, setShowAIModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -328,7 +328,7 @@ const DashboardChurnKpi = () => {
 
         const anosDisponibles = extraerAnosDisponibles(data);
         setAvailableYears(anosDisponibles);
-        
+
         if (!anosDisponibles.includes(selectedYear)) {
           setSelectedYear(anosDisponibles[0]);
         }
@@ -432,7 +432,7 @@ const DashboardChurnKpi = () => {
         boxPadding: 6,
         usePointStyle: true,
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             const data = monthlyChurnData[context.dataIndex];
             return [
               `Churn Rate: ${context.parsed.y}%`,
@@ -460,7 +460,7 @@ const DashboardChurnKpi = () => {
         },
         ticks: {
           color: '#6b7280',
-          callback: function(value) {
+          callback: function (value) {
             return value + '%';
           }
         },
@@ -519,7 +519,7 @@ const DashboardChurnKpi = () => {
         boxPadding: 6,
         usePointStyle: true,
         callbacks: {
-          afterLabel: function(context) {
+          afterLabel: function (context) {
             const data = churnByPlanData[context.dataIndex];
             return [
               `Clientes Totales: ${data.clientesTotales}`,
@@ -546,7 +546,7 @@ const DashboardChurnKpi = () => {
         },
         ticks: {
           color: '#6b7280',
-          callback: function(value) {
+          callback: function (value) {
             return value + '%';
           }
         },
@@ -676,7 +676,7 @@ const DashboardChurnKpi = () => {
         boxPadding: 6,
         usePointStyle: true,
         callbacks: {
-          afterLabel: function(context) {
+          afterLabel: function (context) {
             const data = topChurnFactorsData[context.dataIndex];
             return [
               `Cantidad Total: ${data.cantidadTotal}`,
@@ -703,7 +703,7 @@ const DashboardChurnKpi = () => {
         },
         ticks: {
           color: '#6b7280',
-          callback: function(value) {
+          callback: function (value) {
             return value + '%';
           }
         },
@@ -748,7 +748,7 @@ const DashboardChurnKpi = () => {
                 Análisis detallado de la tasa de abandono de clientes
               </p>
             </div>
-            
+
             <div className={styles['churn-dash-controls']}>
               <div className={styles['churn-dash-filter']}>
                 <label htmlFor="year-select" className={styles['churn-dash-filter-label']}>
@@ -767,8 +767,8 @@ const DashboardChurnKpi = () => {
                   ))}
                 </select>
               </div>
-              
-              <button 
+
+              <button
                 className={styles['churn-dash-ai-button']}
                 onClick={abrirModalAI}
               >
@@ -1000,30 +1000,33 @@ const DashboardChurnKpi = () => {
       </div>
 
       {/* MODAL AI */}
-      {showAIModal && (
-        <div className={styles['churn-dash-ai-modal']}>
-          <div className={styles['churn-dash-ai-modal-content']}>
-            <div className={styles['churn-dash-ai-modal-header']}>
-              <h2 className={styles['churn-dash-ai-modal-title']}>
-                Análisis de Datos con Inteligencia Artificial
-              </h2>
-              <button 
-                className={styles['churn-dash-ai-modal-close']}
-                onClick={cerrarModalAI}
-              >
-                ×
-              </button>
-            </div>
-            <div className={styles['churn-dash-ai-modal-body']}>
-              <iframe
-                src="/dashboard-kpi-churn/chat-ai-consultas"
-                className={styles['churn-dash-ai-iframe']}
-                title="Chat AI para análisis de datos"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODAL AI */}
+{showAIModal && (
+  <div className={styles['churn-dash-ai-modal']}>
+    <div className={styles['churn-dash-ai-modal-content']}>
+      <div className={styles['churn-dash-ai-modal-header']}>
+        <h2 className={styles['churn-dash-ai-modal-title']}>
+          Análisis de Datos con Inteligencia Artificial
+        </h2>
+        <button 
+          className={styles['churn-dash-ai-modal-close']}
+          onClick={cerrarModalAI}
+        >
+          ×
+        </button>
+      </div>
+      <div className={styles['churn-dash-ai-modal-body']}>
+        <iframe
+          src="/chatModal?tabla=dashboard_churn_rate"
+          className={styles['churn-dash-ai-iframe']}
+          title="Chat AI para análisis de datos"
+        />
+      </div>
+    </div>
+  </div>
+)}
+
+      
     </>
   );
 };

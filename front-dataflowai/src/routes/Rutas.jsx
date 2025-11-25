@@ -65,7 +65,7 @@ import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
 
 //Dashboard Churn Kpi
 import DashboardChurnKpi from "../components/dashboards/DashboardChurnKpi";
-import ChatDashboardChurn from "../components/dashboard_chat/ChatDashboardChurn";
+import ChatModal from "../components/dashboard_chat/ChatModal";
 
 // Rutas correspondientes al dashboard ARPU ISP
 import DashboardARPUisp from "../components/dashboards/DashboardARPUisp";
@@ -542,10 +542,10 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboard-kpi-churn/chat-ai-consultas")}
+              path={("/chatModal")}
               element={
                 <RutaProtegida>
-                  <ChatDashboardChurn />
+                  <ChatModal />
                 </RutaProtegida>
               }
             />
