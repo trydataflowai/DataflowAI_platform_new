@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, DollarSign, Users,
-  Target, ShoppingCart, Award, AlertCircle, RefreshCw
+  Target, ShoppingCart, Award, AlertCircle, RefreshCw, Brain
 } from 'lucide-react';
 import {
   fetchDashboardARPU,
@@ -25,6 +25,7 @@ const DashboardARPUisp = () => {
   const [error, setError]       = useState(null);
   const [data, setData]         = useState([]);
   const [forecast, setForecast] = useState(null);
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const [filters, setFilters] = useState({
     empresa: '2',
@@ -129,6 +130,15 @@ const DashboardARPUisp = () => {
     };
     setFilters(cleaned);
     loadData(sanitizeFilters(cleaned), true);
+  };
+
+  // Funciones para el modal AI
+  const abrirModalAI = () => {
+    setShowAIModal(true);
+  };
+
+  const cerrarModalAI = () => {
+    setShowAIModal(false);
   };
 
   // -------- FILTRADO LOCAL PARA VISUALIZACIONES
@@ -310,7 +320,6 @@ const DashboardARPUisp = () => {
   };
 
   // ---- NUEVO: agregados por tarifa_plan
-  // Si tu columna se llama "tarifaplan" cambia item.tarifa_plan -> item.tarifaplan
   const prepareTarifaPlanAgg = () => {
     const map = {};
     (viewData || []).forEach(item => {
@@ -373,10 +382,16 @@ const DashboardARPUisp = () => {
             <h1 className={styles.DashboardARPU__title}>Dashboard ARPU</h1>
             <p className={styles.DashboardARPU__subtitle}>Métricas y análisis de ingresos por usuario</p>
           </div>
+          <div className={styles.DashboardARPU__headerActions}>
+            <button onClick={abrirModalAI} className={styles.DashboardARPU__aiBtn}>
+              <Brain className={styles.DashboardARPU__aiIcon} />
+              Análisis AI
+            </button>
             <button onClick={handleRefresh} className={styles.DashboardARPU__refreshBtn}>
               <RefreshCw className={styles.DashboardARPU__refreshIcon} />
               Actualizar
             </button>
+          </div>
         </div>
 
         {/* Filtros */}
@@ -555,8 +570,31 @@ const DashboardARPUisp = () => {
           </div>
         </div>
 
-        {/* (Se eliminó la tabla de Top Clientes) */}
-
+        {/* MODAL AI */}
+        {showAIModal && (
+          <div className={styles['churn-dash-ai-modal']}>
+            <div className={styles['churn-dash-ai-modal-content']}>
+              <div className={styles['churn-dash-ai-modal-header']}>
+                <h2 className={styles['churn-dash-ai-modal-title']}>
+                  Análisis de Datos con Inteligencia Artificial
+                </h2>
+                <button 
+                  className={styles['churn-dash-ai-modal-close']}
+                  onClick={cerrarModalAI}
+                >
+                  ×
+                </button>
+              </div>
+              <div className={styles['churn-dash-ai-modal-body']}>
+                <iframe
+                  src="/chatModal?tabla=dashboard_arpu"
+                  className={styles['churn-dash-ai-iframe']}
+                  title="Chat AI para análisis de datos"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

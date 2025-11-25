@@ -15,16 +15,28 @@ export default function ChatModal() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Función para obtener parámetros de la URL
+  const getUrlParams = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        tabla: params.get('tabla')
+      };
+    }
+    return {};
+  };
+
   // Efecto para conectar automáticamente al cargar el componente
   useEffect(() => {
     const connectAutomatically = () => {
-      const tableName = "dashboard_churn_rate";
+      const params = getUrlParams();
+      const tableName = params.tabla || "dashboard_arpu"; // Valor por defecto
       
       // Crear un producto temporal con la tabla del dashboard
       const tempProduct = {
         producto: `Dashboard`,
         db_name: tableName,
-        id_producto: 'auto-dashboard'
+        id_producto: `auto-${tableName}`
       };
       
       setSelectedProduct(tempProduct);
