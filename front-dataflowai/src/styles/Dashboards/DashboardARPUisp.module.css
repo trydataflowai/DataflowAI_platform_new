@@ -432,3 +432,112 @@
   line-height: 1.4;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
 }
+
+
+/* Botón AI */
+.DashboardARPU__headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.DashboardARPU__aiBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.DashboardARPU__aiBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.DashboardARPU__aiIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Modal AI */
+.churn-dash-ai-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.churn-dash-ai-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  height: 85%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.churn-dash-ai-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e6e9ee;
+  background: #f8fafc;
+}
+
+.churn-dash-ai-modal-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.churn-dash-ai-modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.churn-dash-ai-modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.churn-dash-ai-modal-body {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+}
+
+.churn-dash-ai-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
