@@ -276,29 +276,29 @@ const ActivarDesactivarUsuarios = () => {
     const selected = options.find(opt => String(opt.value) === String(value));
 
     return (
-      <div className={styles.PerfilactivardesactivarcustomSelect} ref={ref}>
+      <div className={styles.ActivardesactivarcustomSelect} ref={ref}>
         <button
           type="button"
-          className={styles.PerfilactivardesactivarcustomSelectButton}
+          className={styles.ActivardesactivarcustomSelectButton}
           onClick={() => setOpen(o => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
         >
-          <span className={styles.PerfilactivardesactivarcustomSelectValue}>
+          <span className={styles.ActivardesactivarcustomSelectValue}>
             {selected ? selected.label : placeholder}
           </span>
-          <span className={styles.PerfilactivardesactivarcustomSelectArrow} aria-hidden />
+          <span className={styles.ActivardesactivarcustomSelectArrow} aria-hidden />
         </button>
 
         {open && (
-          <ul role="listbox" className={styles.PerfilactivardesactivarcustomSelectList}>
-            {options.length === 0 && <li className={styles.PerfilactivardesactivarcustomSelectEmpty}>No hay opciones</li>}
+          <ul role="listbox" className={styles.ActivardesactivarcustomSelectList}>
+            {options.length === 0 && <li className={styles.ActivardesactivarcustomSelectEmpty}>No hay opciones</li>}
             {options.map(opt => (
               <li
                 key={opt.value}
                 role="option"
                 aria-selected={String(opt.value) === String(value)}
-                className={`${styles.PerfilactivardesactivarcustomSelectItem} ${String(opt.value) === String(value) ? styles.PerfilactivardesactivarcustomSelectItemSelected : ''}`}
+                className={`${styles.ActivardesactivarcustomSelectItem} ${String(opt.value) === String(value) ? styles.ActivardesactivarcustomSelectItemSelected : ''}`}
                 onClick={() => { onChange(String(opt.value)); setOpen(false); }}
               >
                 {opt.label}
@@ -324,134 +324,279 @@ const ActivarDesactivarUsuarios = () => {
   }
 
   // clase variante (light/dark)
-  const variantClass = theme === 'light' ? styles.PerfilactivardesactivarLight : styles.PerfilactivardesactivarDark;
+  const variantClass = theme === 'light' ? styles.ActivardesactivarLight : styles.ActivardesactivarDark;
 
   return (
-    <div className={`${styles.Perfilactivardesactivarcontainer} ${variantClass}`}>
-      <h1 className={styles.PerfilactivardesactivarpageTitle}>Administrar Usuarios</h1>
-      <p className={styles.PerfilactivardesactivarpageSubtitle}>Activa, desactiva, crea usuarios, asigna roles y gestiona acceso.</p>
+    <main className={`${styles.Activardesactivarcontainer} ${variantClass}`} aria-labelledby="admin-usuarios-title">
+      
+      {/* Header Section */}
+      <section className={styles.Activardesactivarheader}>
+        <div className={styles.ActivardesactivarheaderContent}>
+          <h1 id="admin-usuarios-title" className={styles.Activardesactivartitle}>
+            Administrar Usuarios
+          </h1>
+          <p className={styles.Activardesactivarsubtitle}>
+            Activa, desactiva, crea usuarios, asigna roles y gestiona acceso
+          </p>
+        </div>
+        <div className={styles.ActivardesactivarheaderMeta}>
+          <span className={styles.ActivardesactivarroleInfo}>
+            {miPermisoId === ADMIN_ROLE_ID ? 'Administrador' : 'Usuario'}
+          </span>
+        </div>
+      </section>
 
-      {error && <div className={styles.Perfilactivardesactivarerror}>{error}</div>}
-      {success && <div className={styles.Perfilactivardesactivarsuccess}>{success}</div>}
+      {/* Alert Messages */}
+      {error && (
+        <div className={styles.ActivardesactivarerrorBox} role="alert">
+          <div className={styles.ActivardesactivarerrorIcon}>⚠️</div>
+          <div className={styles.ActivardesactivarerrorText}>{error}</div>
+        </div>
+      )}
+      
+      {success && (
+        <div className={styles.ActivardesactivarsuccessBox} role="status">
+          <div className={styles.ActivardesactivarsuccessIcon}>✅</div>
+          <div className={styles.ActivardesactivarsuccessText}>{success}</div>
+        </div>
+      )}
 
-      <section className={styles.PerfilactivardesactivarcreateSection}>
-        <h2 className={styles.PerfilactivardesactivarsectionTitle}>Crear usuario</h2>
-        <form onSubmit={handleCrearUsuario} className={styles.Perfilactivardesactivarform}>
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Nombre</label>
-            <input className={styles.Perfilactivardesactivarinput} value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
-          </div>
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Apellidos</label>
-            <input className={styles.Perfilactivardesactivarinput} value={nuevoApellidos} onChange={e => setNuevoApellidos(e.target.value)} />
-          </div>
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Correo</label>
-            <input className={styles.Perfilactivardesactivarinput} type="email" value={nuevoCorreo} onChange={e => setNuevoCorreo(e.target.value)} />
-          </div>
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Contraseña</label>
-            <input className={styles.Perfilactivardesactivarinput} type="password" value={nuevaContrasena} onChange={e => setNuevaContrasena(e.target.value)} />
-          </div>
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Confirmar Contraseña</label>
-            <input className={styles.Perfilactivardesactivarinput} type="password" value={confirmContrasena} onChange={e => setConfirmContrasena(e.target.value)} />
+      {/* Create User Section */}
+      <section className={styles.ActivardesactivarcreateSection}>
+        <div className={styles.ActivardesactivarsectionHeader}>
+          <h2 className={styles.ActivardesactivarsectionTitle}>Crear Nuevo Usuario</h2>
+          <p className={styles.ActivardesactivarsectionSubtitle}>Agrega nuevos usuarios al sistema</p>
+        </div>
+        
+        <form onSubmit={handleCrearUsuario} className={styles.Activardesactivarform}>
+          <div className={styles.ActivardesactivarformGrid}>
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Nombre</span>
+                <input 
+                  className={styles.Activardesactivarinput} 
+                  value={nuevoNombre} 
+                  onChange={e => setNuevoNombre(e.target.value)}
+                  placeholder="Ingresa el nombre"
+                />
+              </label>
+            </div>
+
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Apellidos</span>
+                <input 
+                  className={styles.Activardesactivarinput} 
+                  value={nuevoApellidos} 
+                  onChange={e => setNuevoApellidos(e.target.value)}
+                  placeholder="Ingresa los apellidos"
+                />
+              </label>
+            </div>
+
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Correo Electrónico</span>
+                <input 
+                  className={styles.Activardesactivarinput} 
+                  type="email" 
+                  value={nuevoCorreo} 
+                  onChange={e => setNuevoCorreo(e.target.value)}
+                  placeholder="usuario@empresa.com"
+                />
+              </label>
+            </div>
+
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Contraseña</span>
+                <input 
+                  className={styles.Activardesactivarinput} 
+                  type="password" 
+                  value={nuevaContrasena} 
+                  onChange={e => setNuevaContrasena(e.target.value)}
+                  placeholder="Crea una contraseña segura"
+                />
+              </label>
+            </div>
+
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Confirmar Contraseña</span>
+                <input 
+                  className={styles.Activardesactivarinput} 
+                  type="password" 
+                  value={confirmContrasena} 
+                  onChange={e => setConfirmContrasena(e.target.value)}
+                  placeholder="Confirma la contraseña"
+                />
+              </label>
+            </div>
+
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Área de Trabajo</span>
+                <CustomSelect
+                  options={areaOptions}
+                  value={nuevoAreaId}
+                  onChange={val => setNuevoAreaId(val)}
+                  placeholder="Selecciona un área"
+                />
+              </label>
+            </div>
+
+            <div className={styles.ActivardesactivarformGroup}>
+              <label className={styles.Activardesactivarlabel}>
+                <span className={styles.ActivardesactivarlabelText}>Rol de Usuario</span>
+                <CustomSelect
+                  options={permisoOptions}
+                  value={nuevoRolId}
+                  onChange={val => setNuevoRolId(val)}
+                  placeholder="Selecciona un rol"
+                />
+              </label>
+            </div>
           </div>
 
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Área</label>
-            <CustomSelect
-              options={areaOptions}
-              value={nuevoAreaId}
-              onChange={val => setNuevoAreaId(val)}
-              placeholder="Selecciona un área"
-            />
-          </div>
-
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <label className={styles.Perfilactivardesactivarlabel}>Rol (opcional)</label>
-            <CustomSelect
-              options={permisoOptions}
-              value={nuevoRolId}
-              onChange={val => setNuevoRolId(val)}
-              placeholder="(Usar rol por defecto)"
-            />
-          </div>
-
-          <div className={styles.PerfilactivardesactivarformRow}>
-            <button className={styles.PerfilactivardesactivarprimaryButton} type="submit" disabled={creando}>{creando ? 'Creando...' : 'Crear usuario'}</button>
+          <div className={styles.ActivardesactivarformActions}>
+            <button 
+              className={styles.ActivardesactivarprimaryButton} 
+              type="submit" 
+              disabled={creando}
+            >
+              {creando ? (
+                <>
+                  <span className={styles.Activardesactivarspinner}></span>
+                  Creando Usuario...
+                </>
+              ) : (
+                'Crear Usuario'
+              )}
+            </button>
           </div>
         </form>
       </section>
 
-      <hr className={styles.Perfilactivardesactivardivider} />
-
-      {loading ? (
-        <div className={styles.Perfilactivardesactivarloading}>Cargando usuarios...</div>
-      ) : (
-        <div className={styles.PerfilactivardesactivartableWrapper}>
-          <table className={styles.Perfilactivardesactivartable}>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Rol</th>
-                <th>Área</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usuarios.length === 0 && (
-                <tr>
-                  <td colSpan="6" className={styles.PerfilactivardesactivarnoUsers}>No hay usuarios</td>
-                </tr>
-              )}
-              {usuarios.map(u => (
-                <tr key={u.id_usuario}>
-                  <td className={styles.PerfilactivardesactivarcellName}>{u.nombres} {u.apellidos || ''}</td>
-                  <td className={styles.PerfilactivardesactivarcellEmail}>{u.correo}</td>
-                  <td className={styles.PerfilactivardesactivarcellRole}>{u.rol || '-'}</td>
-                  <td className={styles.PerfilactivardesactivarcellArea}>{u.area_trabajo || '-'}</td>
-                  <td className={styles.PerfilactivardesactivarcellState}>
-                    <span className={u.id_estado === ACTIVE_STATE_ID ? styles.PerfilactivardesactivarstateActive : styles.PerfilactivardesactivarstateInactive}>
-                      {u.estado || (`ID ${u.id_estado}`)}
-                    </span>
-                  </td>
-                  <td className={styles.PerfilactivardesactivarcellActions}>
-                    <button
-                      className={styles.PerfilactivardesactivaractionButton}
-                      disabled={actionLoading === u.id_usuario}
-                      onClick={() => toggleEstado(u)}
-                    >
-                      {actionLoading === u.id_usuario ? 'Procesando...' : (u.id_estado === ACTIVE_STATE_ID ? 'Desactivar' : 'Activar')}
-                    </button>
-
-                    {miPermisoId === ADMIN_ROLE_ID && (
-                      <button
-                        className={styles.PerfilactivardesactivarroleButton}
-                        disabled={actionLoading === u.id_usuario}
-                        onClick={() => handleToggleRol(u)}
-                      >
-                        {actionLoading === u.id_usuario ? 'Procesando...' : (u.id_permiso_acceso === ADMIN_ROLE_ID ? 'Volver Usuario' : 'Volver Administrador')}
-                      </button>
-                    )}
-
-                    <button
-                      className={styles.PerfilactivardesactivardeleteButton}
-                      disabled={actionLoading === u.id_usuario}
-                      onClick={() => handleEliminar(u)}
-                    >
-                      {actionLoading === u.id_usuario ? 'Procesando...' : 'Eliminar'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Users Table Section */}
+      <section className={styles.ActivardesactivartableSection}>
+        <div className={styles.ActivardesactivarsectionHeader}>
+          <h2 className={styles.ActivardesactivarsectionTitle}>Gestión de Usuarios</h2>
+          <p className={styles.ActivardesactivarsectionSubtitle}>
+            {usuarios.length} usuario{usuarios.length !== 1 ? 's' : ''} en el sistema
+          </p>
         </div>
-      )}
-    </div>
+
+        {loading ? (
+          <div className={styles.Activardesactivarloading}>
+            <div className={styles.ActivardesactivarloadingSpinner}></div>
+            <span>Cargando usuarios...</span>
+          </div>
+        ) : (
+          <div className={styles.ActivardesactivartableWrapper}>
+            <table className={styles.Activardesactivartable}>
+              <thead>
+                <tr>
+                  <th className={styles.ActivardesactivartableHeader}>Usuario</th>
+                  <th className={styles.ActivardesactivartableHeader}>Correo</th>
+                  <th className={styles.ActivardesactivartableHeader}>Rol</th>
+                  <th className={styles.ActivardesactivartableHeader}>Área</th>
+                  <th className={styles.ActivardesactivartableHeader}>Estado</th>
+                  <th className={styles.ActivardesactivartableHeader}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className={styles.ActivardesactivarnoUsers}>
+                      <div className={styles.ActivardesactivaremptyState}>
+                        <span className={styles.ActivardesactivaremptyIcon}>👥</span>
+                        <p>No hay usuarios registrados</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  usuarios.map(usuario => (
+                    <tr key={usuario.id_usuario} className={styles.ActivardesactivartableRow}>
+                      <td className={styles.ActivardesactivarcellName}>
+                        <div className={styles.ActivardesactivarusuarioInfo}>
+                          <span className={styles.ActivardesactivarusuarioNombre}>
+                            {usuario.nombres} {usuario.apellidos || ''}
+                          </span>
+                        </div>
+                      </td>
+                      <td className={styles.ActivardesactivarcellEmail}>{usuario.correo}</td>
+                      <td className={styles.ActivardesactivarcellRole}>
+                        <span className={styles.ActivardesactivarrolesBadge}>
+                          {usuario.rol || 'Usuario'}
+                        </span>
+                      </td>
+                      <td className={styles.ActivardesactivarcellArea}>{usuario.area_trabajo || '-'}</td>
+                      <td className={styles.ActivardesactivarcellState}>
+                        <span className={`${styles.ActivardesactivarstateBadge} ${
+                          usuario.id_estado === ACTIVE_STATE_ID 
+                            ? styles.ActivardesactivarstateActive 
+                            : styles.ActivardesactivarstateInactive
+                        }`}>
+                          {usuario.estado || (usuario.id_estado === ACTIVE_STATE_ID ? 'Activo' : 'Inactivo')}
+                        </span>
+                      </td>
+                      <td className={styles.ActivardesactivarcellActions}>
+                        <div className={styles.ActivardesactivaractionButtons}>
+                          <button
+                            className={styles.ActivardesactivaractionButton}
+                            disabled={actionLoading === usuario.id_usuario}
+                            onClick={() => toggleEstado(usuario)}
+                            title={usuario.id_estado === ACTIVE_STATE_ID ? 'Desactivar usuario' : 'Activar usuario'}
+                          >
+                            {actionLoading === usuario.id_usuario ? (
+                              <span className={styles.ActivardesactivarbuttonSpinner}></span>
+                            ) : usuario.id_estado === ACTIVE_STATE_ID ? (
+                              'Desactivar'
+                            ) : (
+                              'Activar'
+                            )}
+                          </button>
+
+                          {miPermisoId === ADMIN_ROLE_ID && (
+                            <button
+                              className={styles.ActivardesactivarroleButton}
+                              disabled={actionLoading === usuario.id_usuario}
+                              onClick={() => handleToggleRol(usuario)}
+                              title={usuario.id_permiso_acceso === ADMIN_ROLE_ID ? 'Cambiar a Usuario' : 'Cambiar a Administrador'}
+                            >
+                              {actionLoading === usuario.id_usuario ? (
+                                <span className={styles.ActivardesactivarbuttonSpinner}></span>
+                              ) : usuario.id_permiso_acceso === ADMIN_ROLE_ID ? (
+                                'Hacer Usuario'
+                              ) : (
+                                'Hacer Admin'
+                              )}
+                            </button>
+                          )}
+
+                          <button
+                            className={styles.ActivardesactivardeleteButton}
+                            disabled={actionLoading === usuario.id_usuario}
+                            onClick={() => handleEliminar(usuario)}
+                            title="Eliminar usuario permanentemente"
+                          >
+                            {actionLoading === usuario.id_usuario ? (
+                              <span className={styles.ActivardesactivarbuttonSpinner}></span>
+                            ) : (
+                              'Eliminar'
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </main>
   );
 };
 
