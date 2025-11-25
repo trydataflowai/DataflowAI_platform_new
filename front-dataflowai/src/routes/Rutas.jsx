@@ -564,8 +564,8 @@ export const Rutas = () => {
 
 
 
-            <Route
-              path="/FormBuilder"
+              <Route
+              path={p("/FormBuilder")}
               element={
                 <RutaProtegida>
                   <SideBarLayout>

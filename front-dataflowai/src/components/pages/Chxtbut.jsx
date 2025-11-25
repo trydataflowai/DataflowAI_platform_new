@@ -1,28 +1,10 @@
 // File: src/components/pages/Chxtbut.jsx
 import React, { useEffect, useRef, useState } from "react";
-import darkStylesDefault from "../../styles/ChxtbutDark.module.css";
-import lightStylesDefault from "../../styles/ChxtbutLight.module.css";
-import { useTheme } from "../componentes/ThemeContext";
+import styles from "../../styles/Chxtbut.module.css";
 import { sendChatMessage } from "../../api/ChatPg";
 import { obtenerProductosUsuario } from "../../api/ProductoUsuario";
-import { obtenerInfoUsuario } from '../../api/Usuario';
-
-const ALLOWED_USER_IDS = [1, 2, 3];
-
-// Importar estilos de empresas
-const empresaLightModules = import.meta.glob(
-  '../../styles/empresas/*/ChxtbutLight.module.css',
-  { eager: true }
-);
-const empresaDarkModules = import.meta.glob(
-  '../../styles/empresas/*/ChxtbutDark.module.css',
-  { eager: true }
-);
 
 export default function ChatPostgrePremium() {
-  const { theme } = useTheme();
-  const [activeStyles, setActiveStyles] = useState(lightStylesDefault);
-
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     { id: 0, role: "system", text: "Selecciona un dashboard (⋯) para comenzar." },
@@ -39,91 +21,10 @@ export default function ChatPostgrePremium() {
     }
   });
 
-  // Nuevos estados para el sistema de temas
-  const [planId, setPlanId] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [isAllowed, setIsAllowed] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [authError, setAuthError] = useState(null);
-
   const messagesEndRef = useRef(null);
-  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
-
-  // OBTENER INFORMACIÓN DEL USUARIO Y PLAN
-  useEffect(() => {
-    let mounted = true;
-    const fetchUserInfo = async () => {
-      try {
-        const userInfo = await obtenerInfoUsuario();
-        if (!mounted || !userInfo) return;
-
-        const pid = userInfo.empresa?.plan?.id ?? null;
-        const cid = userInfo.empresa?.id ?? null;
-        const id = userInfo?.id ?? null;
-
-        setPlanId(pid);
-        setCompanyId(cid);
-        setUserId(id);
-
-        const allowed = ALLOWED_USER_IDS.includes(id);
-        setIsAllowed(allowed);
-
-        setAuthError(null);
-      } catch (err) {
-        console.error('Error al obtener info del usuario:', err);
-        setPlanId(null);
-        setCompanyId(null);
-        setUserId(null);
-        setIsAllowed(false);
-        setAuthError('No se pudo validar usuario');
-      } finally {
-        if (mounted) setAuthLoading(false);
-      }
-    };
-
-    fetchUserInfo();
-    return () => { mounted = false; };
-  }, []);
-
-  // estilos segun theme/plan/company
-  useEffect(() => {
-    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
-
-    const lightKey = `../../styles/empresas/${companyId}/ChxtbutLight.module.css`;
-    const darkKey = `../../styles/empresas/${companyId}/ChxtbutDark.module.css`;
-
-    const foundCompanyLight = empresaLightModules[lightKey];
-    const foundCompanyDark = empresaDarkModules[darkKey];
-
-    const extract = (mod) => {
-      if (!mod) return null;
-      return mod.default ?? mod;
-    };
-
-    const companyLight = extract(foundCompanyLight);
-    const companyDark = extract(foundCompanyDark);
-
-    let chosenStyles = darkStylesDefault;
-    if (theme === 'dark') {
-      if (useCompanyStyles && companyDark) {
-        chosenStyles = companyDark;
-      } else {
-        chosenStyles = darkStylesDefault;
-      }
-    } else {
-      if (useCompanyStyles && companyLight) {
-        chosenStyles = companyLight;
-      } else {
-        chosenStyles = lightStylesDefault;
-      }
-    }
-
-    setActiveStyles(chosenStyles);
-  }, [theme, planId, companyId]);
 
   const handleOpenProducts = async () => {
     setShowProducts((s) => !s);
@@ -168,15 +69,6 @@ export default function ChatPostgrePremium() {
       return;
     }
 
-    if (!isAllowed) {
-      setMessages(prev => [
-        ...prev,
-        { id: Date.now(), role: "system", text: 'No tienes permiso para enviar prompts en este chat.' }
-      ]);
-      setInput("");
-      return;
-    }
-
     setError(null);
     const userMsg = { id: Date.now(), role: "user", text, time: new Date().toISOString() };
     setMessages((m) => [...m, userMsg]);
@@ -208,42 +100,33 @@ export default function ChatPostgrePremium() {
   };
 
   return (
-    <div className={activeStyles.wrapper}>
-      <div className={activeStyles.card} role="region" aria-label="Chat con base de datos">
-        <header className={activeStyles.header}>
-          <div className={activeStyles.titleWrap}>
-            <h1 className={activeStyles.title}>Flow Data Chat</h1>
-            <p className={activeStyles.subtitle}>
-              Interroga tu dashboard — {theme === 'dark' ? 'diseño dark premium' : 'diseño light premium'}
-            </p>
-            <p className={activeStyles.authNote} aria-live="polite">
-              {authLoading ? 'Validando usuario...' : (
-                isAllowed
-                  ? `Acceso permitido (user id: ${userId})`
-                  : authError ? `Acceso denegado: ${authError}` : `Acceso denegado (user id: ${userId ?? 'desconocido'})`
-              )}
-            </p>
+    <div className={styles.wrapper}>
+      <div className={styles.card} role="region" aria-label="Chat con base de datos">
+        <header className={styles.header}>
+          <div className={styles.titleWrap}>
+            <h1 className={styles.title}>Flow Data Chat</h1>
+            <p className={styles.subtitle}>Interroga tu dashboard — diseño light premium</p>
           </div>
 
-          <div className={activeStyles.controls}>
-            <div className={activeStyles.productInfo}>
+          <div className={styles.controls}>
+            <div className={styles.productInfo}>
               {selectedProduct ? (
                 <>
-                  <div className={activeStyles.selectedLabel}>
+                  <div className={styles.selectedLabel}>
                     <strong>{selectedProduct.producto}</strong>
-                    <span className={activeStyles.dbName}>{selectedProduct.db_name}</span>
+                    <span className={styles.dbName}>{selectedProduct.db_name}</span>
                   </div>
-                  <button className={activeStyles.clearBtn} onClick={handleClearSelection} aria-label="Quitar selección">
+                  <button className={styles.clearBtn} onClick={handleClearSelection} aria-label="Quitar selección">
                     Quitar
                   </button>
                 </>
               ) : (
-                <div className={activeStyles.noProduct}>Ningún dashboard seleccionado</div>
+                <div className={styles.noProduct}>Ningún dashboard seleccionado</div>
               )}
             </div>
 
             <button
-              className={activeStyles.ellipsisBtn}
+              className={styles.ellipsisBtn}
               onClick={handleOpenProducts}
               title="Elegir dashboard"
               aria-expanded={showProducts}
@@ -254,22 +137,22 @@ export default function ChatPostgrePremium() {
         </header>
 
         {showProducts && (
-          <div className={activeStyles.productList}>
-            <div className={activeStyles.productListTitle}>Selecciona un dashboard</div>
+          <div className={styles.productList}>
+            <div className={styles.productListTitle}>Selecciona un dashboard</div>
             {products.length === 0 ? (
-              <div className={activeStyles.productEmpty}>Cargando o no hay dashboards...</div>
+              <div className={styles.productEmpty}>Cargando o no hay dashboards...</div>
             ) : (
-              <div className={activeStyles.productGrid}>
+              <div className={styles.productGrid}>
                 {products.map((p) => {
                   const active = selectedProduct && selectedProduct.db_name === p.db_name;
                   return (
                     <button
                       key={p.id_producto || p.db_name || Math.random()}
                       onClick={() => handleSelectProduct(p)}
-                      className={`${activeStyles.productCard} ${active ? activeStyles.productActive : ""}`}
+                      className={`${styles.productCard} ${active ? styles.productActive : ""}`}
                     >
-                      <div className={activeStyles.prodTitle}>{p.producto}</div>
-                      <div className={activeStyles.prodMeta}>{p.db_name}</div>
+                      <div className={styles.prodTitle}>{p.producto}</div>
+                      <div className={styles.prodMeta}>{p.db_name}</div>
                     </button>
                   );
                 })}
@@ -278,19 +161,19 @@ export default function ChatPostgrePremium() {
           </div>
         )}
 
-        <main className={activeStyles.chatWindow} aria-live="polite">
-          <div className={activeStyles.messages}>
+        <main className={styles.chatWindow} aria-live="polite">
+          <div className={styles.messages}>
             {messages.map((m) => (
               <div
                 key={m.id}
-                className={`${activeStyles.messageRow} ${m.role === "user" ? activeStyles.rowUser : m.role === "bot" ? activeStyles.rowBot : activeStyles.rowSystem}`}
+                className={`${styles.messageRow} ${m.role === "user" ? styles.rowUser : m.role === "bot" ? styles.rowBot : styles.rowSystem}`}
               >
                 {m.role === "system" ? (
-                  <div className={activeStyles.systemBubble}>{m.text}</div>
+                  <div className={styles.systemBubble}>{m.text}</div>
                 ) : (
-                  <div className={activeStyles.bubbleWrap}>
-                    <div className={`${activeStyles.bubble} ${m.role === "user" ? activeStyles.userBubble : activeStyles.botBubble}`}>
-                      <pre className={activeStyles.preText}>{m.text}</pre>
+                  <div className={styles.bubbleWrap}>
+                    <div className={`${styles.bubble} ${m.role === "user" ? styles.userBubble : styles.botBubble}`}>
+                      <pre className={styles.preText}>{m.text}</pre>
                     </div>
                   </div>
                 )}
@@ -300,31 +183,23 @@ export default function ChatPostgrePremium() {
           </div>
         </main>
 
-        <footer className={activeStyles.footer}>
-          <div className={activeStyles.inputWrap}>
+        <footer className={styles.footer}>
+          <div className={styles.inputWrap}>
             <textarea
-              className={activeStyles.textarea}
+              className={styles.textarea}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder={
-                authLoading
-                  ? 'Validando usuario...'
-                  : !isAllowed
-                    ? 'No tienes permiso para enviar prompts en este chat'
-                    : selectedProduct 
-                      ? "Escribe tu mensaje..." 
-                      : "Selecciona un dashboard para habilitar el chat..."
-              }
+              placeholder={selectedProduct ? "Escribe tu mensaje..." : "Selecciona un dashboard para habilitar el chat..."}
               rows={2}
-              disabled={loading || !selectedProduct || !isAllowed || authLoading}
+              disabled={loading || !selectedProduct}
               aria-label="Escribir mensaje"
             />
-            <div className={activeStyles.footerRight}>
+            <div className={styles.footerRight}>
               <button
-                className={`${activeStyles.sendBtn} ${loading || !selectedProduct || !isAllowed || authLoading ? activeStyles.disabled : ""}`}
+                className={`${styles.sendBtn} ${loading || !selectedProduct ? styles.disabled : ""}`}
                 onClick={handleSend}
-                disabled={loading || !selectedProduct || !isAllowed || authLoading}
+                disabled={loading || !selectedProduct}
                 aria-label="Enviar mensaje"
               >
                 {loading ? "Enviando..." : "Enviar"}
@@ -332,10 +207,10 @@ export default function ChatPostgrePremium() {
             </div>
           </div>
 
-          {error && <div className={activeStyles.error}>{error}</div>}
+          {error && <div className={styles.error}>{error}</div>}
 
-          <div className={activeStyles.footerNote}>
-            <span>Conexión segura • {theme === 'dark' ? 'Modo oscuro' : 'Modo claro'}</span>
+          <div className={styles.footerNote}>
+            <span>Conexión segura • Diseño light</span>
           </div>
         </footer>
       </div>
