@@ -17,49 +17,12 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-// Card recibe el objeto `styles` dinámico como prop para usar el CSS correcto
-const Card = ({ texto, ruta, index, onCardClick, styles }) => {
+// Card refinada - diseño más sobrio
+const Card = ({ texto, ruta, onCardClick, styles }) => {
   const ref = useRef(null);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.setProperty("--rx", "0deg");
-    el.style.setProperty("--ry", "0deg");
-    el.style.setProperty("--s", "1");
-    el.style.setProperty("--mx", "50%");
-    el.style.setProperty("--my", "50%");
-  }, []);
-
-  const handleMove = (e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const px = (x / rect.width) * 100;
-    const py = (y / rect.height) * 100;
-
-    const maxDeg = 10;
-    const ry = ((px - 50) / 50) * maxDeg;
-    const rx = -((py - 50) / 50) * maxDeg;
-    const s = 1.06;
-
-    el.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
-    el.style.setProperty("--ry", `${ry.toFixed(2)}deg`);
-    el.style.setProperty("--s", s.toString());
-    el.style.setProperty("--mx", `${px}%`);
-    el.style.setProperty("--my", `${py}%`);
-  };
-
-  const handleLeave = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.setProperty("--rx", `0deg`);
-    el.style.setProperty("--ry", `0deg`);
-    el.style.setProperty("--s", `1`);
-    el.style.setProperty("--mx", `50%`);
-    el.style.setProperty("--my", `50%`);
+  const handleClick = () => {
+    onCardClick(ruta);
   };
 
   const handleKeyDown = (e) => {
@@ -73,39 +36,33 @@ const Card = ({ texto, ruta, index, onCardClick, styles }) => {
     <div
       ref={ref}
       className={styles.Perfilgeneralcard}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      onFocus={() => ref.current && ref.current.style.setProperty("--s", "1.04")}
-      onBlur={() => ref.current && handleLeave()}
-      onClick={() => onCardClick(ruta)}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
       aria-label={texto}
-      style={{
-        ["--rx"]: "0deg",
-        ["--ry"]: "0deg",
-        ["--s"]: "1",
-        ["--mx"]: "50%",
-        ["--my"]: "50%",
-      }}
     >
       <div className={styles.PerfilgeneralcardInner}>
-        <div className={styles.PerfilgeneralcardHeader}>
-          <h3 className={styles.PerfilgeneralcardTitle}>{texto}</h3>
-          <div className={styles.PerfilgeneralcardMeta}>
-            <span className={styles.Perfilgeneralbadge}>{index + 1}</span>
+        <div className={styles.PerfilgeneralcardContent}>
+          <div className={styles.PerfilgeneralcardHeader}>
+            <div className={styles.PerfilgeneralcardIcon}>
+              <span className={styles.Perfilgeneralicon}></span>
+            </div>
+            <h3 className={styles.PerfilgeneralcardTitle}>{texto}</h3>
           </div>
-        </div>
 
-        <div className={styles.PerfilgeneralcardBody}>
-          <p className={styles.PerfilgeneralcardDesc}>
-            Accede a esta opción para gestionar permisos, revisión y seguridad.
-          </p>
-        </div>
+          <div className={styles.PerfilgeneralcardBody}>
+            <p className={styles.PerfilgeneralcardDesc}>
+              Gestiona y configura los parámetros del sistema
+            </p>
+          </div>
 
-        <div className={styles.PerfilgeneralcardFooter}>
-          <span className={styles.Perfilgeneralcta}>Ir a la configuración →</span>
+          <div className={styles.PerfilgeneralcardFooter}>
+            <span className={styles.Perfilgeneralcta}>
+              Configurar
+              <span className={styles.PerfilgeneralctaArrow}>→</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -122,9 +79,7 @@ const ConfiguracionUsuarios = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [companyId, setCompanyId] = useState(null);
 
-  // `styles` es el CSS module activo (por defecto defaultStyles)
   const [styles, setStyles] = useState(defaultStyles);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -164,29 +119,23 @@ const ConfiguracionUsuarios = () => {
     };
   }, []);
 
-  // Cargar dinámicamente el módulo CSS si aplica
   useEffect(() => {
     let mounted = true;
 
     const loadCompanyStyles = async () => {
-      // Solo intentamos usar estilos personalizados si el plan es 3 o 6
       if ((planId === 3 || planId === 6) && companyId) {
         try {
-          // Intento de import dinámico del CSS module de la empresa
           const module = await import(`../../styles/empresas/${companyId}/Perfil.module.css`);
-          // En Vite/ESM los CSS modules exportan el mapeo como default
           if (mounted && module && (module.default || module)) {
             const cssMap = module.default || module;
             setStyles(cssMap);
             return;
           }
         } catch (err) {
-          // No existe el archivo o fallo en la importación: fallback al default
-          console.warn(`No se encontró CSS custom para la empresa ${companyId} o hubo un error. Usando estilos por defecto.`, err);
+          console.warn(`No se encontró CSS custom para la empresa ${companyId}. Usando estilos por defecto.`, err);
         }
       }
 
-      // fallback general
       if (mounted) setStyles(defaultStyles);
     };
 
@@ -214,10 +163,26 @@ const ConfiguracionUsuarios = () => {
   };
 
   const opciones = [
-    { texto: "¿Deseas cambiar la contraseña?", ruta: "/cambiar-contrasena" },
-    { texto: "¿Deseas activar o desactivar un usuario?", ruta: "/desactivar-activar-usuarios" },
-    { texto: "¿Deseas actualizar información de tu empresa o usuario?", ruta: "/ModificarInformacionPersonal" },
-    { texto: "¿Deseas asignar los dashboards?", ruta: "/AsignarDashboards" },
+    { 
+      texto: "Cambiar contraseña", 
+      ruta: "/cambiar-contrasena",
+      desc: "Actualiza tu contraseña de acceso al sistema"
+    },
+    { 
+      texto: "Activar o desactivar usuarios", 
+      ruta: "/desactivar-activar-usuarios",
+      desc: "Gestiona el estado de los usuarios del sistema"
+    },
+    { 
+      texto: "Actualizar información personal", 
+      ruta: "/ModificarInformacionPersonal",
+      desc: "Modifica tus datos personales y de contacto"
+    },
+    { 
+      texto: "Asignar dashboards", 
+      ruta: "/AsignarDashboards",
+      desc: "Configura los dashboards disponibles para usuarios"
+    },
   ];
 
   const rutasPermitidasUsuario = [
@@ -245,7 +210,6 @@ const ConfiguracionUsuarios = () => {
     setModalMessage("");
   };
 
-  // Decide clase variante (dark/light) según planId y theme
   const variantClass =
     planId === 3 || planId === 6
       ? theme === "dark"
@@ -255,28 +219,39 @@ const ConfiguracionUsuarios = () => {
 
   return (
     <main className={`${styles.Perfilgeneralcontainer} ${variantClass}`} aria-labelledby="config-usuarios-title">
-      <header className={styles.Perfilgeneralheader}>
-        <h1 id="config-usuarios-title" className={styles.Perfilgeneraltitle}>
-          Configuración de Usuarios
-        </h1>
-        <p className={styles.Perfilgeneralsubtitle}>
-          Opciones rápidas — seguridad y administración con estilo.
-        </p>
-      </header>
-
-      <section className={styles.PerfilgeneralcardsContainer} aria-label="Opciones de configuración">
-        {opciones.map((opcion, index) => (
-          <Card
-            key={index}
-            texto={opcion.texto}
-            ruta={opcion.ruta}
-            index={index}
-            onCardClick={handleCardClick}
-            styles={styles}
-          />
-        ))}
+      
+      {/* Header Section */}
+      <section className={styles.Perfilgeneralheader}>
+        <div className={styles.PerfilgeneralheaderContent}>
+          <h1 id="config-usuarios-title" className={styles.Perfilgeneraltitle}>
+            Configuración
+          </h1>
+          <p className={styles.Perfilgeneralsubtitle}>
+            Gestiona la configuración del sistema y preferencias de usuario
+          </p>
+        </div>
+        <div className={styles.PerfilgeneralheaderMeta}>
+          <span className={styles.PerfilgeneralplanInfo}>{planName}</span>
+          <span className={styles.PerfilgeneralroleInfo}>{rol}</span>
+        </div>
       </section>
 
+      {/* Cards Grid */}
+      <section className={styles.PerfilgeneralcardsSection} aria-label="Opciones de configuración">
+        <div className={styles.PerfilgeneralcardsContainer}>
+          {opciones.map((opcion, index) => (
+            <Card
+              key={index}
+              texto={opcion.texto}
+              ruta={opcion.ruta}
+              onCardClick={handleCardClick}
+              styles={styles}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Modal */}
       {showModal && (
         <div
           className={styles.PerfilgeneralmodalOverlay}
@@ -304,7 +279,7 @@ const ConfiguracionUsuarios = () => {
                 onClick={closeModal}
                 autoFocus
               >
-                Aceptar
+                Entendido
               </button>
             </div>
           </div>

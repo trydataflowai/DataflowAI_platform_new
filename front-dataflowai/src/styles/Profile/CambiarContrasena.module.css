@@ -1,282 +1,427 @@
-/* CambiarContrasena.module.css
-   Un único archivo con variantes Light y Dark.
-   Aplica la clase raíz .CambiarcontrasenaDark o .CambiarcontrasenaLight
-   junto a las clases existentes (ej: .cambiarcontrasenacontainer)
-*/
+/* src/styles/Profile/CambiarContrasena.module.css */
 
-/* -------------------------
-   VARIANT: DARK
-   ------------------------- */
+/* =========================
+   Variables por variante - Diseño Sobrio
+   ========================= */
+
 .CambiarcontrasenaDark {
-  --black-void: #000000;
-  --black-cosmos: #050505;
-  --black-deep: #0a0a0a;
-
-  --accent-neon: #00f7ff;
-  --accent-turquoise: #00e1ff;
-  --accent-cyan: #00c2ff;
-  --accent-dark: #0099cc;
-
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-
-  --success: #00ffaa;
-  --warning: #ffcc00;
-  --danger: #ff3366;
-
-  --glass: rgba(255,255,255,0.03);
-
-  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  --card-border: rgba(255,255,255,0.04);
-
-  --btn-bg: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
-  --btn-text: #001018;
-
-  --transition: all 0.22s cubic-bezier(.2,.9,.3,1);
-  --shadow-card: 0 12px 30px rgba(0,0,0,0.6);
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
+  --accent-1: #00f7ff;
+  --accent-2: #00c2ff;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(30, 30, 30, 0.6);
+  --card-hover-bg: rgba(40, 40, 40, 0.8);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover-border: rgba(0, 247, 255, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(30, 30, 30, 0.95);
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --btn-bg: var(--accent-gradient);
+  --btn-text: #00121a;
+  --success-color: #00ffaa;
+  --error-color: #ff3366;
+  --warning-color: #ffcc00;
 }
 
-/* -------------------------
-   VARIANT: LIGHT (paleta que pediste)
-   ------------------------- */
 .CambiarcontrasenaLight {
-  --bg: #ffffff;
-  --panel: #f7fbff;
-  --primary-blue: #0a66c2;
-  --primary-blue-600: #005b9f;
-  --text: #0b1a2b;
-  --muted: #6b7785;
-  --muted-2: #8a97a6;
-  --surface: #ffffff;
-  --border: #e6eef8;
-  --shadow: 0 8px 30px rgba(10,102,194,0.06);
-  --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
-
-  /* map to shared var names used by component */
-  --accent-neon: var(--primary-blue);
-  --accent-turquoise: var(--primary-blue-600);
-  --accent-cyan: #378fc7;
-
-  --text-primary: var(--text);
-  --text-secondary: var(--muted);
-
-  --success: #0fa969;
-  --warning: #ffcc00;
-  --danger: #d0445a;
-
-  --glass: rgba(18,35,59,0.03);
-
-  --container-bg: linear-gradient(180deg, var(--panel), var(--surface));
-  --card-bg: linear-gradient(180deg, var(--surface), #fbfcfd);
-  --card-border: var(--border);
-
-  --btn-bg: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-600));
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --accent-1: #0A66C2;
+  --accent-2: #0073b1;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-hover-bg: rgba(255, 255, 255, 1);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(10, 102, 194, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --btn-bg: var(--accent-gradient);
   --btn-text: #ffffff;
-
-  --transition: var(--transition);
-  --shadow-card: var(--shadow);
+  --success-color: #0fa969;
+  --error-color: #d0445a;
+  --warning-color: #e6a700;
 }
 
 /* =========================
-   Estilos compartidos (usan las variables de la variante activa)
+   Estilos Base - Diseño Sobrio
    ========================= */
 
-.cambiarcontrasenacontainer {
+.Cambiarcontrasenacontainer {
   width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* Header Section */
+.Cambiarcontrasenaheader {
+  padding: 60px 40px 40px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--bg-primary);
+}
+
+.CambiarcontrasenaheaderContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.Cambiarcontrasenatitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.Cambiarcontrasenasubtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.CambiarcontrasenaheaderMeta {
   display: flex;
   justify-content: center;
-  padding: 28px 18px;
-  box-sizing: border-box;
-  font-family: 'Inter', Arial, sans-serif;
-  background: var(--container-bg);
-  color: var(--text-primary);
-  transition: background 220ms, color 220ms;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 
-.cambiarcontrasenacard {
-  width: 100%;
+.CambiarcontrasenasecurityInfo {
+  padding: 6px 12px;
   background: var(--card-bg);
-  border-radius: 14px;
-  padding: 22px;
-  box-shadow: var(--shadow-card);
-  color: var(--text-primary);
   border: 1px solid var(--card-border);
-  position: relative;
-  overflow: hidden;
-}
-
-.cambiarcontrasenaheader {
-  text-align: left;
-  margin-bottom: 16px;
-}
-
-.cambiarcontrasenatitle {
-  font-size: 1.4rem;
-  margin: 0 0 6px 0;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.cambiarcontrasenasubtitle {
-  margin: 0;
+  border-radius: 6px;
+  font-size: 0.85rem;
   color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Form Section */
+.CambiarcontrasenaformSection {
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.Cambiarcontrasenacard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 480px;
+  backdrop-filter: var(--backdrop-filter);
+  -webkit-backdrop-filter: var(--backdrop-filter);
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.Cambiarcontrasenacard:hover {
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--card-hover-border);
+}
+
+/* Alert Boxes */
+.CambiarcontrasenaerrorBox,
+.CambiarcontrasenasuccessBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.CambiarcontrasenaerrorBox {
+  background: rgba(255, 51, 102, 0.08);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+  color: var(--error-color);
+}
+
+.CambiarcontrasenasuccessBox {
+  background: rgba(0, 255, 170, 0.08);
+  border: 1px solid rgba(0, 255, 170, 0.2);
+  color: var(--success-color);
+}
+
+.CambiarcontrasenaerrorIcon,
+.CambiarcontrasenasuccessIcon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.CambiarcontrasenaerrorText,
+.CambiarcontrasenasuccessText {
   font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
-.cambiarcontrasenaerrorBox {
-  background: rgba(255,51,102,0.08);
-  color: var(--danger);
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  border-left: 3px solid rgba(255,51,102,0.22);
-}
-
-.cambiarcontrasenasuccessBox {
-  background: rgba(0,255,170,0.06);
-  color: var(--success);
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  border-left: 3px solid rgba(0,255,170,0.14);
-}
-
-.cambiarcontrasenaform {
+/* Form Styles */
+.Cambiarcontrasenaform {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24px;
 }
 
-.cambiarcontrasenalabel {
+.CambiarcontrasenaformGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.cambiarcontrasenalabelText {
-  font-size: 0.92rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.cambiarcontrasenainputRow {
+.Cambiarcontrasenalabel {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.cambiarcontrasenainput {
-  flex: 1;
-  padding: 10px 12px;
-  background: var(--glass);
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 10px;
+.CambiarcontrasenalabelText {
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--text-primary);
+}
+
+.CambiarcontrasenainputContainer {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.Cambiarcontrasenainput {
+  flex: 1;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
   outline: none;
-  font-size: 0.98rem;
-  transition: var(--transition);
-  box-shadow: inset 0 4px 14px rgba(0,0,0,0.03);
 }
 
-.cambiarcontrasenainput::placeholder {
-  color: rgba(0,0,0,0.24);
+.Cambiarcontrasenainput::placeholder {
+  color: var(--text-muted);
 }
 
-.cambiarcontrasenainput:focus {
-  border-color: rgba(0,0,0,0.12);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.04);
+.Cambiarcontrasenainput:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
   transform: translateY(-1px);
 }
 
-.cambiarcontrasenashowBtn {
-  min-width: 74px;
-  background: transparent;
-  border: 1px solid rgba(0,0,0,0.06);
-  color: var(--accent-neon);
-  padding: 8px 10px;
+.CambiarcontrasenaLight .Cambiarcontrasenainput:focus {
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.CambiarcontrasenashowBtn {
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
+  color: var(--accent-1);
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.85rem;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  min-width: 80px;
 }
 
-.cambiarcontrasenashowBtn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.03);
+.CambiarcontrasenashowBtn:hover {
+  background: var(--card-hover-bg);
+  border-color: var(--card-hover-border);
+  transform: translateY(-1px);
 }
 
-.cambiarcontrasenastrengthBar {
+/* Strength Indicator */
+.CambiarcontrasenastrengthIndicator {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 8px;
-  width: 100%;
 }
 
-.cambiarcontrasenastrengthSegment {
+.CambiarcontrasenastrengthBar {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+}
+
+.CambiarcontrasenastrengthSegment {
   flex: 1;
-  height: 6px;
-  background: rgba(0,0,0,0.06);
-  border-radius: 4px;
-  transition: var(--transition);
+  background: var(--text-muted);
+  border-radius: 2px;
+  transition: all 0.3s ease;
 }
 
-/* clase 'on' usada desde el JSX */
-.cambiarcontrasenaon {
-  background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
-  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+.Cambiarcontrasenaon {
+  background: var(--accent-gradient);
 }
 
-/* Si quieres tener un color diferente para modo light cuando 'on' */
-.CambiarcontrasenaLight .cambiarcontrasenaon {
-  box-shadow: 0 8px 18px rgba(10,102,194,0.06);
+.CambiarcontrasenastrengthText {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
-.cambiarcontrasenaactions {
+/* Actions */
+.Cambiarcontrasenaactions {
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
 }
 
-.cambiarcontrasenaprimaryButton {
-  padding: 12px 18px;
+.CambiarcontrasenaprimaryButton {
+  padding: 14px 32px;
   background: var(--btn-bg);
   color: var(--btn-text);
   border: none;
-  border-radius: 10px;
-  font-weight: 700;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+  justify-content: center;
 }
 
-.cambiarcontrasenaprimaryButton:disabled {
-  opacity: 0.55;
-  transform: none;
+.CambiarcontrasenaprimaryButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.CambiarcontrasenaprimaryButton:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
-.cambiarcontrasenaprimaryButton:hover:not(:disabled) {
-  transform: translateY(-3px);
+.Cambiarcontrasenaspinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-/* pequeños detalles visuales */
-.cambiarcontrasenalabelText + .cambiarcontrasenainputRow .cambiarcontrasenainput {
-  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.cambiarcontrasenacard::after {
-  /* sutil borde / brillo según variante */
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Responsive */
-@media (max-width: 720px) {
-  .cambiarcontrasenacard { padding: 18px; }
-  .cambiarcontrasenatitle { font-size: 1.2rem; }
-  .cambiarcontrasenashowBtn { min-width: 64px; font-size: 0.82rem; }
+/* Focus States para Accesibilidad */
+.Cambiarcontrasenainput:focus-visible,
+.CambiarcontrasenashowBtn:focus-visible,
+.CambiarcontrasenaprimaryButton:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .Cambiarcontrasenaheader {
+    padding: 40px 24px 30px;
+  }
+  
+  .Cambiarcontrasenatitle {
+    font-size: 2rem;
+  }
+  
+  .Cambiarcontrasenasubtitle {
+    font-size: 1rem;
+  }
+  
+  .CambiarcontrasenaformSection {
+    padding: 40px 24px;
+  }
+  
+  .Cambiarcontrasenacard {
+    padding: 32px 24px;
+  }
+  
+  .CambiarcontrasenainputContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .CambiarcontrasenashowBtn {
+    min-width: auto;
+    align-self: flex-end;
+    width: fit-content;
+  }
+}
+
+@media (max-width: 480px) {
+  .Cambiarcontrasenaheader {
+    padding: 30px 20px;
+  }
+  
+  .Cambiarcontrasenatitle {
+    font-size: 1.75rem;
+  }
+  
+  .CambiarcontrasenaformSection {
+    padding: 30px 20px;
+  }
+  
+  .Cambiarcontrasenacard {
+    padding: 24px 20px;
+  }
+  
+  .Cambiarcontrasenaactions {
+    justify-content: stretch;
+  }
+  
+  .CambiarcontrasenaprimaryButton {
+    width: 100%;
+  }
+}
+
+/* Animación sutil de entrada */
+.Cambiarcontrasenacard {
+  animation: fadeInUp 0.6s ease-out forwards;
 }

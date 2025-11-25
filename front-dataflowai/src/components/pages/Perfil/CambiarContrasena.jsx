@@ -130,101 +130,173 @@ const AppCambiarContrasena = () => {
   const variantClass = theme === 'light' ? styles.CambiarcontrasenaLight : styles.CambiarcontrasenaDark;
 
   return (
-    <div className={`${styles.cambiarcontrasenacontainer} ${variantClass}`}>
-      <div className={styles.cambiarcontrasenacard} style={{ maxWidth: 560 }}>
-        <div className={styles.cambiarcontrasenaheader}>
-          <h1 className={styles.cambiarcontrasenatitle}>Cambiar contraseña</h1>
-          <p className={styles.cambiarcontrasenasubtitle}>Actualiza tu contraseña para mantener tu cuenta segura.</p>
+    <main className={`${styles.Cambiarcontrasenacontainer} ${variantClass}`} aria-labelledby="cambiar-contrasena-title">
+      
+      {/* Header Section */}
+      <section className={styles.Cambiarcontrasenaheader}>
+        <div className={styles.CambiarcontrasenaheaderContent}>
+          <h1 id="cambiar-contrasena-title" className={styles.Cambiarcontrasenatitle}>
+            Cambiar Contraseña
+          </h1>
+          <p className={styles.Cambiarcontrasenasubtitle}>
+            Actualiza tu contraseña para mantener tu cuenta segura
+          </p>
         </div>
+        <div className={styles.CambiarcontrasenaheaderMeta}>
+          <span className={styles.CambiarcontrasenasecurityInfo}>Seguridad</span>
+        </div>
+      </section>
 
-        {error && <div className={styles.cambiarcontrasenaerrorBox} role="alert">{error}</div>}
-        {success && <div className={styles.cambiarcontrasenasuccessBox} role="status">{success}</div>}
+      {/* Form Section */}
+      <section className={styles.CambiarcontrasenaformSection} aria-label="Formulario de cambio de contraseña">
+        <div className={styles.Cambiarcontrasenacard}>
+          
+          {error && (
+            <div className={styles.CambiarcontrasenaerrorBox} role="alert">
+              <div className={styles.CambiarcontrasenaerrorIcon}>⚠️</div>
+              <div className={styles.CambiarcontrasenaerrorText}>{error}</div>
+            </div>
+          )}
+          
+          {success && (
+            <div className={styles.CambiarcontrasenasuccessBox} role="status">
+              <div className={styles.CambiarcontrasenasuccessIcon}>✅</div>
+              <div className={styles.CambiarcontrasenasuccessText}>{success}</div>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className={styles.cambiarcontrasenaform}>
-          <label className={styles.cambiarcontrasenalabel}>
-            <span className={styles.cambiarcontrasenalabelText}>Contraseña actual</span>
-            <div className={styles.cambiarcontrasenainputRow}>
-              <input
-                name="actual"
-                value={actual}
-                onChange={(e) => setActual(e.target.value)}
-                type={showActual ? 'text' : 'password'}
-                className={styles.cambiarcontrasenainput}
-                autoComplete="current-password"
-                aria-label="Contraseña actual"
-              />
-              <button
-                type="button"
-                className={styles.cambiarcontrasenashowBtn}
-                onClick={() => setShowActual(p => !p)}
-                aria-label="Mostrar contraseña actual"
+          <form onSubmit={handleSubmit} className={styles.Cambiarcontrasenaform}>
+            
+            {/* Contraseña Actual */}
+            <div className={styles.CambiarcontrasenaformGroup}>
+              <label className={styles.Cambiarcontrasenalabel}>
+                <span className={styles.CambiarcontrasenalabelText}>Contraseña Actual</span>
+                <div className={styles.CambiarcontrasenainputContainer}>
+                  <input
+                    name="actual"
+                    value={actual}
+                    onChange={(e) => setActual(e.target.value)}
+                    type={showActual ? 'text' : 'password'}
+                    className={styles.Cambiarcontrasenainput}
+                    autoComplete="current-password"
+                    aria-label="Contraseña actual"
+                    placeholder="Ingresa tu contraseña actual"
+                  />
+                  <button
+                    type="button"
+                    className={styles.CambiarcontrasenashowBtn}
+                    onClick={() => setShowActual(p => !p)}
+                    aria-label={showActual ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showActual ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+              </label>
+            </div>
+
+            {/* Nueva Contraseña */}
+            <div className={styles.CambiarcontrasenaformGroup}>
+              <label className={styles.Cambiarcontrasenalabel}>
+                <span className={styles.CambiarcontrasenalabelText}>Nueva Contraseña</span>
+                <div className={styles.CambiarcontrasenainputContainer}>
+                  <input
+                    name="nueva"
+                    value={nueva}
+                    onChange={(e) => setNueva(e.target.value)}
+                    type={showNueva ? 'text' : 'password'}
+                    className={styles.Cambiarcontrasenainput}
+                    autoComplete="new-password"
+                    aria-label="Nueva contraseña"
+                    placeholder="Crea una nueva contraseña"
+                  />
+                  <button
+                    type="button"
+                    className={styles.CambiarcontrasenashowBtn}
+                    onClick={() => setShowNueva(p => !p)}
+                    aria-label={showNueva ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showNueva ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+                
+                {/* Strength Indicator */}
+                {nueva && (
+                  <div className={styles.CambiarcontrasenastrengthIndicator}>
+                    <div className={styles.CambiarcontrasenastrengthBar}>
+                      <div 
+                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 1 ? styles.Cambiarcontrasenaon : ''}`}
+                      ></div>
+                      <div 
+                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 2 ? styles.Cambiarcontrasenaon : ''}`}
+                      ></div>
+                      <div 
+                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 3 ? styles.Cambiarcontrasenaon : ''}`}
+                      ></div>
+                      <div 
+                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 4 ? styles.Cambiarcontrasenaon : ''}`}
+                      ></div>
+                    </div>
+                    <span className={styles.CambiarcontrasenastrengthText}>
+                      {strength === 0 && 'Muy débil'}
+                      {strength === 1 && 'Débil'}
+                      {strength === 2 && 'Regular'}
+                      {strength === 3 && 'Fuerte'}
+                      {strength === 4 && 'Muy fuerte'}
+                    </span>
+                  </div>
+                )}
+              </label>
+            </div>
+
+            {/* Confirmar Contraseña */}
+            <div className={styles.CambiarcontrasenaformGroup}>
+              <label className={styles.Cambiarcontrasenalabel}>
+                <span className={styles.CambiarcontrasenalabelText}>Confirmar Nueva Contraseña</span>
+                <div className={styles.CambiarcontrasenainputContainer}>
+                  <input
+                    name="confirmar"
+                    value={confirmar}
+                    onChange={(e) => setConfirmar(e.target.value)}
+                    type={showConfirmar ? 'text' : 'password'}
+                    className={styles.Cambiarcontrasenainput}
+                    autoComplete="new-password"
+                    aria-label="Confirmar nueva contraseña"
+                    placeholder="Confirma tu nueva contraseña"
+                  />
+                  <button
+                    type="button"
+                    className={styles.CambiarcontrasenashowBtn}
+                    onClick={() => setShowConfirmar(p => !p)}
+                    aria-label={showConfirmar ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showConfirmar ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <div className={styles.Cambiarcontrasenaactions}>
+              <button 
+                type="submit" 
+                className={styles.CambiarcontrasenaprimaryButton} 
+                disabled={saving}
               >
-                {showActual ? 'Ocultar' : 'Mostrar'}
+                {saving ? (
+                  <>
+                    <span className={styles.Cambiarcontrasenaspinner}></span>
+                    Guardando...
+                  </>
+                ) : (
+                  'Cambiar Contraseña'
+                )}
               </button>
             </div>
-          </label>
+          </form>
 
-          <label className={styles.cambiarcontrasenalabel}>
-            <span className={styles.cambiarcontrasenalabelText}>Nueva contraseña</span>
-            <div className={styles.cambiarcontrasenainputRow}>
-              <input
-                name="nueva"
-                value={nueva}
-                onChange={(e) => setNueva(e.target.value)}
-                type={showNueva ? 'text' : 'password'}
-                className={styles.cambiarcontrasenainput}
-                autoComplete="new-password"
-                aria-label="Nueva contraseña"
-              />
-              <button
-                type="button"
-                className={styles.cambiarcontrasenashowBtn}
-                onClick={() => setShowNueva(p => !p)}
-                aria-label="Mostrar nueva contraseña"
-              >
-                {showNueva ? 'Ocultar' : 'Mostrar'}
-              </button>
-            </div>
-            <div className={styles.cambiarcontrasenastrengthBar} aria-hidden>
-              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 1 ? styles.cambiarcontrasenaon : ''}`}></div>
-              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 2 ? styles.cambiarcontrasenaon : ''}`}></div>
-              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 3 ? styles.cambiarcontrasenaon : ''}`}></div>
-              <div className={`${styles.cambiarcontrasenastrengthSegment} ${strength >= 4 ? styles.cambiarcontrasenaon : ''}`}></div>
-            </div>
-          </label>
-
-          <label className={styles.cambiarcontrasenalabel}>
-            <span className={styles.cambiarcontrasenalabelText}>Confirmar nueva contraseña</span>
-            <div className={styles.cambiarcontrasenainputRow}>
-              <input
-                name="confirmar"
-                value={confirmar}
-                onChange={(e) => setConfirmar(e.target.value)}
-                type={showConfirmar ? 'text' : 'password'}
-                className={styles.cambiarcontrasenainput}
-                autoComplete="new-password"
-                aria-label="Confirmar nueva contraseña"
-              />
-              <button
-                type="button"
-                className={styles.cambiarcontrasenashowBtn}
-                onClick={() => setShowConfirmar(p => !p)}
-                aria-label="Mostrar confirmar contraseña"
-              >
-                {showConfirmar ? 'Ocultar' : 'Mostrar'}
-              </button>
-            </div>
-          </label>
-
-          <div className={styles.cambiarcontrasenaactions}>
-            <button type="submit" className={styles.cambiarcontrasenaprimaryButton} disabled={saving}>
-              {saving ? 'Guardando...' : 'Cambiar contraseña'}
-            </button>
-          </div>
-        </form>
-
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 };
 

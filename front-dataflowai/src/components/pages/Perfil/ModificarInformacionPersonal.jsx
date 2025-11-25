@@ -186,11 +186,11 @@ const ModificarInformacionPersonal = () => {
       const payload = { nombres, apellidos, correo };
       const res = await actualizarMiUsuario(payload);
       setUsuario(res.usuario);
-      setSuccess('Usuario actualizado correctamente');
+      setSuccess('Información personal actualizada correctamente');
       setBackupUser({ nombres, apellidos, correo });
       setEditing(false);
     } catch (err) {
-      setError(err.message || 'Error al actualizar usuario');
+      setError(err.message || 'Error al actualizar información personal');
     } finally {
       setSavingUser(false);
       setTimeout(() => setSuccess(''), 3000);
@@ -202,7 +202,7 @@ const ModificarInformacionPersonal = () => {
     setError('');
     setSuccess('');
     if (!isAdmin) {
-      setError('No autorizado para editar la empresa');
+      setError('No autorizado para editar la información de la empresa');
       return;
     }
     setSavingCompany(true);
@@ -219,7 +219,7 @@ const ModificarInformacionPersonal = () => {
       };
       const res = await actualizarEmpresa(payload);
       setEmpresa(res.empresa);
-      setSuccess('Empresa actualizada correctamente');
+      setSuccess('Información de la empresa actualizada correctamente');
       setBackupCompany({
         nombreEmpresa,
         direccion,
@@ -232,7 +232,7 @@ const ModificarInformacionPersonal = () => {
       });
       setEditing(false);
     } catch (err) {
-      setError(err.message || 'Error al actualizar empresa');
+      setError(err.message || 'Error al actualizar información de la empresa');
     } finally {
       setSavingCompany(false);
       setTimeout(() => setSuccess(''), 3000);
@@ -248,240 +248,309 @@ const ModificarInformacionPersonal = () => {
     );
   }
 
-  const variantClass = theme === 'light' ? styles.modinfopersonalLight : styles.modinfopersonalDark;
+  const variantClass = theme === 'light' ? styles.ModinfopersonalLight : styles.ModinfopersonalDark;
 
   if (loading) {
     return (
-      <div className={`${styles.modinfopersonalcontainer} ${variantClass}`}>
-        <div className={styles.modinfopersonalcenterBox}>
-          <div className={styles.modinfopersonalloader} />
-          <div className={styles.modinfopersonalloadingText}>Cargando perfil...</div>
+      <main className={`${styles.Modinfopersonalcontainer} ${variantClass}`}>
+        <div className={styles.Modinfopersonalloading}>
+          <div className={styles.ModinfopersonalloadingSpinner}></div>
+          <span>Cargando información del perfil...</span>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className={`${styles.modinfopersonalcontainer} ${variantClass}`}>
-
-      <header className={styles.modinfopersonalheader}>
-        <div>
-          <h1 className={styles.modinfopersonaltitle}>Modificar Información Personal</h1>
-          <p className={styles.modinfopersonalsubtitle}>Actualiza tu información o la de tu empresa</p>
+    <main className={`${styles.Modinfopersonalcontainer} ${variantClass}`} aria-labelledby="modificar-info-title">
+      
+      {/* Header Section */}
+      <section className={styles.Modinfopersonalheader}>
+        <div className={styles.ModinfopersonalheaderContent}>
+          <h1 id="modificar-info-title" className={styles.Modinfopersonaltitle}>
+            Información Personal
+          </h1>
+          <p className={styles.Modinfopersonalsubtitle}>
+            Actualiza tu información personal y de la empresa
+          </p>
         </div>
-
-        <div className={styles.modinfopersonalheaderActions}>
+        <div className={styles.ModinfopersonalheaderMeta}>
+          <span className={styles.ModinfopersonalroleInfo}>
+            {isAdmin ? 'Administrador' : 'Usuario'}
+          </span>
           {!editing ? (
-            <button className={styles.modinfopersonaleditToggle} onClick={enterEdit}>
-              ✏️ Editar información
+            <button 
+              className={styles.ModinfopersonaleditButton}
+              onClick={enterEdit}
+            >
+              Editar Información
             </button>
           ) : (
-            <>
-              <span className={styles.modinfopersonaleditBadge}>Modo edición</span>
-              <button className={styles.modinfopersonalcancelBtn} onClick={cancelEdit}>
-                ✖️ Cancelar edición
-              </button>
-            </>
+            <button 
+              className={styles.ModinfopersonalcancelButton}
+              onClick={cancelEdit}
+            >
+              Cancelar
+            </button>
           )}
         </div>
-      </header>
+      </section>
 
-      {error && <div className={`${styles.modinfopersonalalert} ${styles.modinfopersonalalertError}`}>{error}</div>}
-      {success && <div className={`${styles.modinfopersonalalert} ${styles.modinfopersonalalertSuccess}`}>{success}</div>}
+      {/* Alert Messages */}
+      {error && (
+        <div className={styles.ModinfopersonalerrorBox} role="alert">
+          <div className={styles.ModinfopersonalerrorIcon}>⚠️</div>
+          <div className={styles.ModinfopersonalerrorText}>{error}</div>
+        </div>
+      )}
+      
+      {success && (
+        <div className={styles.ModinfopersonalsuccessBox} role="status">
+          <div className={styles.ModinfopersonalsuccessIcon}>✅</div>
+          <div className={styles.ModinfopersonalsuccessText}>{success}</div>
+        </div>
+      )}
 
-      <div className={styles.modinfopersonalgrid}>
-
-        {/* Usuario */}
-        <section className={styles.modinfopersonalcard}>
-          <div className={styles.modinfopersonalcardHeader}>
-            <h2 className={styles.modinfopersonalsectionTitle}>Mi usuario</h2>
+      {/* Content Grid */}
+      <div className={styles.Modinfopersonalcontent}>
+        
+        {/* Personal Information Card */}
+        <section className={styles.Modinfopersonalcard}>
+          <div className={styles.ModinfopersonalcardHeader}>
+            <h2 className={styles.ModinfopersonalsectionTitle}>Información Personal</h2>
+            <div className={styles.ModinfopersonaleditIndicator}>
+              {editing ? 'Modo Edición' : 'Solo Lectura'}
+            </div>
           </div>
 
-          <form onSubmit={handleSaveUser} className={styles.modinfopersonalform}>
-            <div className={styles.modinfopersonalrow}>
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Nombre</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={nombres}
-                  onChange={(e) => setNombres(e.target.value)}
-                  placeholder="Tu nombre"
-                  readOnly={!editing}
-                />
-              </label>
+          <form onSubmit={handleSaveUser} className={styles.Modinfopersonalform}>
+            <div className={styles.ModinfopersonalformGrid}>
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Nombre</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={nombres}
+                    onChange={(e) => setNombres(e.target.value)}
+                    placeholder="Tu nombre"
+                    readOnly={!editing}
+                    aria-describedby="nombre-help"
+                  />
+                </label>
+                <div id="nombre-help" className={styles.ModinfopersonalhelpText}>
+                  Tu nombre de pila
+                </div>
+              </div>
 
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Apellidos</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={apellidos}
-                  onChange={(e) => setApellidos(e.target.value)}
-                  placeholder="Tus apellidos"
-                  readOnly={!editing}
-                />
-              </label>
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Apellidos</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={apellidos}
+                    onChange={(e) => setApellidos(e.target.value)}
+                    placeholder="Tus apellidos"
+                    readOnly={!editing}
+                    aria-describedby="apellidos-help"
+                  />
+                </label>
+                <div id="apellidos-help" className={styles.ModinfopersonalhelpText}>
+                  Tus apellidos completos
+                </div>
+              </div>
+
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Correo Electrónico</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    type="email"
+                    value={correo}
+                    onChange={(e) => setCorreo(e.target.value)}
+                    placeholder="usuario@empresa.com"
+                    readOnly={!editing}
+                    aria-describedby="correo-help"
+                  />
+                </label>
+                <div id="correo-help" className={styles.ModinfopersonalhelpText}>
+                  Tu dirección de correo principal
+                </div>
+              </div>
             </div>
 
-            <div className={styles.modinfopersonalrowSingle}>
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Correo</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  type="email"
-                  value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
-                  placeholder="email@empresa.com"
-                  readOnly={!editing}
-                />
-              </label>
-            </div>
-
-            <div className={styles.modinfopersonalactions}>
+            <div className={styles.ModinfopersonalformActions}>
               <button
-                className={styles.modinfopersonalprimaryButton}
+                className={styles.ModinfopersonalprimaryButton}
                 type="submit"
                 disabled={!editing || savingUser}
-                aria-disabled={!editing || savingUser}
               >
-                {savingUser ? 'Guardando...' : 'Guardar usuario'}
+                {savingUser ? (
+                  <>
+                    <span className={styles.Modinfopersonalspinner}></span>
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Cambios Personales'
+                )}
               </button>
             </div>
           </form>
         </section>
 
-        {/* Empresa */}
-        <section className={styles.modinfopersonalcard}>
-          <div className={styles.modinfopersonalcardHeader}>
-            <h2 className={styles.modinfopersonalsectionTitle}>Empresa {empresa ? `- ${empresa.nombre_empresa}` : ''}</h2>
+        {/* Company Information Card */}
+        <section className={styles.Modinfopersonalcard}>
+          <div className={styles.ModinfopersonalcardHeader}>
+            <h2 className={styles.ModinfopersonalsectionTitle}>
+              Información de la Empresa
+              {empresa && <span className={styles.ModinfopersonalcompanyName}> - {empresa.nombre_empresa}</span>}
+            </h2>
+            <div className={styles.ModinfopersonaleditIndicator}>
+              {isAdmin ? (editing ? 'Modo Edición' : 'Solo Lectura') : 'Solo Lectura'}
+            </div>
           </div>
 
           {!isAdmin && (
-            <div className={styles.modinfopersonalinfoBox}>
-              Sólo administradores pueden editar la empresa.
+            <div className={styles.ModinfopersonalinfoBox}>
+              <div className={styles.ModinfopersonalinfoIcon}>🔒</div>
+              <div className={styles.ModinfopersonalinfoText}>
+                Solo los administradores pueden editar la información de la empresa
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSaveCompany} className={styles.modinfopersonalform}>
-            <div className={styles.modinfopersonalrow}>
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Nombre empresa</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={nombreEmpresa}
-                  onChange={(e) => setNombreEmpresa(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="Nombre de la empresa"
-                />
-              </label>
+          <form onSubmit={handleSaveCompany} className={styles.Modinfopersonalform}>
+            <div className={styles.ModinfopersonalformGrid}>
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Nombre de la Empresa</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={nombreEmpresa}
+                    onChange={(e) => setNombreEmpresa(e.target.value)}
+                    disabled={!isAdmin || !editing}
+                    readOnly={!editing}
+                    placeholder="Nombre de la empresa"
+                  />
+                </label>
+              </div>
 
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Dirección</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="Dirección"
-                />
-              </label>
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Dirección</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={direccion}
+                    onChange={(e) => setDireccion(e.target.value)}
+                    disabled={!isAdmin || !editing}
+                    readOnly={!editing}
+                    placeholder="Dirección completa"
+                  />
+                </label>
+              </div>
+
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Teléfono</span>
+                  <div className={styles.ModinfopersonalinputGroup}>
+                    <input
+                      className={styles.ModinfopersonalinputPrefix}
+                      value={prefijoPais}
+                      onChange={(e) => setPrefijoPais(e.target.value)}
+                      disabled={!isAdmin || !editing}
+                      readOnly={!editing}
+                      placeholder="+57"
+                      maxLength="4"
+                    />
+                    <input
+                      className={styles.Modinfopersonalinput}
+                      value={telefono}
+                      onChange={(e) => setTelefono(e.target.value)}
+                      disabled={!isAdmin || !editing}
+                      readOnly={!editing}
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
+                </label>
+              </div>
+
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Ciudad</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={ciudad}
+                    onChange={(e) => setCiudad(e.target.value)}
+                    disabled={!isAdmin || !editing}
+                    readOnly={!editing}
+                    placeholder="Ciudad"
+                  />
+                </label>
+              </div>
+
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>País</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={pais}
+                    onChange={(e) => setPais(e.target.value)}
+                    disabled={!isAdmin || !editing}
+                    readOnly={!editing}
+                    placeholder="País"
+                  />
+                </label>
+              </div>
+
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Correo de la Empresa</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    type="email"
+                    value={correoEmpresa}
+                    onChange={(e) => setCorreoEmpresa(e.target.value)}
+                    disabled={!isAdmin || !editing}
+                    readOnly={!editing}
+                    placeholder="contacto@empresa.com"
+                  />
+                </label>
+              </div>
+
+              <div className={styles.ModinfopersonalformGroup}>
+                <label className={styles.Modinfopersonallabel}>
+                  <span className={styles.ModinfopersonallabelText}>Página Web</span>
+                  <input
+                    className={styles.Modinfopersonalinput}
+                    value={paginaWeb}
+                    onChange={(e) => setPaginaWeb(e.target.value)}
+                    disabled={!isAdmin || !editing}
+                    readOnly={!editing}
+                    placeholder="https://www.empresa.com"
+                  />
+                </label>
+              </div>
             </div>
 
-            <div className={styles.modinfopersonalrow}>
-              <label className={styles.modinfopersonallabelSmall}>
-                <span className={styles.modinfopersonallabelText}>Prefijo</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={prefijoPais}
-                  onChange={(e) => setPrefijoPais(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="+57"
-                />
-              </label>
-
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Teléfono</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="3001234567"
-                />
-              </label>
-            </div>
-
-            <div className={styles.modinfopersonalrow}>
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Ciudad</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={ciudad}
-                  onChange={(e) => setCiudad(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="Bogotá"
-                />
-              </label>
-
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>País</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={pais}
-                  onChange={(e) => setPais(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="Colombia"
-                />
-              </label>
-            </div>
-
-            <div className={styles.modinfopersonalrow}>
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Correo empresa</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  type="email"
-                  value={correoEmpresa}
-                  onChange={(e) => setCorreoEmpresa(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="contacto@empresa.com"
-                />
-              </label>
-
-              <label className={styles.modinfopersonallabel}>
-                <span className={styles.modinfopersonallabelText}>Página web</span>
-                <input
-                  className={styles.modinfopersonalinput}
-                  value={paginaWeb}
-                  onChange={(e) => setPaginaWeb(e.target.value)}
-                  disabled={!isAdmin || !editing}
-                  readOnly={!editing}
-                  placeholder="https://www.empresa.com"
-                />
-              </label>
-            </div>
-
-            <div className={styles.modinfopersonalactions}>
+            <div className={styles.ModinfopersonalformActions}>
               <button
-                className={styles.modinfopersonalprimaryButton}
+                className={styles.ModinfopersonalprimaryButton}
                 type="submit"
                 disabled={!editing || !isAdmin || savingCompany}
-                aria-disabled={!editing || !isAdmin || savingCompany}
               >
-                {savingCompany ? 'Guardando...' : 'Guardar empresa'}
+                {savingCompany ? (
+                  <>
+                    <span className={styles.Modinfopersonalspinner}></span>
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Cambios de Empresa'
+                )}
               </button>
             </div>
           </form>
         </section>
-
       </div>
-    </div>
+    </main>
   );
 };
 

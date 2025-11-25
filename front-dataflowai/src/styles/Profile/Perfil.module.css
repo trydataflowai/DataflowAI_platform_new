@@ -1,247 +1,418 @@
-/* Perfil.module.css
-   Archivo único que contiene variables y estilos compartidos.
-   Aplicar clase raíz .PerfilgeneralDark o .PerfilgeneralLight junto a .Perfilgeneralcontainer
-*/
+/* src/styles/Profile/Perfil.module.css */
 
 /* =========================
-   Variables por variante
+   Variables por variante - Diseño Sobrio
    ========================= */
 
 .PerfilgeneralDark {
-  --bg-gradient: radial-gradient(1200px 400px at 10% 10%, rgba(0,247,255,0.02), transparent 6%), linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --muted: rgba(255,255,255,0.06);
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
   --accent-1: #00f7ff;
   --accent-2: #00c2ff;
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  --card-border: rgba(255,255,255,0.035);
-  --card-shadow: 0 20px 60px rgba(1,8,12,0.75);
-  --backdrop-filter: blur(8px) saturate(120%);
-  --badge-text: #00121a;
-  --badge-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
-  --modal-bg: linear-gradient(180deg, rgba(10,10,12,0.9), rgba(6,6,8,0.82));
-  --modal-border: rgba(0,200,255,0.06);
-  --btn-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(30, 30, 30, 0.6);
+  --card-hover-bg: rgba(40, 40, 40, 0.8);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover-border: rgba(0, 247, 255, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(30, 30, 30, 0.95);
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --btn-bg: var(--accent-gradient);
   --btn-text: #00121a;
-  --container-bg: var(--bg-gradient);
-  --accent-cta: var(--accent-2);
 }
 
 .PerfilgeneralLight {
-  --bg-gradient: linear-gradient(180deg, #f6f8fb 0%, #ffffff 100%);
-  --text-primary: #12233b;
-  --text-secondary: #51657a;
-  --muted: rgba(18,35,59,0.04);
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
   --accent-1: #0A66C2;
   --accent-2: #0073b1;
-  --card-bg: linear-gradient(180deg, #ffffff, rgba(255,255,255,0.96));
-  --card-border: rgba(10,102,194,0.06);
-  --card-shadow: 0 10px 30px rgba(18,35,59,0.06);
-  --backdrop-filter: none;
-  --badge-text: #fff;
-  --badge-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
-  --modal-bg: linear-gradient(180deg, #ffffff, rgba(246,248,251,0.95));
-  --modal-border: rgba(10,102,194,0.06);
-  --btn-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-hover-bg: rgba(255, 255, 255, 1);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(10, 102, 194, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --btn-bg: var(--accent-gradient);
   --btn-text: #ffffff;
-  --container-bg: var(--bg-gradient);
-  --accent-cta: var(--accent-1);
 }
 
 /* =========================
-   Estilos compartidos
+   Estilos Base - Diseño Sobrio
    ========================= */
 
 .Perfilgeneralcontainer {
   width: 100%;
-  margin: 0 auto;
   min-height: 100vh;
-  padding: 2rem 3rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 26px;
-  align-items: stretch;
-  justify-content: flex-start;
-  background: var(--container-bg);
+  padding: 0;
+  background: var(--bg-gradient);
   color: var(--text-primary);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  position: relative;
-  z-index: 0;
+  line-height: 1.6;
 }
 
-/* ambient overlay */
-.Perfilgeneralcontainer::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(800px 300px at 85% 20%, rgba(0,0,0,0.02), transparent 8%);
-  mix-blend-mode: overlay;
-  z-index: 0;
-}
-
-/* Header */
+/* Header Section */
 .Perfilgeneralheader {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
+  padding: 60px 40px 40px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--bg-primary);
 }
+
+.PerfilgeneralheaderContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
 .Perfilgeneraltitle {
-  margin: 0;
-  font-size: 2.1rem;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
   color: var(--text-primary);
-  font-weight: 800;
+  letter-spacing: -0.02em;
 }
+
 .Perfilgeneralsubtitle {
-  margin: 0;
+  font-size: 1.1rem;
   color: var(--text-secondary);
-  font-size: 1rem;
-  opacity: 0.95;
+  margin: 0;
+  font-weight: 400;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Cards grid */
-.PerfilgeneralcardsContainer {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 22px;
-  align-items: stretch;
-}
-
-/* Card base */
-.Perfilgeneralcard {
-  --rx: 0deg;
-  --ry: 0deg;
-  --s: 1;
-  --mx: 50%;
-  --my: 50%;
-  display: block;
-  text-decoration: none;
-  border-radius: 18px;
-  padding: 0;
-  perspective: 1200px;
-  will-change: transform;
-  transform-style: preserve-3d;
-  transition: transform 260ms cubic-bezier(.2,.9,.3,1), box-shadow 260ms ease;
-  outline: none;
-}
-
-.PerfilgeneralcardInner {
-  position: relative;
-  border-radius: calc(18px - 2px);
-  padding: 28px;
-  min-height: 150px;
+.PerfilgeneralheaderMeta {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.PerfilgeneralplanInfo,
+.PerfilgeneralroleInfo {
+  padding: 6px 12px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Cards Section */
+.PerfilgeneralcardsSection {
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.PerfilgeneralcardsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+/* Card Styles - Diseño Sobrio */
+.Perfilgeneralcard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: var(--backdrop-filter);
   -webkit-backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
-  transform: translateZ(30px) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--s));
-  transition: transform 180ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms cubic-bezier(.2,.9,.3,1);
+  position: relative;
   overflow: hidden;
 }
 
-.PerfilgeneralcardInner::before {
-  content: "";
+.Perfilgeneralcard::before {
+  content: '';
   position: absolute;
-  inset: -30%;
-  background: radial-gradient(600px 220px at var(--mx) var(--my), rgba(255,255,255,0.03), transparent 8%);
-  transform: translateZ(-40px);
-  transition: opacity 240ms ease, transform 300ms ease;
-  pointer-events: none;
-  z-index: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.Perfilgeneralcard:hover {
+  transform: translateY(-2px);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
+  background: var(--card-hover-bg);
+}
+
+.Perfilgeneralcard:hover::before {
+  opacity: 1;
+}
+
+.Perfilgeneralcard:active {
+  transform: translateY(0);
+}
+
+.PerfilgeneralcardInner {
+  padding: 0;
+}
+
+.PerfilgeneralcardContent {
+  padding: 28px;
 }
 
 .PerfilgeneralcardHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
-  z-index: 2;
-}
-.PerfilgeneralcardTitle { margin:0; font-size:1.05rem; color:var(--text-primary); font-weight:700; }
-.PerfilgeneralcardMeta { display:flex; gap:12px; align-items:center; }
-.Perfilgeneralbadge {
-  display:inline-grid; place-items:center;
-  min-width: 44px; height:44px; border-radius:12px;
-  font-weight:800; color: var(--badge-text);
-  background: var(--badge-bg);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-  font-size: 1rem;
+  margin-bottom: 16px;
 }
 
-.PerfilgeneralcardBody { z-index: 2; }
-.PerfilgeneralcardDesc { margin:0; color:var(--text-secondary); font-size:0.95rem; }
-.PerfilgeneralcardFooter { display:flex; justify-content:flex-end; align-items:center; z-index: 2; }
-.Perfilgeneralcta { font-weight:700; color:var(--accent-cta); font-size:0.95rem; }
+.PerfilgeneralcardIcon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
 
-.Perfilgeneralcard::after {
-  content: "›";
+.Perfilgeneralicon {
+  width: 20px;
+  height: 20px;
+  background: var(--bg-primary);
+  border-radius: 4px;
+  position: relative;
+}
+
+.Perfilgeneralicon::before {
+  content: '';
   position: absolute;
-  right: 18px;
-  bottom: 14px;
-  font-size: 26px;
-  color: rgba(0,0,0,0.06);
-  transform: translateZ(60px);
-  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--accent-1);
+  border-radius: 1px;
 }
 
-/* Hover / focus */
-.Perfilgeneralcard:hover .PerfilgeneralcardInner,
-.Perfilgeneralcard:focus .PerfilgeneralcardInner {
-  box-shadow: 0 32px 90px rgba(0,0,0,0.12);
-  transform: translateZ(48px) rotateX(var(--rx)) rotateY(var(--ry)) scale(calc(var(--s) + 0.02));
+.PerfilgeneralcardTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.3;
+  flex: 1;
 }
 
-.Perfilgeneralcard:focus-visible {
-  box-shadow: 0 0 0 6px rgba(0,0,0,0.04);
-  border-radius: calc(18px);
+.PerfilgeneralcardBody {
+  margin-bottom: 20px;
 }
 
-/* Modal */
+.PerfilgeneralcardDesc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.PerfilgeneralcardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.Perfilgeneralcta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--accent-1);
+  transition: all 0.3s ease;
+}
+
+.PerfilgeneralctaArrow {
+  transition: transform 0.3s ease;
+  font-weight: 600;
+}
+
+.Perfilgeneralcard:hover .PerfilgeneralctaArrow {
+  transform: translateX(3px);
+}
+
+/* Modal Styles */
 .PerfilgeneralmodalOverlay {
-  position: fixed; inset:0; background: rgba(0,0,0,0.52);
-  display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px;
-  backdrop-filter: blur(6px) saturate(120%);
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
 }
+
 .Perfilgeneralmodal {
-  width: 100%; max-width: 520px; border-radius: 12px; padding: 22px;
+  width: 100%;
+  max-width: 400px;
   background: var(--modal-bg);
-  border: 1px solid var(--modal-border); box-shadow: 0 30px 80px rgba(0,0,0,0.08);
+  border: 1px solid var(--modal-border);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  backdrop-filter: var(--backdrop-filter);
+}
+
+.PerfilgeneralmodalTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 12px 0;
   color: var(--text-primary);
 }
-.PerfilgeneralmodalTitle { margin:0 0 8px 0; font-size:1.15rem; font-weight:800; color:var(--text-primary); }
-.PerfilgeneralmodalDesc { margin:0 0 18px 0; color:var(--text-secondary); font-size:0.96rem; }
-.PerfilgeneralmodalActions { display:flex; justify-content:flex-end; gap:12px; }
+
+.PerfilgeneralmodalDesc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.PerfilgeneralmodalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .PerfilgeneralbtnPrimary {
   background: var(--btn-bg);
-  color: var(--btn-text); border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer;
+  color: var(--btn-text);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
 }
 
-/* Footer small text */
-.Perfilgeneralfooter {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding-top: 6px;
-  color: var(--text-secondary);
+.PerfilgeneralbtnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-.PerfilgeneralfooterSmall { font-size: 0.92rem; color: var(--text-secondary); }
 
-/* Responsive */
-@media (max-width: 640px) {
-  .PerfilgeneralcardInner { padding: 18px; min-height: 130px; }
-  .PerfilgeneralcardsContainer { gap: 16px; }
-  .Perfilgeneraltitle { font-size: 1.6rem; }
+.PerfilgeneralbtnPrimary:active {
+  transform: translateY(0);
 }
+
+/* Focus States para Accesibilidad */
+.Perfilgeneralcard:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+.PerfilgeneralbtnPrimary:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .Perfilgeneralheader {
+    padding: 40px 24px 30px;
+  }
+  
+  .Perfilgeneraltitle {
+    font-size: 2rem;
+  }
+  
+  .Perfilgeneralsubtitle {
+    font-size: 1rem;
+  }
+  
+  .PerfilgeneralcardsSection {
+    padding: 40px 24px;
+  }
+  
+  .PerfilgeneralcardsContainer {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .PerfilgeneralcardContent {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .Perfilgeneralheader {
+    padding: 30px 20px;
+  }
+  
+  .Perfilgeneraltitle {
+    font-size: 1.75rem;
+  }
+  
+  .PerfilgeneralcardsSection {
+    padding: 30px 20px;
+  }
+  
+  .PerfilgeneralcardHeader {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .PerfilgeneralcardIcon {
+    align-self: flex-start;
+  }
+  
+  .Perfilgeneralmodal {
+    padding: 24px;
+  }
+}
+
+/* Animación sutil de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.Perfilgeneralcard {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.Perfilgeneralcard:nth-child(1) { animation-delay: 0.1s; }
+.Perfilgeneralcard:nth-child(2) { animation-delay: 0.2s; }
+.Perfilgeneralcard:nth-child(3) { animation-delay: 0.3s; }
+.Perfilgeneralcard:nth-child(4) { animation-delay: 0.4s; }
