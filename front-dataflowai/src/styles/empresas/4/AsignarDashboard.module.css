@@ -1,0 +1,581 @@
+/* AsignarDashboard.module.css
+   Un único archivo con variantes Light y Dark.
+   Añade la clase raíz .asignardashboardDark o .asignardashboardLight
+   junto a las clases existentes (ej: .asignardashboardcontainer)
+*/
+
+/* -------------------------
+   VARIANT: DARK (variables)
+   ------------------------- */
+.asignardashboardDark {
+  --black-void: #000000;
+  --black-cosmos: #050505;
+  --black-deep: #0a0a0a;
+
+  /* acentos azul/naranja */
+  --accent-neon: #0072BC;
+  --accent-turquoise: #F58220;
+  --accent-cyan: #005a96;
+  --accent-dark: #d46a10;
+
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --muted: rgba(255,255,255,0.06);
+
+  --glass: rgba(255,255,255,0.03);
+
+  --success: #00aaff;
+  --warning: #ffcc00;
+  --danger: #ff3366;
+
+  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.003));
+  --card-border: rgba(255,255,255,0.02);
+  --shadow: 0 50px 120px rgba(0,0,0,0.9);
+  --btn-bg: linear-gradient(135deg, rgba(0,114,188,0.06), rgba(245,130,32,0.04));
+  --btn-text: var(--accent-neon);
+  --transition: all 0.20s cubic-bezier(.2,.9,.3,1);
+}
+
+/* -------------------------
+   VARIANT: LIGHT (variables) - usa la nueva paleta azul/naranja
+   ------------------------- */
+.asignardashboardLight {
+  --bg: #ffffff;
+  --panel: #f7f9ff;
+  --primary-blue: #0072BC;
+  --primary-orange: #F58220;
+  --text: #0b1a2b;
+  --muted: #6b7785;
+  --muted-2: #8a97a6;
+  --surface: #ffffff;
+  --border: #e6edf8;
+  --shadow: 0 8px 30px rgba(0,114,188,0.06);
+  --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
+
+  /* map to shared var names */
+  --accent-neon: var(--primary-blue);
+  --accent-turquoise: var(--primary-orange);
+  --accent-cyan: #005a96;
+
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --muted: var(--muted-2);
+
+  --glass: rgba(0,82,155,0.03);
+  --success: #0f7aa9;
+  --warning: #ff9900;
+  --danger: #d0445a;
+
+  --container-bg: linear-gradient(180deg, var(--panel), var(--surface));
+  --card-bg: linear-gradient(180deg, var(--surface), #fbfcff);
+  --card-border: var(--border);
+  --shadow: 0 8px 30px rgba(0,114,188,0.06);
+  --btn-bg: linear-gradient(135deg, var(--primary-blue), var(--primary-orange));
+  --btn-text: #ffffff;
+}
+
+/* =========================
+   Estilos compartidos que usan las variables de la variante activa
+   ========================= */
+
+.asignardashboardcontainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  box-sizing: border-box;
+  font-family: 'Inter', Arial, sans-serif;
+  color: var(--text-primary);
+  background: var(--container-bg);
+  transition: background 220ms, color 220ms;
+}
+
+/* Cabecera */
+.asignardashboardheaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.asignardashboardpageTitle {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+.asignardashboardpageSubtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+/* Botón recargar */
+.asignardashboardrefreshBtn {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.asignardashboardrefreshBtn:hover { 
+  transform: translateY(-3px); 
+  filter: brightness(1.02);
+}
+
+/* Mensajes */
+.asignardashboardinfo { 
+  color: var(--text-secondary); 
+  padding: 8px 0; 
+  text-align: center;
+}
+.asignardashboarderror {
+  background: rgba(255,51,102,0.06);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 4px solid rgba(255,51,102,0.20);
+}
+.asignardashboardsuccess {
+  background: rgba(0,170,255,0.06);
+  color: var(--success);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 4px solid rgba(0,170,255,0.12);
+}
+
+/* Usuarios section */
+.asignardashboardusersSection {
+  display: block;
+  gap: 12px;
+}
+
+.asignardashboardsectionTitle {
+  margin: 0 0 10px 0;
+  color: var(--accent-neon);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+/* Wrapper tabla (scroll) */
+.asignardashboardtableWrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  padding: 8px;
+  background: var(--card-bg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  border: 1px solid var(--card-border);
+}
+
+/* Tabla principal */
+.asignardashboardtable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+  font-size: 0.95rem;
+}
+
+.asignardashboardtable thead th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--accent-neon);
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.2px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  background: rgba(255,255,255,0.02);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.asignardashboardtable tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* Filas */
+.asignardashboardtableRow {
+  transition: var(--transition);
+  background: transparent !important;
+}
+.asignardashboardtableRow:hover {
+  background: rgba(0,0,0,0.02) !important;
+}
+
+/* No data */
+.asignardashboardnoData {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 14px 0;
+  font-style: italic;
+}
+
+/* Celdas y estilos de texto */
+.asignardashboardcellBold { 
+  font-weight: 700; 
+  color: var(--text-primary); 
+}
+.asignardashboardcellMuted { 
+  color: var(--text-secondary); 
+  font-size: 0.92rem; 
+}
+
+/* Botones principales dentro tabla */
+.asignardashboardprimarySmall {
+  background: linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.02));
+  color: var(--accent-neon);
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 80px;
+}
+.asignardashboardprimarySmall:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 12px 28px rgba(0,0,0,0.05); 
+}
+
+.asignardashboarddangerSmall {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+  color: var(--danger);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 80px;
+}
+.asignardashboarddangerSmall:hover { 
+  transform: translateY(-3px); 
+  box-shadow: 0 12px 28px rgba(0,0,0,0.04); 
+}
+
+/* ---------------------------
+   Modal backdrop y modal
+   --------------------------- */
+
+/* animaciones */
+@keyframes asignardashboardfadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes asignardashboardzoomInModal {
+  from { transform: translateY(8px) scale(0.985); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Backdrop */
+.asignardashboardmodalBackdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px) brightness(0.6);
+  -webkit-backdrop-filter: blur(8px) brightness(0.6);
+  padding: 20px;
+  box-sizing: border-box;
+  animation: asignardashboardfadeInOverlay 180ms cubic-bezier(.2,.9,.3,1) both;
+}
+
+/* Modal large */
+.asignardashboardmodalAsignar, .asignardashboardmodalQuitar {
+  width: 95%;
+  height: 90vh;
+  max-width: 1400px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transform-origin: center;
+  animation: asignardashboardzoomInModal 220ms cubic-bezier(.2,.9,.3,1) both;
+  border: 1px solid var(--card-border);
+}
+
+/* Modal header */
+.asignardashboardmodalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  flex-shrink: 0;
+}
+
+.asignardashboardmodalTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.asignardashboardmodalHeader h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent-neon);
+}
+
+.asignardashboarduserInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.asignardashboarduserName {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.asignardashboarduserEmail {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+/* Close button */
+.asignardashboardcloseBtn {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.06);
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.2rem;
+  transition: var(--transition);
+  min-width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.asignardashboardcloseBtn:hover { 
+  transform: translateY(-3px); 
+  color: var(--accent-neon); 
+}
+
+/* Modal body layout */
+.asignardashboardmodalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Full column container */
+.asignardashboardfullColumn {
+  background: rgba(255,255,255,0.0);
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(0,0,0,0.03);
+  flex: 1;
+  overflow: hidden;
+}
+
+.asignardashboardsubTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--accent-neon);
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  flex-shrink: 0;
+}
+
+/* Scroll area for tables inside modal */
+.asignardashboardscrollArea {
+  overflow: auto;
+  flex: 1;
+  position: relative;
+}
+
+/* Table container for sticky headers */
+.asignardashboardtableContainer {
+  position: relative;
+  height: 100%;
+}
+
+/* Loading state */
+.asignardashboardloadingData {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Modal table row */
+.asignardashboardmodalTableRow {
+  transition: var(--transition);
+  background: transparent !important;
+}
+.asignardashboardmodalTableRow:hover {
+  background: rgba(0,0,0,0.02) !important;
+}
+
+/* Compact table inside modal */
+.asignardashboardtableCompact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.asignardashboardtableCompact thead th {
+  padding: 12px 14px;
+  text-align: left;
+  color: var(--accent-neon);
+  font-weight: 700;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  background: rgba(255,255,255,0.02);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-size: 0.9rem;
+  backdrop-filter: blur(6px);
+}
+
+.asignardashboardtableHeaderRow th {
+  color: var(--accent-neon) !important;
+}
+
+.asignardashboardtableCompact tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  vertical-align: middle;
+  color: var(--text-primary);
+}
+
+/* Small buttons in lists */
+.asignardashboardsmallBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+  color: var(--accent-neon);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 90px;
+}
+.asignardashboardsmallBtn:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 10px 20px rgba(0,0,0,0.04); 
+}
+
+/* Disabled look for assigned */
+.asignardashboarddisabledBtn,
+.asignardashboardsmallBtn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  color: rgba(0,0,0,0.4);
+  border-color: rgba(0,0,0,0.02);
+  box-shadow: none;
+  background: rgba(0,0,0,0.01) !important;
+}
+
+/* Modal footer */
+.asignardashboardmodalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0,0,0,0.03);
+  flex-shrink: 0;
+}
+
+.asignardashboardsecondaryBtn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  font-weight: 700;
+  transition: var(--transition);
+  min-width: 100px;
+}
+.asignardashboardsecondaryBtn:hover { 
+  color: var(--accent-neon); 
+  transform: translateY(-2px); 
+  background: rgba(0,0,0,0.02);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .asignardashboardmodalAsignar, .asignardashboardmodalQuitar {
+    width: 98%;
+    height: 95vh;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 820px) {
+  .asignardashboardtable { min-width: 600px; }
+  .asignardashboardheaderRow { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .asignardashboardmodalHeader { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .asignardashboarduserInfo { text-align: left; }
+  .asignardashboardmodalAsignar, .asignardashboardmodalQuitar {
+    padding: 16px;
+    height: 90vh;
+  }
+  .asignardashboardtableCompact thead th {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  .asignardashboardtableCompact tbody td {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .asignardashboardcontainer { padding: 14px; gap: 10px; }
+  .asignardashboardpageTitle { font-size: 1.2rem; }
+  .asignardashboardmodalHeader h3 { font-size: 1.2rem; }
+  .asignardashboarduserName { font-size: 1rem; }
+  .asignardashboardsmallBtn, .asignardashboarddangerSmall { 
+    padding: 6px 8px; 
+    font-size: 0.86rem; 
+    min-width: 70px;
+  }
+  .asignardashboardtable thead th, .asignardashboardtable tbody td { padding: 8px 10px; }
+  .asignardashboardprimarySmall, .asignardashboarddangerSmall { 
+    padding: 6px 8px; 
+    font-size: 0.86rem; 
+    min-width: 70px;
+  }
+  .asignardashboardfullColumn {
+    padding: 12px;
+  }
+}

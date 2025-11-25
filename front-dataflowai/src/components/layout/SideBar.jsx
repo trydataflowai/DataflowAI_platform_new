@@ -203,9 +203,12 @@ export const SideBar = () => {
     { to: "/HomeTools", icon: "🛠️", label: "Tools" },
     { to: "/configuracion-perfil", icon: "👤", label: "Profile" },
     { to: "/marketplace", icon: "🛒", label: "Marketplace" },
-    { to: "/ChatBot", icon: "🤖", label: "AI Insights" },
     { to: "/SoporteUsuario", icon: "🆘", label: "Support" },
-    { to: "/ChatPg", icon: "🆘", label: "ChatGptxd" },
+    { to: "/ChatPg", icon: "🆘", label: "AI Insights" },
+    { to: "/FormBuilder", icon: "🆘", label: "Formbuilder" },
+
+
+    
   ];
 
   const filteredLinks = links.filter((link) => {
