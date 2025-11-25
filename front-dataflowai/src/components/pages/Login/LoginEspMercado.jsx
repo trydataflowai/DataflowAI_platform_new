@@ -186,19 +186,19 @@ const LoginMercado = () => {
   const starCount = 18;
   const stars = Array.from({ length: starCount });
 
-  return (//
-    <div className="servitel-login">
-      <div className={styles.servitelPageContainer}>
-        <div className={styles.servitelLoginWrapper}>
-          <div className={styles.servitelSuperContainer}>
+  return (
+    <div className="EspMercadoLog">
+      <div className={styles.EspMercadoLogPageContainer}>
+        <div className={styles.EspMercadoLogLoginWrapper}>
+          <div className={styles.EspMercadoLogSuperContainer}>
             {/* BRANDING / IZQUIERDA */}
-            <div className={styles.servitelBrandingSection}>
+            <div className={styles.EspMercadoLogBrandingSection}>
               {/* Star field (decorativo) */}
-              <div className={styles.servitelStarField} aria-hidden>
+              <div className={styles.EspMercadoLogStarField} aria-hidden>
                 {stars.map((_, i) => (
                   <span
                     key={`star-${i}`}
-                    className={styles.servitelStar}
+                    className={styles.EspMercadoLogStar}
                     style={{
                       left: `${(i * 7) % 100}%`,
                       top: `${(i * 13) % 100}%`,
@@ -207,56 +207,56 @@ const LoginMercado = () => {
                     }}
                   />
                 ))}
-                <div className={styles.servitelShootingStar} />
-                <div className={styles.servitelShootingStar2} />
+                <div className={styles.EspMercadoLogShootingStar} />
+                <div className={styles.EspMercadoLogShootingStar2} />
               </div>
 
-              <div className={styles.servitelBrandingContent}>
+              <div className={styles.EspMercadoLogBrandingContent}>
                 <img
                   src={Logo}
                   alt="Dataflow AI"
-                  className={styles.servitelLogoImg}
+                  className={styles.EspMercadoLogLogoImg}
                   onClick={() => navigate('/EspacioMercado/login')}
                   style={{ cursor: 'pointer' }}
                 />
-                <p className={styles.servitelBrandingText}>Business Intelligence</p>
-                <div className={styles.servitelAnimatedGrid}>
+                <p className={styles.EspMercadoLogBrandingText}>Business Intelligence</p>
+                <div className={styles.EspMercadoLogAnimatedGrid}>
                   {Array.from({ length: 16 }).map((_, i) => (
-                    <div key={i} className={styles.servitelGridCell} style={{ animationDelay: `${i * 0.05}s` }} />
+                    <div key={i} className={styles.EspMercadoLogGridCell} style={{ animationDelay: `${i * 0.05}s` }} />
                   ))}
                 </div>
               </div>
             </div>
 
             {/* LOGIN / DERECHA */}
-            <div className={`${styles.servitelLoginSection} ${shake ? styles.servitelShake : ''}`}>
+            <div className={`${styles.EspMercadoLogLoginSection} ${shake ? styles.EspMercadoLogShake : ''}`}>
               {/* partículas decorativas (subtile) */}
-              <div className={styles.servitelParticlesWrapper} aria-hidden>
+              <div className={styles.EspMercadoLogParticlesWrapper} aria-hidden>
                 {particles.map((_, i) => {
                   const size = `${6 + (i % 4) * 3}px`;
                   return (
                     <span
                       key={`p-${i}`}
-                      className={styles.servitelParticle}
+                      className={styles.EspMercadoLogParticle}
                       style={{
-                        '--servitel-x': `${(i * 11) % 100}%`,
-                        '--servitel-size': size,
-                        '--servitel-delay': `${i * 0.18}s`,
-                        '--servitel-speed': `${6 + (i % 4) * 1.8}s`,
+                        '--EspMercadoLog-x': `${(i * 11) % 100}%`,
+                        '--EspMercadoLog-size': size,
+                        '--EspMercadoLog-delay': `${i * 0.18}s`,
+                        '--EspMercadoLog-speed': `${6 + (i % 4) * 1.8}s`,
                       }}
                     />
                   );
                 })}
               </div>
 
-              <div className={styles.servitelLoginCard}>
+              <div className={styles.EspMercadoLogLoginCard}>
                 {/* glare / brillo sutil */}
-                <div className={styles.servitelCardGlare} aria-hidden />
+                <div className={styles.EspMercadoLogCardGlare} aria-hidden />
 
-                <div className={styles.servitelLoginHeader}>
+                <div className={styles.EspMercadoLogLoginHeader}>
                   <h2>Iniciar Sesión</h2>
                   {error && (
-                    <div className={styles.servitelErrorMessage}>
+                    <div className={styles.EspMercadoLogErrorMessage}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -268,40 +268,40 @@ const LoginMercado = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} aria-describedby={error ? 'login-error' : undefined}>
-                  <div className={styles.servitelFormGroup}>
+                  <div className={styles.EspMercadoLogFormGroup}>
                     <label htmlFor="correo">Correo Electrónico</label>
-                    <div className={styles.servitelInputContainer}>
+                    <div className={styles.EspMercadoLogInputContainer}>
                       <input
                         id="correo"
                         type="email"
                         value={correo}
                         onChange={(e) => setCorreo(e.target.value)}
-                        className={`${styles.servitelInputField} ${correo ? styles.servitelTyping : ''}`}
+                        className={`${styles.EspMercadoLogInputField} ${correo ? styles.EspMercadoLogTyping : ''}`}
                         placeholder="tu@correo.com"
                         autoComplete="username"
                         aria-label="Correo electrónico"
                       />
-                      <div className={styles.servitelInputUnderline}></div>
+                      <div className={styles.EspMercadoLogInputUnderline}></div>
                     </div>
                   </div>
 
-                  <div className={styles.servitelFormGroup}>
+                  <div className={styles.EspMercadoLogFormGroup}>
                     <label htmlFor="contrasena">Contraseña</label>
-                    <div className={styles.servitelInputContainer}>
+                    <div className={styles.EspMercadoLogInputContainer}>
                       <input
                         id="contrasena"
                         type={showPassword ? 'text' : 'password'}
                         value={contrasena}
                         onChange={(e) => setContrasena(e.target.value)}
-                        className={`${styles.servitelInputField} ${contrasena ? styles.servitelTyping : ''}`}
+                        className={`${styles.EspMercadoLogInputField} ${contrasena ? styles.EspMercadoLogTyping : ''}`}
                         placeholder="••••••••"
                         autoComplete="current-password"
                         aria-label="Contraseña"
                       />
-                      <div className={styles.servitelInputUnderline}></div>
+                      <div className={styles.EspMercadoLogInputUnderline}></div>
                       <button
                         type="button"
-                        className={styles.servitelTogglePassword}
+                        className={styles.EspMercadoLogTogglePassword}
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
@@ -311,37 +311,37 @@ const LoginMercado = () => {
                   </div>
 
                   {/* Barra de progreso y ETA (solo visual) */}
-                  <div className={styles.servitelProgressWrap} aria-hidden={!cargando}>
-                    <div className={styles.servitelProgressInfo}>
-                      <div className={styles.servitelProgressLabel}>
+                  <div className={styles.EspMercadoLogProgressWrap} aria-hidden={!cargando}>
+                    <div className={styles.EspMercadoLogProgressInfo}>
+                      <div className={styles.EspMercadoLogProgressLabel}>
                         {cargando ? `Cargando ${dots}` : 'Listo'}
                       </div>
-                      <div className={styles.servitelProgressETA}>
+                      <div className={styles.EspMercadoLogProgressETA}>
                         {cargando ? (eta !== null ? `≈ ${eta}s` : '') : ''}
                       </div>
                     </div>
-                    <div className={styles.servitelProgressBarContainer} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
-                      <div className={styles.servitelProgressBar} style={{ width: `${progress}%` }} />
+                    <div className={styles.EspMercadoLogProgressBarContainer} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
+                      <div className={styles.EspMercadoLogProgressBar} style={{ width: `${progress}%` }} />
                     </div>
                   </div>
 
-                  <button type="submit" disabled={cargando} className={styles.servitelLoginButton} aria-busy={cargando}>
-                    <span className={styles.servitelButtonContent}>
+                  <button type="submit" disabled={cargando} className={styles.EspMercadoLogLoginButton} aria-busy={cargando}>
+                    <span className={styles.EspMercadoLogButtonContent}>
                       {cargando ? (
                         <>
-                          <span className={styles.servitelPulseEffect}>Accediendo{dots}</span>
-                          <span className={styles.servitelSmallProgress}>{progress}%</span>
+                          <span className={styles.EspMercadoLogPulseEffect}>Accediendo{dots}</span>
+                          <span className={styles.EspMercadoLogSmallProgress}>{progress}%</span>
                         </>
                       ) : (
                         <span>Iniciar Sesión</span>
                       )}
                     </span>
-                    <span className={styles.servitelButtonGlow} aria-hidden />
-                    <span className={styles.servitelButtonStar} aria-hidden>✦</span>
+                    <span className={styles.EspMercadoLogButtonGlow} aria-hidden />
+                    <span className={styles.EspMercadoLogButtonStar} aria-hidden>✦</span>
                   </button>
                 </form>
 
-                <div className={styles.servitelLoginFooter}>
+                <div className={styles.EspMercadoLogLoginFooter}>
                   
                 </div>
               </div>
@@ -350,17 +350,17 @@ const LoginMercado = () => {
         </div>
 
         {welcomeVisible && (
-          <div className={styles.servitelWelcomeOverlay} role="dialog" aria-live="polite">
-            <div className={styles.servitelWelcomeCard}>
-              <div className={styles.servitelWelcomeIcon}>
-                <img src={Logo} alt="" className={styles.servitelWelcomeLogo} />
+          <div className={styles.EspMercadoLogWelcomeOverlay} role="dialog" aria-live="polite">
+            <div className={styles.EspMercadoLogWelcomeCard}>
+              <div className={styles.EspMercadoLogWelcomeIcon}>
+                <img src={Logo} alt="" className={styles.EspMercadoLogWelcomeLogo} />
               </div>
-              <h3 className={styles.servitelWelcomeTitle}> Bienvenido {welcomeData.nombres ? welcomeData.nombres : ''} </h3>
-              <p className={styles.servitelWelcomeCompany}> {welcomeData.empresa?.nombre ? welcomeData.empresa.nombre : ''} </p>
-              <p className={styles.servitelWelcomeMessage}> Espero que tengas una excelente experiencia en nuestra plataforma. </p>
-              <div className={styles.servitelWelcomeSparkles}>
+              <h3 className={styles.EspMercadoLogWelcomeTitle}> Bienvenido {welcomeData.nombres ? welcomeData.nombres : ''} </h3>
+              <p className={styles.EspMercadoLogWelcomeCompany}> {welcomeData.empresa?.nombre ? welcomeData.empresa.nombre : ''} </p>
+              <p className={styles.EspMercadoLogWelcomeMessage}> Espero que tengas una excelente experiencia en nuestra plataforma. </p>
+              <div className={styles.EspMercadoLogWelcomeSparkles}>
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <span key={i} className={styles.servitelConfetti} style={{ left: `${10 + i * 10}%`, animationDelay: `${i * 0.08}s` }} />
+                  <span key={i} className={styles.EspMercadoLogConfetti} style={{ left: `${10 + i * 10}%`, animationDelay: `${i * 0.08}s` }} />
                 ))}
               </div>
             </div>
