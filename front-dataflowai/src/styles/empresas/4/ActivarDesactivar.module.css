@@ -1,0 +1,564 @@
+/* ActivarDesactivar.module.css
+   Un único archivo con variantes Light y Dark
+   Usa la clase raíz .PerfilactivardesactivarDark o .PerfilactivardesactivarLight
+   junto al resto de clases (ej: .Perfilactivardesactivarcontainer)
+*/
+
+/* -------------------------
+   VARIANT: DARK
+   ------------------------- */
+.PerfilactivardesactivarDark {
+  /* variables oscuras (las que pasaste + complementos) */
+  --linkedin-green: #F58220;
+  --linkedin-green-dark: #D26900;
+  --linkedin-green-light: #FF9B42;
+
+  --black-void: #000000;
+  --black-cosmos: #050505;
+  --black-deep: #0a0a0a;
+
+  --accent-neon: #FF9B42;
+  --accent-turquoise: #FF8A1E;
+  --accent-cyan: #FF7A00;
+  --accent-dark: #D26900;
+
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --muted: rgba(255,255,255,0.06);
+
+  --white-pure: #ffffff;
+  --gray-50: #f8f9fa;
+  --gray-100: #f3f2ef;
+  --gray-200: #e9e5df;
+  --gray-300: #d0cec7;
+  --gray-400: #a8a5a0;
+  --gray-500: #666666;
+  --gray-600: #434649;
+  --gray-700: #313131;
+  --gray-800: #1d2129;
+
+  --card-radius: 8px;
+  --container-max: 1400px;
+
+  --success: #FF9B42;
+  --warning: #ffcc00;
+  --danger: #ff3366;
+
+  --glass: rgba(255,255,255,0.03);
+
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 8px 25px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+
+  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008));
+  --card-border: rgba(255,255,255,0.02);
+  --badge-text: #1A0D00;
+  --badge-bg: linear-gradient(180deg, var(--accent-neon), var(--accent-cyan));
+  --modal-bg: linear-gradient(180deg, rgba(10,10,12,0.92), rgba(6,6,8,0.82));
+  --modal-border: rgba(245,130,32,0.06);
+  --btn-bg: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+  --btn-text: #1A0D00;
+}
+
+/* -------------------------
+   VARIANT: LIGHT
+   ------------------------- */
+.PerfilactivardesactivarLight {
+  /* paleta tipo LinkedIn + grises que pediste */
+  --linkedin-green: #F58220;
+  --linkedin-green-dark: #D26900;
+  --linkedin-green-light: #FF9B42;
+
+  --white-pure: #ffffff;
+  --gray-50: #f8f9fa;
+  --gray-100: #f3f2ef;
+  --gray-200: #e9e5df;
+  --gray-300: #d0cec7;
+  --gray-400: #a8a5a0;
+  --gray-500: #666666;
+  --gray-600: #434649;
+  --gray-700: #313131;
+  --gray-800: #1d2129;
+
+  --card-radius: 8px;
+  --container-max: 1400px;
+
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 8px 25px rgba(0, 0, 0, 0.08), 0 3px 10px rgba(0, 0, 0, 0.06);
+
+  --container-bg: linear-gradient(180deg, var(--gray-50), var(--white-pure));
+  --card-bg: linear-gradient(180deg, var(--white-pure), #FFFBF8);
+  --card-border: rgba(245,130,32,0.06);
+  --badge-text: #ffffff;
+  --badge-bg: linear-gradient(180deg, var(--linkedin-green), var(--linkedin-green-dark));
+  --modal-bg: linear-gradient(180deg, var(--white-pure), #FFF8F2);
+  --modal-border: rgba(245,130,32,0.06);
+  --btn-bg: linear-gradient(135deg, var(--linkedin-green), var(--linkedin-green-dark));
+  --btn-text: #ffffff;
+
+  --text-primary: #12233b;
+  --text-secondary: #51657a;
+  --muted: rgba(59,33,18,0.04);
+
+  --success: #D26900;
+  --warning: #ffcc00;
+  --danger: #d0445a;
+
+  --glass: rgba(59,33,18,0.04);
+}
+
+/* =========================
+   Estilos compartidos (usando las variables de la variante activa)
+   ========================= */
+
+.Perfilactivardesactivarcontainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: var(--font-stack, 'Inter', Arial, sans-serif);
+  color: var(--text-primary, #fff);
+  background: var(--container-bg);
+  transition: background 220ms, color 220ms;
+}
+
+/* Títulos */
+.PerfilactivardesactivarpageTitle {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+.PerfilactivardesactivarpageSubtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Mensajes globales */
+.Perfilactivardesactivarerror {
+  background: rgba(255,51,102,0.06);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 4px solid rgba(255,51,102,0.25);
+}
+
+.Perfilactivardesactivarsuccess {
+  background: rgba(255,155,66,0.06);
+  color: var(--success);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 4px solid rgba(255,155,66,0.12);
+}
+
+/* Sección crear usuario */
+.PerfilactivardesactivarcreateSection {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--card-border);
+  display: block;
+}
+
+.PerfilactivardesactivarsectionTitle {
+  margin: 0 0 10px 0;
+  color: var(--accent-neon, var(--linkedin-green));
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+/* Formulario crear */
+.Perfilactivardesactivarform {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.PerfilactivardesactivarformRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.PerfilactivardesactivarformRow label,
+.Perfilactivardesactivarlabel {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* Inputs */
+.Perfilactivardesactivarinput {
+  padding: 10px 12px;
+  background: var(--glass);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 10px;
+  color: var(--text-primary);
+  outline: none;
+  font-size: 0.95rem;
+  transition: var(--transition-fast);
+  box-shadow: inset 0 6px 18px rgba(0,0,0,0.04);
+}
+
+.Perfilactivardesactivarinput::placeholder {
+  color: rgba(0,0,0,0.28);
+}
+
+.Perfilactivardesactivarinput:focus {
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
+}
+
+/* Botón primario (crear) */
+.PerfilactivardesactivarprimaryButton {
+  padding: 10px 14px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.06);
+  transition: var(--transition-fast);
+  justify-self: end;
+}
+
+.PerfilactivardesactivarprimaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.PerfilactivardesactivarprimaryButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+}
+
+/* Divider */
+.Perfilactivardesactivardivider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06), rgba(0,0,0,0.02));
+  margin: 10px 0;
+}
+
+/* ============================
+   TABLE / LIST
+   ============================ */
+.PerfilactivardesactivartableWrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.0);
+  padding: 8px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.Perfilactivardesactivartable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+  font-size: 0.95rem;
+  background: transparent;
+}
+
+/* Encabezados */
+.Perfilactivardesactivartable thead th {
+  text-align: left;
+  padding: 14px 16px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.2px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(6px);
+}
+
+/* Celdas */
+.Perfilactivardesactivartable tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  color: var(--text-primary);
+  vertical-align: middle;
+  background: transparent;
+  transition: var(--transition-fast);
+}
+
+/* Alternado filas */
+.Perfilactivardesactivartable tbody tr:nth-child(even) {
+  background: rgba(0,0,0,0.02);
+}
+
+.Perfilactivardesactivartable tbody tr:nth-child(odd) {
+  background: transparent;
+}
+
+.PerfilactivardesactivarnoUsers {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 18px 0;
+  font-style: italic;
+}
+
+/* Celdas específicas */
+.PerfilactivardesactivarcellName { 
+  font-weight: 700; 
+  color: var(--text-primary); 
+}
+
+.PerfilactivardesactivarcellEmail { 
+  color: var(--text-secondary); 
+  font-size: 0.92rem; 
+}
+
+.PerfilactivardesactivarcellRole { 
+  color: var(--text-secondary); 
+  text-transform: capitalize; 
+}
+
+.PerfilactivardesactivarcellState { 
+  width: 120px; 
+}
+
+.PerfilactivardesactivarstateActive {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(210,105,0,0.06);
+  color: var(--success);
+  font-weight: 700;
+  border: 1px solid rgba(210,105,0,0.08);
+  font-size: 0.85rem;
+}
+
+.PerfilactivardesactivarstateInactive {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(208,56,96,0.04);
+  color: var(--danger);
+  font-weight: 700;
+  border: 1px solid rgba(208,56,96,0.06);
+  font-size: 0.85rem;
+}
+
+/* Acciones (botones dentro de la tabla) */
+.PerfilactivardesactivarcellActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.PerfilactivardesactivaractionButton,
+.PerfilactivardesactivarroleButton,
+.PerfilactivardesactivardeleteButton {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Specific action styles */
+.PerfilactivardesactivaractionButton {
+  background: linear-gradient(135deg, rgba(90,45,0,0.12), rgba(120,60,0,0.14));
+  color: var(--accent-neon, var(--linkedin-green));
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.PerfilactivardesactivaractionButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.PerfilactivardesactivarroleButton {
+  background: linear-gradient(135deg, rgba(75,38,0,0.06), rgba(105,52,0,0.08));
+  color: var(--accent-cyan, var(--linkedin-green-light));
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.PerfilactivardesactivarroleButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.PerfilactivardesactivardeleteButton {
+  background: linear-gradient(135deg, rgba(120,20,40,0.04), rgba(120,20,40,0.06));
+  color: var(--danger);
+  border: 1px solid rgba(120,20,40,0.06);
+}
+
+.PerfilactivardesactivardeleteButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(220,60,100,0.04);
+}
+
+/* States disabled / loading */
+.PerfilactivardesactivaractionButton:disabled,
+.PerfilactivardesactivarroleButton:disabled,
+.PerfilactivardesactivardeleteButton:disabled,
+.PerfilactivardesactivarprimaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading */
+.Perfilactivardesactivarloading {
+  padding: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ============================
+   Custom Select
+   ============================ */
+.PerfilactivardesactivarcustomSelect {
+  position: relative;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.PerfilactivardesactivarcustomSelectButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: inset 0 6px 12px rgba(0,0,0,0.02);
+  transition: var(--transition-fast);
+  text-align: left;
+}
+
+.PerfilactivardesactivarcustomSelectButton:focus {
+  outline: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
+}
+
+.PerfilactivardesactivarcustomSelectValue {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.PerfilactivardesactivarcustomSelectArrow {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(0,0,0,0.16);
+  border-bottom: 2px solid rgba(0,0,0,0.16);
+  transform: rotate(45deg);
+  margin-left: 6px;
+  opacity: 0.9;
+}
+
+.PerfilactivardesactivarcustomSelectList {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-xl);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1200;
+  padding: 6px 6px;
+  backdrop-filter: blur(6px);
+}
+
+.PerfilactivardesactivarcustomSelectEmpty {
+  padding: 10px 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.PerfilactivardesactivarcustomSelectItem {
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s ease;
+  user-select: none;
+}
+
+.PerfilactivardesactivarcustomSelectItem:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.PerfilactivardesactivarcustomSelectItemSelected {
+  background: rgba(120,60,0,0.06);
+  color: var(--accent-cyan, var(--linkedin-green-light));
+}
+
+/* Scrollbar */
+.PerfilactivardesactivarcustomSelectList::-webkit-scrollbar { width: 8px; height: 8px; }
+.PerfilactivardesactivarcustomSelectList::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .Perfilactivardesactivarform {
+    grid-template-columns: 1fr;
+  }
+
+  .PerfilactivardesactivarpageTitle { font-size: 1.3rem; }
+  .Perfilactivardesactivartable { font-size: 0.9rem; min-width: 700px; }
+}
+
+@media (max-width: 720px) {
+  .Perfilactivardesactivarcontainer { padding: 16px; gap: 12px; }
+  .PerfilactivardesactivarpageTitle { font-size: 1.15rem; }
+  .PerfilactivardesactivarsectionTitle { font-size: 1rem; }
+  .Perfilactivardesactivartable { min-width: 600px; font-size: 0.88rem; }
+  .PerfilactivardesactivarcellActions { flex-wrap: wrap; gap: 6px; }
+  .PerfilactivardesactivarprimaryButton { justify-self: stretch; width: 100%; }
+  
+  .PerfilactivardesactivaractionButton,
+  .PerfilactivardesactivarroleButton,
+  .PerfilactivardesactivardeleteButton {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+}

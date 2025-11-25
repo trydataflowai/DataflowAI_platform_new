@@ -17,6 +17,8 @@ import Index from "../components/pages/Index";
 import Login from "../components/pages/Login";
 import LoginServitel from "../components/pages/Login/LoginServitel";
 import LoginColtrade from "../components/pages/Login/LoginColtrade";
+import LoginMercado from "../components/pages/Login/LoginEspMercado";
+
 
 import HomeLogin from "../components/pages/HomeLogin";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
@@ -116,7 +118,8 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
       '/crear-empresa',
       '/crear-usuario',
       '/pagos',
-      '/homeLogin'
+      '/homeLogin',
+      '/EspacioMercado/login'
     ];
 
     // Verificar si la ruta actual es pública
@@ -231,6 +234,7 @@ export const Rutas = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/Servitel/login" element={<LoginServitel />} />
             <Route path="/Coltrade/login" element={<LoginColtrade />} />
+            <Route path="/EspacioMercado/login" element={<LoginMercado />} />
             <Route path="/crear-empresa" element={<CreacionEmpresa />} />
             <Route path="/crear-usuario" element={<CreacionUsuario />} />
             <Route path="/pagos" element={<PagosStripe />} />

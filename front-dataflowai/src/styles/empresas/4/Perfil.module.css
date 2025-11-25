@@ -1,0 +1,250 @@
+/* Perfil.module.css
+   Archivo único que contiene variables y estilos compartidos.
+   Aplicar clase raíz .PerfilgeneralDark o .PerfilgeneralLight junto a .Perfilgeneralcontainer
+*/
+
+/* =========================
+   Variables por variante
+   ========================= */
+
+.PerfilgeneralDark {
+  --bg-gradient: radial-gradient(1200px 400px at 10% 10%, rgba(245,130,32,0.03), transparent 6%), linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --muted: rgba(255,255,255,0.06);
+  --accent-1: #F58220;
+  --accent-2: #D26900;
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  --card-border: rgba(245,130,32,0.06);
+  --card-shadow: 0 20px 60px rgba(1,8,12,0.75);
+  --backdrop-filter: blur(8px) saturate(120%);
+  --badge-text: #1A0D00;
+  --badge-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  --modal-bg: linear-gradient(180deg, rgba(10,10,12,0.9), rgba(6,6,8,0.82));
+  --modal-border: rgba(245,130,32,0.06);
+  --btn-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  --btn-text: #ffffff;
+  --container-bg: var(--bg-gradient);
+  --accent-cta: var(--accent-1);
+}
+
+.PerfilgeneralLight {
+  --bg-gradient: linear-gradient(180deg, #f6f8fb 0%, #ffffff 100%);
+  --text-primary: #12233b;
+  --text-secondary: #51657a;
+  --muted: rgba(18,35,59,0.04);
+
+  /* Naranja institucional */
+  --accent-1: #F58220;
+  --accent-2: #D26900;
+
+  --card-bg: linear-gradient(180deg, #ffffff, rgba(255,255,255,0.96));
+  --card-border: rgba(245,130,32,0.06);
+  --card-shadow: 0 10px 30px rgba(18,35,59,0.06);
+  --backdrop-filter: none;
+  --badge-text: #fff;
+  --badge-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  --modal-bg: linear-gradient(180deg, #ffffff, rgba(246,248,251,0.95));
+  --modal-border: rgba(245,130,32,0.06);
+  --btn-bg: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  --btn-text: #ffffff;
+  --container-bg: var(--bg-gradient);
+  --accent-cta: var(--accent-1);
+}
+
+/* =========================
+   Estilos compartidos
+   ========================= */
+
+.Perfilgeneralcontainer {
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 2rem 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: var(--container-bg);
+  color: var(--text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  z-index: 0;
+}
+
+/* ambient overlay */
+.Perfilgeneralcontainer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(800px 300px at 85% 20%, rgba(0,0,0,0.02), transparent 8%);
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+
+/* Header */
+.Perfilgeneralheader {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.Perfilgeneraltitle {
+  margin: 0;
+  font-size: 2.1rem;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+.Perfilgeneralsubtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  opacity: 0.95;
+}
+
+/* Cards grid */
+.PerfilgeneralcardsContainer {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+}
+
+/* Card base */
+.Perfilgeneralcard {
+  --rx: 0deg;
+  --ry: 0deg;
+  --s: 1;
+  --mx: 50%;
+  --my: 50%;
+  display: block;
+  text-decoration: none;
+  border-radius: 18px;
+  padding: 0;
+  perspective: 1200px;
+  will-change: transform;
+  transform-style: preserve-3d;
+  transition: transform 260ms cubic-bezier(.2,.9,.3,1), box-shadow 260ms ease;
+  outline: none;
+}
+
+.PerfilgeneralcardInner {
+  position: relative;
+  border-radius: calc(18px - 2px);
+  padding: 28px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--backdrop-filter);
+  -webkit-backdrop-filter: var(--backdrop-filter);
+  box-shadow: var(--card-shadow);
+  transform: translateZ(30px) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--s));
+  transition: transform 180ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms cubic-bezier(.2,.9,.3,1);
+  overflow: hidden;
+}
+
+.PerfilgeneralcardInner::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: radial-gradient(600px 220px at var(--mx) var(--my), rgba(255,255,255,0.03), transparent 8%);
+  transform: translateZ(-40px);
+  transition: opacity 240ms ease, transform 300ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.PerfilgeneralcardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 2;
+}
+.PerfilgeneralcardTitle { margin:0; font-size:1.05rem; color:var(--text-primary); font-weight:700; }
+.PerfilgeneralcardMeta { display:flex; gap:12px; align-items:center; }
+.Perfilgeneralbadge {
+  display:inline-grid; place-items:center;
+  min-width: 44px; height:44px; border-radius:12px;
+  font-weight:800; color: var(--badge-text);
+  background: var(--badge-bg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  font-size: 1rem;
+}
+
+.PerfilgeneralcardBody { z-index: 2; }
+.PerfilgeneralcardDesc { margin:0; color:var(--text-secondary); font-size:0.95rem; }
+.PerfilgeneralcardFooter { display:flex; justify-content:flex-end; align-items:center; z-index: 2; }
+.Perfilgeneralcta { font-weight:700; color:var(--accent-cta); font-size:0.95rem; }
+
+.Perfilgeneralcard::after {
+  content: "›";
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  font-size: 26px;
+  color: rgba(0,0,0,0.06);
+  transform: translateZ(60px);
+  z-index: 3;
+}
+
+/* Hover / focus */
+.Perfilgeneralcard:hover .PerfilgeneralcardInner,
+.Perfilgeneralcard:focus .PerfilgeneralcardInner {
+  box-shadow: 0 32px 90px rgba(0,0,0,0.12);
+  transform: translateZ(48px) rotateX(var(--rx)) rotateY(var(--ry)) scale(calc(var(--s) + 0.02));
+}
+
+.Perfilgeneralcard:focus-visible {
+  box-shadow: 0 0 0 6px rgba(0,0,0,0.04);
+  border-radius: calc(18px);
+}
+
+/* Modal */
+.PerfilgeneralmodalOverlay {
+  position: fixed; inset:0; background: rgba(0,0,0,0.52);
+  display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px;
+  backdrop-filter: blur(6px) saturate(120%);
+}
+.Perfilgeneralmodal {
+  width: 100%; max-width: 520px; border-radius: 12px; padding: 22px;
+  background: var(--modal-bg);
+  border: 1px solid var(--modal-border); box-shadow: 0 30px 80px rgba(0,0,0,0.08);
+  color: var(--text-primary);
+}
+.PerfilgeneralmodalTitle { margin:0 0 8px 0; font-size:1.15rem; font-weight:800; color:var(--text-primary); }
+.PerfilgeneralmodalDesc { margin:0 0 18px 0; color:var(--text-secondary); font-size:0.96rem; }
+.PerfilgeneralmodalActions { display:flex; justify-content:flex-end; gap:12px; }
+.PerfilgeneralbtnPrimary {
+  background: var(--btn-bg);
+  color: var(--btn-text); border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer;
+}
+
+/* Footer small text */
+.Perfilgeneralfooter {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 6px;
+  color: var(--text-secondary);
+}
+.PerfilgeneralfooterSmall { font-size: 0.92rem; color: var(--text-secondary); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .PerfilgeneralcardInner { padding: 18px; min-height: 130px; }
+  .PerfilgeneralcardsContainer { gap: 16px; }
+  .Perfilgeneraltitle { font-size: 1.6rem; }
+}
