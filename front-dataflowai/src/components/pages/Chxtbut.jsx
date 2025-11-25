@@ -3,7 +3,7 @@ import styles from "../../styles/Chxtbut.module.css";
 import { sendChatMessage } from "../../api/ChatPg";
 import { obtenerProductosUsuario } from "../../api/ProductoUsuario";
 
-export default function ChatPostgrePremium() {
+export default function ChatPostgre() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     { id: 0, role: "system", text: "Selecciona un dashboard (⋯) para comenzar." },
