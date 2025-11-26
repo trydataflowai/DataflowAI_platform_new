@@ -1,353 +1,559 @@
-/* ModInfoPersonal.module.css
-   Un único archivo con variantes light/dark:
-   - .modinfopersonalDark
-   - .modinfopersonalLight
-   y estilos compartidos que usan variables definidas por la variante activa.
-*/
+/* src/styles/Profile/ModInfoPersonal.module.css */
 
-/* -------------------------
-   VARIANTE: DARK
-   ------------------------- */
-.modinfopersonalDark {
-  --black-void: #000000;
-  --black-cosmos: #050505;
-  --black-deep: #0a0a0a;
+/* =========================
+   Variables por variante - Diseño Sobrio
+   ========================= */
 
-  --accent-neon: #00ff88;
-  --accent-turquoise: #00e173;
-  --accent-cyan: #00c25c;
-  --accent-dark: #009947;
-
+.ModinfopersonalDark {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
   --text-primary: #ffffff;
-  --text-secondary: #cfcfcf;
-  --muted: rgba(255,255,255,0.06);
-  --glass: rgba(255,255,255,0.03);
-
-  --success: #00ffaa;
-  --danger: #ff3366;
-
-  --transition: all 0.20s cubic-bezier(.2,.9,.3,1);
-
-  --card-max-w: 1200px;
-
-  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
-  --card-border: rgba(255,255,255,0.02);
-  --shadow-card: 0 18px 44px rgba(0,0,0,0.65);
-  --btn-gradient: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
+  --accent-1: #00f7ff;
+  --accent-2: #00c2ff;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(30, 30, 30, 0.6);
+  --card-hover-bg: rgba(40, 40, 40, 0.8);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover-border: rgba(0, 247, 255, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(30, 30, 30, 0.95);
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --btn-bg: var(--accent-gradient);
+  --btn-text: #00121a;
+  --success-color: #00ffaa;
+  --error-color: #ff3366;
+  --warning-color: #ffcc00;
 }
 
-/* -------------------------
-   VARIANTE: LIGHT (paleta solicitada)
-   ------------------------- */
-.modinfopersonalLight {
-  --bg: #ffffff;
-  --panel: #f7fff7;
-  --primary-green: #00b43f;
-  --primary-green-600: #008530;
-  --text: #0b1a2b;
-  --muted: #6b7785;
-  --muted-2: #8a97a6;
-  --surface: #ffffff;
-  --border: #e6f8ec;
-  --shadow: 0 8px 30px rgba(0,180,63,0.06);
-  --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
-
-  --accent-neon: var(--primary-green);
-  --accent-turquoise: var(--primary-green-600);
-  --accent-cyan: #00d44f;
-
-  --text-primary: var(--text);
-  --text-secondary: var(--muted);
-  --muted: var(--muted-2);
-
-  --glass: rgba(18,59,35,0.03);
-
-  --success: #0fa969;
-  --danger: #d0445a;
-
-  --container-bg: linear-gradient(180deg, var(--panel), var(--surface));
-  --card-bg: linear-gradient(180deg, var(--surface), #fbfffb);
-  --card-border: var(--border);
-  --shadow-card: var(--shadow);
-  --btn-gradient: linear-gradient(135deg, var(--primary-green), var(--primary-green-600));
+.ModinfopersonalLight {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --accent-1: #0A66C2;
+  --accent-2: #0073b1;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-hover-bg: rgba(255, 255, 255, 1);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(10, 102, 194, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --btn-bg: var(--accent-gradient);
+  --btn-text: #ffffff;
+  --success-color: #0fa969;
+  --error-color: #d0445a;
+  --warning-color: #e6a700;
 }
 
 /* =========================
-   Estilos compartidos (usando variables definidas por la variante)
+   Estilos Base - Diseño Sobrio
    ========================= */
-.modinfopersonalcontainer {
+
+.Modinfopersonalcontainer {
   width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: 34px 26px;
-  box-sizing: border-box;
-  font-family: 'Inter', Arial, sans-serif;
+  min-height: 100vh;
+  padding: 0;
+  background: var(--bg-gradient);
   color: var(--text-primary);
-  background: var(--container-bg);
-  align-items: center;
-  transition: background 220ms, color 220ms;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
-/* Header */
-.modinfopersonalheader {
-  width: 100%;
-  max-width: var(--card-max-w);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
+/* Header Section */
+.Modinfopersonalheader {
+  padding: 60px 40px 40px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--bg-primary);
 }
-.modinfopersonaltitle {
-  font-size: 1.7rem;
-  margin: 0;
-  color: var(--accent-neon);
-  font-weight: 800;
+
+.ModinfopersonalheaderContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
 }
-.modinfopersonalsubtitle {
-  margin: 6px 0 0 0;
+
+.Modinfopersonaltitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.Modinfopersonalsubtitle {
+  font-size: 1.1rem;
   color: var(--text-secondary);
-  font-size: 0.98rem;
+  margin: 0;
+  font-weight: 400;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Header actions */
-.modinfopersonalheaderActions {
-  margin-top: 0;
+.ModinfopersonalheaderMeta {
   display: flex;
-  gap: 8px;
   justify-content: center;
   align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 
-/* Buttons */
-.modinfopersonaleditToggle {
-  padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(0,255,136,0.12), rgba(0,194,92,0.08));
-  color: var(--accent-neon);
-  border: 1px solid rgba(0,255,136,0.06);
-  border-radius: 12px;
+.ModinfopersonalroleInfo {
+  padding: 6px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.ModinfopersonaleditButton,
+.ModinfopersonalcancelButton {
+  padding: 10px 20px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 800;
-  transition: var(--transition);
-  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
-.modinfopersonaleditToggle:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,194,92,0.05); }
 
-.modinfopersonalcancelBtn {
-  padding: 10px 14px;
+.ModinfopersonaleditButton {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+}
+
+.ModinfopersonaleditButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.ModinfopersonalcancelButton {
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid rgba(255,255,255,0.04);
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 700;
-}
-.modinfopersonalcancelBtn:hover { color: var(--accent-neon); transform: translateY(-2px); }
-
-.modinfopersonaleditBadge {
-  background: rgba(0,255,136,0.06);
-  color: var(--accent-neon);
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-weight: 800;
-  border: 1px solid rgba(0,255,136,0.04);
-  font-size: 0.88rem;
 }
 
-/* Alerts */
-.modinfopersonalalert {
-  width: 100%;
-  max-width: var(--card-max-w);
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 0.98rem;
-  box-sizing: border-box;
-}
-.modinfopersonalalertError {
-  background: rgba(255,51,102,0.06);
-  color: var(--danger);
-  border-left: 4px solid rgba(255,51,102,0.16);
-}
-.modinfopersonalalertSuccess {
-  background: rgba(0,255,170,0.04);
-  color: var(--success);
-  border-left: 4px solid rgba(0,255,170,0.10);
+.ModinfopersonalcancelButton:hover {
+  color: var(--error-color);
+  border-color: var(--error-color);
 }
 
-/* Grid */
-.modinfopersonalgrid {
-  width: 100%;
-  max-width: var(--card-max-w);
+/* Alert Boxes */
+.ModinfopersonalerrorBox,
+.ModinfopersonalsuccessBox {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.ModinfopersonalerrorBox {
+  background: rgba(255, 51, 102, 0.08);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+  color: var(--error-color);
+}
+
+.ModinfopersonalsuccessBox {
+  background: rgba(0, 255, 170, 0.08);
+  border: 1px solid rgba(0, 255, 170, 0.2);
+  color: var(--success-color);
+}
+
+.ModinfopersonalerrorIcon,
+.ModinfopersonalsuccessIcon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ModinfopersonalerrorText,
+.ModinfopersonalsuccessText {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Content Layout */
+.Modinfopersonalcontent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 22px;
-  justify-items: center;
+  gap: 32px;
   align-items: start;
 }
 
-/* Card */
-.modinfopersonalcard {
-  width: 100%;
-  max-width: 560px;
+/* Cards */
+.Modinfopersonalcard {
   background: var(--card-bg);
-  border-radius: 16px;
-  padding: 26px;
-  box-shadow: var(--shadow-card);
-  color: var(--text-primary);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   border: 1px solid var(--card-border);
-}
-
-/* Card header/title */
-.modinfopersonalcardHeader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.modinfopersonalsectionTitle {
-  margin: 0;
-  font-size: 1.12rem;
-  color: var(--accent-neon);
-  font-weight: 800;
-  text-align: center;
-}
-
-/* Info box */
-.modinfopersonalinfoBox {
-  margin: 8px 0 10px 0;
-  background: rgba(255,255,255,0.01);
-  color: var(--text-secondary);
-  padding: 10px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.02);
-  font-size: 0.94rem;
-  text-align: center;
+  padding: 32px;
+  backdrop-filter: var(--backdrop-filter);
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
 }
 
-/* Form */
-.modinfopersonalform {
+.Modinfopersonalcard:hover {
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--card-hover-border);
+}
+
+.ModinfopersonalcardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.ModinfopersonalsectionTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ModinfopersonalcompanyName {
+  color: var(--accent-1);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.ModinfopersonaleditIndicator {
+  padding: 6px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Info Box */
+.ModinfopersonalinfoBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.ModinfopersonalinfoIcon {
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+.ModinfopersonalinfoText {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Forms */
+.Modinfopersonalform {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  width: 100%;
+  gap: 24px;
 }
 
-/* Rows */
-.modinfopersonalrow {
+.ModinfopersonalformGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 20px;
 }
-.modinfopersonalrowSingle { display: block; }
 
-/* Labels / Inputs */
-.modinfopersonallabel,
-.modinfopersonallabelSmall {
+.ModinfopersonalformGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.modinfopersonallabelText {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  font-weight: 700;
-}
 
-.modinfopersonalinput {
-  width: 100%;
-  padding: 14px 16px;
-  background: var(--glass);
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 12px;
-  color: var(--text-primary);
-  outline: none;
-  font-size: 1rem;
-  transition: var(--transition);
-  box-shadow: inset 0 6px 18px rgba(0,0,0,0.03);
-}
-.modinfopersonalinput::placeholder { color: rgba(0,0,0,0.24); }
-.modinfopersonalinput:focus {
-  border-color: rgba(0,194,92,0.16);
-  box-shadow: 0 14px 36px rgba(0,194,92,0.04);
-}
-
-/* Disabled / readonly */
-.modinfopersonalinput[disabled], .modinfopersonalinput[readonly] {
-  opacity: 0.65;
-  cursor: not-allowed;
-  background: rgba(255,255,255,0.006);
-  border-style: dashed;
-}
-
-/* Actions */
-.modinfopersonalactions {
+.Modinfopersonallabel {
   display: flex;
-  justify-content: center;
-  margin-top: 6px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.modinfopersonalprimaryButton {
-  padding: 12px 18px;
-  background: var(--btn-gradient);
-  color: #001803;
+.ModinfopersonallabelText {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ModinfopersonalhelpText {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.Modinfopersonalinput {
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.Modinfopersonalinput::placeholder {
+  color: var(--text-muted);
+}
+
+.Modinfopersonalinput:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.ModinfopersonalLight .Modinfopersonalinput:focus {
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.Modinfopersonalinput[disabled],
+.Modinfopersonalinput[readonly] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Input Group for Phone */
+.ModinfopersonalinputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.ModinfopersonalinputPrefix {
+  padding: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  outline: none;
+  width: 80px;
+  text-align: center;
+}
+
+.ModinfopersonalinputPrefix:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
+}
+
+.ModinfopersonalinputPrefix[disabled],
+.ModinfopersonalinputPrefix[readonly] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Form Actions */
+.ModinfopersonalformActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.ModinfopersonalprimaryButton {
+  padding: 14px 32px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
   border: none;
-  border-radius: 12px;
-  font-weight: 900;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
-  box-shadow: 0 16px 36px rgba(0,194,92,0.10);
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+  justify-content: center;
 }
-.modinfopersonalprimaryButton:hover:not(:disabled) { transform: translateY(-3px); }
-.modinfopersonalprimaryButton:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
-/* Loading center box */
-.modinfopersonalcenterBox {
-  width: 100%;
-  max-width: 640px;
+.ModinfopersonalprimaryButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.ModinfopersonalprimaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.Modinfopersonalspinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Loading State */
+.Modinfopersonalloading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px;
-  background: rgba(255,255,255,0.01);
-  border-radius: 14px;
-  box-shadow: 0 14px 36px rgba(0,0,0,0.12);
-}
-.modinfopersonalloader {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, rgba(0,255,136,0.18), rgba(0,194,92,0.12));
-  box-shadow: 0 10px 36px rgba(0,194,92,0.06);
-  margin-bottom: 14px;
-  animation: modinfopersonalpulse 1400ms infinite ease-in-out;
-}
-@keyframes modinfopersonalpulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(0.94); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.modinfopersonalloadingText {
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-weight: 500;
 }
 
-/* Responsive */
-@media (max-width: 1180px) {
-  :root { --card-max-w: 980px; }
-  .modinfopersonalcard { max-width: 48rem; }
+.ModinfopersonalloadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid transparent;
+  border-top: 3px solid var(--accent-1);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
-@media (max-width: 980px) {
-  .modinfopersonalgrid { grid-template-columns: 1fr; align-items: stretch; }
-  .modinfopersonalrow { grid-template-columns: 1fr; }
-  .modinfopersonallabelSmall { max-width: 100%; }
-  .modinfopersonalactions { justify-content: center; }
-  .modinfopersonalcenterBox { max-width: 100%; }
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Focus States para Accesibilidad */
+.Modinfopersonalinput:focus-visible,
+.ModinfopersonaleditButton:focus-visible,
+.ModinfopersonalcancelButton:focus-visible,
+.ModinfopersonalprimaryButton:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .Modinfopersonalcontent {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 32px 24px;
+  }
+  
+  .ModinfopersonalcardHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .ModinfopersonalsectionTitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .Modinfopersonalheader {
+    padding: 40px 24px 30px;
+  }
+  
+  .Modinfopersonaltitle {
+    font-size: 2rem;
+  }
+  
+  .Modinfopersonalsubtitle {
+    font-size: 1rem;
+  }
+  
+  .ModinfopersonalheaderMeta {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .Modinfopersonalcontent {
+    padding: 24px;
+  }
+  
+  .Modinfopersonalcard {
+    padding: 24px;
+  }
+  
+  .ModinfopersonalformActions {
+    justify-content: stretch;
+  }
+  
+  .ModinfopersonalprimaryButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .Modinfopersonalheader {
+    padding: 30px 20px;
+  }
+  
+  .Modinfopersonaltitle {
+    font-size: 1.75rem;
+  }
+  
+  .Modinfopersonalcontent {
+    padding: 20px;
+  }
+  
+  .Modinfopersonalcard {
+    padding: 20px;
+  }
+  
+  .ModinfopersonalinputGroup {
+    flex-direction: column;
+  }
+  
+  .ModinfopersonalinputPrefix {
+    width: 100%;
+  }
+}
+
+/* Animación sutil de entrada */
+.Modinfopersonalcard {
+  animation: fadeInUp 0.6s ease-out forwards;
 }
