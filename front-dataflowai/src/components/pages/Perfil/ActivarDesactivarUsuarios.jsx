@@ -13,30 +13,27 @@ import {
 import { useTheme } from "../../componentes/ThemeContext";
 import { obtenerInfoUsuario } from '../../../api/Usuario';
 
-// Función para cargar los estilos dinámicamente
+// Importar estilos por defecto (fallback)
+// Asegúrate que este archivo exista y exporte las clases esperadas.
+import defaultStyles from '../../../styles/Profile/ActivarDesactivar.module.css';
+
+// Función para cargar los estilos dinámicamente (no bloqueante)
 const cargarEstilosEmpresa = async (empresaId, planId) => {
   const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
-  
+
   try {
-    // Verificar si el plan es especial y si existe la carpeta de la empresa
-    if (planesEspeciales.includes(planId)) {
+    if (planesEspeciales.includes(planId) && empresaId) {
       try {
-        // Intentar importar los estilos de la carpeta de la empresa
         const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/ActivarDesactivar.module.css`);
-        return estilosEmpresa.default;
+        return estilosEmpresa.default || defaultStyles;
       } catch (error) {
         console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
       }
     }
-    
-    // Cargar estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
-    return estilosPorDefecto.default;
+    return defaultStyles;
   } catch (error) {
     console.error('Error cargando estilos:', error);
-    // Fallback a estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
-    return estilosPorDefecto.default;
+    return defaultStyles;
   }
 };
 
@@ -47,13 +44,15 @@ const USER_ROLE_ID = 2;
 
 const ActivarDesactivarUsuarios = () => {
   const { theme } = useTheme();
+
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [styles, setStyles] = useState({});
-  const [cargandoEstilos, setCargandoEstilos] = useState(true);
+
+  // iniciar con defaultStyles para evitar parpadeos o undefined
+  const [styles, setStyles] = useState(defaultStyles);
 
   // Modal crear usuario
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -69,46 +68,42 @@ const ActivarDesactivarUsuarios = () => {
   const [areas, setAreas] = useState([]);
   const [nuevoAreaId, setNuevoAreaId] = useState('');
 
-  // Cargar información del usuario y estilos
+  // Cargar estilos de la empresa en background y datos (no bloqueante)
   useEffect(() => {
-    const cargarUsuarioYEstilos = async () => {
-      setCargandoEstilos(true);
+    let mounted = true;
+
+    // cargar estilos en background
+    (async () => {
       try {
         const usuarioInfo = await obtenerInfoUsuario();
-        const empresaId = usuarioInfo.empresa?.id;
-        const planId = usuarioInfo.empresa?.plan?.id;
-        
-        if (empresaId && planId) {
-          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
-          setStyles(estilosCargados);
-        } else {
-          // Fallback a estilos por defecto si no hay info de empresa/plan
-          const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
-          setStyles(estilosPorDefecto.default);
-        }
-      } catch (error) {
-        console.error('Error cargando información del usuario:', error);
-        // Fallback a estilos por defecto
-        const estilosPorDefecto = await import('../../../styles/Profile/ActivarDesactivar.module.css');
-        setStyles(estilosPorDefecto.default);
-      } finally {
-        setCargandoEstilos(false);
+        const empresaId = usuarioInfo?.empresa?.id;
+        const planId = usuarioInfo?.empresa?.plan?.id;
+        cargarEstilosEmpresa(empresaId, planId)
+          .then((estilos) => {
+            if (!mounted) return;
+            if (estilos) setStyles(estilos);
+          })
+          .catch(() => {
+            if (mounted) setStyles(defaultStyles);
+          });
+      } catch (err) {
+        if (mounted) setStyles(defaultStyles);
       }
-    };
+    })();
 
-    cargarUsuarioYEstilos();
+    // cargar datos principales inmediatamente
+    fetchUsuarios();
+    fetchPermisos();
+    fetchAreas();
+    fetchMiPerfil();
+
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!cargandoEstilos) {
-      fetchUsuarios();
-      fetchPermisos();
-      fetchAreas();
-      fetchMiPerfil();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cargandoEstilos]);
-
+  // Fetchers
   const fetchUsuarios = async () => {
     setLoading(true);
     setError('');
@@ -116,7 +111,7 @@ const ActivarDesactivarUsuarios = () => {
       const res = await obtenerUsuariosEmpresa();
       setUsuarios(res.usuarios || []);
     } catch (err) {
-      setError(err.message || 'Error al cargar usuarios');
+      setError(err?.message || 'Error al cargar usuarios');
     } finally {
       setLoading(false);
     }
@@ -184,7 +179,7 @@ const ActivarDesactivarUsuarios = () => {
       setUsuarios(prev => prev.map(u => u.id_usuario === usuario.id_usuario ? { ...u, id_estado: res.id_estado, estado: res.estado } : u));
       setSuccess('Estado actualizado correctamente.');
     } catch (err) {
-      setError(err.message || 'Error al actualizar estado');
+      setError(err?.message || 'Error al actualizar estado');
     } finally {
       setActionLoading(null);
     }
@@ -214,7 +209,7 @@ const ActivarDesactivarUsuarios = () => {
       setUsuarios(prev => prev.map(u => u.id_usuario === usuario.id_usuario ? { ...u, id_permiso_acceso: res.id_permiso_acceso, rol: res.rol } : u));
       setSuccess('Rol actualizado correctamente.');
     } catch (err) {
-      setError(err.message || 'Error al actualizar rol');
+      setError(err?.message || 'Error al actualizar rol');
     } finally {
       setActionLoading(null);
     }
@@ -249,7 +244,7 @@ const ActivarDesactivarUsuarios = () => {
       cerrarModal();
       setSuccess('Usuario creado correctamente.');
     } catch (err) {
-      setError(err.message || 'Error al crear usuario');
+      setError(err?.message || 'Error al crear usuario');
     } finally {
       setCreando(false);
     }
@@ -265,7 +260,7 @@ const ActivarDesactivarUsuarios = () => {
       setUsuarios(prev => prev.filter(u => u.id_usuario !== usuario.id_usuario));
       setSuccess('Usuario eliminado.');
     } catch (err) {
-      setError(err.message || 'Error al eliminar usuario');
+      setError(err?.message || 'Error al eliminar usuario');
     } finally {
       setActionLoading(null);
     }
@@ -327,17 +322,10 @@ const ActivarDesactivarUsuarios = () => {
   const areaOptions = areas.map(a => ({ value: a.id_area, label: a.area_trabajo }));
   const permisoOptions = permisos.map(p => ({ value: p.id_permiso_acceso, label: p.rol }));
 
-  // Si aún se están cargando los estilos, mostrar loading
-  if (cargandoEstilos) {
-    return (
-      <div className="cargando-estilos">
-        <div>Cargando estilos...</div>
-      </div>
-    );
-  }
-
-  // clase variante (light/dark)
-  const variantClass = theme === 'light' ? styles.ActivardesactivarLight : styles.ActivardesactivarDark;
+  // --- FIX: elegir la variante siempre en base al theme
+  const variantClass = theme === 'dark'
+    ? (styles?.ActivardesactivarDark || defaultStyles.ActivardesactivarDark || '')
+    : (styles?.ActivardesactivarLight || defaultStyles.ActivardesactivarLight || '');
 
   return (
     <main className={`${styles.Activardesactivarcontainer} ${variantClass}`} aria-labelledby="admin-usuarios-title">

@@ -222,12 +222,11 @@ const FormBuilder = () => {
     }
   };
 
-  const variantClass =
-    planId === 3 || planId === 6
-      ? theme === "dark"
-        ? styles.FormBuilderDark
-        : styles.FormBuilderLight
-      : styles.FormBuilderDark;
+  // --- FIX: elegir la variante siempre en base al theme (evita fallback oscuro mientras planId está null)
+  // además aplicamos fallback defensivo a las clases por si faltan en styles cargado dinámicamente
+  const variantClass = theme === "dark"
+    ? (styles?.FormBuilderDark || defaultStyles.FormBuilderDark || '')
+    : (styles?.FormBuilderLight || defaultStyles.FormBuilderLight || '');
 
   return (
     <main className={`${styles.FormBuildercontainer} ${variantClass}`} aria-labelledby="form-builder-title">
@@ -436,7 +435,7 @@ const FormBuilder = () => {
               </div>
             ))}
 
-            {/* Action Buttons */}
+            {/* Action Buttons */} 
             <div className={styles.FormBuilderactions}>
               <button 
                 type="button" 

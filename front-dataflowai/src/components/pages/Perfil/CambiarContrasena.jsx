@@ -4,76 +4,69 @@ import { cambiarContrasena } from '../../../api/Profile';
 import { useTheme } from '../../componentes/ThemeContext';
 import { obtenerInfoUsuario } from '../../../api/Usuario';
 
-// Función para cargar los estilos dinámicamente
+// Importar estilos por defecto (fallback)
+import defaultStyles from '../../../styles/Profile/CambiarContrasena.module.css';
+
+// Función para cargar los estilos dinámicamente (no bloqueante)
 const cargarEstilosEmpresa = async (empresaId, planId) => {
   const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
-  
+
   try {
-    // Verificar si el plan es especial y si existe la carpeta de la empresa
-    if (planesEspeciales.includes(planId)) {
+    if (planesEspeciales.includes(planId) && empresaId) {
       try {
-        // Intentar importar los estilos de la carpeta de la empresa
         const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/CambiarContrasena.module.css`);
-        return estilosEmpresa.default;
+        return estilosEmpresa.default || defaultStyles;
       } catch (error) {
         console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
       }
     }
-    
-    // Cargar estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
-    return estilosPorDefecto.default;
+    return defaultStyles;
   } catch (error) {
     console.error('Error cargando estilos:', error);
-    // Fallback a estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
-    return estilosPorDefecto.default;
+    return defaultStyles;
   }
 };
 
 const AppCambiarContrasena = () => {
   const { theme } = useTheme();
+
   const [actual, setActual] = useState('');
   const [nueva, setNueva] = useState('');
   const [confirmar, setConfirmar] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [styles, setStyles] = useState({});
-  const [cargandoEstilos, setCargandoEstilos] = useState(true);
+
+  const [styles, setStyles] = useState(defaultStyles); // iniciar con default para evitar undefined
 
   const [showActual, setShowActual] = useState(false);
   const [showNueva, setShowNueva] = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
 
-  // Cargar información del usuario y estilos
+  // Cargar estilos de la empresa en background (no bloquear render)
   useEffect(() => {
-    const cargarUsuarioYEstilos = async () => {
-      setCargandoEstilos(true);
+    let mounted = true;
+    (async () => {
       try {
         const usuarioInfo = await obtenerInfoUsuario();
-        const empresaId = usuarioInfo.empresa?.id;
-        const planId = usuarioInfo.empresa?.plan?.id;
-        
-        if (empresaId && planId) {
-          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
-          setStyles(estilosCargados);
-        } else {
-          // Fallback a estilos por defecto si no hay info de empresa/plan
-          const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
-          setStyles(estilosPorDefecto.default);
-        }
-      } catch (error) {
-        console.error('Error cargando información del usuario:', error);
-        // Fallback a estilos por defecto
-        const estilosPorDefecto = await import('../../../styles/Profile/CambiarContrasena.module.css');
-        setStyles(estilosPorDefecto.default);
-      } finally {
-        setCargandoEstilos(false);
+        const empresaId = usuarioInfo?.empresa?.id;
+        const planId = usuarioInfo?.empresa?.plan?.id;
+        cargarEstilosEmpresa(empresaId, planId)
+          .then((estilos) => {
+            if (!mounted) return;
+            if (estilos) setStyles(estilos);
+          })
+          .catch(() => {
+            if (mounted) setStyles(defaultStyles);
+          });
+      } catch (err) {
+        // si falla obtenerInfoUsuario, dejamos defaultStyles
+        if (mounted) setStyles(defaultStyles);
       }
+    })();
+    return () => {
+      mounted = false;
     };
-
-    cargarUsuarioYEstilos();
   }, []);
 
   const passwordStrength = (pwd) => {
@@ -117,17 +110,10 @@ const AppCambiarContrasena = () => {
     }
   };
 
-  // Si aún se están cargando los estilos, mostrar loading
-  if (cargandoEstilos) {
-    return (
-      <div className="cargando-estilos">
-        <div>Cargando estilos...</div>
-      </div>
-    );
-  }
-
-  // variante (aplica clase raíz con variables)
-  const variantClass = theme === 'light' ? styles.CambiarcontrasenaLight : styles.CambiarcontrasenaDark;
+  // --- FIX: elegir la variante siempre en base al theme
+  const variantClass = theme === 'dark'
+    ? (styles?.CambiarcontrasenaDark || defaultStyles.CambiarcontrasenaDark || '')
+    : (styles?.CambiarcontrasenaLight || defaultStyles.CambiarcontrasenaLight || '');
 
   return (
     <main className={`${styles.Cambiarcontrasenacontainer} ${variantClass}`} aria-labelledby="cambiar-contrasena-title">

@@ -1,4 +1,3 @@
-// src/components/pages/ConfiguracionUsuarios.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import defaultStyles from '../../styles/Profile/Perfil.module.css';
@@ -17,7 +16,6 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-// Card refinada - diseño más sobrio
 const Card = ({ texto, ruta, onCardClick, styles }) => {
   const ref = useRef(null);
 
@@ -210,12 +208,8 @@ const ConfiguracionUsuarios = () => {
     setModalMessage("");
   };
 
-  const variantClass =
-    planId === 3 || planId === 6
-      ? theme === "dark"
-        ? styles.PerfilgeneralDark
-        : styles.PerfilgeneralLight
-      : styles.PerfilgeneralDark;
+  // <-- CAMBIO: elegir la variante SEGÚN EL THEME siempre (evita fallback oscuro)
+  const variantClass = theme === "dark" ? styles.PerfilgeneralDark : styles.PerfilgeneralLight;
 
   return (
     <main className={`${styles.Perfilgeneralcontainer} ${variantClass}`} aria-labelledby="config-usuarios-title">

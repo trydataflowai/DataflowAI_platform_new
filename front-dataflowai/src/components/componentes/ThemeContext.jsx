@@ -1,95 +1,122 @@
 // src/components/componentes/ThemeContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useLayoutEffect, useEffect } from 'react';
 
 const ThemeContext = createContext();
+const STORAGE_KEY = 'dataflow-theme';
+
+/**
+ * Lee el theme guardado en localStorage (si existe y válido).
+ * Devuelve 'dark' | 'light' | null
+ */
+const readSavedTheme = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s === 'dark' || s === 'light' ? s : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+/** Consulta la preferencia del sistema (dark) */
+const systemPrefersDark = () => {
+  try {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  } catch (e) {
+    return false;
+  }
+};
+
+/** Determina el tema inicial con prioridad: saved -> system -> light */
+const getInitialTheme = () => {
+  const saved = readSavedTheme();
+  if (saved) return saved;
+  return systemPrefersDark() ? 'dark' : 'light';
+};
+
+/** Aplica el tema directamente al documentElement (síncrono) */
+const applyThemeToDocument = (theme) => {
+  try {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.classList.toggle('dark-theme', theme === 'dark');
+    document.documentElement.classList.toggle('light-theme', theme === 'light');
+  } catch (e) {
+    // silent (por ejemplo SSR o entorno sin DOM)
+  }
+};
 
 export const ThemeProvider = ({ children }) => {
-  // Función para obtener el tema inicial desde localStorage de forma síncrona
-  const getInitialTheme = () => {
-    // Verificar si estamos en el lado del cliente
-    if (typeof window === 'undefined') return 'dark';
-    
+  // Iniciamos con el valor calculado (no con 'dark' por defecto).
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  /**
+   * useLayoutEffect para aplicar el tema antes del paint.
+   * Esto evita que el DOM pinte con un tema por defecto y luego cambie.
+   */
+  useLayoutEffect(() => {
+    applyThemeToDocument(theme);
+
+    // Marcar que el theme ya está listo para que el CSS pueda reactivar transiciones
     try {
-      const savedTheme = localStorage.getItem('dataflow-theme');
-      return savedTheme || 'dark'; // Si no hay nada guardado, usar 'dark' por defecto
-    } catch (error) {
-      console.warn('Error reading theme from localStorage:', error);
-      return 'dark';
+      document.documentElement.dataset.themeReady = 'true';
+    } catch (e) {
+      /* silent */
     }
-  };
+  }, [theme]);
 
-  // Estado para controlar si el tema ya se inicializó
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    const initialTheme = getInitialTheme();
-    // Aplicar el tema inmediatamente al document
-    if (typeof window !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', initialTheme);
-      document.documentElement.classList.toggle('dark-theme', initialTheme === 'dark');
-      document.documentElement.classList.toggle('light-theme', initialTheme === 'light');
-    }
-    return initialTheme;
-  });
-
-  // Función para cambiar tema y guardarlo en localStorage
-  const toggleTheme = () => {
-    setTheme(currentTheme => {
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      
-      // Aplicar inmediatamente al document
-      document.documentElement.setAttribute('data-theme', newTheme);
-      document.documentElement.classList.toggle('dark-theme', newTheme === 'dark');
-      document.documentElement.classList.toggle('light-theme', newTheme === 'light');
-      
-      // Guardar en localStorage
-      try {
-        localStorage.setItem('dataflow-theme', newTheme);
-      } catch (error) {
-        console.warn('Error saving theme to localStorage:', error);
-      }
-      
-      return newTheme;
-    });
-  };
-
-  // Efecto para marcar como inicializado después del primer render
+  // Guardar la preferencia en localStorage (cuando cambie)
   useEffect(() => {
-    setIsInitialized(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch (e) {
+      /* silent */
+    }
+  }, [theme]);
+
+  // Escuchar cambios desde otras pestañas
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === STORAGE_KEY && (e.newValue === 'dark' || e.newValue === 'light')) {
+        setTheme(e.newValue);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // Efecto para sincronizar con localStorage si cambia desde otra pestaña
+  // Si la preferencia del sistema cambia y NO hay un valor guardado por el usuario,
+  // actualizar el theme en caliente.
   useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'dataflow-theme' && e.newValue) {
-        setTheme(e.newValue);
-        // También aplicar al document
-        document.documentElement.setAttribute('data-theme', e.newValue);
-        document.documentElement.classList.toggle('dark-theme', e.newValue === 'dark');
-        document.documentElement.classList.toggle('light-theme', e.newValue === 'light');
+    const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    if (!mq) return;
+
+    const handler = (ev) => {
+      const saved = readSavedTheme();
+      if (!saved) {
+        setTheme(ev.matches ? 'dark' : 'light');
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    // Compatibilidad: addEventListener('change') o fallback a addListener
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    } else if (typeof mq.addListener === 'function') {
+      mq.addListener(handler);
+      return () => mq.removeListener(handler);
+    }
   }, []);
 
-  // Efecto para aplicar el tema al document cuando cambie
-  useEffect(() => {
-    if (isInitialized) {
-      document.documentElement.setAttribute('data-theme', theme);
-      document.documentElement.classList.toggle('dark-theme', theme === 'dark');
-      document.documentElement.classList.toggle('light-theme', theme === 'light');
-    }
-  }, [theme, isInitialized]);
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isInitialized }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-// hook para consumir
+/** Hook consumidor */
 export const useTheme = () => {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error('useTheme debe usarse dentro de ThemeProvider');

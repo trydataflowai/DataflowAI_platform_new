@@ -5,6 +5,31 @@
     <link rel="icon" type="image/png" href="/src/assets/img-pestana.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DataflowAi</title>
+
+    <!-- IMPORTANTE: script que aplica el tema antes de que React cargue (evita parpadeo) -->
+    <script>
+      (function() {
+        try {
+          var key = 'dataflow-theme';
+          var saved = null;
+          try { saved = localStorage.getItem(key); } catch(e) { saved = null; }
+          if (saved === 'dark' || saved === 'light') {
+            document.documentElement.setAttribute('data-theme', saved);
+            document.documentElement.classList.add(saved === 'dark' ? 'dark-theme' : 'light-theme');
+            return;
+          }
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.classList.add('dark-theme');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.classList.add('light-theme');
+          }
+        } catch (e) {
+          // silencioso: si algo falla no rompemos la carga
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
