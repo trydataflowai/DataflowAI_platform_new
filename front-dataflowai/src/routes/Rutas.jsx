@@ -27,7 +27,6 @@ import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
 import SoporteUsuario from "../components/pages/SoporteUsuario";
 import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
-import ChatBot from "../components/pages/ChatBot";
 import ChatPostgre from "../components/pages/Chxtbut";
 import FormBuilder from '../components/pages/FormBuilder';
 import FormPublic from '../components/pages/FormPublic';
@@ -450,16 +449,7 @@ export const Rutas = () => {
               }
             />
 
-            <Route
-              path={p("/ChatBot")}
-              element={
-                <RutaProtegida>
-                  <SideBarLayout>
-                    <ChatBot />
-                  </SideBarLayout>
-                </RutaProtegida>
-              }
-            />
+
 
             <Route
               path={p("/Shopify/Prueba/deApi")}

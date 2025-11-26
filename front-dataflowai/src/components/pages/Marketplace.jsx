@@ -7,8 +7,25 @@ import {
   adquirirDashboard
 } from '../../api/Dashboards';
 import { obtenerInfoUsuario } from '../../api/Usuario';
-import darkStyles from '../../styles/Marketplace.module.css';
-import lightStyles from '../../styles/MarketplaceLight.module.css';
+import defaultStyles from '../../styles/Marketplace.module.css';
+
+// Función para cargar estilos de empresa en background (no bloqueante)
+const cargarEstilosEmpresa = async (empresaId, planId) => {
+  const planesEspeciales = [3, 6];
+  try {
+    if (empresaId && planesEspeciales.includes(planId)) {
+      try {
+        const mod = await import(`../../styles/empresas/${empresaId}/Marketplace.module.css`);
+        return mod.default || defaultStyles;
+      } catch (err) {
+        console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}`, err);
+      }
+    }
+  } catch (err) {
+    console.error('Error intentando cargar estilos de empresa:', err);
+  }
+  return defaultStyles;
+};
 
 // Confirmation modal
 const ConfirmationModal = ({ isOpen, onConfirm, onCancel, dashboardName, styles }) => {
@@ -96,8 +113,8 @@ const DashboardCard = ({ dash, adquirido, loading, onAcquire, onView, styles }) 
 
 // Main Marketplace component
 export const Marketplace = () => {
-  const { theme, isInitialized } = useTheme();
-  const [styles, setStyles] = useState(darkStyles);
+  const { theme } = useTheme();
+  const [styles, setStyles] = useState(defaultStyles);
   const [dashboards, setDashboards] = useState([]);
   const [adquiridos, setAdquiridos] = useState([]);
   const [loadingIds, setLoadingIds] = useState([]);
@@ -108,6 +125,8 @@ export const Marketplace = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let mounted = true;
+
     const loadData = async () => {
       try {
         const [userInfoData, allDashboards] = await Promise.all([
@@ -115,21 +134,17 @@ export const Marketplace = () => {
           obtenerTodosLosDashboards()
         ]);
 
+        if (!mounted) return;
+
         const pid = userInfoData?.empresa?.plan?.id;
         setPlanId(pid);
         setUserInfo(userInfoData);
         setAdquiridos((userInfoData?.productos || []).map(p => p.id_producto));
 
-        // ------------------------
-        // FILTRADO: EXCLUIR "enterprise" Y "privado"
-        // - No mostrar productos cuyo tipo sea "enterprise" ni "privado".
-        // - Compara en minúsculas y revisa campos alternativos por si acaso.
-        // ------------------------
         const filtered = (allDashboards || []).filter(d => {
           const tipo = (d.tipo_producto || '').toString().trim().toLowerCase();
           const tipoAlt = (d.tipo_producto_display || d.tipo_producto_label || '').toString().trim().toLowerCase();
 
-          // Excluir si es "enterprise" o "privado"
           if (tipo === 'enterprise' || tipo === 'privado') return false;
           if (tipoAlt === 'enterprise' || tipoAlt === 'privado') return false;
 
@@ -143,16 +158,29 @@ export const Marketplace = () => {
     };
 
     loadData();
+
+    // cargar estilos de empresa en background (no bloqueante)
+    (async () => {
+      try {
+        const usuarioInfo = await obtenerInfoUsuario().catch(() => null);
+        const empresaId = usuarioInfo?.empresa?.id;
+        const pid = usuarioInfo?.empresa?.plan?.id;
+        const estilos = await cargarEstilosEmpresa(empresaId, pid);
+        if (mounted && estilos) setStyles(estilos);
+      } catch (err) {
+        if (mounted) setStyles(defaultStyles);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!isInitialized) return;
-    if (planId === 3 || planId === 6) {
-      setStyles(theme === 'dark' ? darkStyles : lightStyles);
-    } else {
-      setStyles(darkStyles);
-    }
-  }, [theme, planId, isInitialized]);
+    // keep defaultStyles if styles doesn't have required classes
+    if (!styles) setStyles(defaultStyles);
+  }, [styles]);
 
   const handleAcquireClick = (id, productName) => {
     setSelectedDashboard({ id, name: productName });
@@ -190,23 +218,13 @@ export const Marketplace = () => {
   const adquiridosCount = adquiridos.length;
   const availableCount = dashboards.length - adquiridosCount;
 
-  if (!isInitialized) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        backgroundColor: 'var(--bg-primary)',
-        color: 'var(--text-primary)'
-      }}>
-        Loading...
-      </div>
-    );
-  }
+  // variante defensiva: usar clases específicas + fallback a .dark/.light si existen
+  const variantClass = theme === "dark"
+    ? (styles?.MarketplaceDark || defaultStyles.MarketplaceDark || styles.dark || defaultStyles.dark || '')
+    : (styles?.MarketplaceLight || defaultStyles.MarketplaceLight || styles.light || defaultStyles.light || '');
 
   return (
-    <div className={`${styles.marketplace} ${isInitialized ? 'theme-loaded' : 'theme-loading'}`}>
+    <div className={`${styles.marketplace || ''} ${variantClass}`}>
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerContent}>

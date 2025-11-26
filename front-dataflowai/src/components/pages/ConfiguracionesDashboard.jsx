@@ -3,8 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { importarArchivoDashboard } from '../../api/Importacion';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 import { useTheme } from '../componentes/ThemeContext';
-import darkStyles from '../../styles/ConfiguracionesDashboard.module.css';
-import lightStyles from '../../styles/ConfiguracionesDashboardLight.module.css';
+import styles from '../../styles/ConfiguracionesDashboard.module.css';
 
 const ConfiguracionesDashboard = () => {
   const location = useLocation();
@@ -18,7 +17,7 @@ const ConfiguracionesDashboard = () => {
   const [tipoMensaje, setTipoMensaje] = useState('');
   const [idProducto, setIdProducto] = useState(null);
   const [planId, setPlanId] = useState(null);
-  const [styles, setStyles] = useState(darkStyles);
+  const [companyId, setCompanyId] = useState(null);
 
   // Get user and plan information
   useEffect(() => {
@@ -26,24 +25,15 @@ const ConfiguracionesDashboard = () => {
       try {
         const user = await obtenerInfoUsuario();
         const pid = user.empresa.plan.id;
+        const cid = user.empresa.id;
         setPlanId(pid);
+        setCompanyId(cid);
       } catch (error) {
         console.error('Error getting user info:', error);
       }
     };
     fetchUsuario();
   }, []);
-
-  // Update styles according to plan and theme
-  useEffect(() => {
-    if (planId === 3 || planId === 6) {
-      // Plans that allow theme change
-      setStyles(theme === 'dark' ? darkStyles : lightStyles);
-    } else {
-      // Other plans: always dark mode
-      setStyles(darkStyles);
-    }
-  }, [theme, planId]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -106,8 +96,11 @@ const ConfiguracionesDashboard = () => {
     setTipoMensaje('');
   };
 
+  // Determinar la clase del tema
+  const themeClass = theme === 'dark' ? styles.darkTheme : styles.lightTheme;
+
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${themeClass}`}>
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.titleSection}>

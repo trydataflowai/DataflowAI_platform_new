@@ -1,7 +1,6 @@
 // src/components/pages/SoporteUsuario.jsx
 import React, { useEffect, useState } from 'react';
-import defaultDarkStyles from '../../styles/SoporteUsuario.module.css';
-import defaultLightStyles from '../../styles/SoporteUsuarioLight.module.css';
+import defaultStyles from '../../styles/SoporteUsuario.module.css';
 
 import { obtenerTickets, crearTicket, obtenerDetalleTicket } from '../../api/SoporteUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
@@ -10,24 +9,19 @@ import { useTheme } from '../componentes/ThemeContext';
 /*
   Lógica de estilos por empresa:
   - Buscamos módulos:
-      src/styles/empresas/{companyId}/SoporteUsuario.module.css      (dark)
-      src/styles/empresas/{companyId}/SoporteUsuarioLight.module.css (light)
+      src/styles/empresas/{companyId}/SoporteUsuario.module.css
   - Si el plan es 3 o 6 y los archivos por empresa existen, usamos los estilos por empresa.
   - Si no, fallback a los estilos por defecto importados arriba.
   - Utilizamos import.meta.glob(..., { eager: true }) para que Vite incluya los módulos en el bundle.
 */
-const empresaLightModules = import.meta.glob(
-  '../../styles/empresas/*/SoporteUsuarioLight.module.css',
-  { eager: true }
-);
-const empresaDarkModules = import.meta.glob(
+const empresaModules = import.meta.glob(
   '../../styles/empresas/*/SoporteUsuario.module.css',
   { eager: true }
 );
 
 const SoporteUsuario = () => {
   const { theme } = useTheme(); // 'dark' | 'light'
-  const [activeStyles, setActiveStyles] = useState(defaultDarkStyles);
+  const [activeStyles, setActiveStyles] = useState(defaultStyles);
 
   const [allTickets, setAllTickets] = useState([]);
   const [tickets, setTickets] = useState([]);
@@ -88,34 +82,21 @@ const SoporteUsuario = () => {
   useEffect(() => {
     // Planes 3 y 6 permiten toggle y/o estilos por empresa.
     const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
-
-    const lightKey = `../../styles/empresas/${companyId}/SoporteUsuarioLight.module.css`;
-    const darkKey = `../../styles/empresas/${companyId}/SoporteUsuario.module.css`;
-
-    const foundCompanyLight = empresaLightModules[lightKey];
-    const foundCompanyDark = empresaDarkModules[darkKey];
+    const companyKey = `../../styles/empresas/${companyId}/SoporteUsuario.module.css`;
+    const foundCompanyStyles = empresaModules[companyKey];
 
     const extract = (mod) => {
       if (!mod) return null;
       return mod.default ?? mod;
     };
 
-    const companyLight = extract(foundCompanyLight);
-    const companyDark = extract(foundCompanyDark);
+    const companyStyles = extract(foundCompanyStyles);
 
-    let chosenStyles = defaultDarkStyles;
-    if (theme === 'dark') {
-      if (useCompanyStyles && companyDark) {
-        chosenStyles = companyDark;
-      } else {
-        chosenStyles = defaultDarkStyles;
-      }
+    let chosenStyles = defaultStyles;
+    if (useCompanyStyles && companyStyles) {
+      chosenStyles = companyStyles;
     } else {
-      if (useCompanyStyles && companyLight) {
-        chosenStyles = companyLight;
-      } else {
-        chosenStyles = defaultLightStyles;
-      }
+      chosenStyles = defaultStyles;
     }
 
     setActiveStyles(chosenStyles);
@@ -212,8 +193,11 @@ const SoporteUsuario = () => {
     setTickets(allTickets);
   };
 
+  // Elegir la variante según el theme
+  const variantClass = theme === "dark" ? activeStyles.dark : activeStyles.light;
+
   return (
-    <div className={activeStyles.container}>
+    <div className={`${activeStyles.container} ${variantClass}`}>
       <header className={activeStyles.header}>
         <div className={activeStyles.headerLeft}>
           <h1 className={activeStyles.title}>Soporte</h1>

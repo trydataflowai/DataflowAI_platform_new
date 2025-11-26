@@ -1,32 +1,8 @@
 // src/components/pages/HomeTools.jsx
 import React, { useEffect, useMemo, useState } from 'react';
-import darkStyles from '../../styles/ToolsDark.module.css';
-import lightStyles from '../../styles/ToolsLight.module.css';
+import defaultStyles from '../../styles/ToolsHome.module.css';
 import { obtenerHerramientaUsuario } from '../../api/HerramientaUsuario';
 import { useTheme } from '../componentes/ThemeContext';
-
-const classNames = [
-  'pageContainer', 'loadingContainer', 'loadingSpinner', 'spinner', 'loadingTitle', 'loadingText',
-  'errorContainer', 'errorIcon', 'errorTitle', 'errorText', 'retryBtn',
-  'emptyContainer', 'emptyIcon', 'emptyTitle', 'emptyText', 'emptyHelp',
-  'pageHeader', 'headerContent', 'titleSection', 'mainTitle', 'mainSubtitle',
-  'headerStats', 'statCard', 'statNumber', 'statLabel',
-  'controlsSection', 'controlsContainer', 'searchContainer', 'searchInputWrapper', 'searchIcon', 'searchInput', 'clearSearch',
-  'filtersRow', 'filterGroup', 'filterLabel', 'filterSelect', 'viewControls', 'viewLabel', 'viewToggle', 'viewBtn', 'viewBtnActive', 'resultsInfo', 'resultsCount',
-  'mainContent', 'areaSection', 'areaSectionHeader', 'areaInfo', 'areaTitle', 'areaCount', 'areaDivider',
-  'toolsGrid', 'toolsList',
-  'toolCard', 'toolCardList', 'toolCardContent', 'toolHeader', 'toolAvatar', 'toolImage', 'toolInitials', 'toolInfo', 'toolName', 'toolMeta', 'toolArea', 'toolType',
-  'toolActions', 'toolButton', 'toolButtonDisabled', 'toolButtonIcon',
-  'noResultsContainer', 'noResultsIcon', 'noResultsTitle', 'noResultsText', 'clearFiltersBtn'
-];
-
-// Build defaultStyles mapping using the imported dark/light modules as fallbacks.
-// This ensures every variant key (NameDark / NameLight) exists.
-const defaultStyles = classNames.reduce((acc, name) => {
-  acc[`${name}Dark`] = (darkStyles && darkStyles[name]) ? darkStyles[name] : `${name}-dark-default`;
-  acc[`${name}Light`] = (lightStyles && lightStyles[name]) ? lightStyles[name] : `${name}-light-default`;
-  return acc;
-}, {});
 
 const HomeTools = () => {
   const [productos, setProductos] = useState([]);
@@ -41,19 +17,10 @@ const HomeTools = () => {
 
   const { theme } = useTheme(); // 'dark' or 'light'
 
-  // helper to pick class variant according to theme, falling back to defaults when needed
+  // helper to pick class variant according to theme
   const cls = (name) => {
-    const darkKey = `${name}Dark`;
-    const lightKey = `${name}Light`;
-    if (theme === 'dark') {
-      return (darkStyles && darkStyles[`${name}` + 'Dark']) ? darkStyles[`${name}` + 'Dark']
-        : (darkStyles && darkStyles[name]) ? darkStyles[name]
-        : defaultStyles[darkKey] || '';
-    } else {
-      return (lightStyles && lightStyles[`${name}` + 'Light']) ? lightStyles[`${name}` + 'Light']
-        : (lightStyles && lightStyles[name]) ? lightStyles[name]
-        : defaultStyles[lightKey] || '';
-    }
+    const variantClass = theme === 'dark' ? `${name}Dark` : `${name}Light`;
+    return defaultStyles[variantClass] || defaultStyles[name] || '';
   };
 
   // Debounce search (300ms)

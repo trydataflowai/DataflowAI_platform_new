@@ -1,34 +1,45 @@
-/* src/styles/SideBar.module.css */
+/* SideBar.module.css */
 
-/* Sidebar como parte del flujo: sticky + scroll interno si hace falta */
+.dark {
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00c7ff;
+  --accent-dark: #0077b6;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.light {
+  --black-deep: #ffffff;
+  --black-cosmos: #f8f9fa;
+  --accent-neon: #0a66c2;
+  --accent-dark: #004182;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --transition: all 0.3s ease;
+}
+
 .sidebar {
-  position: -webkit-sticky; /* compatibilidad iOS */
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   left: 0;
   width: 280px;
   z-index: 1000;
-
-  /* gradiente y estilos visuales */
   background: linear-gradient(160deg, var(--black-deep) 0%, var(--black-cosmos) 100%);
   padding: 2rem 1.5rem;
   border-right: 1px solid rgba(0, 199, 255, 0.1);
-
   display: flex;
   flex-direction: column;
   transition: var(--transition);
   box-sizing: border-box;
-
-  /* Permitir que el contenido interno haga scroll si supera la altura de la ventana */
   max-height: 100vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
-  /* Un padding-bottom extra para que el último botón no quede pegado al borde */
   padding-bottom: 2.5rem;
 }
 
-/* Sidebar colapsado */
 .collapsed {
   width: 120px;
 }
@@ -51,7 +62,7 @@
   padding: 0;
 }
 .logoText {
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
@@ -64,8 +75,7 @@
   flex-direction: column;
   gap: 0.5rem;
   flex-grow: 1;
-  /* Aseguramos que nav pueda crecer y empujar el footer hacia abajo */
-  min-height: 0; /* importante para contenedores flex con overflow */
+  min-height: 0;
 }
 
 .button {
@@ -81,7 +91,7 @@
   cursor: pointer;
   font-size: 1rem;
   transition: var(--transition);
-  overflow: hidden; /* Evita que el hover se salga del botón */
+  overflow: hidden;
 }
 
 .button::before {
@@ -92,13 +102,13 @@
   background: linear-gradient(to bottom, var(--accent-neon), var(--accent-dark));
   opacity: 0;
   transition: var(--transition);
-  pointer-events: none; /* Evita que el borde capture el clic */
+  pointer-events: none;
 }
 
 .button:hover {
   color: var(--text-primary);
   background: rgba(0, 199, 255, 0.05);
-  transform: none; /* Elimina el desplazamiento brusco */
+  transform: none;
 }
 .button:hover::before {
   opacity: 1;
@@ -108,8 +118,16 @@
   font-size: 1.2rem;
   transition: var(--transition);
 }
-.emojiWhite {
+
+.dark .emojiWhite {
   filter: brightness(0) invert(1);
+}
+
+.light .emojiWhite {
+  filter: invert(32%) sepia(95%) saturate(500%) hue-rotate(180deg) brightness(90%) contrast(90%);
+}
+
+.emojiWhite {
   font-size: 1.2em;
   transition: var(--transition);
 }
@@ -132,7 +150,7 @@
   background: radial-gradient(circle, var(--accent-neon) 0%, transparent 70%);
   opacity: 0;
   transition: var(--transition);
-  z-index: 0; /* Evita que cubra elementos clicables */
+  z-index: 0;
   pointer-events: none;
 }
 .button:hover .highlight {
@@ -190,20 +208,18 @@
   opacity: 0.7;
 }
 
-/* Logo como imagen: se adapta al contenedor, conserva proporción */
 .logoImg {
   display: block;
   margin: 0 auto;
   width: 100%;
-  max-width: 160px;   /* ancho máximo en estado expandido */
-  height: 56px;       /* altura fija para mantener consistencia visual */
-  object-fit: contain; /* preserva proporción y "no recorta" */
+  max-width: 160px;
+  height: 56px;
+  object-fit: contain;
   border-radius: 8px;
   background: transparent;
   transition: var(--transition);
 }
 
-/* Ajustes cuando el sidebar está colapsado (si tu .collapsed aplica sobre .sidebar) */
 .collapsed .logoImg {
   max-width: 48px;
   height: 36px;
