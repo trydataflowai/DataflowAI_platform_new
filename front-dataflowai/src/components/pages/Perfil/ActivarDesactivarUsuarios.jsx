@@ -55,7 +55,8 @@ const ActivarDesactivarUsuarios = () => {
   const [styles, setStyles] = useState({});
   const [cargandoEstilos, setCargandoEstilos] = useState(true);
 
-  // Form crear
+  // Modal crear usuario
+  const [modalAbierto, setModalAbierto] = useState(false);
   const [creando, setCreando] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevoApellidos, setNuevoApellidos] = useState('');
@@ -149,6 +150,24 @@ const ActivarDesactivarUsuarios = () => {
     }
   };
 
+  const abrirModal = () => {
+    setModalAbierto(true);
+    setError('');
+    setSuccess('');
+  };
+
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setNuevoNombre('');
+    setNuevoApellidos('');
+    setNuevoCorreo('');
+    setNuevaContrasena('');
+    setConfirmContrasena('');
+    setNuevoRolId('');
+    setNuevoAreaId('');
+    setError('');
+  };
+
   const toggleEstado = async (usuario) => {
     const nuevoEstado = (usuario.id_estado === ACTIVE_STATE_ID) ? INACTIVE_STATE_ID : ACTIVE_STATE_ID;
     const confirmMsg = (nuevoEstado === ACTIVE_STATE_ID)
@@ -227,13 +246,7 @@ const ActivarDesactivarUsuarios = () => {
 
       await crearUsuario(payload);
       await fetchUsuarios();
-      setNuevoNombre('');
-      setNuevoApellidos('');
-      setNuevoCorreo('');
-      setNuevaContrasena('');
-      setConfirmContrasena('');
-      setNuevoRolId('');
-      setNuevoAreaId('');
+      cerrarModal();
       setSuccess('Usuario creado correctamente.');
     } catch (err) {
       setError(err.message || 'Error al crear usuario');
@@ -339,7 +352,14 @@ const ActivarDesactivarUsuarios = () => {
             Activa, desactiva, crea usuarios, asigna roles y gestiona acceso
           </p>
         </div>
-        <div className={styles.ActivardesactivarheaderMeta}>
+        <div className={styles.ActivardesactivarheaderActions}>
+          <button 
+            className={styles.ActivardesactivarcreateButton}
+            onClick={abrirModal}
+          >
+            <span className={styles.ActivardesactivarcreateButtonIcon}>+</span>
+            Crear Usuario
+          </button>
           <span className={styles.ActivardesactivarroleInfo}>
             {miPermisoId === ADMIN_ROLE_ID ? 'Administrador' : 'Usuario'}
           </span>
@@ -360,122 +380,6 @@ const ActivarDesactivarUsuarios = () => {
           <div className={styles.ActivardesactivarsuccessText}>{success}</div>
         </div>
       )}
-
-      {/* Create User Section */}
-      <section className={styles.ActivardesactivarcreateSection}>
-        <div className={styles.ActivardesactivarsectionHeader}>
-          <h2 className={styles.ActivardesactivarsectionTitle}>Crear Nuevo Usuario</h2>
-          <p className={styles.ActivardesactivarsectionSubtitle}>Agrega nuevos usuarios al sistema</p>
-        </div>
-        
-        <form onSubmit={handleCrearUsuario} className={styles.Activardesactivarform}>
-          <div className={styles.ActivardesactivarformGrid}>
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Nombre</span>
-                <input 
-                  className={styles.Activardesactivarinput} 
-                  value={nuevoNombre} 
-                  onChange={e => setNuevoNombre(e.target.value)}
-                  placeholder="Ingresa el nombre"
-                />
-              </label>
-            </div>
-
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Apellidos</span>
-                <input 
-                  className={styles.Activardesactivarinput} 
-                  value={nuevoApellidos} 
-                  onChange={e => setNuevoApellidos(e.target.value)}
-                  placeholder="Ingresa los apellidos"
-                />
-              </label>
-            </div>
-
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Correo Electrónico</span>
-                <input 
-                  className={styles.Activardesactivarinput} 
-                  type="email" 
-                  value={nuevoCorreo} 
-                  onChange={e => setNuevoCorreo(e.target.value)}
-                  placeholder="usuario@empresa.com"
-                />
-              </label>
-            </div>
-
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Contraseña</span>
-                <input 
-                  className={styles.Activardesactivarinput} 
-                  type="password" 
-                  value={nuevaContrasena} 
-                  onChange={e => setNuevaContrasena(e.target.value)}
-                  placeholder="Crea una contraseña segura"
-                />
-              </label>
-            </div>
-
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Confirmar Contraseña</span>
-                <input 
-                  className={styles.Activardesactivarinput} 
-                  type="password" 
-                  value={confirmContrasena} 
-                  onChange={e => setConfirmContrasena(e.target.value)}
-                  placeholder="Confirma la contraseña"
-                />
-              </label>
-            </div>
-
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Área de Trabajo</span>
-                <CustomSelect
-                  options={areaOptions}
-                  value={nuevoAreaId}
-                  onChange={val => setNuevoAreaId(val)}
-                  placeholder="Selecciona un área"
-                />
-              </label>
-            </div>
-
-            <div className={styles.ActivardesactivarformGroup}>
-              <label className={styles.Activardesactivarlabel}>
-                <span className={styles.ActivardesactivarlabelText}>Rol de Usuario</span>
-                <CustomSelect
-                  options={permisoOptions}
-                  value={nuevoRolId}
-                  onChange={val => setNuevoRolId(val)}
-                  placeholder="Selecciona un rol"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className={styles.ActivardesactivarformActions}>
-            <button 
-              className={styles.ActivardesactivarprimaryButton} 
-              type="submit" 
-              disabled={creando}
-            >
-              {creando ? (
-                <>
-                  <span className={styles.Activardesactivarspinner}></span>
-                  Creando Usuario...
-                </>
-              ) : (
-                'Crear Usuario'
-              )}
-            </button>
-          </div>
-        </form>
-      </section>
 
       {/* Users Table Section */}
       <section className={styles.ActivardesactivartableSection}>
@@ -511,6 +415,13 @@ const ActivarDesactivarUsuarios = () => {
                       <div className={styles.ActivardesactivaremptyState}>
                         <span className={styles.ActivardesactivaremptyIcon}>👥</span>
                         <p>No hay usuarios registrados</p>
+                        <button 
+                          className={styles.ActivardesactivarcreateButton}
+                          onClick={abrirModal}
+                        >
+                          <span className={styles.ActivardesactivarcreateButtonIcon}>+</span>
+                          Crear Primer Usuario
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -596,6 +507,143 @@ const ActivarDesactivarUsuarios = () => {
           </div>
         )}
       </section>
+
+      {/* Modal Crear Usuario */}
+      {modalAbierto && (
+        <div className={styles.ActivardesactivarmodalOverlay}>
+          <div className={styles.Activardesactivarmodal}>
+            <div className={styles.ActivardesactivarmodalHeader}>
+              <h2 className={styles.ActivardesactivarmodalTitle}>Crear Nuevo Usuario</h2>
+              <button 
+                className={styles.ActivardesactivarmodalClose}
+                onClick={cerrarModal}
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleCrearUsuario} className={styles.ActivardesactivarmodalForm}>
+              <div className={styles.ActivardesactivarformGrid}>
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Nombre *</span>
+                    <input 
+                      className={styles.Activardesactivarinput} 
+                      value={nuevoNombre} 
+                      onChange={e => setNuevoNombre(e.target.value)}
+                      placeholder="Ingresa el nombre"
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Apellidos</span>
+                    <input 
+                      className={styles.Activardesactivarinput} 
+                      value={nuevoApellidos} 
+                      onChange={e => setNuevoApellidos(e.target.value)}
+                      placeholder="Ingresa los apellidos"
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Correo Electrónico *</span>
+                    <input 
+                      className={styles.Activardesactivarinput} 
+                      type="email" 
+                      value={nuevoCorreo} 
+                      onChange={e => setNuevoCorreo(e.target.value)}
+                      placeholder="usuario@empresa.com"
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Contraseña *</span>
+                    <input 
+                      className={styles.Activardesactivarinput} 
+                      type="password" 
+                      value={nuevaContrasena} 
+                      onChange={e => setNuevaContrasena(e.target.value)}
+                      placeholder="Crea una contraseña segura"
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Confirmar Contraseña *</span>
+                    <input 
+                      className={styles.Activardesactivarinput} 
+                      type="password" 
+                      value={confirmContrasena} 
+                      onChange={e => setConfirmContrasena(e.target.value)}
+                      placeholder="Confirma la contraseña"
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Área de Trabajo *</span>
+                    <CustomSelect
+                      options={areaOptions}
+                      value={nuevoAreaId}
+                      onChange={val => setNuevoAreaId(val)}
+                      placeholder="Selecciona un área"
+                    />
+                  </label>
+                </div>
+
+                <div className={styles.ActivardesactivarformGroup}>
+                  <label className={styles.Activardesactivarlabel}>
+                    <span className={styles.ActivardesactivarlabelText}>Rol de Usuario</span>
+                    <CustomSelect
+                      options={permisoOptions}
+                      value={nuevoRolId}
+                      onChange={val => setNuevoRolId(val)}
+                      placeholder="Selecciona un rol"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className={styles.ActivardesactivarmodalActions}>
+                <button 
+                  type="button"
+                  className={styles.ActivardesactivarmodalCancel}
+                  onClick={cerrarModal}
+                  disabled={creando}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className={styles.ActivardesactivarmodalSubmit} 
+                  type="submit" 
+                  disabled={creando}
+                >
+                  {creando ? (
+                    <>
+                      <span className={styles.Activardesactivarspinner}></span>
+                      Creando...
+                    </>
+                  ) : (
+                    'Crear Usuario'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

@@ -14,20 +14,21 @@
   --accent-1: #00f7ff;
   --accent-2: #00c2ff;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --card-bg: rgba(30, 30, 30, 0.6);
-  --card-hover-bg: rgba(40, 40, 40, 0.8);
-  --card-border: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(30, 30, 30, 0.8);
+  --card-hover-bg: rgba(40, 40, 40, 0.9);
+  --card-border: rgba(255, 255, 255, 0.05); /* Líneas más sutiles en dark */
   --card-hover-border: rgba(0, 247, 255, 0.3);
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.15);
   --backdrop-filter: blur(10px);
-  --modal-bg: rgba(30, 30, 30, 0.95);
+  --modal-bg: rgba(20, 20, 20, 0.95);
   --modal-border: rgba(255, 255, 255, 0.1);
   --btn-bg: var(--accent-gradient);
   --btn-text: #00121a;
   --success-color: #00ffaa;
   --error-color: #ff3366;
   --warning-color: #ffcc00;
+  --table-border: rgba(255, 255, 255, 0.03); /* Líneas de tabla muy sutiles */
 }
 
 .ActivardesactivarLight {
@@ -54,35 +55,43 @@
   --success-color: #0fa969;
   --error-color: #d0445a;
   --warning-color: #e6a700;
+  --table-border: rgba(0, 0, 0, 0.06);
 }
 
 /* =========================
-   Estilos Base - Diseño Sobrio
+   Estilos Base - Diseño Sobrio - CORREGIDOS
    ========================= */
 
 .Activardesactivarcontainer {
   width: 100%;
   min-height: 100vh;
   padding: 0;
+  margin: 0;
   background: var(--bg-gradient);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Header Section */
+/* Header Section - CORREGIDO */
 .Activardesactivarheader {
-  padding: 60px 40px 40px;
+  padding: 40px 40px 30px;
   border-bottom: 1px solid var(--card-border);
   background: var(--bg-primary);
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .ActivardesactivarheaderContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
+  flex: 1;
+  text-align: left;
 }
 
 .Activardesactivartitle {
@@ -99,16 +108,40 @@
   margin: 0;
   font-weight: 400;
   max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.ActivardesactivarheaderMeta {
+.ActivardesactivarheaderActions {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ActivardesactivarcreateButton {
+  padding: 12px 24px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.ActivardesactivarcreateButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.ActivardesactivarcreateButtonIcon {
+  font-size: 1.2rem;
+  font-weight: 300;
 }
 
 .ActivardesactivarroleInfo {
@@ -121,11 +154,21 @@
   font-weight: 500;
 }
 
-/* Alert Boxes */
+/* Main Content Area */
+.Activardesactivarcontent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* Alert Boxes - CORREGIDO */
 .ActivardesactivarerrorBox,
 .ActivardesactivarsuccessBox {
   max-width: 1200px;
-  margin: 0 auto 24px;
+  margin: 20px auto 24px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -160,26 +203,18 @@
   line-height: 1.4;
 }
 
-/* Create User Section */
-.ActivardesactivarcreateSection {
+/* Table Section - CORREGIDO con líneas sutiles */
+.ActivardesactivartableSection {
   max-width: 1200px;
   margin: 0 auto 40px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 32px;
-  backdrop-filter: var(--backdrop-filter);
-  box-shadow: var(--card-shadow);
-  transition: all 0.3s ease;
-}
-
-.ActivardesactivarcreateSection:hover {
-  box-shadow: var(--card-hover-shadow);
-  border-color: var(--card-hover-border);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .ActivardesactivarsectionHeader {
   margin-bottom: 24px;
+  padding: 0 20px;
 }
 
 .ActivardesactivarsectionTitle {
@@ -195,111 +230,6 @@
   margin: 0;
 }
 
-/* Form Styles */
-.Activardesactivarform {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.ActivardesactivarformGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.ActivardesactivarformGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.Activardesactivarlabel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ActivardesactivarlabelText {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.Activardesactivarinput {
-  padding: 12px 14px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  outline: none;
-}
-
-.Activardesactivarinput::placeholder {
-  color: var(--text-muted);
-}
-
-.Activardesactivarinput:focus {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
-  transform: translateY(-1px);
-}
-
-.ActivardesactivarLight .Activardesactivarinput:focus {
-  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
-}
-
-.ActivardesactivarformActions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.ActivardesactivarprimaryButton {
-  padding: 14px 32px;
-  background: var(--btn-bg);
-  color: var(--btn-text);
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 160px;
-  justify-content: center;
-}
-
-.ActivardesactivarprimaryButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.ActivardesactivarprimaryButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.Activardesactivarspinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Table Section */
-.ActivardesactivartableSection {
-  max-width: 1200px;
-  margin: 0 auto 60px;
-}
-
 .ActivardesactivartableWrapper {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -307,12 +237,17 @@
   overflow: hidden;
   backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0 20px;
 }
 
 .Activardesactivartable {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  flex: 1;
 }
 
 .ActivardesactivartableHeader {
@@ -321,7 +256,7 @@
   font-weight: 600;
   color: var(--text-primary);
   background: var(--card-bg);
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--table-border); /* Línea más sutil */
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -329,7 +264,7 @@
 
 .ActivardesactivartableRow {
   transition: all 0.3s ease;
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--table-border); /* Línea más sutil */
 }
 
 .ActivardesactivartableRow:hover {
@@ -468,17 +403,21 @@
   animation: spin 1s linear infinite;
 }
 
-/* Empty State */
+/* Empty State - CORREGIDO */
 .ActivardesactivarnoUsers {
   text-align: center;
   padding: 60px 20px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ActivardesactivaremptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   color: var(--text-secondary);
 }
 
@@ -493,7 +432,7 @@
   font-weight: 500;
 }
 
-/* Loading State */
+/* Loading State - CORREGIDO */
 .Activardesactivarloading {
   display: flex;
   align-items: center;
@@ -502,6 +441,7 @@
   padding: 60px 20px;
   color: var(--text-secondary);
   font-weight: 500;
+  flex: 1;
 }
 
 .ActivardesactivarloadingSpinner {
@@ -509,6 +449,188 @@
   height: 24px;
   border: 3px solid transparent;
   border-top: 3px solid var(--accent-1);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Modal Styles */
+.ActivardesactivarmodalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.Activardesactivarmodal {
+  background: var(--modal-bg);
+  border: 1px solid var(--modal-border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+.ActivardesactivarmodalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 0;
+  margin-bottom: 24px;
+}
+
+.ActivardesactivarmodalTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ActivardesactivarmodalClose {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.ActivardesactivarmodalClose:hover {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.ActivardesactivarmodalForm {
+  padding: 0 24px 24px;
+}
+
+/* Form Styles */
+.ActivardesactivarformGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ActivardesactivarformGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.Activardesactivarlabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ActivardesactivarlabelText {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.Activardesactivarinput {
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.Activardesactivarinput::placeholder {
+  color: var(--text-muted);
+}
+
+.Activardesactivarinput:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.ActivardesactivarLight .Activardesactivarinput:focus {
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.ActivardesactivarmodalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.ActivardesactivarmodalCancel {
+  padding: 12px 24px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ActivardesactivarmodalCancel:hover:not(:disabled) {
+  background: var(--card-hover-bg);
+  transform: translateY(-1px);
+}
+
+.ActivardesactivarmodalSubmit {
+  padding: 12px 24px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ActivardesactivarmodalSubmit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.ActivardesactivarmodalCancel:disabled,
+.ActivardesactivarmodalSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.Activardesactivarspinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -533,6 +655,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
+  box-sizing: border-box;
 }
 
 .ActivardesactivarcustomSelectButton:hover {
@@ -617,6 +740,26 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -625,18 +768,33 @@
 /* Focus States para Accesibilidad */
 .Activardesactivarinput:focus-visible,
 .ActivardesactivarcustomSelectButton:focus-visible,
-.ActivardesactivarprimaryButton:focus-visible,
+.ActivardesactivarcreateButton:focus-visible,
 .ActivardesactivaractionButton:focus-visible,
 .ActivardesactivarroleButton:focus-visible,
-.ActivardesactivardeleteButton:focus-visible {
+.ActivardesactivardeleteButton:focus-visible,
+.ActivardesactivarmodalCancel:focus-visible,
+.ActivardesactivarmodalSubmit:focus-visible {
   outline: 2px solid var(--accent-1);
   outline-offset: 2px;
 }
 
-/* Responsive Design */
+/* Responsive Design - CORREGIDO */
 @media (max-width: 768px) {
   .Activardesactivarheader {
-    padding: 40px 24px 30px;
+    padding: 30px 20px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .ActivardesactivarheaderContent {
+    text-align: center;
+  }
+  
+  .ActivardesactivarheaderActions {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
   }
   
   .Activardesactivartitle {
@@ -647,18 +805,17 @@
     font-size: 1rem;
   }
   
-  .ActivardesactivarcreateSection {
-    padding: 24px;
-    margin: 0 24px 32px;
+  .ActivardesactivarsectionHeader {
+    padding: 0 16px;
+  }
+  
+  .ActivardesactivartableWrapper {
+    margin: 0 16px;
   }
   
   .ActivardesactivarformGrid {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-  
-  .ActivardesactivartableSection {
-    margin: 0 24px 40px;
   }
   
   .ActivardesactivaractionButtons {
@@ -672,37 +829,53 @@
     width: 100%;
     justify-content: center;
   }
+  
+  .Activardesactivarmodal {
+    margin: 20px;
+    max-height: calc(100vh - 40px);
+  }
+  
+  .ActivardesactivarmodalHeader {
+    padding: 20px 20px 0;
+  }
+  
+  .ActivardesactivarmodalForm {
+    padding: 0 20px 20px;
+  }
 }
 
 @media (max-width: 480px) {
   .Activardesactivarheader {
-    padding: 30px 20px;
+    padding: 25px 16px 16px;
   }
   
   .Activardesactivartitle {
     font-size: 1.75rem;
   }
   
-  .ActivardesactivarcreateSection {
-    padding: 20px;
-    margin: 0 20px 24px;
-  }
-  
   .ActivardesactivarsectionTitle {
     font-size: 1.2rem;
   }
   
-  .ActivardesactivarformActions {
-    justify-content: stretch;
+  .ActivardesactivartableHeader,
+  .Activardesactivartable td {
+    padding: 12px 8px;
   }
   
-  .ActivardesactivarprimaryButton {
+  .ActivardesactivarmodalActions {
+    flex-direction: column;
+  }
+  
+  .ActivardesactivarmodalCancel,
+  .ActivardesactivarmodalSubmit {
     width: 100%;
+    justify-content: center;
   }
 }
 
-/* Animación sutil de entrada */
-.ActivardesactivarcreateSection,
-.ActivardesactivartableWrapper {
-  animation: fadeInUp 0.6s ease-out forwards;
+/* Asegurar que el contenedor principal ocupe toda la altura */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
