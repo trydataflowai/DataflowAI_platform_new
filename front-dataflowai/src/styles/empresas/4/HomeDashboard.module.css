@@ -12,25 +12,25 @@
   --text-primary: #ffffff;
   --text-secondary: #b8c2d9;
   --text-muted: #666666;
-  --accent-1: #00c7ff;
-  --accent-2: #0077b6;
+  --accent-1: #F58220;
+  --accent-2: #d46a10;
   --accent-gradient: linear-gradient(90deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(18, 18, 29, 0.6);
   --card-hover-bg: rgba(30, 30, 45, 0.8);
-  --card-border: rgba(0, 199, 255, 0.05);
-  --card-hover-border: rgba(0, 199, 255, 0.2);
+  --card-border: rgba(245, 130, 32, 0.05);
+  --card-hover-border: rgba(245, 130, 32, 0.2);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  --card-hover-shadow: 0 15px 40px rgba(0, 199, 255, 0.2);
+  --card-hover-shadow: 0 15px 40px rgba(245, 130, 32, 0.2);
   --input-bg: rgba(18, 18, 29, 0.8);
-  --input-border: rgba(0, 199, 255, 0.1);
-  --input-focus-border: rgba(0, 199, 255, 0.3);
+  --input-border: rgba(245, 130, 32, 0.1);
+  --input-focus-border: rgba(245, 130, 32, 0.3);
   --modal-bg: rgba(18, 18, 29, 0.95);
-  --modal-border: rgba(0, 199, 255, 0.2);
+  --modal-border: rgba(245, 130, 32, 0.2);
   --success: #4ade80;
   --error: #f87171;
   --filter-bg: rgba(18, 18, 29, 0.5);
   --hero-gradient: linear-gradient(180deg, #0a0a0a, #141414);
-  --hero-border: rgba(0, 199, 255, 0.1);
+  --hero-border: rgba(245, 130, 32, 0.1);
 }
 
 .light {
@@ -41,18 +41,18 @@
   --text-primary: rgba(0, 0, 0, 0.9);
   --text-secondary: rgba(0, 0, 0, 0.6);
   --text-muted: rgba(0, 0, 0, 0.4);
-  --accent-1: #0a66c2;
-  --accent-2: #004182;
+  --accent-1: #F58220;
+  --accent-2: #d46a10;
   --accent-gradient: linear-gradient(to right, var(--accent-1), var(--accent-2));
   --card-bg: #ffffff;
   --card-hover-bg: #fafbfc;
   --card-border: rgba(0, 0, 0, 0.08);
-  --card-hover-border: rgba(0, 0, 0, 0.15);
+  --card-hover-border: rgba(245, 130, 32, 0.15);
   --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --card-hover-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --card-hover-shadow: 0 5px 15px rgba(245, 130, 32, 0.1);
   --input-bg: #ffffff;
   --input-border: rgba(0, 0, 0, 0.15);
-  --input-focus-border: #0a66c2;
+  --input-focus-border: #F58220;
   --modal-bg: #ffffff;
   --modal-border: rgba(0, 0, 0, 0.15);
   --success: #057642;
@@ -99,7 +99,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(0, 170, 255, 0.5) 2px, transparent 3px);
+  background: radial-gradient(circle, rgba(245, 130, 32, 0.5) 2px, transparent 3px);
   background-size: 50px 50px;
   animation: moveParticles 25s linear infinite;
   opacity: 0.25;
@@ -110,7 +110,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(0, 140, 255, 0.35) 1.5px, transparent 3px);
+  background: radial-gradient(circle, rgba(245, 130, 32, 0.35) 1.5px, transparent 3px);
   background-size: 80px 80px;
   animation: moveParticlesReverse 40s linear infinite;
   opacity: 0.2;
@@ -140,7 +140,7 @@
   font-weight: 700;
   margin-bottom: 1rem;
   color: var(--text-primary);
-  text-shadow: 0 2px 8px rgba(0, 170, 255, 0.15);
+  text-shadow: 0 2px 8px rgba(245, 130, 32, 0.15);
 }
 
 .greeting {
@@ -212,7 +212,7 @@
 .searchInput:focus {
   outline: none;
   border-color: var(--input-focus-border);
-  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.2);
+  box-shadow: 0 0 0 3px rgba(245, 130, 32, 0.2);
 }
 
 .searchIcon {
@@ -352,7 +352,7 @@
 }
 
 .clearAreasButton:hover {
-  background: rgba(10, 102, 194, 0.08);
+  background: rgba(245, 130, 32, 0.08);
 }
 
 .areaOptions {
@@ -371,7 +371,7 @@
 }
 
 .areaOption:hover {
-  background: rgba(10, 102, 194, 0.08);
+  background: rgba(245, 130, 32, 0.08);
 }
 
 .areaCheckbox {
@@ -410,10 +410,10 @@
 .filterInfo {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  background: rgba(10, 102, 194, 0.1);
+  background: rgba(245, 130, 32, 0.1);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
-  border: 1px solid rgba(10, 102, 194, 0.2);
+  border: 1px solid rgba(245, 130, 32, 0.2);
 }
 
 .clearFilterButton {
@@ -469,11 +469,11 @@
 }
 
 .suggestionItem:hover {
-  background: rgba(10, 102, 194, 0.08);
+  background: rgba(245, 130, 32, 0.08);
 }
 
 .highlighted {
-  background: rgba(10, 102, 194, 0.08);
+  background: rgba(245, 130, 32, 0.08);
 }
 
 .suggestionCheckbox {
@@ -561,7 +561,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 0%, rgba(0, 199, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(245, 130, 32, 0.1) 0%, transparent 70%);
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   z-index: -1;
@@ -580,13 +580,13 @@
   position: absolute;
   top: 1.5rem;
   right: 1.5rem;
-  background: rgba(10, 102, 194, 0.1);
+  background: rgba(245, 130, 32, 0.1);
   color: var(--accent-1);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid rgba(10, 102, 194, 0.2);
+  border: 1px solid rgba(245, 130, 32, 0.2);
 }
 
 .cardTitle {
@@ -680,7 +680,7 @@
 }
 
 .previewButton:hover {
-  box-shadow: 0 0 0 3px rgba(0, 199, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(245, 130, 32, 0.3);
   transform: translateY(-2px);
 }
 
@@ -746,10 +746,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(245, 130, 32, 0.08);
+  border: 1px solid rgba(245, 130, 32, 0.2);
   border-radius: 8px;
-  color: #7c3aed;
+  color: #F58220;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
@@ -757,8 +757,8 @@
 }
 
 .backButton:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(245, 130, 32, 0.15);
+  border-color: rgba(245, 130, 32, 0.4);
   transform: translateX(-4px);
 }
 

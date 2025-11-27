@@ -1,3 +1,9 @@
+/* HomeDashboard.module.css */
+
+/* =========================
+   Variables por variante
+   ========================= */
+
 /* src/styles/Profile/Perfil.module.css */
 
 /* =========================
@@ -5,14 +11,14 @@
    ========================= */
 
 .PerfilgeneralDark {
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
   --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #b8c2d9;
   --text-muted: #666666;
   --accent-1: #F58220;
-  --accent-2: #FF9E40;
+  --accent-2: #d46a10;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(30, 30, 30, 0.6);
   --card-hover-bg: rgba(40, 40, 40, 0.8);
@@ -25,6 +31,7 @@
   --modal-border: rgba(255, 255, 255, 0.1);
   --btn-bg: var(--accent-gradient);
   --btn-text: #1a0d00;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .PerfilgeneralLight {
@@ -35,7 +42,7 @@
   --text-secondary: #4a5568;
   --text-muted: #718096;
   --accent-1: #F58220;
-  --accent-2: #FF9E40;
+  --accent-2: #d46a10;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(255, 255, 255, 0.9);
   --card-hover-bg: rgba(255, 255, 255, 1);
@@ -136,7 +143,7 @@
   border-radius: 12px;
   padding: 0;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   backdrop-filter: var(--backdrop-filter);
   -webkit-backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
@@ -251,7 +258,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--accent-1);
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .PerfilgeneralctaArrow {
@@ -316,7 +323,7 @@
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition);
   min-width: 100px;
 }
 
