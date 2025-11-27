@@ -1,8 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+// src/components/.../ConfiguracionUsuarios.jsx
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import defaultStyles from '../../styles/Profile/Perfil.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
 import { useTheme } from "../componentes/ThemeContext";
+import { useCompanyStyles } from "../componentes/ThemeContextEmpresa";
+
+// NOTA: ya no importas defaultStyles directamente aquí, el hook lo devuelve
+// import defaultStyles from '../../styles/Profile/Perfil.module.css';
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -69,6 +73,7 @@ const Card = ({ texto, ruta, onCardClick, styles }) => {
 
 const ConfiguracionUsuarios = () => {
   const { theme } = useTheme();
+  const styles = useCompanyStyles('Perfil'); // obtiene estilos (empresa o default) sin parpadeo
   const [companySegment, setCompanySegment] = useState("");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
@@ -77,7 +82,6 @@ const ConfiguracionUsuarios = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [companyId, setCompanyId] = useState(null);
 
-  const [styles, setStyles] = useState(defaultStyles);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -116,33 +120,6 @@ const ConfiguracionUsuarios = () => {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadCompanyStyles = async () => {
-      if ((planId === 3 || planId === 6) && companyId) {
-        try {
-          const module = await import(`../../styles/empresas/${companyId}/Perfil.module.css`);
-          if (mounted && module && (module.default || module)) {
-            const cssMap = module.default || module;
-            setStyles(cssMap);
-            return;
-          }
-        } catch (err) {
-          console.warn(`No se encontró CSS custom para la empresa ${companyId}. Usando estilos por defecto.`, err);
-        }
-      }
-
-      if (mounted) setStyles(defaultStyles);
-    };
-
-    loadCompanyStyles();
-
-    return () => {
-      mounted = false;
-    };
-  }, [planId, companyId]);
 
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
@@ -208,7 +185,7 @@ const ConfiguracionUsuarios = () => {
     setModalMessage("");
   };
 
-  // <-- CAMBIO: elegir la variante SEGÚN EL THEME siempre (evita fallback oscuro)
+  // variante basada únicamente en ThemeContext (evita fallback oscuro)
   const variantClass = theme === "dark" ? styles.PerfilgeneralDark : styles.PerfilgeneralLight;
 
   return (
