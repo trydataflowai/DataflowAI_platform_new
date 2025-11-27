@@ -5,29 +5,30 @@
    ========================= */
 
 .AsignardashboardDark {
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
   --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #b8c2d9;
   --text-muted: #666666;
-  --accent-1: #00f7ff;
-  --accent-2: #00c2ff;
+  --accent-1: #00c7ff;
+  --accent-2: #0077b6;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --card-bg: rgba(30, 30, 30, 0.6);
-  --card-hover-bg: rgba(40, 40, 40, 0.8);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --card-hover-border: rgba(0, 247, 255, 0.3);
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --card-bg: rgba(25, 25, 35, 0.9);
+  --card-hover-bg: rgba(35, 35, 45, 0.95);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-hover-border: rgba(0, 199, 255, 0.2);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --card-hover-shadow: 0 8px 30px rgba(0, 199, 255, 0.15);
   --backdrop-filter: blur(10px);
-  --modal-bg: rgba(30, 30, 30, 0.95);
+  --modal-bg: rgba(18, 18, 29, 0.95);
   --modal-border: rgba(255, 255, 255, 0.1);
   --btn-bg: var(--accent-gradient);
   --btn-text: #00121a;
   --success-color: #00ffaa;
   --error-color: #ff3366;
   --warning-color: #ffcc00;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .AsignardashboardLight {
@@ -54,6 +55,7 @@
   --success-color: #0fa969;
   --error-color: #d0445a;
   --warning-color: #e6a700;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* =========================
@@ -63,13 +65,18 @@
 .Asignardashboardcontainer {
   width: 100%;
   min-height: 100vh;
+  height: 100%;
   padding: 0;
+  margin: 0;
   background: var(--bg-gradient);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
 }
 
 /* Header Section */
@@ -77,6 +84,8 @@
   padding: 60px 40px 40px;
   border-bottom: 1px solid var(--card-border);
   background: var(--bg-primary);
+  flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .AsignardashboardheaderContent {
@@ -91,6 +100,7 @@
   margin: 0 0 12px 0;
   color: var(--text-primary);
   letter-spacing: -0.02em;
+  transition: var(--transition);
 }
 
 .Asignardashboardsubtitle {
@@ -101,6 +111,7 @@
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
+  transition: var(--transition);
 }
 
 .AsignardashboardheaderMeta {
@@ -120,7 +131,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .AsignardashboardrefreshButton:hover {
@@ -139,6 +150,8 @@
   padding: 16px 20px;
   border-radius: 8px;
   animation: fadeInUp 0.5s ease-out;
+  flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .AsignardashboarderrorBox {
@@ -170,8 +183,11 @@
 /* Users Section */
 .AsignardashboardusersSection {
   max-width: 1200px;
-  margin: 0 auto 60px;
-  padding: 0 40px;
+  margin: 0 auto;
+  padding: 40px;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .AsignardashboardsectionHeader {
@@ -183,12 +199,14 @@
   font-weight: 700;
   margin: 0 0 8px 0;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .AsignardashboardsectionSubtitle {
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin: 0;
+  transition: var(--transition);
 }
 
 /* Table Wrapper */
@@ -199,12 +217,15 @@
   overflow: hidden;
   backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
+  width: 100%;
+  transition: var(--transition);
 }
 
 .Asignardashboardtable {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  table-layout: fixed;
 }
 
 .AsignardashboardtableHeader {
@@ -217,10 +238,11 @@
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: var(--transition);
 }
 
 .AsignardashboardtableRow {
-  transition: all 0.3s ease;
+  transition: var(--transition);
   border-bottom: 1px solid var(--card-border);
 }
 
@@ -235,11 +257,13 @@
 .Asignardashboardtable td {
   padding: 16px 20px;
   vertical-align: middle;
+  word-wrap: break-word;
 }
 
 /* Table Cell Styles */
 .AsignardashboardcellUser {
   font-weight: 600;
+  width: 25%;
 }
 
 .AsignardashboarduserInfo {
@@ -251,20 +275,25 @@
 .AsignardashboarduserName {
   font-weight: 600;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .AsignardashboarduserEmail {
   font-size: 0.85rem;
   color: var(--text-secondary);
+  transition: var(--transition);
 }
 
 .AsignardashboardcellArea {
   color: var(--text-secondary);
   font-size: 0.9rem;
+  width: 20%;
+  transition: var(--transition);
 }
 
 .AsignardashboardcellActions {
   text-align: center;
+  width: 15%;
 }
 
 /* Buttons */
@@ -276,8 +305,11 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   min-width: 80px;
+  width: 100%;
+  max-width: 120px;
+  box-sizing: border-box;
 }
 
 .AsignardashboardprimaryButton {
@@ -360,6 +392,7 @@
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalEnter 0.3s ease-out;
+  transition: var(--transition);
 }
 
 .AsignardashboardmodalHeader {
@@ -369,6 +402,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .AsignardashboardmodalTitle {
@@ -380,6 +414,7 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .AsignardashboardcloseButton {
@@ -390,7 +425,8 @@
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
-  transition: all 0.3s ease;
+  transition: var(--transition);
+  flex-shrink: 0;
 }
 
 .AsignardashboardcloseButton:hover {
@@ -415,20 +451,23 @@
   color: var(--text-primary);
   padding-bottom: 8px;
   border-bottom: 1px solid var(--card-border);
+  transition: var(--transition);
 }
 
 .AsignardashboardtableContainer {
   overflow-x: auto;
+  width: 100%;
 }
 
 .AsignardashboardmodalTable {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  table-layout: fixed;
 }
 
 .AsignardashboardmodalTableRow {
-  transition: all 0.3s ease;
+  transition: var(--transition);
   border-bottom: 1px solid var(--card-border);
 }
 
@@ -443,16 +482,21 @@
 .AsignardashboardmodalTable td {
   padding: 12px 16px;
   vertical-align: middle;
+  word-wrap: break-word;
 }
 
 .AsignardashboardcellName {
   font-weight: 600;
   color: var(--text-primary);
+  width: 30%;
+  transition: var(--transition);
 }
 
 .AsignardashboardcellOwner {
   color: var(--text-secondary);
   font-size: 0.85rem;
+  width: 25%;
+  transition: var(--transition);
 }
 
 /* Modal Action Buttons */
@@ -464,12 +508,15 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   min-width: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  width: 100%;
+  max-width: 120px;
+  box-sizing: border-box;
 }
 
 .AsignardashboardactionButton {
@@ -517,6 +564,7 @@
   border-top: 1px solid var(--card-border);
   display: flex;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .AsignardashboardcloseModalButton {
@@ -528,12 +576,76 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .AsignardashboardcloseModalButton:hover {
   color: var(--text-primary);
   border-color: var(--card-hover-border);
+}
+
+/* =========================
+   ESTILOS ESPECÍFICOS PARA MODO OSCURO - SIN LÍNEAS BLANCAS
+   ========================= */
+
+/* Eliminar completamente las líneas en modo oscuro */
+.AsignardashboardDark .AsignardashboardtableWrapper,
+.AsignardashboardDark .Asignardashboardmodal {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.AsignardashboardDark .AsignardashboardtableHeader {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: rgba(30, 30, 40, 0.9);
+}
+
+.AsignardashboardDark .AsignardashboardtableRow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+.AsignardashboardDark .AsignardashboardtableRow:last-child {
+  border-bottom: none !important;
+}
+
+.AsignardashboardDark .AsignardashboardtableRow:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.AsignardashboardDark .AsignardashboardmodalHeader {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.AsignardashboardDark .AsignardashboardmodalSubtitle {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.AsignardashboardDark .AsignardashboardmodalTableRow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+
+.AsignardashboardDark .AsignardashboardmodalTableRow:last-child {
+  border-bottom: none !important;
+}
+
+.AsignardashboardDark .AsignardashboardmodalTableRow:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.AsignardashboardDark .AsignardashboardmodalFooter {
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Fondos más oscuros para mejor contraste */
+.AsignardashboardDark .AsignardashboardtableWrapper {
+  background: rgba(18, 18, 29, 0.95);
+}
+
+.AsignardashboardDark .Asignardashboardmodal {
+  background: rgba(10, 10, 18, 0.98);
+}
+
+.AsignardashboardDark .AsignardashboardtableHeader {
+  background: rgba(25, 25, 35, 0.9);
 }
 
 /* Animations */
@@ -591,8 +703,7 @@
   }
   
   .AsignardashboardusersSection {
-    padding: 0 24px;
-    margin-bottom: 40px;
+    padding: 24px;
   }
   
   .AsignardashboardtableWrapper {
@@ -619,6 +730,12 @@
   .AsignardashboardmodalFooter {
     padding: 20px;
   }
+
+  .AsignardashboardcellUser,
+  .AsignardashboardcellArea,
+  .AsignardashboardcellActions {
+    width: auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -631,7 +748,7 @@
   }
   
   .AsignardashboardusersSection {
-    padding: 0 20px;
+    padding: 20px;
   }
   
   .AsignardashboardmodalHeader {
@@ -645,9 +762,22 @@
     font-size: 0.8rem;
     padding: 6px 12px;
   }
+
+  .Asignardashboardtable td {
+    padding: 12px 8px;
+  }
+
+  .AsignardashboardtableHeader {
+    padding: 12px 8px;
+  }
 }
 
 /* Animación sutil de entrada */
 .AsignardashboardtableWrapper {
   animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Asegurar que el contenedor principal ocupe toda la altura */
+.Asignardashboardcontainer > * {
+  width: 100%;
 }

@@ -2,7 +2,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getForm, submitForm } from '../../api/FormBuilder';
-import styles from '../../styles/CreacionUsuario.module.css';
+import { useTheme } from '../componentes/ThemeContext';
+import styles from '../../styles/FormPublic.module.css';
 
 /**
  * FormPublic.jsx (sin auto-submit)
@@ -14,6 +15,7 @@ import styles from '../../styles/CreacionUsuario.module.css';
 
 const FormPublic = () => {
   const { slug } = useParams();
+  const { theme } = useTheme();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   // values: { "<id_pregunta>": value }
@@ -27,6 +29,9 @@ const FormPublic = () => {
 
   // focus ref for the last visible question input
   const lastInputRef = useRef(null);
+
+  // Determinar la clase del tema
+  const themeClass = theme === 'dark' ? styles.darkTheme : styles.lightTheme;
 
   useEffect(() => {
     if (!slug) {
@@ -68,8 +73,8 @@ const FormPublic = () => {
     }
   }, [visibleIndices, form]);
 
-  if (loading) return <div className={styles.container}>Cargando...</div>;
-  if (!form) return <div className={styles.container}>Formulario no encontrado</div>;
+  if (loading) return <div className={`${styles.container} ${themeClass}`}>Cargando...</div>;
+  if (!form) return <div className={`${styles.container} ${themeClass}`}>Formulario no encontrado</div>;
 
   const preguntas = form.preguntas || [];
 
@@ -269,146 +274,155 @@ const FormPublic = () => {
 
   // Render de cada pregunta visible (en orden)
   return (
-    <div className={styles.container} style={{ maxWidth: 800, margin: '0 auto', padding: 20 }}>
-      <h1>{form.nombre}</h1>
-      {form.descripcion && <p>{form.descripcion}</p>}
+    <div className={`${styles.container} ${themeClass}`}>
+      <div className={styles.formContent}>
+        <h1 className={styles.formTitle}>{form.nombre}</h1>
+        {form.descripcion && <p className={styles.formDescription}>{form.descripcion}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {visibleIndices.map((idx, pos) => {
-          const pregunta = preguntas[idx];
-          if (!pregunta) return null;
-          const pidStr = String(pregunta.id_pregunta);
-          const value = values[pidStr];
+        <div className={styles.questionsContainer}>
+          {visibleIndices.map((idx, pos) => {
+            const pregunta = preguntas[idx];
+            if (!pregunta) return null;
+            const pidStr = String(pregunta.id_pregunta);
+            const value = values[pidStr];
 
-          // El último visible recibe el ref para focus automático
-          const isLast = pos === visibleIndices.length - 1;
+            // El último visible recibe el ref para focus automático
+            const isLast = pos === visibleIndices.length - 1;
 
-          return (
-            <div key={pidStr} style={{ border: '1px solid #eee', padding: 12, borderRadius: 6 }}>
-              <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>
-                {pregunta.texto} {pregunta.requerido && <span style={{ color: 'red' }}>*</span>}
-              </label>
+            return (
+              <div key={pidStr} className={styles.questionCard}>
+                <label className={styles.questionLabel}>
+                  {pregunta.texto} {pregunta.requerido && <span className={styles.required}>*</span>}
+                </label>
 
-              {pregunta.tipo === 'text' && (
-                <input
-                  ref={isLast ? lastInputRef : null}
-                  className={styles.input}
-                  value={value || ''}
-                  onChange={(e) => handleTextChange(idx, pregunta, e)}
-                  onBlur={() => handleTextBlurOrEnter(idx, pregunta)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleTextBlurOrEnter(idx, pregunta);
-                    }
-                  }}
-                />
+                {pregunta.tipo === 'text' && (
+                  <input
+                    ref={isLast ? lastInputRef : null}
+                    className={styles.input}
+                    value={value || ''}
+                    onChange={(e) => handleTextChange(idx, pregunta, e)}
+                    onBlur={() => handleTextBlurOrEnter(idx, pregunta)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleTextBlurOrEnter(idx, pregunta);
+                      }
+                    }}
+                  />
+                )}
+
+                {pregunta.tipo === 'textarea' && (
+                  <textarea
+                    ref={isLast ? lastInputRef : null}
+                    className={styles.textarea}
+                    value={value || ''}
+                    onChange={(e) => handleTextChange(idx, pregunta, e)}
+                    onBlur={() => handleTextBlurOrEnter(idx, pregunta)}
+                  />
+                )}
+
+                {pregunta.tipo === 'date' && (
+                  <input
+                    ref={isLast ? lastInputRef : null}
+                    type="date"
+                    className={styles.input}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
+                  />
+                )}
+
+                {pregunta.tipo === 'int' && (
+                  <input
+                    ref={isLast ? lastInputRef : null}
+                    type="number"
+                    step="1"
+                    className={styles.input}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
+                  />
+                )}
+
+                {pregunta.tipo === 'float' && (
+                  <input
+                    ref={isLast ? lastInputRef : null}
+                    type="number"
+                    step="any"
+                    className={styles.input}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
+                  />
+                )}
+
+                {pregunta.tipo === 'email' && (
+                  <input
+                    ref={isLast ? lastInputRef : null}
+                    type="email"
+                    className={styles.input}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
+                  />
+                )}
+
+                {pregunta.tipo === 'select' && (
+                  <select
+                    ref={isLast ? lastInputRef : null}
+                    className={styles.select}
+                    value={value || ''}
+                    onChange={(e) => handleSelectChange(idx, pregunta, e)}
+                  >
+                    <option value=''>-- seleccionar --</option>
+                    {(pregunta.opciones || []).map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+                  </select>
+                )}
+
+                {pregunta.tipo === 'checkbox' && (
+                  <div className={styles.checkboxGroup}>
+                    {(pregunta.opciones || []).map((opt, i) => {
+                      const checked = Array.isArray(value) && value.includes(opt);
+                      return (
+                        <label key={i} className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            value={opt}
+                            checked={checked}
+                            onChange={(e) => handleCheckboxToggle(idx, pregunta, opt, e.target.checked)}
+                            className={styles.checkboxInput}
+                          />
+                          <span className={styles.checkboxText}>{opt}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className={styles.footer}>
+          {errors && <div className={styles.errorMessage}>{errors}</div>}
+          {success && <div className={styles.successMessage}>{success}</div>}
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              onClick={() => submitAll()}
+              disabled={sending}
+              className={styles.submitButton}
+            >
+              {sending ? (
+                <>
+                  <div className={styles.spinner}></div>
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                'Enviar respuestas'
               )}
+            </button>
 
-              {pregunta.tipo === 'textarea' && (
-                <textarea
-                  ref={isLast ? lastInputRef : null}
-                  className={styles.textarea}
-                  value={value || ''}
-                  onChange={(e) => handleTextChange(idx, pregunta, e)}
-                  onBlur={() => handleTextBlurOrEnter(idx, pregunta)}
-                />
-              )}
-
-              {pregunta.tipo === 'date' && (
-                <input
-                  ref={isLast ? lastInputRef : null}
-                  type="date"
-                  className={styles.input}
-                  value={value || ''}
-                  onChange={(e) => handleOtherChange(idx, pregunta, e)}
-                />
-              )}
-
-              {pregunta.tipo === 'int' && (
-                <input
-                  ref={isLast ? lastInputRef : null}
-                  type="number"
-                  step="1"
-                  className={styles.input}
-                  value={value || ''}
-                  onChange={(e) => handleOtherChange(idx, pregunta, e)}
-                />
-              )}
-
-              {pregunta.tipo === 'float' && (
-                <input
-                  ref={isLast ? lastInputRef : null}
-                  type="number"
-                  step="any"
-                  className={styles.input}
-                  value={value || ''}
-                  onChange={(e) => handleOtherChange(idx, pregunta, e)}
-                />
-              )}
-
-              {pregunta.tipo === 'email' && (
-                <input
-                  ref={isLast ? lastInputRef : null}
-                  type="email"
-                  className={styles.input}
-                  value={value || ''}
-                  onChange={(e) => handleOtherChange(idx, pregunta, e)}
-                />
-              )}
-
-              {pregunta.tipo === 'select' && (
-                <select
-                  ref={isLast ? lastInputRef : null}
-                  className={styles.input}
-                  value={value || ''}
-                  onChange={(e) => handleSelectChange(idx, pregunta, e)}
-                >
-                  <option value=''>-- seleccionar --</option>
-                  {(pregunta.opciones || []).map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
-                </select>
-              )}
-
-              {pregunta.tipo === 'checkbox' && (
-                <div>
-                  {(pregunta.opciones || []).map((opt, i) => {
-                    const checked = Array.isArray(value) && value.includes(opt);
-                    return (
-                      <label key={i} style={{ display: 'block' }}>
-                        <input
-                          type="checkbox"
-                          value={opt}
-                          checked={checked}
-                          onChange={(e) => handleCheckboxToggle(idx, pregunta, opt, e.target.checked)}
-                        />
-                        {' '}{opt}
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Si quieres permitir que el usuario retroceda explícitamente, podrías mostrar un botón "Editar respuestas anteriores" */}
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ marginTop: 12 }}>
-        {errors && <div style={{ color: 'red', marginBottom: 12 }}>{errors}</div>}
-        {success && <div style={{ color: 'green', marginBottom: 12 }}>{success}</div>}
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            type="button"
-            onClick={() => submitAll()}
-            disabled={sending}
-          >
-            {sending ? 'Enviando...' : 'Enviar respuestas'}
-          </button>
-
-          {/* mostrar estado si el flujo indicó 'end' o llegó al final (informativo) */}
-          {ended && <div style={{ alignSelf: 'center', color: '#333' }}>Has llegado al final. Pulsa "Enviar respuestas" para terminar.</div>}
+            {/* mostrar estado si el flujo indicó 'end' o llegó al final (informativo) */}
+            {ended && <div className={styles.endMessage}>Has llegado al final. Pulsa "Enviar respuestas" para terminar.</div>}
+          </div>
         </div>
       </div>
     </div>

@@ -1,30 +1,13 @@
 // src/components/pages/HomeTools.jsx
 import React, { useEffect, useMemo, useState } from 'react';
-import darkStyles from '../../styles/ToolsDark.module.css';
-import lightStyles from '../../styles/ToolsLight.module.css';
+import defaultStyles from '../../styles/ToolsHome.module.css';
 import { obtenerHerramientaUsuario } from '../../api/HerramientaUsuario';
-import { obtenerInfoUsuario } from '../../api/Usuario';
 import { useTheme } from '../componentes/ThemeContext';
-
-/*
-  Lógica de selección de estilos por empresa (solo override LIGHT aquí):
-  - Busca módulos: src/styles/empresas/{companyId}/ToolsLight.module.css
-  - Si (planId === 3 || planId === 6) && existe el archivo de la empresa -> usarlo en theme 'light'
-  - Si no existe -> fallback a ../../styles/ToolsLight.module.css
-  - Si el plan no permite toggle -> forzar darkStyles
-*/
-const empresaLightModules = import.meta.glob(
-  '../../styles/empresas/*/ToolsLight.module.css',
-  { eager: true }
-);
 
 const HomeTools = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [planId, setPlanId] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
-  const [styles, setStyles] = useState(darkStyles);
 
   // UI filters
   const [query, setQuery] = useState('');
@@ -32,56 +15,19 @@ const HomeTools = () => {
   const [selectedArea, setSelectedArea] = useState('Todos');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' o 'list'
 
-  const { theme } = useTheme(); // Obtiene el tema actual ('dark' o 'light')
+  const { theme } = useTheme(); // 'dark' or 'light'
+
+  // helper to pick class variant according to theme
+  const cls = (name) => {
+    const variantClass = theme === 'dark' ? `${name}Dark` : `${name}Light`;
+    return defaultStyles[variantClass] || defaultStyles[name] || '';
+  };
 
   // Debounce search (300ms)
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query.trim()), 300);
     return () => clearTimeout(t);
   }, [query]);
-
-  // Obtener información del usuario y plan (ahora también companyId)
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const userInfo = await obtenerInfoUsuario();
-        const pid = userInfo.empresa?.plan?.id ?? null;
-        const cid = userInfo.empresa?.id ?? null;
-        setPlanId(pid);
-        setCompanyId(cid);
-      } catch (err) {
-        console.error('Error al obtener info del usuario:', err);
-        // Si no se puede obtener el plan, usar modo oscuro por defecto
-        setPlanId(null);
-        setCompanyId(null);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
-
-  // Selección de estilos según planId, companyId y theme (NO rompe funcionalidad)
-  useEffect(() => {
-    const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
-
-    const lightKey = `../../styles/empresas/${companyId}/ToolsLight.module.css`;
-    const foundCompanyLight = empresaLightModules[lightKey];
-
-    const extract = (mod) => (mod ? (mod.default ?? mod) : null);
-    const companyLight = extract(foundCompanyLight);
-
-    if (planId === 3 || planId === 6) {
-      // permite toggle
-      if (theme === 'dark') {
-        setStyles(darkStyles);
-      } else {
-        setStyles(useCompanyStyles && companyLight ? companyLight : lightStyles);
-      }
-    } else {
-      // forzar dark si el plan no lo permite
-      setStyles(darkStyles);
-    }
-  }, [theme, planId, companyId]);
 
   useEffect(() => {
     let mounted = true;
@@ -151,13 +97,13 @@ const HomeTools = () => {
 
   if (loading) {
     return (
-      <div className={styles.pageContainer}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}>
-            <div className={styles.spinner}></div>
+      <div className={cls('pageContainer')}>
+        <div className={cls('loadingContainer')}>
+          <div className={cls('loadingSpinner')}>
+            <div className={cls('spinner')}></div>
           </div>
-          <h3 className={styles.loadingTitle}>Cargando herramientas</h3>
-          <p className={styles.loadingText}>Por favor espera un momento...</p>
+          <h3 className={cls('loadingTitle')}>Cargando herramientas</h3>
+          <p className={cls('loadingText')}>Por favor espera un momento...</p>
         </div>
       </div>
     );
@@ -165,12 +111,12 @@ const HomeTools = () => {
 
   if (error) {
     return (
-      <div className={styles.pageContainer}>
-        <div className={styles.errorContainer}>
-          <div className={styles.errorIcon}>⚠️</div>
-          <h2 className={styles.errorTitle}>Error al cargar</h2>
-          <p className={styles.errorText}>{error}</p>
-          <button className={styles.retryBtn} onClick={() => window.location.reload()}>
+      <div className={cls('pageContainer')}>
+        <div className={cls('errorContainer')}>
+          <div className={cls('errorIcon')}>⚠️</div>
+          <h2 className={cls('errorTitle')}>Error al cargar</h2>
+          <p className={cls('errorText')}>{error}</p>
+          <button className={cls('retryBtn')} onClick={() => window.location.reload()}>
             Intentar de nuevo
           </button>
         </div>
@@ -180,12 +126,12 @@ const HomeTools = () => {
 
   if (!productos.length) {
     return (
-      <div className={styles.pageContainer}>
-        <div className={styles.emptyContainer}>
-          <div className={styles.emptyIcon}>🔧</div>
-          <h2 className={styles.emptyTitle}>Sin herramientas</h2>
-          <p className={styles.emptyText}>No tienes herramientas disponibles en este momento.</p>
-          <small className={styles.emptyHelp}>Si crees que esto es un error, contacta con tu administrador.</small>
+      <div className={cls('pageContainer')}>
+        <div className={cls('emptyContainer')}>
+          <div className={cls('emptyIcon')}>🔧</div>
+          <h2 className={cls('emptyTitle')}>Sin herramientas</h2>
+          <p className={cls('emptyText')}>No tienes herramientas disponibles en este momento.</p>
+          <small className={cls('emptyHelp')}>Si crees que esto es un error, contacta con tu administrador.</small>
         </div>
       </div>
     );
@@ -194,36 +140,36 @@ const HomeTools = () => {
   const totalResults = filtered.length;
 
   return (
-    <div className={styles.pageContainer}>
+    <div className={cls('pageContainer')}>
       {/* Header Section */}
-      <header className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <div className={styles.titleSection}>
-            <h1 className={styles.mainTitle}>Mis Herramientas</h1>
-            <p className={styles.mainSubtitle}>
+      <header className={cls('pageHeader')}>
+        <div className={cls('headerContent')}>
+          <div className={cls('titleSection')}>
+            <h1 className={cls('mainTitle')}>Mis Herramientas</h1>
+            <p className={cls('mainSubtitle')}>
               Gestiona y accede a todas tus herramientas de trabajo en un solo lugar
             </p>
           </div>
 
-          <div className={styles.headerStats}>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>{productos.length}</span>
-              <span className={styles.statLabel}>Total</span>
+          <div className={cls('headerStats')}>
+            <div className={cls('statCard')}>
+              <span className={cls('statNumber')}>{productos.length}</span>
+              <span className={cls('statLabel')}>Total</span>
             </div>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>{areas.length - 1}</span>
-              <span className={styles.statLabel}>Áreas</span>
+            <div className={cls('statCard')}>
+              <span className={cls('statNumber')}>{areas.length - 1}</span>
+              <span className={cls('statLabel')}>Áreas</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Controls Section */}
-      <section className={styles.controlsSection}>
-        <div className={styles.controlsContainer}>
-          <div className={styles.searchContainer}>
-            <div className={styles.searchInputWrapper}>
-              <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="currentColor">
+      <section className={cls('controlsSection')}>
+        <div className={cls('controlsContainer')}>
+          <div className={cls('searchContainer')}>
+            <div className={cls('searchInputWrapper')}>
+              <svg className={cls('searchIcon')} viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
               </svg>
               <input
@@ -231,12 +177,12 @@ const HomeTools = () => {
                 placeholder="Buscar por nombre de herramienta..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className={styles.searchInput}
+                className={cls('searchInput')}
                 aria-label="Buscar herramientas"
               />
               {query && (
                 <button
-                  className={styles.clearSearch}
+                  className={cls('clearSearch')}
                   onClick={() => setQuery('')}
                   aria-label="Limpiar búsqueda"
                 >
@@ -248,13 +194,13 @@ const HomeTools = () => {
             </div>
           </div>
 
-          <div className={styles.filtersRow}>
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Filtrar por área</label>
+          <div className={cls('filtersRow')}>
+            <div className={cls('filterGroup')}>
+              <label className={cls('filterLabel')}>Filtrar por área</label>
               <select
                 value={selectedArea}
                 onChange={(e) => setSelectedArea(e.target.value)}
-                className={styles.filterSelect}
+                className={cls('filterSelect')}
               >
                 {areas.map(area => (
                   <option key={area} value={area}>{area}</option>
@@ -262,11 +208,11 @@ const HomeTools = () => {
               </select>
             </div>
 
-            <div className={styles.viewControls}>
-              <span className={styles.viewLabel}>Vista:</span>
-              <div className={styles.viewToggle}>
+            <div className={cls('viewControls')}>
+              <span className={cls('viewLabel')}>Vista:</span>
+              <div className={cls('viewToggle')}>
                 <button
-                  className={`${styles.viewBtn} ${viewMode === 'grid' ? styles.viewBtnActive : ''}`}
+                  className={`${cls('viewBtn')} ${viewMode === 'grid' ? cls('viewBtnActive') : ''}`}
                   onClick={() => setViewMode('grid')}
                   aria-label="Vista en cuadrícula"
                 >
@@ -275,7 +221,7 @@ const HomeTools = () => {
                   </svg>
                 </button>
                 <button
-                  className={`${styles.viewBtn} ${viewMode === 'list' ? styles.viewBtnActive : ''}`}
+                  className={`${cls('viewBtn')} ${viewMode === 'list' ? cls('viewBtnActive') : ''}`}
                   onClick={() => setViewMode('list')}
                   aria-label="Vista en lista"
                 >
@@ -286,8 +232,8 @@ const HomeTools = () => {
               </div>
             </div>
 
-            <div className={styles.resultsInfo}>
-              <span className={styles.resultsCount}>
+            <div className={cls('resultsInfo')}>
+              <span className={cls('resultsCount')}>
                 {totalResults} resultado{totalResults !== 1 ? 's' : ''}
               </span>
             </div>
@@ -296,68 +242,68 @@ const HomeTools = () => {
       </section>
 
       {/* Content Section */}
-      <main className={styles.mainContent}>
+      <main className={cls('mainContent')}>
         {totalResults > 0 ? (
           selectedArea === 'Todos' ? (
             Object.entries(grouped).map(([areaName, items]) => (
-              <section key={areaName} className={styles.areaSection}>
-                <div className={styles.areaSectionHeader}>
-                  <div className={styles.areaInfo}>
-                    <h2 className={styles.areaTitle}>{areaName}</h2>
-                    <span className={styles.areaCount}>
+              <section key={areaName} className={cls('areaSection')}>
+                <div className={cls('areaSectionHeader')}>
+                  <div className={cls('areaInfo')}>
+                    <h2 className={cls('areaTitle')}>{areaName}</h2>
+                    <span className={cls('areaCount')}>
                       {items.length} herramienta{items.length !== 1 ? 's' : ''}
                     </span>
                   </div>
-                  <div className={styles.areaDivider}></div>
+                  <div className={cls('areaDivider')}></div>
                 </div>
 
-                <div className={viewMode === 'grid' ? styles.toolsGrid : styles.toolsList}>
+                <div className={viewMode === 'grid' ? cls('toolsGrid') : cls('toolsList')}>
                   {items.map(prod => (
                     <ToolCard
                       key={prod.id_producto}
                       product={prod}
                       viewMode={viewMode}
                       getInitials={getInitials}
-                      styles={styles}
+                      cls={cls}
                     />
                   ))}
                 </div>
               </section>
             ))
           ) : (
-            <section className={styles.areaSection}>
-              <div className={styles.areaSectionHeader}>
-                <div className={styles.areaInfo}>
-                  <h2 className={styles.areaTitle}>{selectedArea}</h2>
-                  <span className={styles.areaCount}>
+            <section className={cls('areaSection')}>
+              <div className={cls('areaSectionHeader')}>
+                <div className={cls('areaInfo')}>
+                  <h2 className={cls('areaTitle')}>{selectedArea}</h2>
+                  <span className={cls('areaCount')}>
                     {grouped[selectedArea]?.length || 0} herramienta{grouped[selectedArea]?.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className={styles.areaDivider}></div>
+                <div className={cls('areaDivider')}></div>
               </div>
 
-              <div className={viewMode === 'grid' ? styles.toolsGrid : styles.toolsList}>
+              <div className={viewMode === 'grid' ? cls('toolsGrid') : cls('toolsList')}>
                 {(grouped[selectedArea] || []).map(prod => (
                   <ToolCard
                     key={prod.id_producto}
                     product={prod}
                     viewMode={viewMode}
                     getInitials={getInitials}
-                    styles={styles}
+                    cls={cls}
                   />
                 ))}
               </div>
             </section>
           )
         ) : (
-          <div className={styles.noResultsContainer}>
-            <div className={styles.noResultsIcon}>🔍</div>
-            <h3 className={styles.noResultsTitle}>Sin resultados</h3>
-            <p className={styles.noResultsText}>
+          <div className={cls('noResultsContainer')}>
+            <div className={cls('noResultsIcon')}>🔍</div>
+            <h3 className={cls('noResultsTitle')}>Sin resultados</h3>
+            <p className={cls('noResultsText')}>
               No se encontraron herramientas que coincidan con tu búsqueda.
             </p>
             <button
-              className={styles.clearFiltersBtn}
+              className={cls('clearFiltersBtn')}
               onClick={() => {
                 setQuery('');
                 setSelectedArea('Todos');
@@ -373,46 +319,46 @@ const HomeTools = () => {
 };
 
 // Componente separado para las tarjetas de herramientas
-const ToolCard = ({ product, viewMode, getInitials, styles }) => {
-  const cardClass = viewMode === 'grid' ? styles.toolCard : styles.toolCardList;
+const ToolCard = ({ product, viewMode, getInitials, cls }) => {
+  const cardClass = viewMode === 'grid' ? cls('toolCard') : cls('toolCardList');
 
   return (
     <article className={cardClass}>
-      <div className={styles.toolCardContent}>
-        <div className={styles.toolHeader}>
-          <div className={styles.toolAvatar}>
+      <div className={cls('toolCardContent')}>
+        <div className={cls('toolHeader')}>
+          <div className={cls('toolAvatar')}>
             {product.imagen ? (
-              <img src={product.imagen} alt="" className={styles.toolImage} />
+              <img src={product.imagen} alt="" className={cls('toolImage')} />
             ) : (
-              <div className={styles.toolInitials}>
+              <div className={cls('toolInitials')}>
                 {getInitials(product.producto)}
               </div>
             )}
           </div>
 
-          <div className={styles.toolInfo}>
-            <h3 className={styles.toolName}>{product.producto}</h3>
-            <div className={styles.toolMeta}>
-              <span className={styles.toolArea}>{product.area?.nombre || 'Sin área'}</span>
+          <div className={cls('toolInfo')}>
+            <h3 className={cls('toolName')}>{product.producto}</h3>
+            <div className={cls('toolMeta')}>
+              <span className={cls('toolArea')}>{product.area?.nombre || 'Sin área'}</span>
               {product.tipo_producto && (
-                <span className={styles.toolType}>{product.tipo_producto}</span>
+                <span className={cls('toolType')}>{product.tipo_producto}</span>
               )}
             </div>
           </div>
         </div>
 
-        <div className={styles.toolActions}>
+        <div className={cls('toolActions')}>
           <a
             href={product.link_producto || '#'}
             target={product.link_producto ? '_blank' : '_self'}
             rel="noopener noreferrer"
-            className={`${styles.toolButton} ${!product.link_producto ? styles.toolButtonDisabled : ''}`}
+            className={`${cls('toolButton')} ${!product.link_producto ? cls('toolButtonDisabled') : ''}`}
             onClick={e => {
               if (!product.link_producto) e.preventDefault();
             }}
             aria-label={product.link_producto ? `Abrir ${product.producto}` : `${product.producto} sin enlace disponible`}
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" className={styles.toolButtonIcon}>
+            <svg viewBox="0 0 20 20" fill="currentColor" className={cls('toolButtonIcon')}>
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
             <span>{product.link_producto ? 'Abrir' : 'Sin enlace'}</span>

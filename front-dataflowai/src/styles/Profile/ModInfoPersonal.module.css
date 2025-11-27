@@ -5,21 +5,21 @@
    ========================= */
 
 .ModinfopersonalDark {
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
   --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #b8c2d9;
   --text-muted: #666666;
-  --accent-1: #00f7ff;
-  --accent-2: #00c2ff;
+  --accent-1: #00c7ff;
+  --accent-2: #0077b6;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(30, 30, 30, 0.6);
   --card-hover-bg: rgba(40, 40, 40, 0.8);
   --card-border: rgba(255, 255, 255, 0.1);
-  --card-hover-border: rgba(0, 247, 255, 0.3);
+  --card-hover-border: rgba(0, 199, 255, 0.3);
   --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --card-hover-shadow: 0 8px 30px rgba(0, 199, 255, 0.1);
   --backdrop-filter: blur(10px);
   --modal-bg: rgba(30, 30, 30, 0.95);
   --modal-border: rgba(255, 255, 255, 0.1);
@@ -28,6 +28,7 @@
   --success-color: #00ffaa;
   --error-color: #ff3366;
   --warning-color: #ffcc00;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .ModinfopersonalLight {
@@ -130,7 +131,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .ModinfopersonaleditButton {
@@ -212,7 +213,7 @@
   padding: 32px;
   backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .Modinfopersonalcard:hover {
@@ -324,7 +325,7 @@
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.95rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   outline: none;
 }
 
@@ -334,7 +335,7 @@
 
 .Modinfopersonalinput:focus {
   border-color: var(--accent-1);
-  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 199, 255, 0.1);
   transform: translateY(-1px);
 }
 
@@ -362,7 +363,7 @@
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.95rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   outline: none;
   width: 80px;
   text-align: center;
@@ -370,7 +371,7 @@
 
 .ModinfopersonalinputPrefix:focus {
   border-color: var(--accent-1);
-  box-shadow: 0 0 0 3px rgba(0, 247, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 199, 255, 0.1);
 }
 
 .ModinfopersonalinputPrefix[disabled],
@@ -396,7 +397,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   gap: 8px;

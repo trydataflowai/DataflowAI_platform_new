@@ -8,43 +8,44 @@ import {
 } from '../../../api/Profile';
 import { obtenerInfoUsuario } from '../../../api/Usuario';
 
-// Función para cargar los estilos dinámicamente
+// Importar estilos por defecto (fallback)
+import defaultStyles from '../../../styles/Profile/ModInfoPersonal.module.css';
+
+// Función para cargar los estilos dinámicamente (no bloqueante)
 const cargarEstilosEmpresa = async (empresaId, planId) => {
   const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
-  
+
   try {
     // Verificar si el plan es especial y si existe la carpeta de la empresa
-    if (planesEspeciales.includes(planId)) {
+    if (planesEspeciales.includes(planId) && empresaId) {
       try {
         // Intentar importar los estilos de la carpeta de la empresa
         const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/ModInfoPersonal.module.css`);
-        return estilosEmpresa.default;
+        return estilosEmpresa.default || defaultStyles;
       } catch (error) {
         console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
       }
     }
-    
-    // Cargar estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/ModInfoPersonal.module.css');
-    return estilosPorDefecto.default;
+
+    // Fallback a estilos por defecto
+    return defaultStyles;
   } catch (error) {
     console.error('Error cargando estilos:', error);
     // Fallback a estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/ModInfoPersonal.module.css');
-    return estilosPorDefecto.default;
+    return defaultStyles;
   }
 };
 
 const ModificarInformacionPersonal = () => {
   const { theme } = useTheme();
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [styles, setStyles] = useState({});
-  const [cargandoEstilos, setCargandoEstilos] = useState(true);
+  const [styles, setStyles] = useState(defaultStyles); // iniciar con defaultStyles para evitar undefined
 
   // Usuario
   const [usuario, setUsuario] = useState(null);
@@ -68,47 +69,34 @@ const ModificarInformacionPersonal = () => {
   const [backupUser, setBackupUser] = useState(null);
   const [backupCompany, setBackupCompany] = useState(null);
 
-  // Cargar información del usuario y estilos
+  // Cargar datos del perfil y estilos de forma no bloqueante
   useEffect(() => {
-    const cargarUsuarioYEstilos = async () => {
-      setCargandoEstilos(true);
-      try {
-        const usuarioInfo = await obtenerInfoUsuario();
-        const empresaId = usuarioInfo.empresa?.id;
-        const planId = usuarioInfo.empresa?.plan?.id;
-        
-        if (empresaId && planId) {
-          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
-          setStyles(estilosCargados);
-        } else {
-          // Fallback a estilos por defecto si no hay info de empresa/plan
-          const estilosPorDefecto = await import('../../../styles/Profile/ModInfoPersonal.module.css');
-          setStyles(estilosPorDefecto.default);
-        }
-      } catch (error) {
-        console.error('Error cargando información del usuario:', error);
-        // Fallback a estilos por defecto
-        const estilosPorDefecto = await import('../../../styles/Profile/ModInfoPersonal.module.css');
-        setStyles(estilosPorDefecto.default);
-      } finally {
-        setCargandoEstilos(false);
-      }
-    };
+    let mounted = true;
 
-    cargarUsuarioYEstilos();
-  }, []);
-
-  // Cargar datos del perfil después de cargar los estilos
-  useEffect(() => {
-    if (cargandoEstilos) return;
-
-    const load = async () => {
+    const init = async () => {
       setLoading(true);
       setError('');
+
       try {
+        // Cargar info de usuario (contiene empresa y plan)
+        const usuarioInfo = await obtenerInfoUsuario();
+        const empresaId = usuarioInfo?.empresa?.id;
+        const planId = usuarioInfo?.empresa?.plan?.id;
+
+        // Lanzar carga de estilos en paralelo (no bloqueante)
+        cargarEstilosEmpresa(empresaId, planId).then((estilosCargados) => {
+          if (!mounted) return;
+          if (estilosCargados) setStyles(estilosCargados);
+        }).catch(() => {
+          if (mounted) setStyles(defaultStyles);
+        });
+
+        // Cargar perfil completo (puede ser otra llamada)
         const res = await obtenerMiPerfil();
         const u = res.usuario || {};
         const e = res.empresa || {};
+        if (!mounted) return;
+
         setUsuario(u);
         setNombres(u.nombres || '');
         setApellidos(u.apellidos || '');
@@ -125,13 +113,21 @@ const ModificarInformacionPersonal = () => {
         setCorreoEmpresa(e.correo || '');
         setPaginaWeb(e.pagina_web || '');
       } catch (err) {
-        setError(err.message || 'Error al cargar perfil');
+        if (!mounted) return;
+        console.error('Error inicializando perfil y estilos:', err);
+        setError(err?.message || 'Error al cargar datos');
+        // styles ya tiene defaultStyles
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
-    load();
-  }, [cargandoEstilos]);
+
+    init();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const isAdmin = permisoId === 1;
 
@@ -239,27 +235,11 @@ const ModificarInformacionPersonal = () => {
     }
   };
 
-  // Si aún se están cargando los estilos, mostrar loading
-  if (cargandoEstilos) {
-    return (
-      <div className="cargando-estilos">
-        <div>Cargando estilos...</div>
-      </div>
-    );
-  }
-
-  const variantClass = theme === 'light' ? styles.ModinfopersonalLight : styles.ModinfopersonalDark;
-
-  if (loading) {
-    return (
-      <main className={`${styles.Modinfopersonalcontainer} ${variantClass}`}>
-        <div className={styles.Modinfopersonalloading}>
-          <div className={styles.ModinfopersonalloadingSpinner}></div>
-          <span>Cargando información del perfil...</span>
-        </div>
-      </main>
-    );
-  }
+  // --- FIX: elegir la variante siempre en base al theme
+  // uso fallback defensivo a defaultStyles por si styles dinámico no contiene la clase
+  const variantClass = theme === 'dark'
+    ? (styles?.ModinfopersonalDark || defaultStyles.ModinfopersonalDark || '')
+    : (styles?.ModinfopersonalLight || defaultStyles.ModinfopersonalLight || '');
 
   return (
     <main className={`${styles.Modinfopersonalcontainer} ${variantClass}`} aria-labelledby="modificar-info-title">

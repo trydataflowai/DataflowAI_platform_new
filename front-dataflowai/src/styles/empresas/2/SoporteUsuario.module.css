@@ -7,8 +7,8 @@
 .dark {
   --black-deep: #0a0a12;
   --black-cosmos: #12121d;
-  --accent-neon: #00c7ff;
-  --accent-dark: #0077b6;
+  --accent-neon: #00b43f;
+  --accent-dark: #008a30;
   --text-primary: #ffffff;
   --text-secondary: #b8c2d9;
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -16,7 +16,7 @@
   /* Variables de compatibilidad (mapeadas para que el resto del CSS siga funcionando) */
   --black-void: #000000;
   --accent-turquoise: var(--accent-neon);
-  --accent-cyan: #00c2ff;
+  --accent-cyan: #00b43f;
   --muted: var(--text-secondary);
   --surface: rgba(10,10,10,0.6);
   --glass: rgba(255,255,255,0.03);
@@ -29,14 +29,14 @@
   /* Light Theme Variables */
   --bg: #ffffff;
   --panel: #f7fbff;
-  --primary-blue: #0a66c2;
-  --primary-blue-600: #005b9f;
+  --primary-blue: #00b43f;
+  --primary-blue-600: #008a30;
   --text: #0b1a2b;
   --muted: #6b7785;
   --muted-2: #8a97a6;
   --surface: #ffffff;
   --border: #e6eef8;
-  --shadow: 0 8px 30px rgba(10,102,194,0.06);
+  --shadow: 0 8px 30px rgba(0, 180, 63, 0.06);
   --transition: all 0.28s cubic-bezier(.2,.9,.2,1.05);
 }
 
@@ -93,7 +93,7 @@
 
 .dark .title {
   color: var(--text-primary);
-  text-shadow: 0 2px 18px rgba(0,200,255,0.08);
+  text-shadow: 0 2px 18px rgba(0, 180, 63, 0.08);
 }
 
 .light .title {
@@ -177,12 +177,12 @@
 }
 
 .dark .dateInput:focus { 
-  box-shadow: 0 6px 18px rgba(0,194,255,0.06); 
+  box-shadow: 0 6px 18px rgba(0, 180, 63, 0.06); 
   transform: translateY(-1px); 
 }
 
 .light .dateInput:focus { 
-  box-shadow: 0 8px 20px rgba(10,102,194,0.06); 
+  box-shadow: 0 8px 20px rgba(0, 180, 63, 0.06); 
   transform: translateY(-1px); 
 }
 
@@ -197,15 +197,15 @@
 }
 
 .dark .filterBtn {
-  background: linear-gradient(90deg, rgba(0,200,255,0.12), rgba(0,194,255,0.08));
+  background: linear-gradient(90deg, rgba(0, 180, 63, 0.12), rgba(0, 180, 63, 0.08));
   color: var(--text-primary);
-  border: 1px solid rgba(0,200,255,0.08);
+  border: 1px solid rgba(0, 180, 63, 0.08);
 }
 
 .light .filterBtn {
-  background: linear-gradient(90deg, rgba(10,102,194,0.08), rgba(10,102,194,0.04));
+  background: linear-gradient(90deg, rgba(0, 180, 63, 0.08), rgba(0, 180, 63, 0.04));
   color: var(--text);
-  border: 1px solid rgba(10,102,194,0.06);
+  border: 1px solid rgba(0, 180, 63, 0.06);
 }
 
 .dark .clearBtn {
@@ -217,7 +217,7 @@
 .light .clearBtn {
   background: transparent;
   color: var(--text);
-  border: 1px solid rgba(10,102,194,0.03);
+  border: 1px solid rgba(0, 180, 63, 0.03);
 }
 
 .primaryButton {
@@ -229,13 +229,13 @@
 .dark .primaryButton {
   background: linear-gradient(90deg, var(--accent-neon), var(--accent-turquoise));
   color: var(--black-void);
-  box-shadow: 0 8px 30px rgba(0,200,255,0.08);
+  box-shadow: 0 8px 30px rgba(0, 180, 63, 0.08);
 }
 
 .light .primaryButton {
   background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-600));
   color: #ffffff;
-  box-shadow: 0 10px 30px rgba(10,102,194,0.12);
+  box-shadow: 0 10px 30px rgba(0, 180, 63, 0.12);
 }
 
 .primaryButton:active { 
@@ -366,12 +366,12 @@
 }
 
 .dark .row:hover {
-  background: linear-gradient(90deg, rgba(0,194,255,0.02), rgba(0,200,255,0.01));
+  background: linear-gradient(90deg, rgba(0, 180, 63, 0.02), rgba(0, 180, 63, 0.01));
   transform: translateY(-2px);
 }
 
 .light .row:hover {
-  background: linear-gradient(90deg, rgba(10,102,194,0.02), rgba(10,102,194,0.01));
+  background: linear-gradient(90deg, rgba(0, 180, 63, 0.02), rgba(0, 180, 63, 0.01));
   transform: translateY(-2px);
 }
 
@@ -507,7 +507,7 @@
 }
 
 .light .closeBtn:hover {
-  background: rgba(10,102,194,0.05);
+  background: rgba(0, 180, 63, 0.05);
 }
 
 .modalBody { 
@@ -569,16 +569,16 @@
 
 .dark .input:focus,
 .dark .textarea:focus { 
-  box-shadow: 0 12px 40px rgba(0,200,255,0.08); 
+  box-shadow: 0 12px 40px rgba(0, 180, 63, 0.08); 
   transform: translateY(-1px); 
-  border-color: rgba(0,200,255,0.2);
+  border-color: rgba(0, 180, 63, 0.2);
 }
 
 .light .input:focus,
 .light .textarea:focus { 
-  box-shadow: 0 12px 40px rgba(10,102,194,0.08); 
+  box-shadow: 0 12px 40px rgba(0, 180, 63, 0.08); 
   transform: translateY(-1px); 
-  border-color: rgba(10,102,194,0.3);
+  border-color: rgba(0, 180, 63, 0.3);
 }
 
 .modalFooter {
@@ -621,7 +621,7 @@
 }
 
 .light .secondaryBtn:hover {
-  background: rgba(10,102,194,0.03);
+  background: rgba(0, 180, 63, 0.03);
 }
 
 /* ===== DETAIL VIEW ===== */

@@ -1,0 +1,458 @@
+/* FormPublic.module.css */
+
+/* =========================
+   Variables por Tema
+   ========================= */
+
+.darkTheme {
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-tertiary: #1a1a2e;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 50%, #1a1a2e 100%);
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --text-muted: #666666;
+  --accent-1: #00c7ff;
+  --accent-2: #0099cc;
+  --accent-3: #0077b6;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(18, 18, 29, 0.8);
+  --card-hover-bg: rgba(25, 25, 40, 0.9);
+  --card-border: rgba(0, 199, 255, 0.1);
+  --card-hover-border: rgba(0, 199, 255, 0.2);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 12px 40px rgba(0, 199, 255, 0.1);
+  --success: #00ffaa;
+  --warning: #ffcc00;
+  --danger: #ff3366;
+  --backdrop-filter: blur(20px);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-focus-border: rgba(0, 199, 255, 0.5);
+  --input-text: #ffffff;
+  --btn-primary-bg: var(--accent-gradient);
+  --btn-primary-text: #00121a;
+  --btn-primary-hover: rgba(0, 199, 255, 0.9);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.lightTheme {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f3f2ef;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #f3f2ef 100%);
+  --text-primary: #2f3349;
+  --text-secondary: #666666;
+  --text-muted: #a8a8a8;
+  --accent-1: #0a66c2;
+  --accent-2: #378fe9;
+  --accent-3: #084d93;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: #ffffff;
+  --card-hover-bg: #f8f9fa;
+  --card-border: #e9e5df;
+  --card-hover-border: #0a66c2;
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 8px 32px rgba(10, 102, 194, 0.12);
+  --success: #057642;
+  --warning: #f5c75d;
+  --danger: #cc1016;
+  --backdrop-filter: blur(10px);
+  --input-bg: #ffffff;
+  --input-border: #d4cfc7;
+  --input-focus-border: #0a66c2;
+  --input-text: #2f3349;
+  --btn-primary-bg: var(--accent-gradient);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: linear-gradient(135deg, #084d93, #0a66c2);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* =========================
+   Estilos Base
+   ========================= */
+
+.container {
+  min-height: 100vh;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  transition: var(--transition);
+}
+
+.formContent {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.formTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.darkTheme .formTitle {
+  background: linear-gradient(135deg, var(--text-primary), var(--accent-1));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lightTheme .formTitle {
+  color: var(--text-primary);
+}
+
+.formDescription {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+  transition: var(--transition);
+}
+
+/* Questions Container */
+.questionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Question Card */
+.questionCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+  backdrop-filter: var(--backdrop-filter);
+}
+
+.questionCard:hover {
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-2px);
+}
+
+.questionLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  transition: var(--transition);
+}
+
+.required {
+  color: var(--danger);
+}
+
+/* Input Styles */
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: 8px;
+  color: var(--input-text);
+  font-size: 1rem;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+}
+
+.darkTheme .input:focus,
+.darkTheme .textarea:focus,
+.darkTheme .select:focus {
+  box-shadow: 0 0 0 3px rgba(0, 199, 255, 0.1);
+}
+
+.lightTheme .input:focus,
+.lightTheme .textarea:focus,
+.lightTheme .select:focus {
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.select {
+  cursor: pointer;
+}
+
+/* Checkbox Styles */
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.checkboxLabel:hover {
+  background: rgba(0, 199, 255, 0.05);
+}
+
+.lightTheme .checkboxLabel:hover {
+  background: rgba(10, 102, 194, 0.05);
+}
+
+.checkboxInput {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--accent-1);
+  transition: var(--transition);
+}
+
+.checkboxText {
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+/* Submit Button */
+.submitButton {
+  background: var(--btn-primary-bg);
+  border: none;
+  color: var(--btn-primary-text);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.darkTheme .submitButton {
+  box-shadow: 0 4px 16px rgba(0, 199, 255, 0.3);
+}
+
+.lightTheme .submitButton {
+  box-shadow: 0 4px 16px rgba(10, 102, 194, 0.25);
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.darkTheme .submitButton:hover:not(:disabled) {
+  box-shadow: 0 6px 24px rgba(0, 199, 255, 0.4);
+}
+
+.lightTheme .submitButton:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+  box-shadow: 0 6px 24px rgba(10, 102, 194, 0.35);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner */
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top: 2px solid var(--btn-primary-text);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.lightTheme .spinner {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--btn-primary-text);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Messages */
+.errorMessage {
+  background: rgba(255, 51, 102, 0.1);
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  color: var(--danger);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.lightTheme .errorMessage {
+  background: rgba(204, 16, 22, 0.1);
+  border: 1px solid rgba(204, 16, 22, 0.25);
+}
+
+.successMessage {
+  background: rgba(0, 255, 170, 0.1);
+  border: 1px solid rgba(0, 255, 170, 0.3);
+  color: var(--success);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.lightTheme .successMessage {
+  background: rgba(5, 118, 66, 0.1);
+  border: 1px solid rgba(5, 118, 66, 0.25);
+}
+
+.endMessage {
+  color: var(--text-secondary);
+  font-style: italic;
+  align-self: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+/* Footer */
+.footer {
+  margin-top: 2rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .formTitle {
+    font-size: 2rem;
+  }
+  
+  .formDescription {
+    font-size: 1rem;
+  }
+  
+  .questionCard {
+    padding: 1.5rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .submitButton {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .formTitle {
+    font-size: 1.75rem;
+  }
+  
+  .questionCard {
+    padding: 1.25rem;
+  }
+  
+  .input,
+  .textarea,
+  .select {
+    padding: 0.75rem;
+  }
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.questionCard {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.questionCard:nth-child(1) { animation-delay: 0.1s; }
+.questionCard:nth-child(2) { animation-delay: 0.2s; }
+.questionCard:nth-child(3) { animation-delay: 0.3s; }
+.questionCard:nth-child(4) { animation-delay: 0.4s; }
+.questionCard:nth-child(5) { animation-delay: 0.5s; }
+
+/* Scrollbar personalizado */
+.darkTheme ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.darkTheme ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.darkTheme ::-webkit-scrollbar-thumb {
+  background: var(--accent-gradient);
+  border-radius: 4px;
+}
+
+.darkTheme ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+}
+
+/* Estados de focus para accesibilidad */
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible,
+.checkboxInput:focus-visible,
+.submitButton:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}

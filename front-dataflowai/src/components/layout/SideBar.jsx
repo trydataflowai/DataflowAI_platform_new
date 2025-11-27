@@ -4,20 +4,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { cerrarSesion } from "../../api/Login";
 import { obtenerInfoUsuario } from "../../api/Usuario";
 
-import defaultDarkStyles from "../../styles/SideBar.module.css";
-import defaultLightStyles from "../../styles/SideBarLight.module.css";
+import defaultStyles from "../../styles/SideBar.module.css";
 
 import { useTheme } from "../componentes/ThemeContext";
 import { ThemeToggle } from "../componentes/ThemeToggle";
 
-// 🔥 IMPORTANTE: accesos por empresa
 import accesosEmpresa from "../../data/accesos";
 
-const empresaLightModules = import.meta.glob(
-  "../../styles/empresas/*/SideBarLight.module.css",
-  { eager: true }
-);
-const empresaDarkModules = import.meta.glob(
+const empresaModules = import.meta.glob(
   "../../styles/empresas/*/SideBar.module.css",
   { eager: true }
 );
@@ -34,13 +28,12 @@ export const SideBar = () => {
   const [companyName, setCompanyName] = useState("DataFlow AI");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
-  const [styles, setStyles] = useState(defaultDarkStyles);
+  const [styles, setStyles] = useState(defaultStyles);
 
   const [logoUrl, setLogoUrl] = useState(null);
   const [logoFound, setLogoFound] = useState(false);
   const [companySegment, setCompanySegment] = useState("");
 
-  // ⛔ Evitar PARPADEO
   const [loaded, setLoaded] = useState(false);
 
   const NO_PREFIX = [
@@ -75,7 +68,6 @@ export const SideBar = () => {
         setCompanyId(cid);
         setCompanySegment(normalizeSegment(nombreCorto));
 
-        // 🔥 Datos mínimos cargados → NO PARPADEO
         setLoaded(true);
       } catch (err) {
         console.error("Error al obtener info usuario:", err);
@@ -128,20 +120,17 @@ export const SideBar = () => {
 
   useEffect(() => {
     const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
-
-    const lightKey = `../../styles/empresas/${companyId}/SideBarLight.module.css`;
-    const darkKey = `../../styles/empresas/${companyId}/SideBar.module.css`;
+    const companyKey = `../../styles/empresas/${companyId}/SideBar.module.css`;
+    const foundCompanyStyles = empresaModules[companyKey];
 
     const extract = (mod) => (mod ? mod.default ?? mod : null);
+    const companyStyles = extract(foundCompanyStyles);
 
-    const companyLight = extract(empresaLightModules[lightKey]);
-    const companyDark = extract(empresaDarkModules[darkKey]);
-
-    let chosenStyles = defaultDarkStyles;
-    if (theme === "dark") {
-      chosenStyles = useCompanyStyles && companyDark ? companyDark : defaultDarkStyles;
+    let chosenStyles = defaultStyles;
+    if (useCompanyStyles && companyStyles) {
+      chosenStyles = companyStyles;
     } else {
-      chosenStyles = useCompanyStyles && companyLight ? companyLight : defaultLightStyles;
+      chosenStyles = defaultStyles;
     }
 
     setStyles(chosenStyles);
@@ -171,7 +160,6 @@ export const SideBar = () => {
   const handleLogoClick = () => navigate(buildTo("/homeLogin#home"));
   const toggleCollapsed = () => setCollapsed((c) => !c);
 
-  // 💥 Menú
   const links = [
     { to: "/home", icon: "📊", label: "Dashboards" },
     { to: "/HomeTools", icon: "🛠️", label: "Tools" },
@@ -182,7 +170,6 @@ export const SideBar = () => {
     { to: "/FormBuilder", icon: "🧩", label: "FormBuilder" },
   ];
 
-  // 🔥 Aplicar permisos (lo que NO quiero que se vea)
   const denied = companyId ? accesosEmpresa[String(companyId)] ?? [] : [];
 
   const filteredLinks = links.filter((link) => {
@@ -196,11 +183,12 @@ export const SideBar = () => {
     return pathname === built.split("#")[0];
   };
 
-  // ⛔ NO RENDERIZAR hasta tener loaded → elimina PARPADEO
   if (!loaded) return null;
 
+  const variantClass = theme === "dark" ? styles.dark : styles.light;
+
   return (
-    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}>
+    <aside className={`${styles.sidebar} ${variantClass} ${collapsed ? styles.collapsed : ""}`}>
       <div className={styles.logoContainer}>
         <button className={styles.logoButton} onClick={handleLogoClick}>
           {logoFound ? (

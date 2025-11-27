@@ -222,12 +222,11 @@ const FormBuilder = () => {
     }
   };
 
-  const variantClass =
-    planId === 3 || planId === 6
-      ? theme === "dark"
-        ? styles.FormBuilderDark
-        : styles.FormBuilderLight
-      : styles.FormBuilderDark;
+  // --- FIX: elegir la variante siempre en base al theme (evita fallback oscuro mientras planId está null)
+  // además aplicamos fallback defensivo a las clases por si faltan en styles cargado dinámicamente
+  const variantClass = theme === "dark"
+    ? (styles?.FormBuilderDark || defaultStyles.FormBuilderDark || '')
+    : (styles?.FormBuilderLight || defaultStyles.FormBuilderLight || '');
 
   return (
     <main className={`${styles.FormBuildercontainer} ${variantClass}`} aria-labelledby="form-builder-title">
@@ -241,14 +240,6 @@ const FormBuilder = () => {
           <p className={styles.FormBuildersubtitle}>
             Crea formularios dinámicos con ramificación condicional
           </p>
-        </div>
-        <div className={styles.FormBuilderheaderMeta}>
-          {usuarioInfo && (
-            <span className={styles.FormBuilderuserInfo}>
-              Creado por: <strong>{usuarioInfo.nombres || usuarioInfo.correo || usuarioInfo.id_usuario}</strong>
-            </span>
-          )}
-          <span className={styles.FormBuilderplanInfo}>{planName}</span>
         </div>
       </section>
 
@@ -436,7 +427,7 @@ const FormBuilder = () => {
               </div>
             ))}
 
-            {/* Action Buttons */}
+            {/* Action Buttons */} 
             <div className={styles.FormBuilderactions}>
               <button 
                 type="button" 

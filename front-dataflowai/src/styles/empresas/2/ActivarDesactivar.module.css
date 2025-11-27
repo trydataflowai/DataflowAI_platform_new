@@ -1,564 +1,904 @@
-/* ActivarDesactivar.module.css
-   Un único archivo con variantes Light y Dark
-   Usa la clase raíz .PerfilactivardesactivarDark o .PerfilactivardesactivarLight
-   junto al resto de clases (ej: .Perfilactivardesactivarcontainer)
-*/
+/* src/styles/Profile/ActivarDesactivar.module.css */
 
-/* -------------------------
-   VARIANT: DARK
-   ------------------------- */
-.PerfilactivardesactivarDark {
-  /* variables oscuras (las que pasaste + complementos) */
-  --linkedin-green: #00b43f;
-  --linkedin-green-dark: #008530;
-  --linkedin-green-light: #00d44f;
+/* =========================
+   Variables por variante - Diseño Sobrio
+   ========================= */
 
-  --black-void: #000000;
-  --black-cosmos: #050505;
-  --black-deep: #0a0a0a;
-
-  --accent-neon: #00ff88;
-  --accent-turquoise: #00e173;
-  --accent-cyan: #00c25c;
-  --accent-dark: #009947;
-
+.ActivardesactivarDark {
+  --bg-primary: #12121d;
+  --bg-secondary: #0a0a12;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --muted: rgba(255,255,255,0.06);
-
-  --white-pure: #ffffff;
-  --gray-50: #f8f9fa;
-  --gray-100: #f3f2ef;
-  --gray-200: #e9e5df;
-  --gray-300: #d0cec7;
-  --gray-400: #a8a5a0;
-  --gray-500: #666666;
-  --gray-600: #434649;
-  --gray-700: #313131;
-  --gray-800: #1d2129;
-
-  --card-radius: 8px;
-  --container-max: 1400px;
-
-  --success: #00ffaa;
-  --warning: #ffcc00;
-  --danger: #ff3366;
-
-  --glass: rgba(255,255,255,0.03);
-
-  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 8px 25px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-
-  --container-bg: linear-gradient(180deg, var(--black-cosmos), var(--black-deep));
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008));
-  --card-border: rgba(255,255,255,0.02);
-  --badge-text: #001803;
-  --badge-bg: linear-gradient(180deg, var(--accent-neon), var(--accent-cyan));
-  --modal-bg: linear-gradient(180deg, rgba(10,10,12,0.92), rgba(6,6,8,0.82));
-  --modal-border: rgba(0,180,63,0.06);
-  --btn-bg: linear-gradient(135deg, var(--accent-neon), var(--accent-cyan));
-  --btn-text: #001803;
+  --text-secondary: #b8c2d9;
+  --text-muted: #666666;
+  --accent-1: #00b43f;
+  --accent-2: #008a30;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(20, 20, 30, 0.8);
+  --card-hover-bg: rgba(30, 30, 45, 0.9);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-hover-border: rgba(0, 180, 63, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --card-hover-shadow: 0 8px 30px rgba(0, 180, 63, 0.15);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(15, 15, 25, 0.95);
+  --modal-border: rgba(255, 255, 255, 0.1);
+  --btn-bg: var(--accent-gradient);
+  --btn-text: #001a06;
+  --success-color: #00ffaa;
+  --error-color: #ff3366;
+  --warning-color: #ffcc00;
+  --table-border: rgba(255, 255, 255, 0.03);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* -------------------------
-   VARIANT: LIGHT
-   ------------------------- */
-.PerfilactivardesactivarLight {
-  /* paleta tipo LinkedIn + grises que pediste */
-  --linkedin-green: #00b43f;
-  --linkedin-green-dark: #008530;
-  --linkedin-green-light: #00d44f;
-
-  --white-pure: #ffffff;
-  --gray-50: #f8f9fa;
-  --gray-100: #f3f2ef;
-  --gray-200: #e9e5df;
-  --gray-300: #d0cec7;
-  --gray-400: #a8a5a0;
-  --gray-500: #666666;
-  --gray-600: #434649;
-  --gray-700: #313131;
-  --gray-800: #1d2129;
-
-  --card-radius: 8px;
-  --container-max: 1400px;
-
-  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-
-  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-xl: 0 8px 25px rgba(0, 0, 0, 0.08), 0 3px 10px rgba(0, 0, 0, 0.06);
-
-  --container-bg: linear-gradient(180deg, var(--gray-50), var(--white-pure));
-  --card-bg: linear-gradient(180deg, var(--white-pure), #fbfffb);
-  --card-border: rgba(0,180,63,0.06);
-  --badge-text: #ffffff;
-  --badge-bg: linear-gradient(180deg, var(--linkedin-green), var(--linkedin-green-dark));
-  --modal-bg: linear-gradient(180deg, var(--white-pure), #f6fff6);
-  --modal-border: rgba(0,180,63,0.06);
-  --btn-bg: linear-gradient(135deg, var(--linkedin-green), var(--linkedin-green-dark));
+.ActivardesactivarLight {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --accent-1: #00b43f;
+  --accent-2: #008a30;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-hover-bg: rgba(255, 255, 255, 1);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(0, 180, 63, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 8px 30px rgba(0, 180, 63, 0.12);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(255, 255, 255, 0.95);
+  --modal-border: rgba(0, 0, 0, 0.1);
+  --btn-bg: var(--accent-gradient);
   --btn-text: #ffffff;
-
-  --text-primary: #12233b;
-  --text-secondary: #51657a;
-  --muted: rgba(18,59,35,0.04);
-
-  --success: #0fa969;
-  --warning: #ffcc00;
-  --danger: #d0445a;
-
-  --glass: rgba(18,59,35,0.04);
+  --success-color: #0fa969;
+  --error-color: #d0445a;
+  --warning-color: #e6a700;
+  --table-border: rgba(0, 0, 0, 0.06);
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* =========================
-   Estilos compartidos (usando las variables de la variante activa)
+   Estilos Base - Diseño Sobrio - CORREGIDOS
    ========================= */
 
-.Perfilactivardesactivarcontainer {
+.Activardesactivarcontainer {
   width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
-  box-sizing: border-box;
-  font-family: var(--font-stack, 'Inter', Arial, sans-serif);
-  color: var(--text-primary, #fff);
-  background: var(--container-bg);
-  transition: background 220ms, color 220ms;
+  transition: var(--transition);
 }
 
-/* Títulos */
-.PerfilactivardesactivarpageTitle {
-  font-size: 1.5rem;
-  margin: 0;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  color: var(--text-primary);
+/* Header Section - CORREGIDO */
+.Activardesactivarheader {
+  padding: 40px 40px 30px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--bg-primary);
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarpageSubtitle {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+.ActivardesactivarheaderContent {
+  flex: 1;
+  text-align: left;
 }
 
-/* Mensajes globales */
-.Perfilactivardesactivarerror {
-  background: rgba(255,51,102,0.06);
-  color: var(--danger);
-  padding: 10px 14px;
-  border-radius: 10px;
-  border-left: 4px solid rgba(255,51,102,0.25);
-}
-
-.Perfilactivardesactivarsuccess {
-  background: rgba(0,255,170,0.06);
-  color: var(--success);
-  padding: 10px 14px;
-  border-radius: 10px;
-  border-left: 4px solid rgba(0,255,170,0.12);
-}
-
-/* Sección crear usuario */
-.PerfilactivardesactivarcreateSection {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--card-border);
-  display: block;
-}
-
-.PerfilactivardesactivarsectionTitle {
-  margin: 0 0 10px 0;
-  color: var(--accent-neon, var(--linkedin-green));
+.Activardesactivartitle {
+  font-size: 2.5rem;
   font-weight: 700;
-  font-size: 1.05rem;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  transition: var(--transition);
 }
 
-/* Formulario crear */
-.Perfilactivardesactivarform {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: end;
+.Activardesactivarsubtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+  max-width: 500px;
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarformRow {
+.ActivardesactivarheaderActions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.PerfilactivardesactivarformRow label,
-.Perfilactivardesactivarlabel {
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-/* Inputs */
-.Perfilactivardesactivarinput {
-  padding: 10px 12px;
-  background: var(--glass);
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 10px;
-  color: var(--text-primary);
-  outline: none;
-  font-size: 0.95rem;
-  transition: var(--transition-fast);
-  box-shadow: inset 0 6px 18px rgba(0,0,0,0.04);
-}
-
-.Perfilactivardesactivarinput::placeholder {
-  color: rgba(0,0,0,0.28);
-}
-
-.Perfilactivardesactivarinput:focus {
-  border-color: rgba(0,0,0,0.12);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-  transform: translateY(-1px);
-}
-
-/* Botón primario (crear) */
-.PerfilactivardesactivarprimaryButton {
-  padding: 10px 14px;
+.ActivardesactivarcreateButton {
+  padding: 12px 24px;
   background: var(--btn-bg);
   color: var(--btn-text);
   border: none;
-  border-radius: 10px;
-  font-weight: 800;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.06);
-  transition: var(--transition-fast);
-  justify-self: end;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
 }
 
-.PerfilactivardesactivarprimaryButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.ActivardesactivarcreateButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.PerfilactivardesactivarprimaryButton:hover:not(:disabled) {
-  transform: translateY(-3px);
+.ActivardesactivarcreateButtonIcon {
+  font-size: 1.2rem;
+  font-weight: 300;
 }
 
-/* Divider */
-.Perfilactivardesactivardivider {
-  border: none;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06), rgba(0,0,0,0.02));
-  margin: 10px 0;
+.ActivardesactivarroleInfo {
+  padding: 6px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: var(--transition);
 }
 
-/* ============================
-   TABLE / LIST
-   ============================ */
-.PerfilactivardesactivartableWrapper {
-  overflow-x: auto;
+/* Main Content Area */
+.Activardesactivarcontent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* Alert Boxes - CORREGIDO */
+.ActivardesactivarerrorBox,
+.ActivardesactivarsuccessBox {
+  max-width: 1200px;
+  margin: 20px auto 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  animation: fadeInUp 0.5s ease-out;
+  transition: var(--transition);
+}
+
+.ActivardesactivarerrorBox {
+  background: rgba(255, 51, 102, 0.08);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+  color: var(--error-color);
+}
+
+.ActivardesactivarsuccessBox {
+  background: rgba(0, 255, 170, 0.08);
+  border: 1px solid rgba(0, 255, 170, 0.2);
+  color: var(--success-color);
+}
+
+.ActivardesactivarerrorIcon,
+.ActivardesactivarsuccessIcon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ActivardesactivarerrorText,
+.ActivardesactivarsuccessText {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Table Section - CORREGIDO con líneas sutiles */
+.ActivardesactivartableSection {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ActivardesactivarsectionHeader {
+  margin-bottom: 24px;
+  padding: 0 20px;
+}
+
+.ActivardesactivarsectionTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.ActivardesactivarsectionSubtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  transition: var(--transition);
+}
+
+.ActivardesactivartableWrapper {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
-  background: rgba(255,255,255,0.0);
-  padding: 8px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(0,0,0,0.06);
+  overflow: hidden;
+  backdrop-filter: var(--backdrop-filter);
+  box-shadow: var(--card-shadow);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0 20px;
+  transition: var(--transition);
 }
 
-.Perfilactivardesactivartable {
+.Activardesactivartable {
   width: 100%;
   border-collapse: collapse;
-  min-width: 860px;
   font-size: 0.95rem;
-  background: transparent;
+  flex: 1;
 }
 
-/* Encabezados */
-.Perfilactivardesactivartable thead th {
+.ActivardesactivartableHeader {
+  padding: 16px 20px;
   text-align: left;
-  padding: 14px 16px;
-  color: var(--text-secondary);
-  font-weight: 700;
-  font-size: 0.88rem;
-  letter-spacing: 0.2px;
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  position: sticky;
-  top: 0;
-  backdrop-filter: blur(6px);
-}
-
-/* Celdas */
-.Perfilactivardesactivartable tbody td {
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  font-weight: 600;
   color: var(--text-primary);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--table-border);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: var(--transition);
+}
+
+.ActivardesactivartableRow {
+  transition: var(--transition);
+  border-bottom: 1px solid var(--table-border);
+}
+
+.ActivardesactivartableRow:hover {
+  background: var(--card-hover-bg);
+}
+
+.ActivardesactivartableRow:last-child {
+  border-bottom: none;
+}
+
+.Activardesactivartable td {
+  padding: 16px 20px;
   vertical-align: middle;
-  background: transparent;
-  transition: var(--transition-fast);
 }
 
-/* Alternado filas */
-.Perfilactivardesactivartable tbody tr:nth-child(even) {
-  background: rgba(0,0,0,0.02);
+/* Table Cell Styles */
+.ActivardesactivarcellName {
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: var(--transition);
 }
 
-.Perfilactivardesactivartable tbody tr:nth-child(odd) {
-  background: transparent;
+.ActivardesactivarusuarioInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.PerfilactivardesactivarnoUsers {
-  text-align: center;
+.ActivardesactivarusuarioNombre {
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.ActivardesactivarcellEmail {
   color: var(--text-secondary);
-  padding: 18px 0;
-  font-style: italic;
+  font-size: 0.9rem;
+  transition: var(--transition);
 }
 
-/* Celdas específicas */
-.PerfilactivardesactivarcellName { 
-  font-weight: 700; 
-  color: var(--text-primary); 
+.ActivardesactivarrolesBadge {
+  padding: 6px 12px;
+  background: var(--accent-gradient);
+  color: var(--btn-text);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarcellEmail { 
-  color: var(--text-secondary); 
-  font-size: 0.92rem; 
+.ActivardesactivarcellArea {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarcellRole { 
-  color: var(--text-secondary); 
-  text-transform: capitalize; 
+.ActivardesactivarstateBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarcellState { 
-  width: 120px; 
+.ActivardesactivarstateActive {
+  background: rgba(0, 255, 170, 0.1);
+  color: var(--success-color);
+  border: 1px solid rgba(0, 255, 170, 0.2);
 }
 
-.PerfilactivardesactivarstateActive {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(15,169,105,0.06);
-  color: var(--success);
-  font-weight: 700;
-  border: 1px solid rgba(15,169,105,0.08);
-  font-size: 0.85rem;
+.ActivardesactivarstateInactive {
+  background: rgba(255, 51, 102, 0.1);
+  color: var(--error-color);
+  border: 1px solid rgba(255, 51, 102, 0.2);
 }
 
-.PerfilactivardesactivarstateInactive {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(208,56,96,0.04);
-  color: var(--danger);
-  font-weight: 700;
-  border: 1px solid rgba(208,56,96,0.06);
-  font-size: 0.85rem;
-}
-
-/* Acciones (botones dentro de la tabla) */
-.PerfilactivardesactivarcellActions {
+/* Action Buttons */
+.ActivardesactivaractionButtons {
   display: flex;
   gap: 8px;
-  align-items: center;
   flex-wrap: wrap;
 }
 
-.PerfilactivardesactivaractionButton,
-.PerfilactivardesactivarroleButton,
-.PerfilactivardesactivardeleteButton {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: rgba(255,255,255,0.02);
-  color: var(--text-primary);
-  font-weight: 700;
-  cursor: pointer;
-  transition: var(--transition-fast);
+.ActivardesactivaractionButton,
+.ActivardesactivarroleButton,
+.ActivardesactivardeleteButton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
   font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
 }
 
-/* Specific action styles */
-.PerfilactivardesactivaractionButton {
-  background: linear-gradient(135deg, rgba(0,60,40,0.12), rgba(0,80,60,0.14));
-  color: var(--accent-neon, var(--linkedin-green));
-  border: 1px solid rgba(0,0,0,0.06);
+.ActivardesactivaractionButton {
+  background: var(--accent-gradient);
+  color: var(--btn-text);
 }
 
-.PerfilactivardesactivaractionButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.ActivardesactivarroleButton {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
 }
 
-.PerfilactivardesactivarroleButton {
-  background: linear-gradient(135deg, rgba(0,50,30,0.06), rgba(0,70,50,0.08));
-  color: var(--accent-cyan, var(--linkedin-green-light));
-  border: 1px solid rgba(0,0,0,0.06);
+.ActivardesactivardeleteButton {
+  background: rgba(255, 51, 102, 0.1);
+  color: var(--error-color);
+  border: 1px solid rgba(255, 51, 102, 0.2);
 }
 
-.PerfilactivardesactivarroleButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.ActivardesactivaractionButton:hover:not(:disabled),
+.ActivardesactivarroleButton:hover:not(:disabled),
+.ActivardesactivardeleteButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.PerfilactivardesactivardeleteButton {
-  background: linear-gradient(135deg, rgba(120,20,40,0.04), rgba(120,20,40,0.06));
-  color: var(--danger);
-  border: 1px solid rgba(120,20,40,0.06);
-}
-
-.PerfilactivardesactivardeleteButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(220,60,100,0.04);
-}
-
-/* States disabled / loading */
-.PerfilactivardesactivaractionButton:disabled,
-.PerfilactivardesactivarroleButton:disabled,
-.PerfilactivardesactivardeleteButton:disabled,
-.PerfilactivardesactivarprimaryButton:disabled {
-  opacity: 0.6;
+.ActivardesactivaractionButton:disabled,
+.ActivardesactivarroleButton:disabled,
+.ActivardesactivardeleteButton:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-/* Loading */
-.Perfilactivardesactivarloading {
-  padding: 14px;
-  color: var(--text-secondary);
-  text-align: center;
-  font-style: italic;
+.ActivardesactivarbuttonSpinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-/* ============================
-   Custom Select
-   ============================ */
-.PerfilactivardesactivarcustomSelect {
+/* Empty State - CORREGIDO */
+.ActivardesactivarnoUsers {
+  text-align: center;
+  padding: 60px 20px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ActivardesactivaremptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+
+.ActivardesactivaremptyIcon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.ActivardesactivaremptyState p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Loading State - CORREGIDO */
+.Activardesactivarloading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  flex: 1;
+}
+
+.ActivardesactivarloadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid transparent;
+  border-top: 3px solid var(--accent-1);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Modal Styles */
+.ActivardesactivarmodalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.Activardesactivarmodal {
+  background: var(--modal-bg);
+  border: 1px solid var(--modal-border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  transition: var(--transition);
+}
+
+.ActivardesactivarmodalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 0;
+  margin-bottom: 24px;
+}
+
+.ActivardesactivarmodalTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  transition: var(--transition);
+}
+
+.ActivardesactivarmodalClose {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.ActivardesactivarmodalClose:hover {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.ActivardesactivarmodalForm {
+  padding: 0 24px 24px;
+}
+
+/* Form Styles */
+.ActivardesactivarformGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ActivardesactivarformGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.Activardesactivarlabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ActivardesactivarlabelText {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.Activardesactivarinput {
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.Activardesactivarinput::placeholder {
+  color: var(--text-muted);
+}
+
+.Activardesactivarinput:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0, 180, 63, 0.1);
+  transform: translateY(-1px);
+}
+
+.ActivardesactivarLight .Activardesactivarinput:focus {
+  box-shadow: 0 0 0 3px rgba(0, 180, 63, 0.1);
+}
+
+.ActivardesactivarmodalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.ActivardesactivarmodalCancel {
+  padding: 12px 24px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.ActivardesactivarmodalCancel:hover:not(:disabled) {
+  background: var(--card-hover-bg);
+  transform: translateY(-1px);
+}
+
+.ActivardesactivarmodalSubmit {
+  padding: 12px 24px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ActivardesactivarmodalSubmit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.ActivardesactivarmodalCancel:disabled,
+.ActivardesactivarmodalSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.Activardesactivarspinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Custom Select Styles */
+.ActivardesactivarcustomSelect {
   position: relative;
   width: 100%;
-  font-size: 0.95rem;
 }
 
-.PerfilactivardesactivarcustomSelectButton {
+.ActivardesactivarcustomSelectButton {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-primary);
   cursor: pointer;
-  box-shadow: inset 0 6px 12px rgba(0,0,0,0.02);
-  transition: var(--transition-fast);
+  transition: var(--transition);
   text-align: left;
+  box-sizing: border-box;
 }
 
-.PerfilactivardesactivarcustomSelectButton:focus {
+.ActivardesactivarcustomSelectButton:hover {
+  border-color: var(--card-hover-border);
+}
+
+.ActivardesactivarcustomSelectButton:focus {
   outline: none;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.04);
-  transform: translateY(-1px);
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0, 180, 63, 0.1);
 }
 
-.PerfilactivardesactivarcustomSelectValue {
+.ActivardesactivarcustomSelectValue {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarcustomSelectArrow {
+.ActivardesactivarcustomSelectArrow {
   width: 10px;
   height: 10px;
-  border-right: 2px solid rgba(0,0,0,0.16);
-  border-bottom: 2px solid rgba(0,0,0,0.16);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   transform: rotate(45deg);
-  margin-left: 6px;
-  opacity: 0.9;
+  opacity: 0.7;
+  transition: transform 0.3s ease;
 }
 
-.PerfilactivardesactivarcustomSelectList {
+.ActivardesactivarcustomSelectButton[aria-expanded="true"] .ActivardesactivarcustomSelectArrow {
+  transform: rotate(-135deg);
+}
+
+.ActivardesactivarcustomSelectList {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  box-shadow: var(--shadow-xl);
-  max-height: 220px;
+  box-shadow: var(--card-hover-shadow);
+  max-height: 200px;
   overflow-y: auto;
-  z-index: 1200;
-  padding: 6px 6px;
-  backdrop-filter: blur(6px);
+  z-index: 1000;
+  backdrop-filter: var(--backdrop-filter);
+  transition: var(--transition);
 }
 
-.PerfilactivardesactivarcustomSelectEmpty {
-  padding: 10px 12px;
+.ActivardesactivarcustomSelectEmpty {
+  padding: 12px 14px;
   color: var(--text-secondary);
   font-style: italic;
+  text-align: center;
 }
 
-.PerfilactivardesactivarcustomSelectItem {
-  padding: 10px 12px;
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-weight: 600;
+.ActivardesactivarcustomSelectItem {
+  padding: 12px 14px;
   cursor: pointer;
-  transition: background 0.14s ease;
-  user-select: none;
+  transition: var(--transition);
+  color: var(--text-primary);
 }
 
-.PerfilactivardesactivarcustomSelectItem:hover {
-  background: rgba(0,0,0,0.04);
+.ActivardesactivarcustomSelectItem:hover {
+  background: var(--card-hover-bg);
 }
 
-.PerfilactivardesactivarcustomSelectItemSelected {
-  background: rgba(0,80,60,0.06);
-  color: var(--accent-cyan, var(--linkedin-green-light));
+.ActivardesactivarcustomSelectItemSelected {
+  background: var(--accent-gradient);
+  color: var(--btn-text);
+  font-weight: 600;
 }
 
-/* Scrollbar */
-.PerfilactivardesactivarcustomSelectList::-webkit-scrollbar { width: 8px; height: 8px; }
-.PerfilactivardesactivarcustomSelectList::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.12);
-  border-radius: 8px;
-}
-
-/* Responsive */
-@media (max-width: 980px) {
-  .Perfilactivardesactivarform {
-    grid-template-columns: 1fr;
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .PerfilactivardesactivarpageTitle { font-size: 1.3rem; }
-  .Perfilactivardesactivartable { font-size: 0.9rem; min-width: 700px; }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@media (max-width: 720px) {
-  .Perfilactivardesactivarcontainer { padding: 16px; gap: 12px; }
-  .PerfilactivardesactivarpageTitle { font-size: 1.15rem; }
-  .PerfilactivardesactivarsectionTitle { font-size: 1rem; }
-  .Perfilactivardesactivartable { min-width: 600px; font-size: 0.88rem; }
-  .PerfilactivardesactivarcellActions { flex-wrap: wrap; gap: 6px; }
-  .PerfilactivardesactivarprimaryButton { justify-self: stretch; width: 100%; }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Focus States para Accesibilidad */
+.Activardesactivarinput:focus-visible,
+.ActivardesactivarcustomSelectButton:focus-visible,
+.ActivardesactivarcreateButton:focus-visible,
+.ActivardesactivaractionButton:focus-visible,
+.ActivardesactivarroleButton:focus-visible,
+.ActivardesactivardeleteButton:focus-visible,
+.ActivardesactivarmodalCancel:focus-visible,
+.ActivardesactivarmodalSubmit:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* Responsive Design - CORREGIDO */
+@media (max-width: 768px) {
+  .Activardesactivarheader {
+    padding: 30px 20px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
   
-  .PerfilactivardesactivaractionButton,
-  .PerfilactivardesactivarroleButton,
-  .PerfilactivardesactivardeleteButton {
-    padding: 6px 8px;
-    font-size: 0.8rem;
+  .ActivardesactivarheaderContent {
+    text-align: center;
   }
+  
+  .ActivardesactivarheaderActions {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .Activardesactivartitle {
+    font-size: 2rem;
+  }
+  
+  .Activardesactivarsubtitle {
+    font-size: 1rem;
+  }
+  
+  .ActivardesactivarsectionHeader {
+    padding: 0 16px;
+  }
+  
+  .ActivardesactivartableWrapper {
+    margin: 0 16px;
+  }
+  
+  .ActivardesactivarformGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .ActivardesactivaractionButtons {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .ActivardesactivaractionButton,
+  .ActivardesactivarroleButton,
+  .ActivardesactivardeleteButton {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .Activardesactivarmodal {
+    margin: 20px;
+    max-height: calc(100vh - 40px);
+  }
+  
+  .ActivardesactivarmodalHeader {
+    padding: 20px 20px 0;
+  }
+  
+  .ActivardesactivarmodalForm {
+    padding: 0 20px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .Activardesactivarheader {
+    padding: 25px 16px 16px;
+  }
+  
+  .Activardesactivartitle {
+    font-size: 1.75rem;
+  }
+  
+  .ActivardesactivarsectionTitle {
+    font-size: 1.2rem;
+  }
+  
+  .ActivardesactivartableHeader,
+  .Activardesactivartable td {
+    padding: 12px 8px;
+  }
+  
+  .ActivardesactivarmodalActions {
+    flex-direction: column;
+  }
+  
+  .ActivardesactivarmodalCancel,
+  .ActivardesactivarmodalSubmit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Asegurar que el contenedor principal ocupe toda la altura */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }

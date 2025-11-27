@@ -4,9 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { obtenerProductosUsuario } from '../../api/ProductoUsuario';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 
-// Importa estilos por defecto
-import defaultDarkStyles from '../../styles/HomeDashboard.module.css';
-import defaultLightStyles from '../../styles/HomeDashboardLight.module.css';
+// Importa un solo archivo de estilos por defecto
+import defaultStyles from '../../styles/HomeDashboard.module.css';
 
 // IMPORTAR EL HOOK DE TEMA
 import { useTheme } from '../componentes/ThemeContext';
@@ -16,17 +15,11 @@ const images = import.meta.glob('../../assets/*.jpg', { eager: true });
 /*
   Lógica de estilos por empresa:
   - Buscamos módulos:
-      src/styles/empresas/{companyId}/HomeDashboard.module.css      (dark)
-      src/styles/empresas/{companyId}/HomeDashboardLight.module.css (light)
+      src/styles/empresas/{companyId}/HomeDashboard.module.css
   - Si el plan es 3 o 6 y los archivos por empresa existen, los usamos según el theme.
   - Si no, fallback a los estilos por defecto importados arriba.
-  - Usamos import.meta.glob(..., { eager: true }) para incluirlos en el bundle con Vite.
 */
-const empresaLightModules = import.meta.glob(
-  '../../styles/empresas/*/HomeDashboardLight.module.css',
-  { eager: true }
-);
-const empresaDarkModules = import.meta.glob(
+const empresaModules = import.meta.glob(
   '../../styles/empresas/*/HomeDashboard.module.css',
   { eager: true }
 );
@@ -35,7 +28,7 @@ export const HomeDashboard = () => {
   // USAR EL HOOK DE TEMA
   const { theme } = useTheme();
 
-  const [styles, setStyles] = useState(defaultDarkStyles);
+  const [styles, setStyles] = useState(defaultStyles);
   const [productos, setProductos] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [usuario, setUsuario] = useState(null);
@@ -49,7 +42,7 @@ export const HomeDashboard = () => {
   const [showAreaFilter, setShowAreaFilter] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // NUEVOS ESTADOS PARA EL IFRAME EMBEBIDO
+  // ESTADOS PARA EL IFRAME EMBEBIDO
   const [iframeUrl, setIframeUrl] = useState(null);
   const [iframeName, setIframeName] = useState('');
 
@@ -101,38 +94,24 @@ export const HomeDashboard = () => {
       - Solo intentamos usar estilos por empresa si el plan es 3 o 6.
       - Buscamos módulos incluidos por import.meta.glob.
       - Si encontramos el módulo correspondiente a la empresa, lo usamos.
-      - Si no, fallback al default (light/dark).
+      - Si no, fallback al default.
     */
     const useCompanyStyles = (planId === 3 || planId === 6) && companyId;
-
-    const lightKey = `../../styles/empresas/${companyId}/HomeDashboardLight.module.css`;
-    const darkKey = `../../styles/empresas/${companyId}/HomeDashboard.module.css`;
-
-    const foundCompanyLight = empresaLightModules[lightKey];
-    const foundCompanyDark = empresaDarkModules[darkKey];
+    const companyKey = `../../styles/empresas/${companyId}/HomeDashboard.module.css`;
+    const foundCompanyStyles = empresaModules[companyKey];
 
     const extract = (mod) => {
       if (!mod) return null;
       return mod.default ?? mod;
     };
 
-    const companyLight = extract(foundCompanyLight);
-    const companyDark = extract(foundCompanyDark);
+    const companyStyles = extract(foundCompanyStyles);
 
-    let chosenStyles = defaultDarkStyles;
-    if (theme === 'dark') {
-      if (useCompanyStyles && companyDark) {
-        chosenStyles = companyDark;
-      } else {
-        chosenStyles = defaultDarkStyles;
-      }
+    let chosenStyles = defaultStyles;
+    if (useCompanyStyles && companyStyles) {
+      chosenStyles = companyStyles;
     } else {
-      // light
-      if (useCompanyStyles && companyLight) {
-        chosenStyles = companyLight;
-      } else {
-        chosenStyles = defaultLightStyles;
-      }
+      chosenStyles = defaultStyles;
     }
 
     setStyles(chosenStyles);
@@ -311,8 +290,12 @@ export const HomeDashboard = () => {
   const productosAgrupados = groupProductsByArea(productosAMostrar);
   const uniqueAreas = getUniqueAreas();
 
+  // Elegir la variante según el theme
+  const variantClass = theme === "dark" ? styles.dark : styles.light;
+
   return (
-    <div className={styles.container}>
+    <main className={`${styles.container} ${variantClass}`}>
+      
       {/* SI HAY IFRAME ACTIVO, MOSTRAR SOLO EL IFRAME */}
       {iframeUrl ? (
         <div className={styles.iframeView}>
@@ -650,7 +633,7 @@ export const HomeDashboard = () => {
           <div className={styles.notificationProgress}></div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 

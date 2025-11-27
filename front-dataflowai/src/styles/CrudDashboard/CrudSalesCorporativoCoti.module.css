@@ -598,23 +598,3 @@
   }
 }
 
-/* Scrollbar personalizado */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--cotiCorpoColxd-bg-tertiary);
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--cotiCorpoColxd-primary-mid);
-  border-radius: 5px;
-  transition: background var(--cotiCorpoColxd-transition-fast);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--cotiCorpoColxd-primary-dark);
-}

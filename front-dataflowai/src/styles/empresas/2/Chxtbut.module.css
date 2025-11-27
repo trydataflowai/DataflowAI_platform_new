@@ -8,8 +8,8 @@
   /* Paleta EXACTA que me pediste */
   --black-deep: #0a0a12;
   --black-cosmos: #12121d;
-  --accent-neon: #00c7ff;
-  --accent-dark: #0077b6;
+  --accent-neon: #00b43f;
+  --accent-dark: #008a30;
   --text-primary: #ffffff;
   --text-secondary: #b8c2d9;
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -31,7 +31,7 @@
   --success-color: #00ffaa;
   --error-color: #ff3366;
 
-  --user-message-bg: rgba(0, 199, 255, 0.10); /* basado en --accent-neon (#00c7ff) */
+  --user-message-bg: rgba(0, 180, 63, 0.10); /* basado en --accent-neon (#00b43f) */
   --bot-message-bg: rgba(255, 255, 255, 0.03);
   --system-message-bg: rgba(255, 255, 255, 0.02);
 }
@@ -43,15 +43,15 @@
   --text-primary: #1a1a1a;
   --text-secondary: #666666;
   --text-muted: #999999;
-  --accent-1: #0A66C2;
-  --accent-2: #0073b1;
+  --accent-1: #00b43f;
+  --accent-2: #008a30;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(0, 0, 0, 0.03);
   --card-border: rgba(0, 0, 0, 0.1);
   --card-hover: rgba(0, 0, 0, 0.05);
   --success-color: #0fa969;
   --error-color: #d0445a;
-  --user-message-bg: rgba(10, 102, 194, 0.1);
+  --user-message-bg: rgba(0, 180, 63, 0.1);
   --bot-message-bg: rgba(0, 0, 0, 0.02);
   --system-message-bg: rgba(0, 0, 0, 0.015);
 }
@@ -419,11 +419,11 @@
 
 .Chatpostgretextarea:focus {
   border-color: var(--accent-1);
-  box-shadow: 0 0 0 2px rgba(0, 247, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 180, 63, 0.1);
 }
 
 .ChatpostgreLight .Chatpostgretextarea:focus {
-  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 180, 63, 0.1);
 }
 
 .Chatpostgretextarea:disabled {

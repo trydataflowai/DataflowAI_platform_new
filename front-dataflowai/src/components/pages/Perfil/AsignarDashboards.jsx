@@ -10,35 +10,32 @@ import {
 } from '../../../api/Profile';
 import { obtenerInfoUsuario } from '../../../api/Usuario';
 
-// Función para cargar los estilos dinámicamente
+// Importar estilos por defecto (fallback)
+import defaultStyles from '../../../styles/Profile/AsignarDashboard.module.css';
+
+// Función para cargar los estilos dinámicamente (no bloqueante)
 const cargarEstilosEmpresa = async (empresaId, planId) => {
   const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
-  
+
   try {
-    // Verificar si el plan es especial y si existe la carpeta de la empresa
-    if (planesEspeciales.includes(planId)) {
+    if (planesEspeciales.includes(planId) && empresaId) {
       try {
-        // Intentar importar los estilos de la carpeta de la empresa
         const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/AsignarDashboard.module.css`);
-        return estilosEmpresa.default;
-      } catch (error) {
+        return estilosEmpresa.default || defaultStyles;
+      } catch (err) {
         console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
       }
     }
-    
-    // Cargar estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
-    return estilosPorDefecto.default;
-  } catch (error) {
-    console.error('Error cargando estilos:', error);
-    // Fallback a estilos por defecto
-    const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
-    return estilosPorDefecto.default;
+    return defaultStyles;
+  } catch (err) {
+    console.error('Error cargando estilos:', err);
+    return defaultStyles;
   }
 };
 
 const AsgDashboardAsignarDashboards = () => {
   const { theme } = useTheme();
+
   const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -49,94 +46,79 @@ const AsgDashboardAsignarDashboards = () => {
   const [error, setError] = useState(null);
   const [modalType, setModalType] = useState(''); // 'asignar' o 'quitar'
   const [modalLoading, setModalLoading] = useState(false);
-  const [styles, setStyles] = useState({});
-  const [cargandoEstilos, setCargandoEstilos] = useState(true);
 
-  // Cargar información del usuario y estilos
+  // iniciar con defaultStyles para evitar flash y tener clases disponibles
+  const [styles, setStyles] = useState(defaultStyles);
+
+  // Cargar estilos en background (no bloqueante) y datos iniciales
   useEffect(() => {
-    const cargarUsuarioYEstilos = async () => {
-      setCargandoEstilos(true);
-      try {
-        const usuarioInfo = await obtenerInfoUsuario();
-        const empresaId = usuarioInfo.empresa?.id;
-        const planId = usuarioInfo.empresa?.plan?.id;
-        
-        if (empresaId && planId) {
-          const estilosCargados = await cargarEstilosEmpresa(empresaId, planId);
-          setStyles(estilosCargados);
-        } else {
-          // Fallback a estilos por defecto si no hay info de empresa/plan
-          const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
-          setStyles(estilosPorDefecto.default);
-        }
-      } catch (error) {
-        console.error('Error cargando información del usuario:', error);
-        // Fallback a estilos por defecto
-        const estilosPorDefecto = await import('../../../styles/Profile/AsignarDashboard.module.css');
-        setStyles(estilosPorDefecto.default);
-      } finally {
-        setCargandoEstilos(false);
-      }
-    };
+    let mounted = true;
 
-    cargarUsuarioYEstilos();
-  }, []);
-
-  // Cargar datos iniciales
-  useEffect(() => {
-    const cargarDatosIniciales = async () => {
-      if (cargandoEstilos) return; // Esperar a que carguen los estilos
-      
-      setLoading(true);
+    (async () => {
       try {
-        const [usuariosData, productosData] = await Promise.all([
-          AsgDashboard_obtenerUsuariosEmpresa(),
-          AsgDashboard_obtenerProductos()
-        ]);
-        setUsuarios(usuariosData || []);
-        setProductos(productosData || []);
+        const usuarioInfo = await obtenerInfoUsuario().catch(() => null);
+        const empresaId = usuarioInfo?.empresa?.id;
+        const planId = usuarioInfo?.empresa?.plan?.id;
+        cargarEstilosEmpresa(empresaId, planId)
+          .then((estilos) => {
+            if (!mounted) return;
+            if (estilos) setStyles(estilos);
+          })
+          .catch(() => {
+            if (mounted) setStyles(defaultStyles);
+          });
       } catch (err) {
-        console.error(err);
-        setError(err?.message || 'Error al cargar datos');
-      } finally {
-        setLoading(false);
+        if (mounted) setStyles(defaultStyles);
       }
-    };
+    })();
 
-    cargarDatosIniciales();
-  }, [cargandoEstilos]);
+    // cargar datos sin esperar estilos
+    cargarUsuarios();
+    cargarProductos();
+
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Evita scroll de fondo cuando el modal está abierto
   useEffect(() => {
     if (selectedUser) {
+      const prev = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+      return () => {
+        document.body.style.overflow = prev || 'unset';
+      };
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    return undefined;
   }, [selectedUser]);
 
   const cargarUsuarios = useCallback(async () => {
     setError(null);
+    setLoading(true);
     try {
       const data = await AsgDashboard_obtenerUsuariosEmpresa();
       setUsuarios(data || []);
     } catch (err) {
       console.error(err);
       setError(err?.message || 'Error al obtener usuarios');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const cargarProductos = useCallback(async () => {
     setError(null);
+    setLoading(true);
     try {
       const data = await AsgDashboard_obtenerProductos();
       setProductos(data || []);
     } catch (err) {
       console.error(err);
       setError(err?.message || 'Error al obtener productos');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -235,17 +217,10 @@ const AsgDashboardAsignarDashboards = () => {
     Promise.all([cargarUsuarios(), cargarProductos()]);
   }, [cargarUsuarios, cargarProductos]);
 
-  // Si aún se están cargando los estilos, mostrar loading
-  if (cargandoEstilos) {
-    return (
-      <div className="cargando-estilos">
-        <div>Cargando estilos...</div>
-      </div>
-    );
-  }
-
-  // clase variante (light/dark) aplicada al contenedor principal
-  const variantClass = theme === 'light' ? styles.AsignardashboardLight : styles.AsignardashboardDark;
+  // --- FIX: elegir la variante siempre en base al theme con fallback defensivo
+  const variantClass = theme === 'dark'
+    ? (styles?.AsignardashboardDark || defaultStyles.AsignardashboardDark || '')
+    : (styles?.AsignardashboardLight || defaultStyles.AsignardashboardLight || '');
 
   return (
     <main className={`${styles.Asignardashboardcontainer} ${variantClass}`} aria-labelledby="asignar-dashboards-title">
@@ -430,9 +405,7 @@ const AsgDashboardAsignarDashboards = () => {
                                 <td className={styles.AsignardashboardcellOwner}>{propietario}</td>
                                 <td className={styles.AsignardashboardcellActions}>
                                   <button
-                                    className={`${styles.AsignardashboardactionButton} ${
-                                      assigned ? styles.AsignardashboardactionButtonDisabled : ''
-                                    }`}
+                                    className={`${styles.AsignardashboardactionButton} ${assigned ? styles.AsignardashboardactionButtonDisabled : ''}`}
                                     onClick={() => handleAsignar(producto)}
                                     disabled={assigned || actionLoading === producto.id_producto}
                                     aria-label={`${assigned ? 'Ya asignado' : 'Asignar'} dashboard ${producto.producto}`}

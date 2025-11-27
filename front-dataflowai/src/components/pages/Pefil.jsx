@@ -1,9 +1,12 @@
-// src/components/pages/ConfiguracionUsuarios.jsx
-import React, { useEffect, useRef, useState } from "react";
+// src/components/.../ConfiguracionUsuarios.jsx
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import defaultStyles from '../../styles/Profile/Perfil.module.css';
 import { obtenerInfoUsuario } from "../../api/Usuario";
 import { useTheme } from "../componentes/ThemeContext";
+import { useCompanyStyles } from "../componentes/ThemeContextEmpresa";
+
+// NOTA: ya no importas defaultStyles directamente aquí, el hook lo devuelve
+// import defaultStyles from '../../styles/Profile/Perfil.module.css';
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -17,7 +20,6 @@ const NO_PREFIX = [
 const normalizeSegment = (nombreCorto) =>
   nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
-// Card refinada - diseño más sobrio
 const Card = ({ texto, ruta, onCardClick, styles }) => {
   const ref = useRef(null);
 
@@ -71,6 +73,7 @@ const Card = ({ texto, ruta, onCardClick, styles }) => {
 
 const ConfiguracionUsuarios = () => {
   const { theme } = useTheme();
+  const styles = useCompanyStyles('Perfil'); // obtiene estilos (empresa o default) sin parpadeo
   const [companySegment, setCompanySegment] = useState("");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
@@ -79,7 +82,6 @@ const ConfiguracionUsuarios = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [companyId, setCompanyId] = useState(null);
 
-  const [styles, setStyles] = useState(defaultStyles);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -118,33 +120,6 @@ const ConfiguracionUsuarios = () => {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadCompanyStyles = async () => {
-      if ((planId === 3 || planId === 6) && companyId) {
-        try {
-          const module = await import(`../../styles/empresas/${companyId}/Perfil.module.css`);
-          if (mounted && module && (module.default || module)) {
-            const cssMap = module.default || module;
-            setStyles(cssMap);
-            return;
-          }
-        } catch (err) {
-          console.warn(`No se encontró CSS custom para la empresa ${companyId}. Usando estilos por defecto.`, err);
-        }
-      }
-
-      if (mounted) setStyles(defaultStyles);
-    };
-
-    loadCompanyStyles();
-
-    return () => {
-      mounted = false;
-    };
-  }, [planId, companyId]);
 
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
@@ -210,12 +185,8 @@ const ConfiguracionUsuarios = () => {
     setModalMessage("");
   };
 
-  const variantClass =
-    planId === 3 || planId === 6
-      ? theme === "dark"
-        ? styles.PerfilgeneralDark
-        : styles.PerfilgeneralLight
-      : styles.PerfilgeneralDark;
+  // variante basada únicamente en ThemeContext (evita fallback oscuro)
+  const variantClass = theme === "dark" ? styles.PerfilgeneralDark : styles.PerfilgeneralLight;
 
   return (
     <main className={`${styles.Perfilgeneralcontainer} ${variantClass}`} aria-labelledby="config-usuarios-title">
@@ -229,10 +200,6 @@ const ConfiguracionUsuarios = () => {
           <p className={styles.Perfilgeneralsubtitle}>
             Gestiona la configuración del sistema y preferencias de usuario
           </p>
-        </div>
-        <div className={styles.PerfilgeneralheaderMeta}>
-          <span className={styles.PerfilgeneralplanInfo}>{planName}</span>
-          <span className={styles.PerfilgeneralroleInfo}>{rol}</span>
         </div>
       </section>
 

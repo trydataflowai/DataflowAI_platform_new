@@ -30,7 +30,7 @@
   height: 24px;
   border-radius: 50%;
   background-color: white;
-  transition: left 0.3s ease;
+  transition: left 0.3s ease, transform 0.12s ease;
   font-size: 14px;
   display: flex;
   align-items: center;
