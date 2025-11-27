@@ -1,4 +1,18 @@
-1. **Fallback forzaba `dark` mientras llegaban datos asíncronos.**
+1. **Colores del dark:
+
+   Quiero que remplaces los colores dark por estos
+
+   .dark {
+   --black-deep: #0a0a12;
+   --black-cosmos: #12121d;
+   --accent-neon: #00c7ff;
+   --accent-dark: #0077b6;
+   --text-primary: #ffffff;
+   --text-secondary: #b8c2d9;
+   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+   }
+
+   Fallback forzaba `dark` mientras llegaban datos asíncronos.**
 
    En `ConfiguracionUsuarios.jsx` el `variantClass` original usaba `planId` para decidir la clase y,  *cuando `planId` era `null` al inicio* , el componente devolvía por defecto `styles.PerfilgeneralDark`. Eso hacía que la página  **se renderizara inmediatamente en oscuro** , y cuando la llamada asíncrona terminaba y `planId` cambiaba, React re-renderizaba y allí aparecía la versión `light`. Ese re-render es lo que causaba el destello (dark → light), especialmente visible si la página tiene transiciones o animaciones.
 2. **Orden de inicialización del tema + paint.**
@@ -11,8 +25,6 @@ Qué arregló la solución que aplicamos:
 * **Aplicación temprana del tema:** el script que añadimos en `index.html` lee `localStorage` y/o la preferencia del sistema y aplica `data-theme` *antes* de que React se cargue, evitando el FOUC.
 * **`useLayoutEffect` en el `ThemeContext`:** aplica el `data-theme` de forma síncrona antes del paint cuando React monta o cambia el tema, lo que evita parpadeos al navegar.
 * **(Opcional) `data-theme-ready`:** marcamos el documento como “theme ready” para que puedas condicionar transiciones en CSS hasta que el tema esté listo (evita transiciones visuales indeseadas).
-
-
 
 ## ✅ **PROMPT CORTO PARA COPIAR Y PEGAR A UNA IA**
 

@@ -5,23 +5,24 @@
    ========================= */
 
 .dark {
-  /* Dark Theme Variables */
-  --black-void: #000000;
-  --black-cosmos: #050505;
-  --black-deep: #0a0a0a;
-  --accent-neon: #00f7ff;
-  --accent-turquoise: #00e1ff;
-  --accent-cyan: #00c2ff;
-  --accent-dark: #0099cc;
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00c7ff;
+  --accent-dark: #0077b6;
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --muted: #9a9a9a;
+  --text-secondary: #b8c2d9;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Variables de compatibilidad (mapeadas para que el resto del CSS siga funcionando) */
+  --black-void: #000000;
+  --accent-turquoise: var(--accent-neon);
+  --accent-cyan: #00c2ff;
+  --muted: var(--text-secondary);
   --surface: rgba(10,10,10,0.6);
   --glass: rgba(255,255,255,0.03);
   --success: #00ffaa;
   --warning: #ffcc00;
   --danger: #ff3366;
-  --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .light {

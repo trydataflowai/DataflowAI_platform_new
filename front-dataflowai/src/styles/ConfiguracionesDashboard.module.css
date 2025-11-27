@@ -5,33 +5,34 @@
    ========================= */
 
 .darkTheme {
-  --bg-primary: #000000;
-  --bg-secondary: #050505;
-  --bg-tertiary: #0a0a0a;
-  --bg-gradient: linear-gradient(135deg, #000000 0%, #050505 50%, #0a0a0a 100%);
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-tertiary: #1a1a2e;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 50%, #1a1a2e 100%);
   --text-primary: #ffffff;
-  --text-secondary: #cccccc;
+  --text-secondary: #b8c2d9;
   --text-muted: #666666;
-  --accent-1: #00f7ff;
-  --accent-2: #00e1ff;
-  --accent-3: #00c2ff;
+  --accent-1: #00c7ff;
+  --accent-2: #0099cc;
+  --accent-3: #0077b6;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --card-bg: rgba(10, 10, 10, 0.8);
-  --card-hover-bg: rgba(20, 20, 20, 0.9);
-  --card-border: rgba(0, 247, 255, 0.1);
-  --card-hover-border: rgba(0, 247, 255, 0.2);
+  --card-bg: rgba(18, 18, 29, 0.8);
+  --card-hover-bg: rgba(25, 25, 40, 0.9);
+  --card-border: rgba(0, 199, 255, 0.1);
+  --card-hover-border: rgba(0, 199, 255, 0.2);
   --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  --card-hover-shadow: 0 20px 60px rgba(0, 247, 255, 0.1);
+  --card-hover-shadow: 0 20px 60px rgba(0, 199, 255, 0.1);
   --success: #00ffaa;
   --warning: #ffcc00;
   --danger: #ff3366;
   --backdrop-filter: blur(20px);
-  --modal-bg: rgba(30, 30, 30, 0.95);
+  --modal-bg: rgba(10, 10, 18, 0.95);
   --btn-primary-bg: var(--accent-gradient);
-  --btn-primary-text: #000000;
+  --btn-primary-text: #00121a;
   --btn-secondary-bg: rgba(255, 255, 255, 0.05);
-  --btn-secondary-border: rgba(0, 247, 255, 0.2);
+  --btn-secondary-border: rgba(0, 199, 255, 0.2);
   --btn-secondary-text: #ffffff;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .lightTheme {
@@ -62,6 +63,7 @@
   --btn-secondary-bg: #ffffff;
   --btn-secondary-border: #d4cfc7;
   --btn-secondary-text: #666666;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* =========================
@@ -76,6 +78,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: var(--transition);
 }
 
 /* Header */
@@ -87,6 +90,7 @@
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: var(--transition);
 }
 
 .headerContent {
@@ -110,11 +114,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 32px rgba(0, 247, 255, 0.3);
+  transition: var(--transition);
 }
 
 .darkTheme .iconWrapper {
-  box-shadow: 0 8px 32px rgba(0, 247, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 199, 255, 0.3);
 }
 
 .lightTheme .iconWrapper {
@@ -124,6 +128,7 @@
 .headerIcon {
   width: 2rem;
   height: 2rem;
+  transition: var(--transition);
 }
 
 .darkTheme .headerIcon {
@@ -139,6 +144,7 @@
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
+  transition: var(--transition);
 }
 
 .darkTheme .title {
@@ -157,6 +163,7 @@
   color: var(--text-secondary);
   margin: 0.5rem 0 0 0;
   font-weight: 400;
+  transition: var(--transition);
 }
 
 .backButton {
@@ -170,15 +177,15 @@
   border-radius: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   backdrop-filter: var(--backdrop-filter);
 }
 
 .backButton:hover {
-  background: rgba(0, 247, 255, 0.1);
+  background: rgba(0, 199, 255, 0.1);
   border-color: var(--accent-1);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 247, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 199, 255, 0.2);
 }
 
 .lightTheme .backButton:hover {
@@ -191,6 +198,7 @@
 .backIcon {
   width: 1.25rem;
   height: 1.25rem;
+  transition: var(--transition);
 }
 
 /* Content */
@@ -216,7 +224,7 @@
   border-radius: 24px;
   padding: 2.5rem;
   box-shadow: var(--card-shadow);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   backdrop-filter: var(--backdrop-filter);
 }
 
@@ -241,6 +249,7 @@
   width: 1.5rem;
   height: 1.5rem;
   color: var(--accent-1);
+  transition: var(--transition);
 }
 
 .cardTitle h2 {
@@ -248,6 +257,7 @@
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .cardDescription {
@@ -255,6 +265,7 @@
   font-size: 1rem;
   line-height: 1.6;
   margin: 0;
+  transition: var(--transition);
 }
 
 /* Upload Section */
@@ -275,13 +286,13 @@
   border-radius: 16px;
   padding: 3rem 2rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   text-align: center;
 }
 
 .fileLabel:hover {
   border-color: var(--accent-1);
-  background: rgba(0, 247, 255, 0.05);
+  background: rgba(0, 199, 255, 0.05);
 }
 
 .lightTheme .fileLabel:hover {
@@ -302,10 +313,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: var(--transition);
 }
 
 .darkTheme .uploadIcon {
-  box-shadow: 0 8px 32px rgba(0, 247, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 199, 255, 0.3);
 }
 
 .lightTheme .uploadIcon {
@@ -315,6 +327,7 @@
 .uploadIcon svg {
   width: 2rem;
   height: 2rem;
+  transition: var(--transition);
 }
 
 .darkTheme .uploadIcon svg {
@@ -335,11 +348,13 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .uploadSubtitle {
   font-size: 0.95rem;
   color: var(--text-secondary);
+  transition: var(--transition);
 }
 
 .fileInput {
@@ -352,13 +367,14 @@
 
 /* File Info */
 .fileInfo {
-  background: rgba(0, 247, 255, 0.05);
-  border: 1px solid rgba(0, 247, 255, 0.2);
+  background: rgba(0, 199, 255, 0.05);
+  border: 1px solid rgba(0, 199, 255, 0.2);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: var(--transition);
 }
 
 .lightTheme .fileInfo {
@@ -379,10 +395,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: var(--transition);
 }
 
 .darkTheme .fileIcon {
-  box-shadow: 0 2px 8px rgba(0, 247, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 199, 255, 0.2);
 }
 
 .lightTheme .fileIcon {
@@ -393,6 +410,7 @@
   width: 1.25rem;
   height: 1.25rem;
   color: var(--bg-primary);
+  transition: var(--transition);
 }
 
 .fileMetadata {
@@ -404,11 +422,13 @@
 .fileName {
   font-weight: 600;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .fileSize {
   font-size: 0.875rem;
   color: var(--text-secondary);
+  transition: var(--transition);
 }
 
 .fileActions {
@@ -423,7 +443,7 @@
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
 }
 
 .removeFile:hover {
@@ -443,6 +463,7 @@
 .removeFile svg {
   width: 1rem;
   height: 1rem;
+  transition: var(--transition);
 }
 
 /* Action Buttons */
@@ -461,13 +482,16 @@
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  box-shadow: 0 8px 32px rgba(0, 247, 255, 0.3);
   flex: 1;
   justify-content: center;
+}
+
+.darkTheme .importButton {
+  box-shadow: 0 8px 32px rgba(0, 199, 255, 0.3);
 }
 
 .lightTheme .importButton {
@@ -476,7 +500,10 @@
 
 .importButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 247, 255, 0.4);
+}
+
+.darkTheme .importButton:hover:not(:disabled) {
+  box-shadow: 0 12px 40px rgba(0, 199, 255, 0.4);
 }
 
 .lightTheme .importButton:hover:not(:disabled) {
@@ -503,7 +530,7 @@
   font-weight: 500;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -514,10 +541,13 @@
 }
 
 .templateButton:hover {
-  background: rgba(0, 247, 255, 0.1);
+  background: rgba(0, 199, 255, 0.1);
   border-color: var(--accent-1);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 247, 255, 0.2);
+}
+
+.darkTheme .templateButton:hover {
+  box-shadow: 0 8px 32px rgba(0, 199, 255, 0.2);
 }
 
 .lightTheme .templateButton:hover {
@@ -530,6 +560,7 @@
 .buttonIcon {
   width: 1.25rem;
   height: 1.25rem;
+  transition: var(--transition);
 }
 
 /* Spinner */
@@ -559,6 +590,7 @@
   margin-top: 1rem;
   border: 1px solid;
   backdrop-filter: var(--backdrop-filter);
+  transition: var(--transition);
 }
 
 .mensaje.success {
@@ -596,6 +628,7 @@
 .mensajeIcon svg {
   width: 1.25rem;
   height: 1.25rem;
+  transition: var(--transition);
 }
 
 .mensajeText {
@@ -610,7 +643,7 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 4px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   flex-shrink: 0;
 }
 
@@ -625,6 +658,7 @@
 .mensajeClose svg {
   width: 1rem;
   height: 1rem;
+  transition: var(--transition);
 }
 
 /* Side Section */
@@ -640,7 +674,7 @@
   border-radius: 20px;
   padding: 2rem;
   box-shadow: var(--card-shadow);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   backdrop-filter: var(--backdrop-filter);
 }
 
@@ -661,6 +695,7 @@
   width: 1.5rem;
   height: 1.5rem;
   color: var(--accent-1);
+  transition: var(--transition);
 }
 
 .infoHeader h3, .tipsHeader h3 {
@@ -668,6 +703,7 @@
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 /* Process Steps */
@@ -685,11 +721,11 @@
   background: var(--bg-tertiary);
   border-radius: 12px;
   border-left: 3px solid var(--accent-1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
 }
 
 .step:hover {
-  background: rgba(0, 247, 255, 0.05);
+  background: rgba(0, 199, 255, 0.05);
   transform: translateX(4px);
 }
 
@@ -709,10 +745,11 @@
   font-weight: 700;
   font-size: 0.875rem;
   flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .darkTheme .stepNumber {
-  box-shadow: 0 2px 8px rgba(0, 247, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 199, 255, 0.2);
 }
 
 .lightTheme .stepNumber {
@@ -727,12 +764,14 @@
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
+  transition: var(--transition);
 }
 
 .stepDescription {
   font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
+  transition: var(--transition);
 }
 
 /* Tips List */
@@ -749,11 +788,11 @@
   padding: 0.75rem;
   background: var(--bg-tertiary);
   border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
 }
 
 .tip:hover {
-  background: rgba(0, 247, 255, 0.05);
+  background: rgba(0, 199, 255, 0.05);
 }
 
 .lightTheme .tip:hover {
@@ -768,6 +807,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .lightTheme .tipIcon {
@@ -778,12 +818,14 @@
   width: 0.875rem;
   height: 0.875rem;
   color: var(--success);
+  transition: var(--transition);
 }
 
 .tip span {
   font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
+  transition: var(--transition);
 }
 
 /* Responsive Design */
@@ -858,7 +900,12 @@
 .templateButton:focus,
 .backButton:focus {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(0, 247, 255, 0.2);
+}
+
+.darkTheme .importButton:focus,
+.darkTheme .templateButton:focus,
+.darkTheme .backButton:focus {
+  box-shadow: 0 0 0 4px rgba(0, 199, 255, 0.2);
 }
 
 .lightTheme .importButton:focus,
@@ -869,7 +916,14 @@
 
 .fileLabel:focus-within {
   border-color: var(--accent-1);
-  box-shadow: 0 0 0 4px rgba(0, 247, 255, 0.1);
+}
+
+.darkTheme .fileLabel:focus-within {
+  box-shadow: 0 0 0 4px rgba(0, 199, 255, 0.1);
+}
+
+.lightTheme .fileLabel:focus-within {
+  box-shadow: 0 0 0 4px rgba(10, 102, 194, 0.1);
 }
 
 /* Animaciones de entrada */

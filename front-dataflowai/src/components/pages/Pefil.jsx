@@ -224,10 +224,6 @@ const ConfiguracionUsuarios = () => {
             Gestiona la configuración del sistema y preferencias de usuario
           </p>
         </div>
-        <div className={styles.PerfilgeneralheaderMeta}>
-          <span className={styles.PerfilgeneralplanInfo}>{planName}</span>
-          <span className={styles.PerfilgeneralroleInfo}>{rol}</span>
-        </div>
       </section>
 
       {/* Cards Grid */}

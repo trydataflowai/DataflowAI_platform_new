@@ -569,9 +569,7 @@ export const Rutas = () => {
             <Route
               path="/forms/:slug"
               element={
-                <SideBarLayout>
                   <FormPublic />
-                </SideBarLayout>
               }
             />
 

@@ -241,14 +241,6 @@ const FormBuilder = () => {
             Crea formularios dinámicos con ramificación condicional
           </p>
         </div>
-        <div className={styles.FormBuilderheaderMeta}>
-          {usuarioInfo && (
-            <span className={styles.FormBuilderuserInfo}>
-              Creado por: <strong>{usuarioInfo.nombres || usuarioInfo.correo || usuarioInfo.id_usuario}</strong>
-            </span>
-          )}
-          <span className={styles.FormBuilderplanInfo}>{planName}</span>
-        </div>
       </section>
 
       {/* Main Content */}

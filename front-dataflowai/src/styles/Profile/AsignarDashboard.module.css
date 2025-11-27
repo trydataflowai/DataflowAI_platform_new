@@ -5,29 +5,30 @@
    ========================= */
 
 .AsignardashboardDark {
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
   --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #b8c2d9;
   --text-muted: #666666;
-  --accent-1: #00f7ff;
-  --accent-2: #00c2ff;
+  --accent-1: #00c7ff;
+  --accent-2: #0077b6;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --card-bg: rgba(25, 25, 25, 0.9);
-  --card-hover-bg: rgba(35, 35, 35, 0.95);
+  --card-bg: rgba(25, 25, 35, 0.9);
+  --card-hover-bg: rgba(35, 35, 45, 0.95);
   --card-border: rgba(255, 255, 255, 0.08);
-  --card-hover-border: rgba(0, 247, 255, 0.2);
+  --card-hover-border: rgba(0, 199, 255, 0.2);
   --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.15);
+  --card-hover-shadow: 0 8px 30px rgba(0, 199, 255, 0.15);
   --backdrop-filter: blur(10px);
-  --modal-bg: rgba(20, 20, 20, 0.95);
+  --modal-bg: rgba(18, 18, 29, 0.95);
   --modal-border: rgba(255, 255, 255, 0.1);
   --btn-bg: var(--accent-gradient);
   --btn-text: #00121a;
   --success-color: #00ffaa;
   --error-color: #ff3366;
   --warning-color: #ffcc00;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .AsignardashboardLight {
@@ -54,6 +55,7 @@
   --success-color: #0fa969;
   --error-color: #d0445a;
   --warning-color: #e6a700;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* =========================
@@ -74,6 +76,7 @@
   line-height: 1.6;
   display: flex;
   flex-direction: column;
+  transition: var(--transition);
 }
 
 /* Header Section */
@@ -82,6 +85,7 @@
   border-bottom: 1px solid var(--card-border);
   background: var(--bg-primary);
   flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .AsignardashboardheaderContent {
@@ -96,6 +100,7 @@
   margin: 0 0 12px 0;
   color: var(--text-primary);
   letter-spacing: -0.02em;
+  transition: var(--transition);
 }
 
 .Asignardashboardsubtitle {
@@ -106,6 +111,7 @@
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
+  transition: var(--transition);
 }
 
 .AsignardashboardheaderMeta {
@@ -125,7 +131,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .AsignardashboardrefreshButton:hover {
@@ -145,6 +151,7 @@
   border-radius: 8px;
   animation: fadeInUp 0.5s ease-out;
   flex-shrink: 0;
+  transition: var(--transition);
 }
 
 .AsignardashboarderrorBox {
@@ -192,12 +199,14 @@
   font-weight: 700;
   margin: 0 0 8px 0;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .AsignardashboardsectionSubtitle {
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin: 0;
+  transition: var(--transition);
 }
 
 /* Table Wrapper */
@@ -209,6 +218,7 @@
   backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
   width: 100%;
+  transition: var(--transition);
 }
 
 .Asignardashboardtable {
@@ -228,10 +238,11 @@
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: var(--transition);
 }
 
 .AsignardashboardtableRow {
-  transition: all 0.3s ease;
+  transition: var(--transition);
   border-bottom: 1px solid var(--card-border);
 }
 
@@ -264,17 +275,20 @@
 .AsignardashboarduserName {
   font-weight: 600;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .AsignardashboarduserEmail {
   font-size: 0.85rem;
   color: var(--text-secondary);
+  transition: var(--transition);
 }
 
 .AsignardashboardcellArea {
   color: var(--text-secondary);
   font-size: 0.9rem;
   width: 20%;
+  transition: var(--transition);
 }
 
 .AsignardashboardcellActions {
@@ -291,7 +305,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   min-width: 80px;
   width: 100%;
   max-width: 120px;
@@ -378,6 +392,7 @@
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalEnter 0.3s ease-out;
+  transition: var(--transition);
 }
 
 .AsignardashboardmodalHeader {
@@ -399,6 +414,7 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
+  transition: var(--transition);
 }
 
 .AsignardashboardcloseButton {
@@ -409,7 +425,7 @@
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   flex-shrink: 0;
 }
 
@@ -435,6 +451,7 @@
   color: var(--text-primary);
   padding-bottom: 8px;
   border-bottom: 1px solid var(--card-border);
+  transition: var(--transition);
 }
 
 .AsignardashboardtableContainer {
@@ -450,7 +467,7 @@
 }
 
 .AsignardashboardmodalTableRow {
-  transition: all 0.3s ease;
+  transition: var(--transition);
   border-bottom: 1px solid var(--card-border);
 }
 
@@ -472,12 +489,14 @@
   font-weight: 600;
   color: var(--text-primary);
   width: 30%;
+  transition: var(--transition);
 }
 
 .AsignardashboardcellOwner {
   color: var(--text-secondary);
   font-size: 0.85rem;
   width: 25%;
+  transition: var(--transition);
 }
 
 /* Modal Action Buttons */
@@ -489,7 +508,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   min-width: 100px;
   display: flex;
   align-items: center;
@@ -557,7 +576,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .AsignardashboardcloseModalButton:hover {
@@ -577,7 +596,7 @@
 
 .AsignardashboardDark .AsignardashboardtableHeader {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  background: rgba(30, 30, 30, 0.9);
+  background: rgba(30, 30, 40, 0.9);
 }
 
 .AsignardashboardDark .AsignardashboardtableRow {
@@ -618,15 +637,15 @@
 
 /* Fondos más oscuros para mejor contraste */
 .AsignardashboardDark .AsignardashboardtableWrapper {
-  background: rgba(20, 20, 20, 0.95);
+  background: rgba(18, 18, 29, 0.95);
 }
 
 .AsignardashboardDark .Asignardashboardmodal {
-  background: rgba(15, 15, 15, 0.98);
+  background: rgba(10, 10, 18, 0.98);
 }
 
 .AsignardashboardDark .AsignardashboardtableHeader {
-  background: rgba(25, 25, 25, 0.9);
+  background: rgba(25, 25, 35, 0.9);
 }
 
 /* Animations */

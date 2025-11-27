@@ -5,21 +5,33 @@
    ========================= */
 
 .ChatpostgreDark {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111111;
-  --bg-gradient: linear-gradient(135deg, #050505 0%, #0a0a0a 100%);
+  /* Paleta EXACTA que me pediste */
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00c7ff;
+  --accent-dark: #0077b6;
   --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
-  --accent-1: #00f7ff;
-  --accent-2: #00c2ff;
+  --text-secondary: #b8c2d9;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Mapeos compatibles con el resto del CSS */
+  --bg-primary: var(--black-deep);
+  --bg-secondary: var(--black-cosmos);
+  --bg-gradient: linear-gradient(135deg, var(--black-cosmos) 0%, var(--black-deep) 100%);
+  --text-muted: rgba(184, 194, 217, 0.55);
+
+  --accent-1: var(--accent-neon);
+  --accent-2: var(--accent-dark);
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+
   --card-bg: rgba(255, 255, 255, 0.05);
   --card-border: rgba(255, 255, 255, 0.1);
   --card-hover: rgba(255, 255, 255, 0.08);
+
   --success-color: #00ffaa;
   --error-color: #ff3366;
-  --user-message-bg: rgba(0, 247, 255, 0.1);
+
+  --user-message-bg: rgba(0, 199, 255, 0.10); /* basado en --accent-neon (#00c7ff) */
   --bot-message-bg: rgba(255, 255, 255, 0.03);
   --system-message-bg: rgba(255, 255, 255, 0.02);
 }
