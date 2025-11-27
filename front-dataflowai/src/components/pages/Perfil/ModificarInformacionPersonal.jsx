@@ -1,6 +1,7 @@
 // src/components/.../ModificarInformacionPersonal.jsx
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../../componentes/ThemeContext';
+import { useCompanyStyles } from '../../componentes/ThemeContextEmpresa';
 import {
   obtenerMiPerfil,
   actualizarMiUsuario,
@@ -11,33 +12,11 @@ import { obtenerInfoUsuario } from '../../../api/Usuario';
 // Importar estilos por defecto (fallback)
 import defaultStyles from '../../../styles/Profile/ModInfoPersonal.module.css';
 
-// Función para cargar los estilos dinámicamente (no bloqueante)
-const cargarEstilosEmpresa = async (empresaId, planId) => {
-  const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
-
-  try {
-    // Verificar si el plan es especial y si existe la carpeta de la empresa
-    if (planesEspeciales.includes(planId) && empresaId) {
-      try {
-        // Intentar importar los estilos de la carpeta de la empresa
-        const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/ModInfoPersonal.module.css`);
-        return estilosEmpresa.default || defaultStyles;
-      } catch (error) {
-        console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
-      }
-    }
-
-    // Fallback a estilos por defecto
-    return defaultStyles;
-  } catch (error) {
-    console.error('Error cargando estilos:', error);
-    // Fallback a estilos por defecto
-    return defaultStyles;
-  }
-};
-
 const ModificarInformacionPersonal = () => {
   const { theme } = useTheme();
+
+  // Obtener estilos (empresa o default) desde el provider — evita parpadeo
+  const styles = useCompanyStyles('ModInfoPersonal', defaultStyles);
 
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -45,7 +24,6 @@ const ModificarInformacionPersonal = () => {
   const [savingCompany, setSavingCompany] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [styles, setStyles] = useState(defaultStyles); // iniciar con defaultStyles para evitar undefined
 
   // Usuario
   const [usuario, setUsuario] = useState(null);
@@ -69,7 +47,7 @@ const ModificarInformacionPersonal = () => {
   const [backupUser, setBackupUser] = useState(null);
   const [backupCompany, setBackupCompany] = useState(null);
 
-  // Cargar datos del perfil y estilos de forma no bloqueante
+  // Cargar datos del perfil y (estilos ya provistos por el provider)
   useEffect(() => {
     let mounted = true;
 
@@ -78,20 +56,7 @@ const ModificarInformacionPersonal = () => {
       setError('');
 
       try {
-        // Cargar info de usuario (contiene empresa y plan)
-        const usuarioInfo = await obtenerInfoUsuario();
-        const empresaId = usuarioInfo?.empresa?.id;
-        const planId = usuarioInfo?.empresa?.plan?.id;
-
-        // Lanzar carga de estilos en paralelo (no bloqueante)
-        cargarEstilosEmpresa(empresaId, planId).then((estilosCargados) => {
-          if (!mounted) return;
-          if (estilosCargados) setStyles(estilosCargados);
-        }).catch(() => {
-          if (mounted) setStyles(defaultStyles);
-        });
-
-        // Cargar perfil completo (puede ser otra llamada)
+        // Cargar perfil completo
         const res = await obtenerMiPerfil();
         const u = res.usuario || {};
         const e = res.empresa || {};
@@ -114,9 +79,8 @@ const ModificarInformacionPersonal = () => {
         setPaginaWeb(e.pagina_web || '');
       } catch (err) {
         if (!mounted) return;
-        console.error('Error inicializando perfil y estilos:', err);
+        console.error('Error inicializando perfil:', err);
         setError(err?.message || 'Error al cargar datos');
-        // styles ya tiene defaultStyles
       } finally {
         if (mounted) setLoading(false);
       }
@@ -186,7 +150,8 @@ const ModificarInformacionPersonal = () => {
       setBackupUser({ nombres, apellidos, correo });
       setEditing(false);
     } catch (err) {
-      setError(err.message || 'Error al actualizar información personal');
+      console.error('Error actualizando usuario:', err);
+      setError(err?.message || 'Error al actualizar información personal');
     } finally {
       setSavingUser(false);
       setTimeout(() => setSuccess(''), 3000);
@@ -228,46 +193,49 @@ const ModificarInformacionPersonal = () => {
       });
       setEditing(false);
     } catch (err) {
-      setError(err.message || 'Error al actualizar información de la empresa');
+      console.error('Error actualizando empresa:', err);
+      setError(err?.message || 'Error al actualizar información de la empresa');
     } finally {
       setSavingCompany(false);
       setTimeout(() => setSuccess(''), 3000);
     }
   };
 
-  // --- FIX: elegir la variante siempre en base al theme
-  // uso fallback defensivo a defaultStyles por si styles dinámico no contiene la clase
+  // Variante basada únicamente en ThemeContext (evita fallback oscuro)
   const variantClass = theme === 'dark'
     ? (styles?.ModinfopersonalDark || defaultStyles.ModinfopersonalDark || '')
     : (styles?.ModinfopersonalLight || defaultStyles.ModinfopersonalLight || '');
 
+  // Defensive class getters (use styles if present, otherwise defaultStyles)
+  const C = (cls) => styles?.[cls] || defaultStyles?.[cls] || '';
+
   return (
-    <main className={`${styles.Modinfopersonalcontainer} ${variantClass}`} aria-labelledby="modificar-info-title">
+    <main className={`${C('Modinfopersonalcontainer')} ${variantClass}`} aria-labelledby="modificar-info-title">
       
       {/* Header Section */}
-      <section className={styles.Modinfopersonalheader}>
-        <div className={styles.ModinfopersonalheaderContent}>
-          <h1 id="modificar-info-title" className={styles.Modinfopersonaltitle}>
+      <section className={C('Modinfopersonalheader')}>
+        <div className={C('ModinfopersonalheaderContent')}>
+          <h1 id="modificar-info-title" className={C('Modinfopersonaltitle')}>
             Información Personal
           </h1>
-          <p className={styles.Modinfopersonalsubtitle}>
+          <p className={C('Modinfopersonalsubtitle')}>
             Actualiza tu información personal y de la empresa
           </p>
         </div>
-        <div className={styles.ModinfopersonalheaderMeta}>
-          <span className={styles.ModinfopersonalroleInfo}>
+        <div className={C('ModinfopersonalheaderMeta')}>
+          <span className={C('ModinfopersonalroleInfo')}>
             {isAdmin ? 'Administrador' : 'Usuario'}
           </span>
           {!editing ? (
             <button 
-              className={styles.ModinfopersonaleditButton}
+              className={C('ModinfopersonaleditButton')}
               onClick={enterEdit}
             >
               Editar Información
             </button>
           ) : (
             <button 
-              className={styles.ModinfopersonalcancelButton}
+              className={C('ModinfopersonalcancelButton')}
               onClick={cancelEdit}
             >
               Cancelar
@@ -278,38 +246,38 @@ const ModificarInformacionPersonal = () => {
 
       {/* Alert Messages */}
       {error && (
-        <div className={styles.ModinfopersonalerrorBox} role="alert">
-          <div className={styles.ModinfopersonalerrorIcon}>⚠️</div>
-          <div className={styles.ModinfopersonalerrorText}>{error}</div>
+        <div className={C('ModinfopersonalerrorBox')} role="alert">
+          <div className={C('ModinfopersonalerrorIcon')}>⚠️</div>
+          <div className={C('ModinfopersonalerrorText')}>{error}</div>
         </div>
       )}
       
       {success && (
-        <div className={styles.ModinfopersonalsuccessBox} role="status">
-          <div className={styles.ModinfopersonalsuccessIcon}>✅</div>
-          <div className={styles.ModinfopersonalsuccessText}>{success}</div>
+        <div className={C('ModinfopersonalsuccessBox')} role="status">
+          <div className={C('ModinfopersonalsuccessIcon')}>✅</div>
+          <div className={C('ModinfopersonalsuccessText')}>{success}</div>
         </div>
       )}
 
       {/* Content Grid */}
-      <div className={styles.Modinfopersonalcontent}>
+      <div className={C('Modinfopersonalcontent')}>
         
         {/* Personal Information Card */}
-        <section className={styles.Modinfopersonalcard}>
-          <div className={styles.ModinfopersonalcardHeader}>
-            <h2 className={styles.ModinfopersonalsectionTitle}>Información Personal</h2>
-            <div className={styles.ModinfopersonaleditIndicator}>
+        <section className={C('Modinfopersonalcard')}>
+          <div className={C('ModinfopersonalcardHeader')}>
+            <h2 className={C('ModinfopersonalsectionTitle')}>Información Personal</h2>
+            <div className={C('ModinfopersonaleditIndicator')}>
               {editing ? 'Modo Edición' : 'Solo Lectura'}
             </div>
           </div>
 
-          <form onSubmit={handleSaveUser} className={styles.Modinfopersonalform}>
-            <div className={styles.ModinfopersonalformGrid}>
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Nombre</span>
+          <form onSubmit={handleSaveUser} className={C('Modinfopersonalform')}>
+            <div className={C('ModinfopersonalformGrid')}>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Nombre</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={nombres}
                     onChange={(e) => setNombres(e.target.value)}
                     placeholder="Tu nombre"
@@ -317,16 +285,16 @@ const ModificarInformacionPersonal = () => {
                     aria-describedby="nombre-help"
                   />
                 </label>
-                <div id="nombre-help" className={styles.ModinfopersonalhelpText}>
+                <div id="nombre-help" className={C('ModinfopersonalhelpText')}>
                   Tu nombre de pila
                 </div>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Apellidos</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Apellidos</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={apellidos}
                     onChange={(e) => setApellidos(e.target.value)}
                     placeholder="Tus apellidos"
@@ -334,16 +302,16 @@ const ModificarInformacionPersonal = () => {
                     aria-describedby="apellidos-help"
                   />
                 </label>
-                <div id="apellidos-help" className={styles.ModinfopersonalhelpText}>
+                <div id="apellidos-help" className={C('ModinfopersonalhelpText')}>
                   Tus apellidos completos
                 </div>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Correo Electrónico</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Correo Electrónico</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     type="email"
                     value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
@@ -352,21 +320,21 @@ const ModificarInformacionPersonal = () => {
                     aria-describedby="correo-help"
                   />
                 </label>
-                <div id="correo-help" className={styles.ModinfopersonalhelpText}>
+                <div id="correo-help" className={C('ModinfopersonalhelpText')}>
                   Tu dirección de correo principal
                 </div>
               </div>
             </div>
 
-            <div className={styles.ModinfopersonalformActions}>
+            <div className={C('ModinfopersonalformActions')}>
               <button
-                className={styles.ModinfopersonalprimaryButton}
+                className={C('ModinfopersonalprimaryButton')}
                 type="submit"
                 disabled={!editing || savingUser}
               >
                 {savingUser ? (
                   <>
-                    <span className={styles.Modinfopersonalspinner}></span>
+                    <span className={C('Modinfopersonalspinner')}></span>
                     Guardando...
                   </>
                 ) : (
@@ -378,33 +346,33 @@ const ModificarInformacionPersonal = () => {
         </section>
 
         {/* Company Information Card */}
-        <section className={styles.Modinfopersonalcard}>
-          <div className={styles.ModinfopersonalcardHeader}>
-            <h2 className={styles.ModinfopersonalsectionTitle}>
+        <section className={C('Modinfopersonalcard')}>
+          <div className={C('ModinfopersonalcardHeader')}>
+            <h2 className={C('ModinfopersonalsectionTitle')}>
               Información de la Empresa
-              {empresa && <span className={styles.ModinfopersonalcompanyName}> - {empresa.nombre_empresa}</span>}
+              {empresa && <span className={C('ModinfopersonalcompanyName')}> - {empresa.nombre_empresa}</span>}
             </h2>
-            <div className={styles.ModinfopersonaleditIndicator}>
+            <div className={C('ModinfopersonaleditIndicator')}>
               {isAdmin ? (editing ? 'Modo Edición' : 'Solo Lectura') : 'Solo Lectura'}
             </div>
           </div>
 
           {!isAdmin && (
-            <div className={styles.ModinfopersonalinfoBox}>
-              <div className={styles.ModinfopersonalinfoIcon}>🔒</div>
-              <div className={styles.ModinfopersonalinfoText}>
+            <div className={C('ModinfopersonalinfoBox')}>
+              <div className={C('ModinfopersonalinfoIcon')}>🔒</div>
+              <div className={C('ModinfopersonalinfoText')}>
                 Solo los administradores pueden editar la información de la empresa
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSaveCompany} className={styles.Modinfopersonalform}>
-            <div className={styles.ModinfopersonalformGrid}>
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Nombre de la Empresa</span>
+          <form onSubmit={handleSaveCompany} className={C('Modinfopersonalform')}>
+            <div className={C('ModinfopersonalformGrid')}>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Nombre de la Empresa</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={nombreEmpresa}
                     onChange={(e) => setNombreEmpresa(e.target.value)}
                     disabled={!isAdmin || !editing}
@@ -414,11 +382,11 @@ const ModificarInformacionPersonal = () => {
                 </label>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Dirección</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Dirección</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={direccion}
                     onChange={(e) => setDireccion(e.target.value)}
                     disabled={!isAdmin || !editing}
@@ -428,12 +396,12 @@ const ModificarInformacionPersonal = () => {
                 </label>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Teléfono</span>
-                  <div className={styles.ModinfopersonalinputGroup}>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Teléfono</span>
+                  <div className={C('ModinfopersonalinputGroup')}>
                     <input
-                      className={styles.ModinfopersonalinputPrefix}
+                      className={C('ModinfopersonalinputPrefix')}
                       value={prefijoPais}
                       onChange={(e) => setPrefijoPais(e.target.value)}
                       disabled={!isAdmin || !editing}
@@ -442,7 +410,7 @@ const ModificarInformacionPersonal = () => {
                       maxLength="4"
                     />
                     <input
-                      className={styles.Modinfopersonalinput}
+                      className={C('Modinfopersonalinput')}
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
                       disabled={!isAdmin || !editing}
@@ -453,11 +421,11 @@ const ModificarInformacionPersonal = () => {
                 </label>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Ciudad</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Ciudad</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={ciudad}
                     onChange={(e) => setCiudad(e.target.value)}
                     disabled={!isAdmin || !editing}
@@ -467,11 +435,11 @@ const ModificarInformacionPersonal = () => {
                 </label>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>País</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>País</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={pais}
                     onChange={(e) => setPais(e.target.value)}
                     disabled={!isAdmin || !editing}
@@ -481,11 +449,11 @@ const ModificarInformacionPersonal = () => {
                 </label>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Correo de la Empresa</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Correo de la Empresa</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     type="email"
                     value={correoEmpresa}
                     onChange={(e) => setCorreoEmpresa(e.target.value)}
@@ -496,11 +464,11 @@ const ModificarInformacionPersonal = () => {
                 </label>
               </div>
 
-              <div className={styles.ModinfopersonalformGroup}>
-                <label className={styles.Modinfopersonallabel}>
-                  <span className={styles.ModinfopersonallabelText}>Página Web</span>
+              <div className={C('ModinfopersonalformGroup')}>
+                <label className={C('Modinfopersonallabel')}>
+                  <span className={C('ModinfopersonallabelText')}>Página Web</span>
                   <input
-                    className={styles.Modinfopersonalinput}
+                    className={C('Modinfopersonalinput')}
                     value={paginaWeb}
                     onChange={(e) => setPaginaWeb(e.target.value)}
                     disabled={!isAdmin || !editing}
@@ -511,15 +479,15 @@ const ModificarInformacionPersonal = () => {
               </div>
             </div>
 
-            <div className={styles.ModinfopersonalformActions}>
+            <div className={C('ModinfopersonalformActions')}>
               <button
-                className={styles.ModinfopersonalprimaryButton}
+                className={C('ModinfopersonalprimaryButton')}
                 type="submit"
                 disabled={!editing || !isAdmin || savingCompany}
               >
                 {savingCompany ? (
                   <>
-                    <span className={styles.Modinfopersonalspinner}></span>
+                    <span className={C('Modinfopersonalspinner')}></span>
                     Guardando...
                   </>
                 ) : (

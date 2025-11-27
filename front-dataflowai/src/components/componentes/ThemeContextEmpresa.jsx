@@ -9,9 +9,13 @@ import defaultCambiarContrasena from '../../styles/Profile/CambiarContrasena.mod
 import defaultActivarDesactivar from '../../styles/Profile/ActivarDesactivar.module.css';
 import defaultAsignarDashboard from '../../styles/Profile/AsignarDashboard.module.css';
 import defaultFormBuilder from '../../styles/FormBuilder.module.css';
+import defaultFormPublic from '../../styles/FormPublic.module.css';
 import defaultMarketplace from '../../styles/Marketplace.module.css';
 import defaultChxtbut from '../../styles/Chxtbut.module.css';
 import defaultSoporteUsuario from '../../styles/SoporteUsuario.module.css';
+import defaultConfiguracionesDashboard from '../../styles/ConfiguracionesDashboard.module.css';
+import defaultToolsHome from '../../styles/ToolsHome.module.css';
+
 
 const MODULES = {
   Perfil: { file: 'Perfil.module.css', defaultStyles: defaultPerfil },
@@ -20,9 +24,12 @@ const MODULES = {
   ActivarDesactivar: { file: 'ActivarDesactivar.module.css', defaultStyles: defaultActivarDesactivar },
   AsignarDashboard: { file: 'AsignarDashboard.module.css', defaultStyles: defaultAsignarDashboard },
   FormBuilder: { file: 'FormBuilder.module.css', defaultStyles: defaultFormBuilder },
+  FormPublic: { file: 'FormPublic.module.css', defaultStyles: defaultFormPublic },
   Marketplace: { file: 'Marketplace.module.css', defaultStyles: defaultMarketplace },
   Chxtbut: { file: 'Chxtbut.module.css', defaultStyles: defaultChxtbut },
   SoporteUsuario: { file: 'SoporteUsuario.module.css', defaultStyles: defaultSoporteUsuario },
+  ConfiguracionesDashboard: { file: 'ConfiguracionesDashboard.module.css', defaultStyles: defaultConfiguracionesDashboard },
+  ToolsHome: { file: 'ToolsHome.module.css', defaultStyles: defaultToolsHome },
 };
 
 const CompanyStylesContext = createContext({

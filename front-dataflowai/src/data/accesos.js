@@ -6,7 +6,9 @@
 const permissions = {
   // EJEMPLO:
   // La empresa 2 NO puede ver FormBuilder
-  "2": ["FormBuilder", "Tools"]
+  "2": ["FormBuilder", "Tools"],
+  "4": ["Tools"]
+
 
   // Agrega más si quieres:
   // "5": ["Marketplace", "AI Insights"],

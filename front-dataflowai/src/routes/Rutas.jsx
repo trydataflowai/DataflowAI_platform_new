@@ -19,7 +19,6 @@ import LoginServitel from "../components/pages/Login/LoginServitel";
 import LoginColtrade from "../components/pages/Login/LoginColtrade";
 import LoginMercado from "../components/pages/Login/LoginEspMercado";
 
-
 import HomeLogin from "../components/pages/HomeLogin";
 import { HomeDashboard } from "../components/pages/HomeDashboard";
 import HomeTools from "../components/pages/HomeTools";
@@ -50,23 +49,17 @@ import SalesDashboard from "../components/dashboards/SalesDashboard";
 import ApacheEcharts from "../components/dashboards/00Echarts";
 
 import CrudDashboardSalesReview from "../components/pages/dashboardcrud/CrudDashboardSalesreview";
-
 import DashboardVentasColtradeOdoo from "../components/dashboards/DashboardColtradeOdoo";
 
-//Rutas correspondientes al DASHBOARD de sales corporativo
-
+// Sales corporativo
 import CrudDashboardSalesCorporativoCotizaciones from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoCotiza";
 import CrudDashboardSalesCorporativoMetas from "../components/pages/dashboardcrud/CrudDashboardSalesCorporativoMetas";
 import DashboardVentasCorporativo from "../components/dashboards/DashboardSalesCorporativo";
 
-//Rutas correspondientes al dashboard de IPS
+// IPS / Churn / ARPU
 import DashboardISPVenta from "../components/dashboards/DashboardISPVenta";
-
-//Dashboard Churn Kpi
 import DashboardChurnKpi from "../components/dashboards/DashboardChurnKpi";
 import ChatModal from "../components/dashboard_chat/ChatModal";
-
-// Rutas correspondientes al dashboard ARPU ISP
 import DashboardARPUisp from "../components/dashboards/DashboardARPUisp";
 
 import ShopifyJsx from "../components/pages/Shopify";
@@ -77,13 +70,29 @@ import RutaProtegida from "../components/componentes/RutaProtegida";
 // Contexto de tema
 import { ThemeProvider } from "../components/componentes/ThemeContext";
 
-// Paths sin Navbar ni Footer
+/* ---------------------------
+   Configuración de layouts
+   --------------------------- */
+
+// Rutas que no deben mostrar Navbar/Footer (coincidencias exactas)
 const NO_LAYOUT_PATHS = ["/login", "/crear-usuario", "/crear-empresa"];
 
-// Layout con Navbar + Footer (se omite si el path está en NO_LAYOUT_PATHS)
+// Prefijos de ruta que tampoco deben mostrar layout (ej: /forms/:slug)
+const NO_LAYOUT_PATH_PREFIXES = ["/forms"];
+
+/**
+ * Comprueba si la ruta actual debe ocultar Navbar/Footer
+ */
+const isNoLayoutPath = (pathname) => {
+  if (!pathname) return false;
+  if (NO_LAYOUT_PATHS.includes(pathname)) return true;
+  return NO_LAYOUT_PATH_PREFIXES.some(prefix => pathname.startsWith(prefix) || pathname.includes(`${prefix}/`));
+};
+
+// Layout por defecto (Navbar + Footer) — oculta si la ruta está en NO_LAYOUT_PATH o prefijos
 const DefaultLayout = ({ children }) => {
   const { pathname } = useLocation();
-  const hide = NO_LAYOUT_PATHS.includes(pathname);
+  const hide = isNoLayoutPath(pathname);
   return (
     <>
       {!hide && <Navbar />}
@@ -93,7 +102,7 @@ const DefaultLayout = ({ children }) => {
   );
 };
 
-// Layout con Sidebar
+// Layout con SideBar (para rutas protegidas con sidebar)
 const SideBarLayout = ({ children }) => (
   <div style={{ display: "flex", minHeight: "100vh" }}>
     <SideBar />
@@ -101,15 +110,16 @@ const SideBarLayout = ({ children }) => (
   </div>
 );
 
-/**
- * Componente para verificar autenticación SOLO en rutas protegidas
- */
+/* ------------------------------------
+   Verificador global de autenticación
+   Solo valida en rutas que NO sean públicas
+   ------------------------------------ */
 const VerificadorAutenticacionGlobal = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    // Lista de rutas públicas que NO requieren autenticación
-    const rutasPublicas = [
+    // Rutas públicas exactas
+    const rutasPublicasExactas = [
       '/',
       '/login',
       '/Servitel/login',
@@ -121,28 +131,24 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
       '/EspacioMercado/login'
     ];
 
-    // Verificar si la ruta actual es pública
-    const esRutaPublica = rutasPublicas.some(ruta => {
-      // Comparación exacta para rutas principales
-      if (location.pathname === ruta) return true;
+    // Prefijos o patrones públicos (ej: '/forms/:slug' -> detectamos con includes)
+    const rutasPublicasPrefijos = [
+      '/forms' // cualquier ruta que contenga '/forms' la consideramos pública (p. ej. '/forms/abc' o '/Coltrade/forms/abc')
+    ];
 
-      // Para rutas como /Servitel/login que pueden tener diferentes formatos
-      if (ruta.includes('/login') && location.pathname.includes('/login')) {
-        return true;
-      }
+    // Determinar si la ruta actual es pública (ten en cuenta paths con companySegment)
+    const pathname = location.pathname || "";
+    const esExacta = rutasPublicasExactas.includes(pathname);
+    const esPrefijo = rutasPublicasPrefijos.some(pref => pathname === pref || pathname.startsWith(pref) || pathname.includes(`${pref}/`));
+    const esRutaPublica = esExacta || esPrefijo;
 
-      return false;
-    });
+    console.log('Ruta actual:', pathname, 'Es pública:', esRutaPublica);
 
-    console.log('Ruta actual:', location.pathname, 'Es pública:', esRutaPublica);
-
-    // Solo verificar autenticación en rutas protegidas
     if (!esRutaPublica) {
       const verificarAutenticacion = () => {
         const token = localStorage.getItem('token') || localStorage.getItem('access_token');
 
         if (!token || tokenEstaExpirado()) {
-          // Redirigir a login si no hay token o está expirado en ruta protegida
           console.log('Redirigiendo a login desde ruta protegida');
           limpiarDetectorInactividad();
           window.location.href = '/login';
@@ -151,20 +157,18 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
         return true;
       };
 
-      // Verificar autenticación inmediatamente
       const estaAutenticado = verificarAutenticacion();
 
-      // Inicializar detector de inactividad si está autenticado en ruta protegida
       if (estaAutenticado) {
         inicializarDetectorInactividad();
       }
     } else {
-      console.log('Ruta pública, no se verifica autenticación');
+      // Ruta pública -> no verificar token ni inicializar detector de inactividad
+      console.log('Ruta pública detectada, no se requiere autenticación');
     }
 
-    // Cleanup al desmontar o cambiar de ruta
     return () => {
-      // Solo limpiar si salimos de una ruta protegida
+      // Si salimos de una ruta protegida, limpiamos detector de inactividad
       if (!esRutaPublica) {
         limpiarDetectorInactividad();
       }
@@ -174,9 +178,9 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
   return children;
 };
 
-/**
- * Rutas principales.
- */
+/* ---------------------------
+   Componente de rutas
+   --------------------------- */
 export const Rutas = () => {
   const [companySegment, setCompanySegment] = useState(""); // Ej: "Coltrade"
   const [loading, setLoading] = useState(true);
@@ -186,26 +190,20 @@ export const Rutas = () => {
     const fetchUser = async () => {
       try {
         const data = await obtenerInfoUsuario();
-        const nombreCorto =
-          data && data.empresa && data.empresa.nombre_corto
-            ? String(data.empresa.nombre_corto)
-            : "";
+        const nombreCorto = data && data.empresa && data.empresa.nombre_corto
+          ? String(data.empresa.nombre_corto)
+          : "";
 
         const normalized = nombreCorto ? nombreCorto.trim().replace(/\s+/g, "") : "";
 
-        if (mounted) {
-          setCompanySegment(normalized);
-        }
+        if (mounted) setCompanySegment(normalized);
       } catch (err) {
-        if (mounted) {
-          setCompanySegment("");
-        }
+        if (mounted) setCompanySegment("");
       } finally {
         if (mounted) setLoading(false);
       }
     };
 
-    // Solo intentar obtener info de usuario si hay token y no está expirado
     const token = localStorage.getItem('token') || localStorage.getItem('access_token');
     if (token && !tokenEstaExpirado()) {
       fetchUser();
@@ -218,17 +216,19 @@ export const Rutas = () => {
     };
   }, []);
 
+  // Helper para rutas que deben incluir companySegment cuando aplique
   const p = (path) => {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     return companySegment ? `/${companySegment}${normalizedPath}` : normalizedPath;
   };
 
+  // Mostrar una ruta pública sin layout ni sidebar: /forms/:slug (y su versión con companySegment)
   return (
     <BrowserRouter>
       <ThemeProvider>
         <VerificadorAutenticacionGlobal>
           <Routes>
-            {/* RUTAS PÚBLICAS - Sin protección */}
+            {/* RUTAS PÚBLICAS - SIN PROTECCIÓN */}
             <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
             <Route path="/login" element={<Login />} />
             <Route path="/Servitel/login" element={<LoginServitel />} />
@@ -239,7 +239,12 @@ export const Rutas = () => {
             <Route path="/pagos" element={<PagosStripe />} />
             <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 
-            {/* RUTAS PROTEGIDAS - Con RutaProtegida */}
+            {/* RUTA PÚBLICA ESPECIAL: FORMULARIO PÚBLICO - sin Navbar/Footer/Sidebar */}
+            <Route path="/forms/:slug" element={<FormPublic />} />
+            {/* También registramos la versión con companySegment (si existe) */}
+            <Route path={p("/forms/:slug")} element={<FormPublic />} />
+
+            {/* RUTAS PROTEGIDAS - Con RutaProtegida y SideBarLayout */}
             <Route
               path={p("/home")}
               element={
@@ -263,7 +268,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboard-prueba")}
+              path={"/dashboard-prueba"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -274,7 +279,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboard-ventas")}
+              path={"/dashboard-ventas"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -285,7 +290,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboard-finanzas")}
+              path={"/dashboard-finanzas"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -296,7 +301,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboard-compras")}
+              path={"/dashboard-compras"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -307,7 +312,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/Apache")}
+              path={"/Apache"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -318,7 +323,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/configuraciones-dashboard")}
+              path={"/configuraciones-dashboard"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -329,7 +334,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/sales-dashboard")}
+              path={"/sales-dashboard"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -395,7 +400,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/DashboardSalesReview")}
+              path={"/DashboardSalesReview"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -439,7 +444,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/DashboardSalesReview/settingsDashSalesReview")}
+              path={"/DashboardSalesReview/settingsDashSalesReview"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -448,8 +453,6 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
-
-
 
             <Route
               path={p("/Shopify/Prueba/deApi")}
@@ -463,7 +466,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/DashboardVentasOdoo")}
+              path={"/DashboardVentasOdoo"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -473,9 +476,9 @@ export const Rutas = () => {
               }
             />
 
-            {/* Rutas correspondientes al DASHBOARD de sales corporativo */}
+            {/* Sales corporativo */}
             <Route
-              path={("/DashboardSalescorporativo")}
+              path={"/DashboardSalescorporativo"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -486,7 +489,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboardSalescorporativo/Cotizaciones")}
+              path={"/dashboardSalescorporativo/Cotizaciones"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -497,7 +500,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/dashboardSalescorporativo/Metas")}
+              path={"/dashboardSalescorporativo/Metas"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -507,9 +510,9 @@ export const Rutas = () => {
               }
             />
 
-            {/* Rutas correspondientes al DASHBOARD Ips */}
+            {/* IPS / Churn / ARPU */}
             <Route
-              path={("/DashboardISPventas")}
+              path={"/DashboardISPventas"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -519,9 +522,8 @@ export const Rutas = () => {
               }
             />
 
-            {/* Rutas correspondientes al Dashboard Churn */}
             <Route
-              path={("/dashboard-kpi-churn")}
+              path={"/dashboard-kpi-churn"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
@@ -532,7 +534,7 @@ export const Rutas = () => {
             />
 
             <Route
-              path={("/chatModal")}
+              path={"/chatModal"}
               element={
                 <RutaProtegida>
                   <ChatModal />
@@ -540,7 +542,6 @@ export const Rutas = () => {
               }
             />
 
-            {/* Rutas correspondientes al DASHBOARD ARPU ISP */}
             <Route
               path={"/DashboardARPUisp"}
               element={
@@ -552,9 +553,7 @@ export const Rutas = () => {
               }
             />
 
-
-
-              <Route
+            <Route
               path={p("/FormBuilder")}
               element={
                 <RutaProtegida>
@@ -565,17 +564,7 @@ export const Rutas = () => {
               }
             />
 
-            {/* Ruta pública distinta: /forms/:slug */}
             <Route
-              path="/forms/:slug"
-              element={
-                  <FormPublic />
-              }
-            />
-
-
-
-               <Route
               path={p("/ChatPg")}
               element={
                 <RutaProtegida>
@@ -585,9 +574,6 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
-
-
-            
 
           </Routes>
         </VerificadorAutenticacionGlobal>

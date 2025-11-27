@@ -1,34 +1,16 @@
 // src/components/.../AppCambiarContrasena.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { cambiarContrasena } from '../../../api/Profile';
 import { useTheme } from '../../componentes/ThemeContext';
-import { obtenerInfoUsuario } from '../../../api/Usuario';
+import { useCompanyStyles } from '../../componentes/ThemeContextEmpresa';
 
 // Importar estilos por defecto (fallback)
 import defaultStyles from '../../../styles/Profile/CambiarContrasena.module.css';
 
-// Función para cargar los estilos dinámicamente (no bloqueante)
-const cargarEstilosEmpresa = async (empresaId, planId) => {
-  const planesEspeciales = [3, 6]; // Planes que usan estilos personalizados
-
-  try {
-    if (planesEspeciales.includes(planId) && empresaId) {
-      try {
-        const estilosEmpresa = await import(`../../../styles/empresas/${empresaId}/CambiarContrasena.module.css`);
-        return estilosEmpresa.default || defaultStyles;
-      } catch (error) {
-        console.warn(`No se encontraron estilos personalizados para empresa ${empresaId}, usando estilos por defecto`);
-      }
-    }
-    return defaultStyles;
-  } catch (error) {
-    console.error('Error cargando estilos:', error);
-    return defaultStyles;
-  }
-};
-
 const AppCambiarContrasena = () => {
   const { theme } = useTheme();
+  // Obtener estilos (empresa o default) desde el provider — evita parpadeo
+  const styles = useCompanyStyles('CambiarContrasena', defaultStyles);
 
   const [actual, setActual] = useState('');
   const [nueva, setNueva] = useState('');
@@ -37,37 +19,9 @@ const AppCambiarContrasena = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const [styles, setStyles] = useState(defaultStyles); // iniciar con default para evitar undefined
-
   const [showActual, setShowActual] = useState(false);
   const [showNueva, setShowNueva] = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
-
-  // Cargar estilos de la empresa en background (no bloquear render)
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const usuarioInfo = await obtenerInfoUsuario();
-        const empresaId = usuarioInfo?.empresa?.id;
-        const planId = usuarioInfo?.empresa?.plan?.id;
-        cargarEstilosEmpresa(empresaId, planId)
-          .then((estilos) => {
-            if (!mounted) return;
-            if (estilos) setStyles(estilos);
-          })
-          .catch(() => {
-            if (mounted) setStyles(defaultStyles);
-          });
-      } catch (err) {
-        // si falla obtenerInfoUsuario, dejamos defaultStyles
-        if (mounted) setStyles(defaultStyles);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const passwordStrength = (pwd) => {
     if (!pwd) return 0;
@@ -107,70 +61,73 @@ const AppCambiarContrasena = () => {
       setError(msg);
     } finally {
       setSaving(false);
+      setTimeout(() => setSuccess(''), 3000);
     }
   };
 
-  // --- FIX: elegir la variante siempre en base al theme
+  // Variante basada únicamente en ThemeContext (evita fallback oscuro)
   const variantClass = theme === 'dark'
     ? (styles?.CambiarcontrasenaDark || defaultStyles.CambiarcontrasenaDark || '')
     : (styles?.CambiarcontrasenaLight || defaultStyles.CambiarcontrasenaLight || '');
 
+  const containerClass = styles?.Cambiarcontrasenacontainer || defaultStyles.Cambiarcontrasenacontainer || '';
+
   return (
-    <main className={`${styles.Cambiarcontrasenacontainer} ${variantClass}`} aria-labelledby="cambiar-contrasena-title">
+    <main className={`${containerClass} ${variantClass}`} aria-labelledby="cambiar-contrasena-title">
       
       {/* Header Section */}
-      <section className={styles.Cambiarcontrasenaheader}>
-        <div className={styles.CambiarcontrasenaheaderContent}>
-          <h1 id="cambiar-contrasena-title" className={styles.Cambiarcontrasenatitle}>
+      <section className={styles?.Cambiarcontrasenaheader || defaultStyles.Cambiarcontrasenaheader}>
+        <div className={styles?.CambiarcontrasenaheaderContent || defaultStyles.CambiarcontrasenaheaderContent}>
+          <h1 id="cambiar-contrasena-title" className={styles?.Cambiarcontrasenatitle || defaultStyles.Cambiarcontrasenatitle}>
             Cambiar Contraseña
           </h1>
-          <p className={styles.Cambiarcontrasenasubtitle}>
+          <p className={styles?.Cambiarcontrasenasubtitle || defaultStyles.Cambiarcontrasenasubtitle}>
             Actualiza tu contraseña para mantener tu cuenta segura
           </p>
         </div>
-        <div className={styles.CambiarcontrasenaheaderMeta}>
-          <span className={styles.CambiarcontrasenasecurityInfo}>Seguridad</span>
+        <div className={styles?.CambiarcontrasenaheaderMeta || defaultStyles.CambiarcontrasenaheaderMeta}>
+          <span className={styles?.CambiarcontrasenasecurityInfo || defaultStyles.CambiarcontrasenasecurityInfo}>Seguridad</span>
         </div>
       </section>
 
       {/* Form Section */}
-      <section className={styles.CambiarcontrasenaformSection} aria-label="Formulario de cambio de contraseña">
-        <div className={styles.Cambiarcontrasenacard}>
+      <section className={styles?.CambiarcontrasenaformSection || defaultStyles.CambiarcontrasenaformSection} aria-label="Formulario de cambio de contraseña">
+        <div className={styles?.Cambiarcontrasenacard || defaultStyles.Cambiarcontrasenacard}>
           
           {error && (
-            <div className={styles.CambiarcontrasenaerrorBox} role="alert">
-              <div className={styles.CambiarcontrasenaerrorIcon}>⚠️</div>
-              <div className={styles.CambiarcontrasenaerrorText}>{error}</div>
+            <div className={styles?.CambiarcontrasenaerrorBox || defaultStyles.CambiarcontrasenaerrorBox} role="alert">
+              <div className={styles?.CambiarcontrasenaerrorIcon || defaultStyles.CambiarcontrasenaerrorIcon}>⚠️</div>
+              <div className={styles?.CambiarcontrasenaerrorText || defaultStyles.CambiarcontrasenaerrorText}>{error}</div>
             </div>
           )}
           
           {success && (
-            <div className={styles.CambiarcontrasenasuccessBox} role="status">
-              <div className={styles.CambiarcontrasenasuccessIcon}>✅</div>
-              <div className={styles.CambiarcontrasenasuccessText}>{success}</div>
+            <div className={styles?.CambiarcontrasenasuccessBox || defaultStyles.CambiarcontrasenasuccessBox} role="status">
+              <div className={styles?.CambiarcontrasenasuccessIcon || defaultStyles.CambiarcontrasenasuccessIcon}>✅</div>
+              <div className={styles?.CambiarcontrasenasuccessText || defaultStyles.CambiarcontrasenasuccessText}>{success}</div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className={styles.Cambiarcontrasenaform}>
+          <form onSubmit={handleSubmit} className={styles?.Cambiarcontrasenaform || defaultStyles.Cambiarcontrasenaform}>
             
             {/* Contraseña Actual */}
-            <div className={styles.CambiarcontrasenaformGroup}>
-              <label className={styles.Cambiarcontrasenalabel}>
-                <span className={styles.CambiarcontrasenalabelText}>Contraseña Actual</span>
-                <div className={styles.CambiarcontrasenainputContainer}>
+            <div className={styles?.CambiarcontrasenaformGroup || defaultStyles.CambiarcontrasenaformGroup}>
+              <label className={styles?.Cambiarcontrasenalabel || defaultStyles.Cambiarcontrasenalabel}>
+                <span className={styles?.CambiarcontrasenalabelText || defaultStyles.CambiarcontrasenalabelText}>Contraseña Actual</span>
+                <div className={styles?.CambiarcontrasenainputContainer || defaultStyles.CambiarcontrasenainputContainer}>
                   <input
                     name="actual"
                     value={actual}
                     onChange={(e) => setActual(e.target.value)}
                     type={showActual ? 'text' : 'password'}
-                    className={styles.Cambiarcontrasenainput}
+                    className={styles?.Cambiarcontrasenainput || defaultStyles.Cambiarcontrasenainput}
                     autoComplete="current-password"
                     aria-label="Contraseña actual"
                     placeholder="Ingresa tu contraseña actual"
                   />
                   <button
                     type="button"
-                    className={styles.CambiarcontrasenashowBtn}
+                    className={styles?.CambiarcontrasenashowBtn || defaultStyles.CambiarcontrasenashowBtn}
                     onClick={() => setShowActual(p => !p)}
                     aria-label={showActual ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
@@ -181,23 +138,23 @@ const AppCambiarContrasena = () => {
             </div>
 
             {/* Nueva Contraseña */}
-            <div className={styles.CambiarcontrasenaformGroup}>
-              <label className={styles.Cambiarcontrasenalabel}>
-                <span className={styles.CambiarcontrasenalabelText}>Nueva Contraseña</span>
-                <div className={styles.CambiarcontrasenainputContainer}>
+            <div className={styles?.CambiarcontrasenaformGroup || defaultStyles.CambiarcontrasenaformGroup}>
+              <label className={styles?.Cambiarcontrasenalabel || defaultStyles.Cambiarcontrasenalabel}>
+                <span className={styles?.CambiarcontrasenalabelText || defaultStyles.CambiarcontrasenalabelText}>Nueva Contraseña</span>
+                <div className={styles?.CambiarcontrasenainputContainer || defaultStyles.CambiarcontrasenainputContainer}>
                   <input
                     name="nueva"
                     value={nueva}
                     onChange={(e) => setNueva(e.target.value)}
                     type={showNueva ? 'text' : 'password'}
-                    className={styles.Cambiarcontrasenainput}
+                    className={styles?.Cambiarcontrasenainput || defaultStyles.Cambiarcontrasenainput}
                     autoComplete="new-password"
                     aria-label="Nueva contraseña"
                     placeholder="Crea una nueva contraseña"
                   />
                   <button
                     type="button"
-                    className={styles.CambiarcontrasenashowBtn}
+                    className={styles?.CambiarcontrasenashowBtn || defaultStyles.CambiarcontrasenashowBtn}
                     onClick={() => setShowNueva(p => !p)}
                     aria-label={showNueva ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
@@ -207,22 +164,22 @@ const AppCambiarContrasena = () => {
                 
                 {/* Strength Indicator */}
                 {nueva && (
-                  <div className={styles.CambiarcontrasenastrengthIndicator}>
-                    <div className={styles.CambiarcontrasenastrengthBar}>
+                  <div className={styles?.CambiarcontrasenastrengthIndicator || defaultStyles.CambiarcontrasenastrengthIndicator}>
+                    <div className={styles?.CambiarcontrasenastrengthBar || defaultStyles.CambiarcontrasenastrengthBar}>
                       <div 
-                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 1 ? styles.Cambiarcontrasenaon : ''}`}
+                        className={`${styles?.CambiarcontrasenastrengthSegment || defaultStyles.CambiarcontrasenastrengthSegment} ${strength >= 1 ? (styles?.Cambiarcontrasenaon || defaultStyles.Cambiarcontrasenaon) : ''}`}
                       ></div>
                       <div 
-                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 2 ? styles.Cambiarcontrasenaon : ''}`}
+                        className={`${styles?.CambiarcontrasenastrengthSegment || defaultStyles.CambiarcontrasenastrengthSegment} ${strength >= 2 ? (styles?.Cambiarcontrasenaon || defaultStyles.Cambiarcontrasenaon) : ''}`}
                       ></div>
                       <div 
-                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 3 ? styles.Cambiarcontrasenaon : ''}`}
+                        className={`${styles?.CambiarcontrasenastrengthSegment || defaultStyles.CambiarcontrasenastrengthSegment} ${strength >= 3 ? (styles?.Cambiarcontrasenaon || defaultStyles.Cambiarcontrasenaon) : ''}`}
                       ></div>
                       <div 
-                        className={`${styles.CambiarcontrasenastrengthSegment} ${strength >= 4 ? styles.Cambiarcontrasenaon : ''}`}
+                        className={`${styles?.CambiarcontrasenastrengthSegment || defaultStyles.CambiarcontrasenastrengthSegment} ${strength >= 4 ? (styles?.Cambiarcontrasenaon || defaultStyles.Cambiarcontrasenaon) : ''}`}
                       ></div>
                     </div>
-                    <span className={styles.CambiarcontrasenastrengthText}>
+                    <span className={styles?.CambiarcontrasenastrengthText || defaultStyles.CambiarcontrasenastrengthText}>
                       {strength === 0 && 'Muy débil'}
                       {strength === 1 && 'Débil'}
                       {strength === 2 && 'Regular'}
@@ -235,23 +192,23 @@ const AppCambiarContrasena = () => {
             </div>
 
             {/* Confirmar Contraseña */}
-            <div className={styles.CambiarcontrasenaformGroup}>
-              <label className={styles.Cambiarcontrasenalabel}>
-                <span className={styles.CambiarcontrasenalabelText}>Confirmar Nueva Contraseña</span>
-                <div className={styles.CambiarcontrasenainputContainer}>
+            <div className={styles?.CambiarcontrasenaformGroup || defaultStyles.CambiarcontrasenaformGroup}>
+              <label className={styles?.Cambiarcontrasenalabel || defaultStyles.Cambiarcontrasenalabel}>
+                <span className={styles?.CambiarcontrasenalabelText || defaultStyles.CambiarcontrasenalabelText}>Confirmar Nueva Contraseña</span>
+                <div className={styles?.CambiarcontrasenainputContainer || defaultStyles.CambiarcontrasenainputContainer}>
                   <input
                     name="confirmar"
                     value={confirmar}
                     onChange={(e) => setConfirmar(e.target.value)}
                     type={showConfirmar ? 'text' : 'password'}
-                    className={styles.Cambiarcontrasenainput}
+                    className={styles?.Cambiarcontrasenainput || defaultStyles.Cambiarcontrasenainput}
                     autoComplete="new-password"
                     aria-label="Confirmar nueva contraseña"
                     placeholder="Confirma tu nueva contraseña"
                   />
                   <button
                     type="button"
-                    className={styles.CambiarcontrasenashowBtn}
+                    className={styles?.CambiarcontrasenashowBtn || defaultStyles.CambiarcontrasenashowBtn}
                     onClick={() => setShowConfirmar(p => !p)}
                     aria-label={showConfirmar ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
@@ -262,15 +219,15 @@ const AppCambiarContrasena = () => {
             </div>
 
             {/* Submit Button */}
-            <div className={styles.Cambiarcontrasenaactions}>
+            <div className={styles?.Cambiarcontrasenaactions || defaultStyles.Cambiarcontrasenaactions}>
               <button 
                 type="submit" 
-                className={styles.CambiarcontrasenaprimaryButton} 
+                className={styles?.CambiarcontrasenaprimaryButton || defaultStyles.CambiarcontrasenaprimaryButton} 
                 disabled={saving}
               >
                 {saving ? (
                   <>
-                    <span className={styles.Cambiarcontrasenaspinner}></span>
+                    <span className={styles?.Cambiarcontrasenaspinner || defaultStyles.Cambiarcontrasenaspinner}></span>
                     Guardando...
                   </>
                 ) : (
