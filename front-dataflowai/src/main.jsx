@@ -1,3 +1,5 @@
+// src/main.jsx
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import { ThemeProvider } from './components/componentes/ThemeContext';
@@ -9,9 +11,11 @@ import { CompanyStylesProvider } from './components/componentes/ThemeContextEmpr
 // 3) App
 
 createRoot(document.getElementById('root')).render(
-  <CompanyStylesProvider>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </CompanyStylesProvider>
+  <React.StrictMode>
+    <CompanyStylesProvider>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </CompanyStylesProvider>
+  </React.StrictMode>
 );
