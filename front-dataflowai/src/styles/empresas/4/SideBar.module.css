@@ -1,0 +1,227 @@
+/* SideBar.module.css */
+
+.dark {
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #F58220;
+  --accent-dark: #d46a10;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.light {
+  --black-deep: #ffffff;
+  --black-cosmos: #f8f9fa;
+  --accent-neon: #F58220;
+  --accent-dark: #d46a10;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --transition: all 0.3s ease;
+}
+
+.sidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 280px;
+  z-index: 1000;
+  background: linear-gradient(160deg, var(--black-deep) 0%, var(--black-cosmos) 100%);
+  padding: 2rem 1.5rem;
+  border-right: 1px solid rgba(245, 130, 32, 0.1);
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+  box-sizing: border-box;
+  max-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2.5rem;
+}
+
+.collapsed {
+  width: 120px;
+}
+.collapsed .text,
+.collapsed .logoText,
+.collapsed .planText,
+.collapsed .accentLine,
+.collapsed .footerText {
+  display: none;
+}
+
+.logoContainer {
+  margin-bottom: 1.5rem;
+}
+.logoButton {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  padding: 0;
+}
+.logoText {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  transition: var(--transition);
+  margin: 6px 0;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: var(--transition);
+  overflow: hidden;
+}
+
+.button::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(to bottom, var(--accent-neon), var(--accent-dark));
+  opacity: 0;
+  transition: var(--transition);
+  pointer-events: none;
+}
+
+.button:hover {
+  color: var(--text-primary);
+  background: rgba(245, 130, 32, 0.05);
+  transform: none;
+}
+.button:hover::before {
+  opacity: 1;
+}
+
+.icon {
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+
+.dark .emojiWhite {
+  filter: brightness(0) invert(1);
+}
+
+.light .emojiWhite {
+  filter: invert(58%) sepia(90%) saturate(1500%) hue-rotate(360deg) brightness(100%) contrast(95%);
+}
+
+.emojiWhite {
+  font-size: 1.2em;
+  transition: var(--transition);
+}
+.button:hover .emojiWhite {
+  opacity: 0.8;
+}
+.button:hover .icon {
+  transform: scale(1.2);
+  color: var(--accent-neon);
+}
+
+.text {
+  transition: var(--transition);
+}
+
+.highlight {
+  position: absolute;
+  top: -50%; right: -50%;
+  width: 100%; height: 200%;
+  background: radial-gradient(circle, var(--accent-neon) 0%, transparent 70%);
+  opacity: 0;
+  transition: var(--transition);
+  z-index: 0;
+  pointer-events: none;
+}
+.button:hover .highlight {
+  opacity: 0.1;
+}
+
+.active {
+  color: var(--text-primary) !important;
+  background: rgba(245, 130, 32, 0.08) !important;
+}
+.active::before {
+  opacity: 1 !important;
+}
+.active .icon {
+  color: var(--accent-neon);
+}
+
+.toggleContainer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 0;
+}
+.toggleButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+.toggleButton:hover {
+  transform: scale(1.2);
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.planText {
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  text-align: center;
+  margin-bottom: 0.25rem;
+  transition: var(--transition);
+}
+.accentLine {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right, transparent, var(--accent-dark), transparent);
+  margin-bottom: 0.5rem;
+}
+.footerText {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.logoImg {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 160px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: transparent;
+  transition: var(--transition);
+}
+
+.collapsed .logoImg {
+  max-width: 48px;
+  height: 36px;
+  border-radius: 6px;
+}

@@ -3,6 +3,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import defaultStyles from '../../styles/ToolsHome.module.css';
 import { obtenerHerramientaUsuario } from '../../api/HerramientaUsuario';
 import { useTheme } from '../componentes/ThemeContext';
+import { useCompanyStyles } from '../componentes/ThemeContextEmpresa';
+
+const NOOP = () => {};
 
 const HomeTools = () => {
   const [productos, setProductos] = useState([]);
@@ -17,10 +20,14 @@ const HomeTools = () => {
 
   const { theme } = useTheme(); // 'dark' or 'light'
 
-  // helper to pick class variant according to theme
+  // Try to get company-specific styles via CompanyStylesProvider; fallback to defaultStyles
+  const styles = useCompanyStyles('ToolsHome', defaultStyles);
+
+  // helper to pick class variant according to theme with defensive fallbacks
   const cls = (name) => {
+    if (!styles) return '';
     const variantClass = theme === 'dark' ? `${name}Dark` : `${name}Light`;
-    return defaultStyles[variantClass] || defaultStyles[name] || '';
+    return styles[variantClass] || styles[name] || defaultStyles[name] || '';
   };
 
   // Debounce search (300ms)
@@ -65,7 +72,7 @@ const HomeTools = () => {
 
   // Filtered products based on search and area
   const filtered = useMemo(() => {
-    const q = debouncedQuery.toLowerCase();
+    const q = (debouncedQuery || '').toLowerCase();
     return productos.filter(p => {
       const name = (p.producto ?? '').toLowerCase();
       const areaName = p?.area?.nombre ?? 'Sin área';
@@ -89,7 +96,7 @@ const HomeTools = () => {
   const getInitials = (name = '') =>
     name
       .split(' ')
-      .map(part => part[0])
+      .map(part => (part ? part[0] : ''))
       .filter(Boolean)
       .slice(0, 2)
       .join('')
@@ -157,7 +164,7 @@ const HomeTools = () => {
               <span className={cls('statLabel')}>Total</span>
             </div>
             <div className={cls('statCard')}>
-              <span className={cls('statNumber')}>{areas.length - 1}</span>
+              <span className={cls('statNumber')}>{Math.max(0, areas.length - 1)}</span>
               <span className={cls('statLabel')}>Áreas</span>
             </div>
           </div>

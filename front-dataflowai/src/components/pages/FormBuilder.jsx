@@ -1,9 +1,10 @@
 // front-dataflowai/src/components/pages/FormBuilder.jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import defaultStyles from '../../styles/FormBuilder.module.css';
 import { obtenerInfoUsuario, createForm } from '../../api/FormBuilder';
 import { useTheme } from "../componentes/ThemeContext";
+import { useCompanyStyles } from "../componentes/ThemeContextEmpresa";
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -39,13 +40,15 @@ const emptyQuestion = (i = 0) => ({
 
 const FormBuilder = () => {
   const { theme } = useTheme();
+  // obtain company-aware styles from provider (no local dynamic import, provider avoids flash)
+  const styles = useCompanyStyles('FormBuilder', defaultStyles);
+
   const [companySegment, setCompanySegment] = useState("");
   const [planId, setPlanId] = useState(null);
   const [planName, setPlanName] = useState("");
   const [rol, setRol] = useState(null);
   const [companyId, setCompanyId] = useState(null);
-  
-  const [styles, setStyles] = useState(defaultStyles);
+
   const [usuarioInfo, setUsuarioInfo] = useState(null);
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
@@ -92,33 +95,6 @@ const FormBuilder = () => {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadCompanyStyles = async () => {
-      if ((planId === 3 || planId === 6) && companyId) {
-        try {
-          const module = await import(`../../styles/empresas/${companyId}/FormBuilder.module.css`);
-          if (mounted && module && (module.default || module)) {
-            const cssMap = module.default || module;
-            setStyles(cssMap);
-            return;
-          }
-        } catch (err) {
-          console.warn(`No se encontró CSS custom para la empresa ${companyId}. Usando estilos por defecto.`, err);
-        }
-      }
-
-      if (mounted) setStyles(defaultStyles);
-    };
-
-    loadCompanyStyles();
-
-    return () => {
-      mounted = false;
-    };
-  }, [planId, companyId]);
 
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
@@ -222,14 +198,15 @@ const FormBuilder = () => {
     }
   };
 
-  // --- FIX: elegir la variante siempre en base al theme (evita fallback oscuro mientras planId está null)
-  // además aplicamos fallback defensivo a las clases por si faltan en styles cargado dinámicamente
+  // --- Variante basada únicamente en ThemeContext (evita fallback oscuro)
   const variantClass = theme === "dark"
     ? (styles?.FormBuilderDark || defaultStyles.FormBuilderDark || '')
     : (styles?.FormBuilderLight || defaultStyles.FormBuilderLight || '');
 
+  const containerClass = styles?.FormBuildercontainer || defaultStyles.FormBuildercontainer || '';
+
   return (
-    <main className={`${styles.FormBuildercontainer} ${variantClass}`} aria-labelledby="form-builder-title">
+    <main className={`${containerClass} ${variantClass}`} aria-labelledby="form-builder-title">
       
       {/* Header Section */}
       <section className={styles.FormBuilderheader}>
