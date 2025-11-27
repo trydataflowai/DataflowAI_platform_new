@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { obtenerInfoUsuario } from '../../api/Usuario';
 
-// Defaults (fallbacks) — importa aquí los CSS por defecto que ya tienes
+// Defaults (fallbacks)
 import defaultPerfil from '../../styles/Profile/Perfil.module.css';
 import defaultModInfo from '../../styles/Profile/ModInfoPersonal.module.css';
 import defaultCambiarContrasena from '../../styles/Profile/CambiarContrasena.module.css';
@@ -13,7 +13,6 @@ import defaultMarketplace from '../../styles/Marketplace.module.css';
 import defaultChxtbut from '../../styles/Chxtbut.module.css';
 import defaultSoporteUsuario from '../../styles/SoporteUsuario.module.css';
 
-// Módulos conocidos que intentaremos pre-cargar (clave => archivo + default)
 const MODULES = {
   Perfil: { file: 'Perfil.module.css', defaultStyles: defaultPerfil },
   ModInfoPersonal: { file: 'ModInfoPersonal.module.css', defaultStyles: defaultModInfo },
@@ -24,8 +23,6 @@ const MODULES = {
   Marketplace: { file: 'Marketplace.module.css', defaultStyles: defaultMarketplace },
   Chxtbut: { file: 'Chxtbut.module.css', defaultStyles: defaultChxtbut },
   SoporteUsuario: { file: 'SoporteUsuario.module.css', defaultStyles: defaultSoporteUsuario },
-
-  // agregue más módulos aquí si los necesita
 };
 
 const CompanyStylesContext = createContext({
@@ -35,19 +32,18 @@ const CompanyStylesContext = createContext({
   stylesMap: {},
 });
 
-/**
- * CompanyStylesProvider
- *
- * - Intenta cargar CSS de empresa (src/styles/empresas/<companyId>/<file>) si plan === 3 || 6.
- * - Pre-carga los módulos listados en MODULES para minimizar parpadeos.
- * - No renderiza children hasta haber resuelto (ready === true).
- */
+// ====== PRELOAD ALL company CSS MODULES (build-safe) ======
+// Nota: la ruta del glob debe ser relativa a este archivo.
+// Incluye todos los módulos bajo src/styles/empresas/<id>/*.module.css
+const ALL_COMPANY_MODULES = import.meta.glob('../../styles/empresas/*/*.module.css', { eager: true });
+// ALL_COMPANY_MODULES: { './..../empresas/2/Perfil.module.css': Module, ... }
+
 export const CompanyStylesProvider = ({ children }) => {
   const [ready, setReady] = useState(false);
   const [companyId, setCompanyId] = useState(null);
   const [planId, setPlanId] = useState(null);
+
   const [stylesMap, setStylesMap] = useState(
-    // iniciar con defaults para que el hook useCompanyStyles pueda devolver algo inmediato si es usado fuera del provider
     Object.fromEntries(Object.entries(MODULES).map(([k, v]) => [k, v.defaultStyles]))
   );
 
@@ -56,6 +52,7 @@ export const CompanyStylesProvider = ({ children }) => {
 
     (async () => {
       try {
+        // Obtén info de usuario (si falla, seguimos con defaults)
         const info = await obtenerInfoUsuario().catch(() => null);
         if (!mounted) return;
 
@@ -64,56 +61,42 @@ export const CompanyStylesProvider = ({ children }) => {
         setCompanyId(cid);
         setPlanId(pid);
 
-        const useCustom = cid && (pid === 3 || pid === 6);
+        // Construir map inicial con defaults
+        const nextMap = Object.fromEntries(Object.entries(MODULES).map(([k, v]) => [k, v.defaultStyles]));
 
-        // helper: intenta importar ruta de empresa, si falla importa default
-        const importFor = async (filename, defaultStyles) => {
-          if (useCustom && cid) {
-            const remotePath = `../../styles/empresas/${cid}/${filename}`;
-            try {
-              // @vite-ignore evita que vite intente resolver en build tiempo la string dinámica
-              const mod = await import(/* @vite-ignore */ remotePath);
-              return (mod && (mod.default || mod)) || defaultStyles;
-            } catch (err) {
-              // fallback al default
+        // Si aplica estilos por empresa (planes 3 o 6) -> intentar sobreescribir con archivos pre-cargados
+        const useCustom = cid && (pid === 3 || pid === 6);
+        if (useCustom) {
+          // Por cada módulo buscado, intentar encontrar el fichero cargado por import.meta.glob
+          for (const [key, { file, defaultStyles }] of Object.entries(MODULES)) {
+            // buscamos la ruta que contiene "/empresas/<cid>/" y termina con `file`
+            const matchKey = Object.keys(ALL_COMPANY_MODULES).find(p =>
+              p.includes(`/empresas/${cid}/`) && p.endsWith(`/${file}`)
+            );
+            if (matchKey) {
+              const mod = ALL_COMPANY_MODULES[matchKey];
+              nextMap[key] = (mod && (mod.default || mod)) || defaultStyles;
+            } else {
+              // no hay CSS por empresa para este módulo -> mantenemos default
+              nextMap[key] = defaultStyles;
             }
           }
+        }
 
-          try {
-            const modDefault = await import(`../../styles/${filename}`);
-            return (modDefault && (modDefault.default || modDefault)) || defaultStyles;
-          } catch (err) {
-            // si falla el default (raro), devolvemos el objeto defaultStyles pasado
-            return defaultStyles;
-          }
-        };
-
-        // construir lista de promesas
-        const promises = Object.entries(MODULES).map(async ([key, { file, defaultStyles }]) => {
-          const mod = await importFor(file, defaultStyles);
-          return [key, mod || defaultStyles];
-        });
-
-        const results = await Promise.all(promises);
         if (!mounted) return;
-
-        const nextMap = Object.fromEntries(results);
-        setStylesMap((prev) => ({ ...prev, ...nextMap }));
+        setStylesMap(nextMap);
       } catch (err) {
-        // en cualquier error, nos quedamos con los defaults (ya inicializados)
-        console.error("CompanyStylesProvider error:", err);
+        console.error('CompanyStylesProvider error:', err);
+        // en error, stylesMap ya tiene defaults iniciales
       } finally {
         if (mounted) setReady(true);
       }
     })();
 
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
-  // no renderizamos contenido hasta estar "ready" — esto evita que los componentes se pinten con defaults
-  if (!ready) return null;
+  if (!ready) return null; // bloquea render hasta que sepamos qué estilos usar (evita parpadeo)
 
   return (
     <CompanyStylesContext.Provider value={{ ready, companyId, planId, stylesMap }}>
@@ -122,25 +105,16 @@ export const CompanyStylesProvider = ({ children }) => {
   );
 };
 
-/**
- * useCompanyStyles(key, fallback?)
- * - key: la clave definida en MODULES (ej. 'Chxtbut', 'Perfil', ...)
- * - fallback: opcional, si quiere forzar otro fallback
- */
 export const useCompanyStyles = (key, fallback = null) => {
   const ctx = useContext(CompanyStylesContext);
   if (!ctx) {
-    // si no hay provider, devolver el fallback o el default del MODULES
     return fallback || (MODULES[key] && MODULES[key].defaultStyles) || {};
   }
   return ctx.stylesMap[key] || fallback || (MODULES[key] && MODULES[key].defaultStyles) || {};
 };
 
-/**
- * useCompanyContext: exporta todo el contexto si necesitas companyId/planId directamente
- */
 export const useCompanyContext = () => {
   const ctx = useContext(CompanyStylesContext);
-  if (!ctx) throw new Error("useCompanyContext debe usarse dentro de CompanyStylesProvider");
+  if (!ctx) throw new Error('useCompanyContext debe usarse dentro de CompanyStylesProvider');
   return ctx;
 };
