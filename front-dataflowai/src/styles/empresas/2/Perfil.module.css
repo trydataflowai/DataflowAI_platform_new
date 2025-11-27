@@ -5,26 +5,27 @@
    ========================= */
 
 .PerfilgeneralDark {
-  --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
-  --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+  --bg-primary: #0a0a12;
+  --bg-secondary: #12121d;
+  --bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
   --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #b8c2d9;
   --text-muted: #666666;
-  --accent-1: #00f7ff;
-  --accent-2: #00c2ff;
+  --accent-1: #00b43f;
+  --accent-2: #008a30;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(30, 30, 30, 0.6);
   --card-hover-bg: rgba(40, 40, 40, 0.8);
   --card-border: rgba(255, 255, 255, 0.1);
-  --card-hover-border: rgba(0, 247, 255, 0.3);
+  --card-hover-border: rgba(0, 180, 63, 0.3);
   --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --card-hover-shadow: 0 8px 30px rgba(0, 247, 255, 0.1);
+  --card-hover-shadow: 0 8px 30px rgba(0, 180, 63, 0.1);
   --backdrop-filter: blur(10px);
   --modal-bg: rgba(30, 30, 30, 0.95);
   --modal-border: rgba(255, 255, 255, 0.1);
   --btn-bg: var(--accent-gradient);
-  --btn-text: #00121a;
+  --btn-text: #001a06;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .PerfilgeneralLight {
@@ -34,15 +35,15 @@
   --text-primary: #2d3748;
   --text-secondary: #4a5568;
   --text-muted: #718096;
-  --accent-1: #0A66C2;
-  --accent-2: #0073b1;
+  --accent-1: #00b43f;
+  --accent-2: #008a30;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --card-bg: rgba(255, 255, 255, 0.9);
   --card-hover-bg: rgba(255, 255, 255, 1);
   --card-border: rgba(0, 0, 0, 0.08);
-  --card-hover-border: rgba(10, 102, 194, 0.3);
+  --card-hover-border: rgba(0, 180, 63, 0.3);
   --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
+  --card-hover-shadow: 0 8px 30px rgba(0, 180, 63, 0.12);
   --backdrop-filter: blur(10px);
   --modal-bg: rgba(255, 255, 255, 0.95);
   --modal-border: rgba(0, 0, 0, 0.1);
@@ -136,7 +137,7 @@
   border-radius: 12px;
   padding: 0;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   backdrop-filter: var(--backdrop-filter);
   -webkit-backdrop-filter: var(--backdrop-filter);
   box-shadow: var(--card-shadow);
@@ -251,7 +252,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--accent-1);
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .PerfilgeneralctaArrow {
@@ -316,7 +317,7 @@
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition);
   min-width: 100px;
 }
 

@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTheme } from "../componentes/ThemeContext";
-import styles from "../../styles/Chxtbut.module.css";
+import defaultStyles from '../../styles/Chxtbut.module.css';
 import { sendChatMessage } from "../../api/ChatPg";
 import { obtenerProductosUsuario } from "../../api/ProductoUsuario";
+import { obtenerInfoUsuario } from "../../api/Usuario";
+
+const normalizeSegment = (nombreCorto) =>
+  nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
 export default function ChatPostgre() {
   const { theme } = useTheme();
@@ -16,11 +20,77 @@ export default function ChatPostgre() {
   const [showProducts, setShowProducts] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Nuevos estados para la empresa
+  const [companySegment, setCompanySegment] = useState("");
+  const [planId, setPlanId] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
+  const [styles, setStyles] = useState(defaultStyles);
+
   const messagesEndRef = useRef(null);
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Effect para obtener información del usuario y empresa
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchUser = async () => {
+      try {
+        const data = await obtenerInfoUsuario();
+        if (!mounted || !data) return;
+
+        const nombreCorto = data?.empresa?.nombre_corto ?? "";
+        const pid = data?.empresa?.plan?.id ?? null;
+        const cid = data?.empresa?.id ?? null;
+
+        setCompanySegment(normalizeSegment(nombreCorto));
+        setPlanId(pid);
+        setCompanyId(cid);
+      } catch (err) {
+        console.error("No se pudo obtener info de usuario:", err);
+        if (mounted) {
+          setCompanySegment("");
+          setPlanId(null);
+          setCompanyId(null);
+        }
+      }
+    };
+
+    fetchUser();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Effect para cargar estilos de la empresa
+  useEffect(() => {
+    let mounted = true;
+
+    const loadCompanyStyles = async () => {
+      if ((planId === 3 || planId === 6) && companyId) {
+        try {
+          const module = await import(`../../styles/empresas/${companyId}/Chxtbut.module.css`);
+          if (mounted && module && (module.default || module)) {
+            const cssMap = module.default || module;
+            setStyles(cssMap);
+            return;
+          }
+        } catch (err) {
+          console.warn(`No se encontró CSS custom para la empresa ${companyId}. Usando estilos por defecto.`, err);
+        }
+      }
+
+      if (mounted) setStyles(defaultStyles);
+    };
+
+    loadCompanyStyles();
+
+    return () => {
+      mounted = false;
+    };
+  }, [planId, companyId]);
 
   const handleOpenProducts = async () => {
     if (products.length === 0 && !showProducts) {
@@ -135,7 +205,8 @@ export default function ChatPostgre() {
     }
   };
 
-  const variantClass = theme === 'light' ? styles.ChatpostgreLight : styles.ChatpostgreDark;
+  // Elegir la variante según el theme
+  const variantClass = theme === "light" ? styles.ChatpostgreLight : styles.ChatpostgreDark;
 
   return (
     <main className={`${styles.Chatpostgrecontainer} ${variantClass}`}>

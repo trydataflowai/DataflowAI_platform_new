@@ -1,35 +1,45 @@
-/* src/styles/SideBarLight.module.css */
+/* SideBar.module.css */
 
-/* Sidebar como parte del flujo: sticky + scroll interno si hace falta */
+.dark {
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00b43f;
+  --accent-dark: #008a30;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.light {
+  --black-deep: #ffffff;
+  --black-cosmos: #f8f9fa;
+  --accent-neon: #00b43f;
+  --accent-dark: #008a30;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --transition: all 0.3s ease;
+}
+
 .sidebar {
-  position: -webkit-sticky; /* compatibilidad iOS */
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   left: 0;
   width: 280px;
   z-index: 1000;
-
-  /* colores / apariencia light */
-  background-color: #ffffff;
-  border-right: 1px solid #e0e0e0;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-
+  background: linear-gradient(160deg, var(--black-deep) 0%, var(--black-cosmos) 100%);
   padding: 2rem 1.5rem;
+  border-right: 1px solid rgba(0, 180, 63, 0.1);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   box-sizing: border-box;
-
-  /* Permitir que el contenido interno haga scroll si supera la altura de la ventana */
   max-height: 100vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
-  /* Espacio extra abajo para que el último botón no quede pegado al borde */
   padding-bottom: 2.5rem;
 }
 
-/* Estado colapsado */
 .collapsed {
   width: 120px;
 }
@@ -41,7 +51,6 @@
   display: none;
 }
 
-/* Logo (texto en lugar de imagen) */
 .logoContainer {
   margin-bottom: 1.5rem;
 }
@@ -52,25 +61,20 @@
   cursor: pointer;
   padding: 0;
 }
-
-/* Color verde #00b43f para el logo textual */
 .logoText {
-  color: #00b43f;            /* Verde #00b43f / color principal light */
+  color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   margin: 6px 0;
 }
 
-/* Navegación */
 .nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   flex-grow: 1;
-
-  /* importante para que el contenedor flex con overflow funcione correctamente */
   min-height: 0;
 }
 
@@ -81,67 +85,89 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: transparent;
-  color: #333;               /* Texto oscuro */
+  color: var(--text-secondary);
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   overflow: hidden;
 }
+
 .button::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
-  width: 4px; height: 100%;
-  background-color: #00b43f;
+  width: 3px; height: 100%;
+  background: linear-gradient(to bottom, var(--accent-neon), var(--accent-dark));
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   pointer-events: none;
 }
+
 .button:hover {
-  background-color: #f0fff4;
-  color: #00b43f;
+  color: var(--text-primary);
+  background: rgba(0, 180, 63, 0.05);
+  transform: none;
 }
 .button:hover::before {
   opacity: 1;
 }
 
-/* Iconos y emojis (estilo light) */
+.icon {
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+
+.dark .emojiWhite {
+  filter: brightness(0) invert(1);
+}
+
+.light .emojiWhite {
+  filter: invert(32%) sepia(95%) saturate(500%) hue-rotate(120deg) brightness(90%) contrast(90%);
+}
+
 .emojiWhite {
-  /* filtro para ajustar el color del emoji/icón en el tema light */
-  filter: invert(47%) sepia(96%) saturate(1232%) hue-rotate(95deg) brightness(98%) contrast(101%);
   font-size: 1.2em;
   transition: var(--transition);
 }
 .button:hover .emojiWhite {
   opacity: 0.8;
-  transform: scale(1.1);
 }
 .button:hover .icon {
-  transform: scale(1.1);
-  color: #00b43f;
+  transform: scale(1.2);
+  color: var(--accent-neon);
 }
 
-/* Texto de botón */
 .text {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
-/* Estado activo */
+.highlight {
+  position: absolute;
+  top: -50%; right: -50%;
+  width: 100%; height: 200%;
+  background: radial-gradient(circle, var(--accent-neon) 0%, transparent 70%);
+  opacity: 0;
+  transition: var(--transition);
+  z-index: 0;
+  pointer-events: none;
+}
+.button:hover .highlight {
+  opacity: 0.1;
+}
+
 .active {
-  background-color: #f0fff4 !important;
-  color: #00b43f !important;
-  font-weight: 600;
+  color: var(--text-primary) !important;
+  background: rgba(0, 180, 63, 0.08) !important;
 }
 .active::before {
   opacity: 1 !important;
 }
 .active .icon {
-  color: #00b43f;
+  color: var(--accent-neon);
 }
 
-/* Toggle collapse */
 .toggleContainer {
   display: flex;
   justify-content: flex-end;
@@ -152,52 +178,48 @@
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
-  color: #00b43f;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 .toggleButton:hover {
-  transform: scale(1.1);
+  transform: scale(1.2);
 }
 
-/* Footer */
 .footer {
   margin-top: auto;
   padding-top: 1rem;
 }
 .planText {
-  color: #00b43f;           /* Verde también para el plan */
+  color: var(--text-primary);
   font-size: 0.85rem;
   text-align: center;
   margin-bottom: 0.25rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 .accentLine {
   height: 1px;
   width: 100%;
-  background: linear-gradient(to right, transparent, #00b43f, transparent);
+  background: linear-gradient(to right, transparent, var(--accent-dark), transparent);
   margin-bottom: 0.5rem;
 }
 .footerText {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   text-align: center;
   opacity: 0.7;
 }
 
-/* Logo como imagen: se adapta al contenedor, conserva proporción */
 .logoImg {
   display: block;
   margin: 0 auto;
   width: 100%;
-  max-width: 160px;   /* ancho máximo en estado expandido */
-  height: 56px;       /* altura fija para mantener consistencia visual */
-  object-fit: contain; /* preserva proporción y "no recorta" */
+  max-width: 160px;
+  height: 56px;
+  object-fit: contain;
   border-radius: 8px;
   background: transparent;
   transition: var(--transition);
 }
 
-/* Ajustes cuando el sidebar está colapsado (si tu .collapsed aplica sobre .sidebar) */
 .collapsed .logoImg {
   max-width: 48px;
   height: 36px;

@@ -1,0 +1,638 @@
+/* src/styles/Chxtbut.module.css */
+
+/* =========================
+   Variables por variante - Diseño Limpio
+   ========================= */
+
+.ChatpostgreDark {
+  /* Paleta EXACTA que me pediste */
+  --black-deep: #0a0a12;
+  --black-cosmos: #12121d;
+  --accent-neon: #00b43f;
+  --accent-dark: #008a30;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c2d9;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Mapeos compatibles con el resto del CSS */
+  --bg-primary: var(--black-deep);
+  --bg-secondary: var(--black-cosmos);
+  --bg-gradient: linear-gradient(135deg, var(--black-cosmos) 0%, var(--black-deep) 100%);
+  --text-muted: rgba(184, 194, 217, 0.55);
+
+  --accent-1: var(--accent-neon);
+  --accent-2: var(--accent-dark);
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover: rgba(255, 255, 255, 0.08);
+
+  --success-color: #00ffaa;
+  --error-color: #ff3366;
+
+  --user-message-bg: rgba(0, 180, 63, 0.10); /* basado en --accent-neon (#00b43f) */
+  --bot-message-bg: rgba(255, 255, 255, 0.03);
+  --system-message-bg: rgba(255, 255, 255, 0.02);
+}
+
+.ChatpostgreLight {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --accent-1: #00b43f;
+  --accent-2: #008a30;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(0, 0, 0, 0.03);
+  --card-border: rgba(0, 0, 0, 0.1);
+  --card-hover: rgba(0, 0, 0, 0.05);
+  --success-color: #0fa969;
+  --error-color: #d0445a;
+  --user-message-bg: rgba(0, 180, 63, 0.1);
+  --bot-message-bg: rgba(0, 0, 0, 0.02);
+  --system-message-bg: rgba(0, 0, 0, 0.015);
+}
+
+/* =========================
+   Estilos Base - Chat Limpio
+   ========================= */
+
+.Chatpostgrecontainer {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* Header Compacto */
+.Chatpostgreheader {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--card-border);
+  padding: 16px 24px;
+  flex-shrink: 0;
+}
+
+.ChatpostgreheaderMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.ChatpostgreheaderTitle {
+  flex: 1;
+}
+
+.Chatpostgretitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 2px 0;
+  color: var(--text-primary);
+}
+
+.Chatpostgresubtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+}
+
+.ChatpostgreheaderActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ChatpostgreproductBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--user-message-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  font-size: 0.8rem;
+}
+
+.ChatpostgreproductName {
+  font-weight: 600;
+  color: var(--accent-1);
+}
+
+.ChatpostgreclearButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.ChatpostgreclearButton:hover {
+  background: var(--card-hover);
+  color: var(--error-color);
+}
+
+.ChatpostgreproductsToggle {
+  padding: 8px 16px;
+  background: var(--accent-gradient);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ChatpostgreproductsToggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Panel de Dashboards Compacto */
+.ChatpostgreproductsCompact {
+  margin-top: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+.ChatpostgreproductsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.ChatpostgreproductItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-size: 0.8rem;
+}
+
+.ChatpostgreproductItem:hover {
+  background: var(--card-hover);
+  border-color: var(--accent-1);
+}
+
+.ChatpostgreproductItemActive {
+  background: var(--user-message-bg);
+  border-color: var(--accent-1);
+}
+
+.ChatpostgreproductItemName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ChatpostgreproductItemDb {
+  color: var(--text-secondary);
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.7rem;
+}
+
+.ChatpostgreproductsEmpty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Sección de Mensajes */
+.ChatpostgrechatSection {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.Chatpostgremessages {
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.Chatpostgremessage {
+  display: flex;
+  animation: messageAppear 0.2s ease-out;
+}
+
+.ChatpostgremessageUser {
+  justify-content: flex-end;
+}
+
+.ChatpostgremessageBot {
+  justify-content: flex-start;
+}
+
+.ChatpostgremessageSystem {
+  justify-content: center;
+}
+
+.ChatpostgremessageContent {
+  max-width: 75%;
+  background: var(--bot-message-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.ChatpostgremessageUser .ChatpostgremessageContent {
+  background: var(--user-message-bg);
+  border-color: var(--accent-1);
+}
+
+.ChatpostgremessageHeader {
+  margin-bottom: 6px;
+}
+
+.ChatpostgremessageRole {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ChatpostgremessageText {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+/* Mensaje del Sistema */
+.ChatpostgresystemMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--system-message-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  max-width: 80%;
+}
+
+.ChatpostgresystemIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.ChatpostgresystemText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Mensaje con Acción */
+.ChatpostgreactionMessage .ChatpostgremessageContent {
+  background: var(--bot-message-bg);
+  border-color: var(--card-border);
+}
+
+.ChatpostgreactionButton {
+  background: var(--accent-gradient);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 2px;
+}
+
+.ChatpostgreactionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Indicador de Typing */
+.ChatpostgretypingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+}
+
+.Chatpostgredot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-1);
+  animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+.Chatpostgredot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.Chatpostgredot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.Chatpostgredot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes typingAnimation {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Área de Input */
+.ChatpostgreinputSection {
+  background: var(--bg-primary);
+  border-top: 1px solid var(--card-border);
+  padding: 16px 24px;
+  flex-shrink: 0;
+}
+
+.ChatpostgreinputContainer {
+  max-width: 100%;
+}
+
+.ChatpostgreinputWrapper {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.Chatpostgretextarea {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  min-height: 44px;
+  max-height: 120px;
+}
+
+.Chatpostgretextarea::placeholder {
+  color: var(--text-muted);
+}
+
+.Chatpostgretextarea:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 2px rgba(0, 180, 63, 0.1);
+}
+
+.ChatpostgreLight .Chatpostgretextarea:focus {
+  box-shadow: 0 0 0 2px rgba(0, 180, 63, 0.1);
+}
+
+.Chatpostgretextarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ChatpostgresendButton {
+  padding: 12px;
+  background: var(--accent-gradient);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ChatpostgresendButton:hover:not(.ChatpostgresendButtonDisabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ChatpostgresendButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.ChatpostgresendIcon {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.Chatpostgrespinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Error Display */
+.Chatpostgreerror {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 51, 102, 0.08);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+  border-radius: 8px;
+  margin-top: 8px;
+  animation: fadeInUp 0.2s ease-out;
+}
+
+.ChatpostgreerrorIcon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ChatpostgreerrorText {
+  font-size: 0.8rem;
+  color: var(--error-color);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Animaciones */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar */
+.Chatpostgremessages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.Chatpostgremessages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.Chatpostgremessages::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 2px;
+}
+
+.Chatpostgremessages::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.ChatpostgreproductsList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ChatpostgreproductsList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ChatpostgreproductsList::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 2px;
+}
+
+/* Focus States */
+.ChatpostgreproductsToggle:focus-visible,
+.ChatpostgreclearButton:focus-visible,
+.ChatpostgreproductItem:focus-visible,
+.ChatpostgreactionButton:focus-visible,
+.ChatpostgresendButton:focus-visible,
+.Chatpostgretextarea:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .Chatpostgreheader {
+    padding: 12px 16px;
+  }
+  
+  .ChatpostgreheaderMain {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .ChatpostgreheaderActions {
+    justify-content: space-between;
+  }
+  
+  .Chatpostgremessages {
+    padding: 16px;
+  }
+  
+  .ChatpostgreinputSection {
+    padding: 12px 16px;
+  }
+  
+  .ChatpostgremessageContent {
+    max-width: 85%;
+  }
+}
+
+@media (max-width: 480px) {
+  .Chatpostgretitle {
+    font-size: 1.1rem;
+  }
+  
+  .Chatpostgresubtitle {
+    font-size: 0.75rem;
+  }
+  
+  .ChatpostgreproductBadge {
+    font-size: 0.75rem;
+  }
+  
+  .ChatpostgreproductsToggle {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+  
+  .ChatpostgremessageContent {
+    max-width: 90%;
+    padding: 10px 12px;
+  }
+  
+  .ChatpostgremessageText {
+    font-size: 0.85rem;
+  }
+}
