@@ -4785,8 +4785,8 @@ class FormularioViewSet(viewsets.ModelViewSet):
 
 
 #CHATBOT DE N8N# myapp/serializers.py
-# myapp/views.py  (reemplaza la clase ChatWebhookProxyAPIView por esta versión)
 # myapp/views.py
+
 import time
 import jwt
 import requests
@@ -4843,7 +4843,7 @@ class ChatWebhookProxyAPIView(APIView):
     Endpoint /api/n8n/webhook-proxy/
     - Requiere header Authorization: Bearer <token_de_login>
     - Body: { "chatInput": "...", "sessionId": "...", "table": "db_name" }
-      -> table ahora ES OBLIGATORIO y debe pertenecer al usuario.
+      -> table ES OBLIGATORIO y debe pertenecer al usuario.
     - Internamente obtiene empresaId desde el usuario y lo inyecta en el payload enviado a n8n.
     - Responde: { "response_from_webhook": <cuerpo> } o mensajes de error claros.
     """
@@ -4877,6 +4877,7 @@ class ChatWebhookProxyAPIView(APIView):
 
             # 2. Recuperar usuario y validar estado/empresa
             try:
+                # se usa select_related para traer id_empresa e id_estado en una sola consulta
                 usuario = Usuario.objects.select_related("id_empresa", "id_estado").get(id_usuario=id_usuario)
             except Usuario.DoesNotExist:
                 return Response({"detail": "Usuario no encontrado"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -4900,7 +4901,13 @@ class ChatWebhookProxyAPIView(APIView):
                 return Response({"detail": "Debe indicar 'table' con el db_name del dashboard seleccionado."},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            exists = DetalleProducto.objects.filter(id_usuario=usuario, db_name=requested_table).exists()
+            # <-- CORRECCIÓN IMPORTANTE: `db_name` no es campo de DetalleProducto, está en Producto.
+            # Usamos lookup hacia la FK: id_producto__db_name
+            exists = DetalleProducto.objects.select_related("id_producto").filter(
+                id_usuario=usuario,
+                id_producto__db_name__iexact=requested_table  # case-insensitive exact match
+            ).exists()
+
             if not exists:
                 return Response({"detail": "Tabla no permitida / no asociada al usuario"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -4954,10 +4961,6 @@ class ChatWebhookProxyAPIView(APIView):
 
         except Exception as exc:
             return Response({"detail": "Error interno en el servidor.", "error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
 
 
 
