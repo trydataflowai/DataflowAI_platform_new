@@ -196,31 +196,57 @@ class RefreshTokenView(APIView):
 
 # appdataflowai/views.py
 
+# views.py (parche defensivo)
 import jwt
+import logging
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Usuario, DetalleProducto
-# Nota: no necesitamos importar Producto aquí porque accedemos vía DetalleProducto.
+
+logger = logging.getLogger(__name__)
 
 class UsuarioInfoView(APIView):
     """
     Vista que retorna la información detallada del usuario autenticado,
     incluyendo datos personales, rol, empresa, categoría, plan, estado
     y los productos (dashboards) asignados, a partir del token JWT.
+    Esta versión es defensiva: evita AttributeError por relaciones NULL
+    y registra el stacktrace para debug en Render.
     """
+
     def get(self, request):
-        token = request.headers.get('Authorization', '').split(' ')[-1]
+        # 1) Extraer token de Authorization header; si no existe -> 401
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header:
+            logger.warning("UsuarioInfoView: Authorization header ausente")
+            return Response({'error': 'Authorization header ausente'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        parts = auth_header.split()
+        if len(parts) != 2:
+            logger.warning("UsuarioInfoView: formato de Authorization header inválido: %s", auth_header)
+            return Response({'error': 'Formato de Authorization inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = parts[1]
+
+        # 2) Decodificar token JWT
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             id_usuario = payload.get('id_usuario')
+            if not id_usuario:
+                logger.warning("UsuarioInfoView: token válido pero sin id_usuario en payload")
+                return Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.ExpiredSignatureError:
             return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
             return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            logger.exception("UsuarioInfoView: error decodificando token")
+            return Response({'error': 'Error al decodificar token'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # 3) Buscar usuario y serializar defensivamente
         try:
             usuario = Usuario.objects.select_related(
                 'id_empresa__id_categoria',
@@ -229,51 +255,87 @@ class UsuarioInfoView(APIView):
                 'id_permiso_acceso'
             ).get(id_usuario=id_usuario)
         except Usuario.DoesNotExist:
+            logger.warning("UsuarioInfoView: usuario no encontrado id_usuario=%s", id_usuario)
             return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            # si hay cualquier otro error en la consulta, lo loggeamos
+            logger.exception("UsuarioInfoView: error obteniendo usuario id_usuario=%s", id_usuario)
+            return Response({'error': 'Error interno al obtener usuario'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        detalles = DetalleProducto.objects.filter(id_usuario=usuario)\
-                                         .select_related('id_producto')
-        lista_productos = [
-            {
-                'id_producto': det.id_producto.id_producto,
-                'producto':     det.id_producto.producto,
-                'slug':         det.id_producto.slug,   # Usamos slug en lugar de URL
-                'iframe':       det.id_producto.iframe,
-            }
-            for det in detalles
-        ]
+        try:
+            # detalles productos (si no hay nada, devolvemos lista vacía)
+            detalles = DetalleProducto.objects.filter(id_usuario=usuario).select_related('id_producto')
+        except Exception:
+            logger.exception("UsuarioInfoView: error consultando DetalleProducto para usuario id=%s", getattr(usuario, 'id_usuario', None))
+            detalles = []
+
+        lista_productos = []
+        for det in detalles:
+            try:
+                prod = getattr(det, 'id_producto', None)
+                lista_productos.append({
+                    'id_producto': getattr(prod, 'id_producto', None),
+                    'producto':     getattr(prod, 'producto', None),
+                    'slug':         getattr(prod, 'slug', None),
+                    'iframe':       getattr(prod, 'iframe', None),
+                })
+            except Exception:
+                logger.exception("UsuarioInfoView: error serializando un producto para usuario id=%s", getattr(usuario, 'id_usuario', None))
+
+        # Serialización defensiva de empresa y sub-objetos
+        empresa = getattr(usuario, 'id_empresa', None)
+        empresa_data = None
+        if empresa:
+            try:
+                # usar getattr por si algún campo es None o no existe
+                fecha_reg = getattr(empresa, 'fecha_registros', None)
+                fecha_reg_iso = fecha_reg.isoformat() if fecha_reg else None
+
+                categoria = getattr(empresa, 'id_categoria', None)
+                plan = getattr(empresa, 'id_plan', None)
+                estado = getattr(empresa, 'id_estado', None)
+
+                empresa_data = {
+                    'id': getattr(empresa, 'id_empresa', None),
+                    'nombre': getattr(empresa, 'nombre_empresa', None),
+                    'nombre_corto': getattr(empresa, 'nombre_corto', None),
+                    'direccion': getattr(empresa, 'direccion', None),
+                    'fecha_registro': fecha_reg_iso,
+                    'telefono': getattr(empresa, 'telefono', None),
+                    'ciudad': getattr(empresa, 'ciudad', None),
+                    'pais': getattr(empresa, 'pais', None),
+                    'categoria': {
+                        'id': getattr(categoria, 'id_categoria', None),
+                        'descripcion': getattr(categoria, 'descripcion_categoria', None),
+                    } if categoria else None,
+                    'plan': {
+                        'id': getattr(plan, 'id_plan', None),
+                        'tipo': getattr(plan, 'tipo_plan', None),
+                    } if plan else None,
+                    'estado': {
+                        'id': getattr(estado, 'id_estado', None),
+                        'nombre': getattr(estado, 'estado', None),
+                    } if estado else None,
+                }
+            except Exception:
+                logger.exception("UsuarioInfoView: error serializando empresa para user_id=%s", getattr(usuario, 'id_usuario', None))
+                empresa_data = None
+
+        # Rol (puede estar en id_permiso_acceso)
+        rol_obj = getattr(usuario, 'id_permiso_acceso', None)
+        rol_val = getattr(rol_obj, 'rol', None) if rol_obj else None
 
         data = {
-            'id': usuario.id_usuario,
-            'nombres': usuario.nombres,
-            'correo': usuario.correo,
-            'rol': usuario.id_permiso_acceso.rol,
-            'empresa': {
-                'id': usuario.id_empresa.id_empresa,
-                'nombre': usuario.id_empresa.nombre_empresa,
-                'nombre_corto': usuario.id_empresa.nombre_corto,   # 🔹 agregado
-                'direccion': usuario.id_empresa.direccion,
-                'fecha_registro': usuario.id_empresa.fecha_registros.isoformat(),
-                'telefono': usuario.id_empresa.telefono,
-                'ciudad': usuario.id_empresa.ciudad,
-                'pais': usuario.id_empresa.pais,
-                'categoria': {
-                    'id': usuario.id_empresa.id_categoria.id_categoria,
-                    'descripcion': usuario.id_empresa.id_categoria.descripcion_categoria,
-                },
-                'plan': {
-                    'id': usuario.id_empresa.id_plan.id_plan,
-                    'tipo': usuario.id_empresa.id_plan.tipo_plan,
-                },
-                'estado': {
-                    'id': usuario.id_empresa.id_estado.id_estado,
-                    'nombre': usuario.id_empresa.id_estado.estado,
-                },
-            },
+            'id': getattr(usuario, 'id_usuario', None),
+            'nombres': getattr(usuario, 'nombres', None),
+            'correo': getattr(usuario, 'correo', None),
+            'rol': rol_val,
+            'empresa': empresa_data,
             'productos': lista_productos
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
 
 
 
@@ -4892,3 +4954,232 @@ class ChatWebhookProxyAPIView(APIView):
 
         except Exception as exc:
             return Response({"detail": "Error interno en el servidor.", "error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# LISTADO DE LOS FORMUYLARIOS
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Formulario
+from .serializers import ListadoFormulariosSerializer
+
+class ListadoFormulariosView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        usuario = request.user
+
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if not empresa:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        formularios = Formulario.objects.filter(
+            empresa=empresa
+        ).order_by('-fecha_creacion')
+
+        serializer = ListadoFormulariosSerializer(formularios, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+#Editar formulario
+
+# your_app/views.py
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Formulario, Pregunta
+from .serializers import FormularioEditSerializer
+
+class FormularioEditView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, slug):
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        formulario = get_object_or_404(Formulario, slug=slug)
+        empresa_usuario = getattr(usuario, 'id_empresa', None)
+        if empresa_usuario is None or formulario.empresa.id_empresa != empresa_usuario.id_empresa:
+            return Response({'error': 'No autorizado para este formulario'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = FormularioEditSerializer(formulario, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, slug):
+        """
+        Se espera payload:
+        {
+          "nombre": "Nuevo nombre",
+          "descripcion": "nueva desc",
+          "preguntas": [
+             {"texto":"P1", "tipo":"text", "orden":0, "requerido":false, "opciones":[], "branching":[]},
+             ...
+          ]
+        }
+        La operación reemplaza las preguntas actuales por las nuevas.
+        """
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        formulario = get_object_or_404(Formulario, slug=slug)
+        empresa_usuario = getattr(usuario, 'id_empresa', None)
+        if empresa_usuario is None or formulario.empresa.id_empresa != empresa_usuario.id_empresa:
+            return Response({'error': 'No autorizado para este formulario'}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data
+        nombre = data.get('nombre', '').strip()
+        descripcion = data.get('descripcion', None)
+        preguntas_payload = data.get('preguntas', [])
+
+        if not nombre:
+            return Response({'error': 'El nombre es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                # actualizar formulario
+                formulario.nombre = nombre
+                formulario.descripcion = descripcion
+                formulario.save()
+
+                # eliminar preguntas previas y crear nuevas (reemplazo completo)
+                Pregunta.objects.filter(formulario=formulario).delete()
+
+                preguntas_creadas = []
+                for idx, p in enumerate(preguntas_payload):
+                    texto = p.get('texto', '').strip() or f'Pregunta {idx+1}'
+                    tipo = p.get('tipo', 'text')
+                    orden = p.get('orden', idx)
+                    requerido = bool(p.get('requerido', False))
+                    opciones = p.get('opciones', None)
+                    branching = p.get('branching', None)
+
+                    pregunta = Pregunta.objects.create(
+                        formulario=formulario,
+                        texto=texto,
+                        tipo=tipo,
+                        orden=orden,
+                        requerido=requerido,
+                        opciones=opciones if opciones not in ([], None) else None,
+                        branching=branching if branching not in ([], None) else None,
+                    )
+                    preguntas_creadas.append(pregunta)
+
+                # respuesta con estado actualizado
+                serializer = FormularioEditSerializer(formulario, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            # loguea si tienes logger configurado (no incluido aquí para mantenerlo simple)
+            return Response({'error': 'Error al actualizar formulario', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+#Serializador para dashboard de ventas de formulario de ventas espacio y mercadeo
+
+
+
+
+
+# backend/appdataflowai/views.py
+from django.utils.dateparse import parse_date
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Respuesta
+from .serializers import DashboardFormsVentasPuntoVentaSAerializer
+import logging
+
+logger = logging.getLogger(__name__)
+
+class DashboardFormsVentasPuntoVentaView(APIView):
+    """
+    Devuelve respuestas del formulario (por defecto id_formulario = 15).
+    Requiere token (IsAuthenticated).
+    Query params:
+      - form_id (opcional) -> id_formulario (por defecto 15)
+      - start (opcional) -> fecha desde (YYYY-MM-DD)
+      - end (opcional) -> fecha hasta (YYYY-MM-DD)
+    """
+    permission_classes = (IsAuthenticated,)
+
+    DEFAULT_FORM_ID = 15
+
+    def get(self, request):
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido en request'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Obtener form_id desde query params o usar default
+        try:
+            form_id = int(request.query_params.get('form_id') or self.DEFAULT_FORM_ID)
+        except ValueError:
+            return Response({'error': 'form_id inválido. Debe ser entero.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Construir queryset
+        try:
+            # Restringimos por formulario y por la empresa del usuario (si aplica)
+            empresa_fk = getattr(usuario, 'id_empresa', None)
+            queryset = Respuesta.objects.filter(formulario__id_formulario=form_id)
+
+            if empresa_fk is not None:
+                # formulario.empresa es FK a Empresa -> filtramos por la empresa del formulario
+                queryset = queryset.filter(formulario__empresa=empresa_fk)
+
+            # Filtros de fecha (start / end) basados en campo fecha (DateTimeField)
+            start = request.query_params.get('start')
+            end = request.query_params.get('end')
+
+            if start:
+                date_start = parse_date(start)
+                if not date_start:
+                    return Response({'error': 'Formato de fecha "start" inválido. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+                queryset = queryset.filter(fecha__date__gte=date_start)
+
+            if end:
+                date_end = parse_date(end)
+                if not date_end:
+                    return Response({'error': 'Formato de fecha "end" inválido. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+                queryset = queryset.filter(fecha__date__lte=date_end)
+
+            # orden (opcional) - por defecto descendente ya que en model Meta se indica '-fecha'
+            queryset = queryset.order_by('-fecha')
+
+        except Exception as exc:
+            logger.exception("Error al consultar respuestas del formulario %s", form_id)
+            return Response({'error': 'Error al consultar datos'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        serializer = DashboardFormsVentasPuntoVentaSAerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

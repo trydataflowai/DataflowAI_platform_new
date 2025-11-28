@@ -1,10 +1,10 @@
-// front-dataflowai/src/components/pages/FormBuilder.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import defaultStyles from '../../styles/FormBuilder.module.css';
-import { obtenerInfoUsuario, createForm } from '../../api/FormBuilder';
-import { useTheme } from "../componentes/ThemeContext";
-import { useCompanyStyles } from "../componentes/ThemeContextEmpresa";
+import { obtenerInfoUsuario } from '../../api/FormBuilder'; // para buildTo / estilos por empresa
+import { obtenerFormularioParaEditar, guardarEdicionFormulario } from '../../api/EditarFormulario';
+import { useTheme } from '../componentes/ThemeContext';
+import { useCompanyStyles } from '../componentes/ThemeContextEmpresa';
 
 const NO_PREFIX = [
   "/homeLogin",
@@ -38,7 +38,7 @@ const emptyQuestion = (i = 0) => ({
   branching: [],
 });
 
-// simple modal used for exit confirmation
+// Exit modal (igual que en FormBuilder)
 const ExitModal = ({ open, onCancel, onDiscard }) => {
   if (!open) return null;
   return (
@@ -55,32 +55,33 @@ const ExitModal = ({ open, onCancel, onDiscard }) => {
   );
 };
 
-const FormBuilder = () => {
+const FormsEdit = () => {
   const { theme } = useTheme();
   const styles = useCompanyStyles('FormBuilder', defaultStyles);
 
-  const [companySegment, setCompanySegment] = useState("");
-  const [planId, setPlanId] = useState(null);
-  const [planName, setPlanName] = useState("");
-  const [rol, setRol] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [usuarioInfo, setUsuarioInfo] = useState(null);
+  // company / theme segment (para buildTo)
+  const [companySegment, setCompanySegment] = useState("");
+
+  // estado del formulario
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [preguntas, setPreguntas] = useState([emptyQuestion(0)]);
-  const [creating, setCreating] = useState(false);
-  const [created, setCreated] = useState(null);
-  const [error, setError] = useState(null);
 
-  // exit confirmation
+  // exit modal / dirty handling
   const [showExitModal, setShowExitModal] = useState(false);
   const pendingDiscardRef = useRef(false);
-  const navigate = useNavigate();
-  const location = useLocation();
   const isDirtyRef = useRef(false);
 
-  // mark dirty when any relevant field changes
+  // Marca dirty cuando hay cambios relevantes
   useEffect(() => {
     isDirtyRef.current = Boolean(
       (nombre && nombre.trim() !== '') ||
@@ -90,68 +91,25 @@ const FormBuilder = () => {
     );
   }, [nombre, descripcion, preguntas]);
 
-  // If we come back from the preview (or any navigation) with location.state.form,
-  // restore the editor state so the user doesn't lose changes.
-  useEffect(() => {
-    const incoming = location?.state?.form;
-    if (incoming) {
-      setNombre(incoming.nombre || '');
-      setDescripcion(incoming.descripcion || '');
-      if (incoming.preguntas && incoming.preguntas.length > 0) {
-        // ensure shape: opciones array and branching array exist
-        const normalPreg = incoming.preguntas.map((p, i) => ({
-          texto: p.texto || '',
-          tipo: p.tipo || 'text',
-          orden: i,
-          requerido: !!p.requerido,
-          opciones: Array.isArray(p.opciones) ? p.opciones.slice() : [],
-          branching: Array.isArray(p.branching) ? p.branching.map(b => ({ ...b })) : [],
-        }));
-        setPreguntas(normalPreg);
-      } else {
-        setPreguntas([emptyQuestion(0)]);
-      }
-      isDirtyRef.current = true;
-    }
-    // we intentionally only watch the incoming form object
-  }, [location?.state?.form]);
-
+  // Recupera companySegment (igual que FormBuilder) para buildTo
   useEffect(() => {
     let mounted = true;
-
     const fetchUser = async () => {
       try {
         const data = await obtenerInfoUsuario();
         if (!mounted || !data) return;
-
         const nombreCorto = data?.empresa?.nombre_corto ?? "";
-        const pid = data?.empresa?.plan?.id ?? null;
-        const pName = data?.empresa?.plan?.tipo ?? "";
-        const r = data?.rol ?? data?.role ?? null;
-        const cid = data?.empresa?.id ?? null;
-
         setCompanySegment(normalizeSegment(nombreCorto));
-        setPlanId(pid);
-        setPlanName(pName);
-        setRol(r);
-        setCompanyId(cid);
-        setUsuarioInfo(data || null);
       } catch (err) {
-        console.error("No se pudo obtener info de usuario:", err);
-        if (mounted) {
-          setCompanySegment("");
-          setPlanId(null);
-          setPlanName("");
-          setRol(null);
-          setCompanyId(null);
-        }
+        if (!mounted) return;
+        setCompanySegment('');
       }
     };
-
     fetchUser();
     return () => { mounted = false; };
   }, []);
 
+  // buildTo (idéntico a FormBuilder) para respetar rutas por empresa si las usas
   const buildTo = (to) => {
     const [baseRaw, hash] = to.split("#");
     const base = baseRaw.startsWith("/") ? baseRaw : `/${baseRaw}`;
@@ -168,6 +126,81 @@ const FormBuilder = () => {
     return hash ? `${fullBase}#${hash}` : fullBase;
   };
 
+  // fetch formulario (GET)
+  useEffect(() => {
+    let mounted = true;
+    const fetchForm = async () => {
+      try {
+        setLoading(true);
+        const data = await obtenerFormularioParaEditar(slug);
+        if (!mounted) return;
+        setNombre(data.nombre || '');
+        setDescripcion(data.descripcion || '');
+        if (Array.isArray(data.preguntas) && data.preguntas.length > 0) {
+          const mapped = data.preguntas.map((p, i) => ({
+            texto: p.texto || '',
+            tipo: p.tipo || 'text',
+            orden: p.orden != null ? p.orden : i,
+            requerido: !!p.requerido,
+            opciones: Array.isArray(p.opciones) ? p.opciones : [],
+            branching: Array.isArray(p.branching) ? p.branching.map(b => ({ ...b })) : [],
+          }));
+          setPreguntas(mapped);
+        } else {
+          setPreguntas([emptyQuestion(0)]);
+        }
+      } catch (err) {
+        setError(err.message || 'Error al cargar formulario');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchForm();
+    return () => { mounted = false; };
+  }, [slug]);
+
+  // Manejo de navegación/refresh (beforeunload + popstate)
+  useEffect(() => {
+    const onBeforeUnload = (e) => {
+      if (!isDirtyRef.current) return;
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    try { window.history.pushState({ ms: Date.now() }, ''); } catch (err) {}
+
+    const onPopState = () => {
+      if (!isDirtyRef.current) return;
+      setShowExitModal(true);
+      try { window.history.pushState({ ms: Date.now() }, ''); } catch (err) {}
+      pendingDiscardRef.current = true;
+    };
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('popstate', onPopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, []);
+
+  const handleDiscard = () => {
+    isDirtyRef.current = false;
+    setShowExitModal(false);
+    if (pendingDiscardRef.current) {
+      pendingDiscardRef.current = false;
+      window.history.back();
+    }
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+    pendingDiscardRef.current = false;
+  };
+
+  // Preguntas: añadir / eliminar / actualizar
   const addQuestion = () => setPreguntas(prev => [...prev, emptyQuestion(prev.length)]);
   
   const removeQuestion = (index) => {
@@ -188,6 +221,7 @@ const FormBuilder = () => {
 
   const updateQuestion = (index, field, value) => setPreguntas(prev => prev.map((q, i) => i === index ? { ...q, [field]: value } : q));
 
+  // Opciones
   const addOption = (qIndex) => setPreguntas(prev => prev.map((q, i) => i === qIndex ? { ...q, opciones: [...(q.opciones || []), ''] } : q));
   
   const updateOption = (qIndex, optIndex, value) => setPreguntas(prev => prev.map((q, i) => {
@@ -203,6 +237,7 @@ const FormBuilder = () => {
     return { ...q, opciones, branching };
   }));
 
+  // Branching rules
   const addBranchRule = (qIndex) => {
     setPreguntas(prev => prev.map((q, i) => i === qIndex ? { ...q, branching: [...(q.branching || []), { when: '', goto: 'end' }] } : q));
   };
@@ -225,9 +260,35 @@ const FormBuilder = () => {
     }));
   };
 
-  const handleCreate = async () => {
-    setCreating(true); setError(null); setCreated(null);
-    if (!nombre || nombre.trim() === '') { setError('Nombre del formulario requerido'); setCreating(false); return; }
+  // PREVISUALIZAR: arma payload y navega a FormPrevisualizado
+  const handlePreview = () => {
+    const payloadPreview = {
+      nombre: nombre.trim() || 'Formulario sin título',
+      descripcion: descripcion || '',
+      preguntas: preguntas.map((p, idx) => ({
+        texto: p.texto || `Pregunta ${idx + 1}`,
+        tipo: p.tipo,
+        orden: idx,
+        requerido: !!p.requerido,
+        opciones: (p.tipo === 'select' || p.tipo === 'checkbox') ? (p.opciones || []).filter(Boolean) : null,
+        branching: (p.branching || []).map(b => ({ when: b.when, goto: b.goto }))
+      }))
+    };
+
+    navigate(buildTo("/FormPrevisualizado"), { state: { form: payloadPreview, returnTo: location.pathname } });
+  };
+
+  // GUARDAR CAMBIOS (PUT)
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    if (!nombre || nombre.trim() === '') {
+      setError('Nombre del formulario requerido');
+      setSaving(false);
+      return;
+    }
 
     const payload = {
       nombre: nombre.trim(),
@@ -243,88 +304,43 @@ const FormBuilder = () => {
     };
 
     try {
-      const data = await createForm(payload);
-      setCreated(data);
-      // reset dirty flag and form
-      setNombre(''); setDescripcion(''); setPreguntas([emptyQuestion(0)]);
+      const updated = await guardarEdicionFormulario(slug, payload);
+      setSuccess('Cambios guardados correctamente');
       isDirtyRef.current = false;
+      // Actualizar estado local con la respuesta (por si backend normaliza algo)
+      setNombre(updated.nombre || nombre);
+      setDescripcion(updated.descripcion || descripcion);
+      if (Array.isArray(updated.preguntas) && updated.preguntas.length > 0) {
+        const mapped = updated.preguntas.map((p, i) => ({
+          texto: p.texto || '',
+          tipo: p.tipo || 'text',
+          orden: p.orden != null ? p.orden : i,
+          requerido: !!p.requerido,
+          opciones: Array.isArray(p.opciones) ? p.opciones : [],
+          branching: Array.isArray(p.branching) ? p.branching.map(b => ({ ...b })) : [],
+        }));
+        setPreguntas(mapped);
+      }
+
+      // --- REDIRIGIR AL LISTADO (ruta que usas en tus Routes con p("/FormsListado"))
+      navigate(buildTo("/FormsListado"), { replace: true });
+
     } catch (err) {
-      console.error('Error creando formulario:', err);
-      setError(err.message || 'Error creando formulario');
+      setError(err.message || 'Error al guardar cambios');
     } finally {
-      setCreating(false);
+      setSaving(false);
     }
   };
 
-  // --- Previsualizar: arma payload y navega pasando state (incluye returnTo)
-  const handlePreview = () => {
-    const payloadPreview = {
-      nombre: nombre.trim() || 'Formulario sin título',
-      descripcion: descripcion || '',
-      preguntas: preguntas.map((p, idx) => ({
-        texto: p.texto || `Pregunta ${idx + 1}`,
-        tipo: p.tipo,
-        orden: idx,
-        requerido: !!p.requerido,
-        opciones: (p.tipo === 'select' || p.tipo === 'checkbox') ? (p.opciones || []).filter(Boolean) : null,
-        branching: (p.branching || []).map(b => ({ when: b.when, goto: b.goto }))
-      }))
-    };
+  if (loading) {
+    return (
+      <main className={styles.FormBuildercontainer || ''} style={{ padding: 20 }}>
+        <p>Cargando formulario...</p>
+      </main>
+    );
+  }
 
-    // navegar a vista de previsualización pasando el formulario actual en el state
-    // también paso returnTo para que la previsualización sepa a dónde volver explícitamente
-    navigate(buildTo("/FormPrevisualizado"), { state: { form: payloadPreview, returnTo: location.pathname } });
-  };
-
-  // --- Unsaved changes handling: beforeunload + back button
-  useEffect(() => {
-    const onBeforeUnload = (e) => {
-      if (!isDirtyRef.current) return;
-      e.preventDefault();
-      e.returnValue = ''; // Gecko + Chrome
-      return '';
-    };
-
-    // push a dummy history state so we can detect back/forward
-    try { window.history.pushState({ ms: Date.now() }, ''); } catch (err) {}
-
-    const onPopState = (ev) => {
-      if (!isDirtyRef.current) return; // allow navigation
-      // show modal and push state back to prevent leaving
-      setShowExitModal(true);
-      // push state back so the URL doesn't change until user confirms
-      try { window.history.pushState({ ms: Date.now() }, ''); } catch (err) {}
-      pendingDiscardRef.current = true;
-    };
-
-    window.addEventListener('beforeunload', onBeforeUnload);
-    window.addEventListener('popstate', onPopState);
-
-    return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload);
-      window.removeEventListener('popstate', onPopState);
-    };
-  }, []);
-
-  // if user confirms discard, perform actual navigation (go back in history or navigate to stored location)
-  const handleDiscard = () => {
-    // allow navigation and clear dirty
-    isDirtyRef.current = false;
-    setShowExitModal(false);
-    // If the user triggered a browser back, we want to go back one step now
-    if (pendingDiscardRef.current) {
-      pendingDiscardRef.current = false;
-      window.history.back();
-    }
-  };
-
-  const handleCancelExit = () => {
-    // just close modal and stay on page
-    setShowExitModal(false);
-    pendingDiscardRef.current = false;
-  };
-
-  // --- Variante basada únicamente en ThemeContext (evita fallback oscuro)
+  // Variante de tema
   const variantClass = theme === "dark"
     ? (styles?.FormBuilderDark || defaultStyles.FormBuilderDark || '')
     : (styles?.FormBuilderLight || defaultStyles.FormBuilderLight || '');
@@ -332,19 +348,13 @@ const FormBuilder = () => {
   const containerClass = styles?.FormBuildercontainer || defaultStyles.FormBuildercontainer || '';
 
   return (
-    <main className={`${containerClass} ${variantClass}`} aria-labelledby="form-builder-title">
-      
-      {/* Header Section with Preview button */}
+    <main className={`${containerClass} ${variantClass}`} aria-labelledby="form-builder-title" style={{ paddingBottom: 40 }}>
       <section className={styles.FormBuilderheader}>
         <div className={styles.FormBuilderheaderContent}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', justifyContent: 'space-between' }}>
             <div>
-              <h1 id="form-builder-title" className={styles.FormBuildertitle}>
-                Constructor de Formularios
-              </h1>
-              <p className={styles.FormBuildersubtitle}>
-                Crea formularios dinámicos con ramificación condicional
-              </p>
+              <h1 id="form-builder-title" className={styles.FormBuildertitle}>Editar Formulario</h1>
+              <p className={styles.FormBuildersubtitle}>Modifica el formulario y su lógica de ramificación</p>
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>
@@ -356,40 +366,41 @@ const FormBuilder = () => {
               >
                 Previsualizar
               </button>
+
               <button
                 type="button"
-                onClick={handleCreate}
-                disabled={creating}
+                onClick={handleSave}
+                disabled={saving}
                 className={styles.FormBuildercreateBtn}
               >
-                {creating ? 'Creando formulario...' : 'Crear formulario'}
+                {saving ? 'Guardando cambios...' : 'Guardar cambios'}
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
       <section className={styles.FormBuildercontent}>
         <div className={styles.FormBuilderformSection}>
-          
           {/* Form Info */}
           <div className={styles.FormBuildercard}>
             <h3 className={styles.FormBuildercardTitle}>Información del Formulario</h3>
+
             <div className={styles.FormBuilderinputGroup}>
               <label className={styles.FormBuilderlabel}>Nombre del formulario</label>
-              <input 
-                className={styles.FormBuilderinput} 
-                value={nombre} 
-                onChange={(e) => setNombre(e.target.value)} 
+              <input
+                className={styles.FormBuilderinput}
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
                 placeholder="Ej: Encuesta de satisfacción de clientes"
               />
             </div>
+
             <div className={styles.FormBuilderinputGroup}>
               <label className={styles.FormBuilderlabel}>Descripción</label>
-              <textarea 
-                className={styles.FormBuildertextarea} 
-                value={descripcion} 
+              <textarea
+                className={styles.FormBuildertextarea}
+                value={descripcion || ''}
                 onChange={(e) => setDescripcion(e.target.value)}
                 placeholder="Describe el propósito de este formulario..."
                 rows="3"
@@ -401,42 +412,36 @@ const FormBuilder = () => {
           <div className={styles.FormBuilderquestionsSection}>
             <div className={styles.FormBuildersectionHeader}>
               <h3 className={styles.FormBuildersectionTitle}>Preguntas</h3>
-              <p className={styles.FormBuildersectionSubtitle}>
-                Configura las preguntas y la lógica de ramificación
-              </p>
+              <p className={styles.FormBuildersectionSubtitle}>Configura las preguntas y la lógica de ramificación</p>
             </div>
 
             {preguntas.map((q, idx) => (
               <div key={idx} className={styles.FormBuilderquestionCard}>
                 <div className={styles.FormBuilderquestionHeader}>
-                  <div className={styles.FormBuilderquestionBadge}>
-                    Pregunta {idx + 1}
-                  </div>
-                  <button 
-                    type="button" 
+                  <div className={styles.FormBuilderquestionBadge}>Pregunta {idx + 1}</div>
+
+                  <button
+                    type="button"
                     onClick={() => removeQuestion(idx)}
                     className={styles.FormBuilderremoveBtn}
                     aria-label="Eliminar pregunta"
                   >
-                    <span className={styles.FormBuilderremoveIcon}>×</span>
-                    Eliminar
+                    <span className={styles.FormBuilderremoveIcon}>×</span> Eliminar
                   </button>
                 </div>
 
-                {/* Question Text */}
                 <div className={styles.FormBuilderinputGroup}>
-                  <input 
-                    placeholder="Texto de la pregunta..." 
-                    value={q.texto} 
-                    onChange={(e) => updateQuestion(idx, 'texto', e.target.value)} 
+                  <input
+                    placeholder="Texto de la pregunta..."
+                    value={q.texto}
+                    onChange={(e) => updateQuestion(idx, 'texto', e.target.value)}
                     className={styles.FormBuilderinput}
                   />
                 </div>
 
-                {/* Question Type & Required */}
                 <div className={styles.FormBuilderquestionConfig}>
-                  <select 
-                    value={q.tipo} 
+                  <select
+                    value={q.tipo}
                     onChange={(e) => updateQuestion(idx, 'tipo', e.target.value)}
                     className={styles.FormBuilderselect}
                   >
@@ -446,9 +451,9 @@ const FormBuilder = () => {
                   </select>
 
                   <label className={styles.FormBuildercheckboxLabel}>
-                    <input 
-                      type="checkbox" 
-                      checked={q.requerido} 
+                    <input
+                      type="checkbox"
+                      checked={q.requerido}
                       onChange={(e) => updateQuestion(idx, 'requerido', e.target.checked)}
                       className={styles.FormBuildercheckbox}
                     />
@@ -457,20 +462,19 @@ const FormBuilder = () => {
                   </label>
                 </div>
 
-                {/* Options for select/checkbox */}
                 {(q.tipo === 'select' || q.tipo === 'checkbox') && (
                   <div className={styles.FormBuilderoptionsSection}>
                     <h4 className={styles.FormBuilderoptionsTitle}>Opciones</h4>
                     {(q.opciones || []).map((opt, oi) => (
                       <div key={oi} className={styles.FormBuilderoptionRow}>
-                        <input 
-                          value={opt} 
-                          onChange={(e) => updateOption(idx, oi, e.target.value)} 
-                          className={styles.FormBuilderinput} 
+                        <input
+                          value={opt}
+                          onChange={(e) => updateOption(idx, oi, e.target.value)}
+                          className={styles.FormBuilderinput}
                           placeholder={`Opción ${oi + 1}`}
                         />
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => removeOption(idx, oi)}
                           className={styles.FormBuilderremoveOptionBtn}
                           aria-label="Eliminar opción"
@@ -479,17 +483,13 @@ const FormBuilder = () => {
                         </button>
                       </div>
                     ))}
-                    <button 
-                      type="button" 
-                      onClick={() => addOption(idx)}
-                      className={styles.FormBuilderaddOptionBtn}
-                    >
+                    <button type="button" onClick={() => addOption(idx)} className={styles.FormBuilderaddOptionBtn}>
                       + Agregar opción
                     </button>
                   </div>
                 )}
 
-                {/* Branching Section (AHORA MUESTRA EL NOMBRE DE LA PREGUNTA COMO DESTINO) */}
+                {/* Branching */}
                 <div className={styles.FormBuilderbranchingSection}>
                   <h4 className={styles.FormBuilderbranchingTitle}>Ramificación Condicional</h4>
                   <p className={styles.FormBuilderbranchingDesc}>
@@ -499,9 +499,9 @@ const FormBuilder = () => {
                   {(q.branching || []).map((rule, ri) => (
                     <div key={ri} className={styles.FormBuilderbranchRule}>
                       {(q.tipo === 'select' || q.tipo === 'checkbox') ? (
-                        <select 
-                          className={styles.FormBuilderselect} 
-                          value={rule.when} 
+                        <select
+                          className={styles.FormBuilderselect}
+                          value={rule.when}
                           onChange={(e) => updateBranchRule(idx, ri, 'when', e.target.value)}
                         >
                           <option value=''>-- seleccionar valor --</option>
@@ -510,18 +510,17 @@ const FormBuilder = () => {
                           ))}
                         </select>
                       ) : (
-                        <input 
-                          className={styles.FormBuilderinput} 
-                          placeholder="Valor que dispara la regla" 
-                          value={rule.when} 
-                          onChange={(e) => updateBranchRule(idx, ri, 'when', e.target.value)} 
+                        <input
+                          className={styles.FormBuilderinput}
+                          placeholder="Valor que dispara la regla"
+                          value={rule.when}
+                          onChange={(e) => updateBranchRule(idx, ri, 'when', e.target.value)}
                         />
                       )}
 
-                      {/* Aquí se muestra el nombre de la pregunta destino (p.texto) */}
-                      <select 
-                        className={styles.FormBuilderselect} 
-                        value={String(rule.goto)} 
+                      <select
+                        className={styles.FormBuilderselect}
+                        value={String(rule.goto)}
                         onChange={(e) => updateBranchRule(idx, ri, 'goto', e.target.value)}
                         aria-label={`Destino de la regla ${ri + 1}`}
                       >
@@ -535,8 +534,8 @@ const FormBuilder = () => {
                         ))}
                       </select>
 
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => removeBranchRule(idx, ri)}
                         className={styles.FormBuilderremoveBranchBtn}
                         aria-label="Eliminar regla"
@@ -546,64 +545,27 @@ const FormBuilder = () => {
                     </div>
                   ))}
 
-                  <button 
-                    type="button" 
-                    onClick={() => addBranchRule(idx)}
-                    className={styles.FormBuilderaddBranchBtn}
-                  >
+                  <button type="button" onClick={() => addBranchRule(idx)} className={styles.FormBuilderaddBranchBtn}>
                     + Agregar regla de ramificación
                   </button>
                 </div>
               </div>
             ))}
 
-            {/* Action Buttons (dejo crear también en header) */} 
             <div className={styles.FormBuilderactions}>
-              <button 
-                type="button" 
-                onClick={addQuestion}
-                className={styles.FormBuilderaddQuestionBtn}
-              >
+              <button type="button" onClick={addQuestion} className={styles.FormBuilderaddQuestionBtn}>
                 + Agregar pregunta
               </button>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className={styles.FormBuildererror} role="alert">
-                {error}
-              </div>
-            )}
-
-            {/* Success Message */}
-            {created && (
-              <div className={styles.FormBuildersuccess}>
-                <h4 className={styles.FormBuildersuccessTitle}>¡Formulario creado exitosamente!</h4>
-                <div className={styles.FormBuildersuccessInfo}>
-                  <p><strong>Nombre:</strong> {created.nombre}</p>
-                  <p><strong>Slug:</strong> {created.slug}</p>
-                  <p className={styles.FormBuilderurl}>
-                    <strong>URL pública:</strong>{' '}
-                    <a 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      href={`${import.meta.env.VITE_FRONT_URL || window.location.origin}/forms/${created.slug}`}
-                      className={styles.FormBuilderurlLink}
-                    >
-                      {`${import.meta.env.VITE_FRONT_URL || window.location.origin}/forms/${created.slug}`}
-                    </a>
-                  </p>
-                </div>
-              </div>
-            )}
+            {error && <div className={styles.FormBuildererror} role="alert">{error}</div>}
+            {success && <div className={styles.FormBuildersuccess}><strong>{success}</strong></div>}
           </div>
         </div>
       </section>
 
-      {/* Exit confirmation modal (rendered at root of this component) */}
       <ExitModal open={showExitModal} onCancel={handleCancelExit} onDiscard={handleDiscard} />
 
-      {/* Minimal styles for modal — move to module CSS if you prefer */}
       <style>{`
         .modalOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999}
         .modalCard{background:#fff;padding:20px;border-radius:8px;max-width:420px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.12);}
@@ -617,4 +579,4 @@ const FormBuilder = () => {
   );
 };
 
-export default FormBuilder;
+export default FormsEdit;

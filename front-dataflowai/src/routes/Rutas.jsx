@@ -29,6 +29,9 @@ import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
 import ChatPostgre from "../components/pages/Chxtbut";
 import FormBuilder from '../components/pages/FormBuilder';
 import FormPublic from '../components/pages/FormPublic';
+import FormsEdit from "../components/pages/FormsEdit";
+import FormsPrevisualizado from "../components/pages/FormPrevisualizar";
+import FormsListado from "../components/pages/FormsListado";
 
 import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
@@ -69,6 +72,9 @@ import RutaProtegida from "../components/componentes/RutaProtegida";
 
 // Contexto de tema
 import { ThemeProvider } from "../components/componentes/ThemeContext";
+
+// Dashboard Espacio y mercadeo del formulario ventas
+import DashboardFormsVentasEspacio from "../components/dashboards/DashboardFormsVentasEspacio";
 
 /* ---------------------------
    Configuración de layouts
@@ -564,6 +570,31 @@ export const Rutas = () => {
               }
             />
 
+            <Route path="/forms/edit/:slug" element={<RutaProtegida><SideBarLayout><FormsEdit /></SideBarLayout></RutaProtegida>} />
+
+            <Route
+              path={p("/FormsListado")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <FormsListado />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+            <Route
+              path={p("/FormPrevisualizado")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <FormsPrevisualizado />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
             <Route
               path={p("/ChatPg")}
               element={
@@ -574,6 +605,21 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
+
+
+
+            <Route
+              path={"/ventas-en-punto-de-venta"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardFormsVentasEspacio />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            
 
           </Routes>
         </VerificadorAutenticacionGlobal>

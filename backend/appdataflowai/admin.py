@@ -118,9 +118,14 @@ class ProductoAdmin(admin.ModelAdmin):
 
 @admin.register(DetalleProducto)
 class DetalleProductoAdmin(admin.ModelAdmin):
-    list_display = ('id_producto', 'id_usuario', 'db_name')
-    search_fields = ('id_producto__producto', 'id_usuario__nombres', 'db_name')
-    list_filter = ('id_producto', 'id_usuario', 'db_name')
+    list_display = ('id_producto', 'id_usuario', 'get_db_name')
+    search_fields = ('id_producto__producto', 'id_usuario__nombres', 'id_producto__db_name')
+    list_filter = ('id_producto', 'id_usuario')
+
+    def get_db_name(self, obj):
+        return obj.db_name
+
+    get_db_name.short_description = 'DB Name'
 
 
 @admin.register(DetalleProductoVendido)

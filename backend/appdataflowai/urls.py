@@ -133,6 +133,18 @@ from .views import (
     ChatWebhookProxyAPIView,
 
 
+    #listado de Formularios
+
+    ListadoFormulariosView,
+
+
+    #Editar formulario
+    FormularioEditView,
+
+    #Serializador para dashboard de ventas de formulario de ventas espacio y mercadeo
+    DashboardFormsVentasPuntoVentaView
+
+
 
 )
 
@@ -287,9 +299,21 @@ urlpatterns = [
     #Chatbot N8N
     path("n8n/webhook-proxy/", ChatWebhookProxyAPIView.as_view(), name="webhook-proxy"),
 
+    #Listado dormulario
+
+     path('formularios/empresa/listado/', ListadoFormulariosView.as_view(), name='formularios-listado'),
+
+
+     #Editar Formularios
+
+     path('formularios/<slug:slug>/editar/', FormularioEditView.as_view(), name='formulario-edit'),
 
 
 
-
+     #Serializador para dashboard de ventas de formulario de ventas espacio y mercadeo
+   
+     path('dashboard/forms/ventas-punto-venta/', DashboardFormsVentasPuntoVentaView.as_view(), name='dashboard-forms-ventas-punto-venta'),
 ]
+
+
     
