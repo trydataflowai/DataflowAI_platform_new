@@ -295,6 +295,8 @@ class DetalleProductoHerramientas(models.Model):
 
 
 
+# myapp/models.py (fragmento)
+
 class DetalleProducto(models.Model):
     id_producto = models.ForeignKey(
         Producto,
@@ -314,7 +316,8 @@ class DetalleProducto(models.Model):
 
     @property
     def db_name(self):
-        return self.id_producto.db_name
+        # Devuelve el db_name del producto relacionado (puede ser None)
+        return getattr(self.id_producto, "db_name", None)
 
     def __str__(self):
         return (
