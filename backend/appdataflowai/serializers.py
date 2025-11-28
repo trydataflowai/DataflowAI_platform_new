@@ -1056,3 +1056,128 @@ class FormularioEditSerializer(serializers.ModelSerializer):
             'usuario_id',
             'preguntas',
         ]
+
+
+
+
+
+
+#Serializador para dashboard de ventas de formulario de ventas espacio yu 
+# backend/appdataflowai/serializers.py
+# backend/appdataflowai/serializers.py
+import random
+from rest_framework import serializers
+from .models import Respuesta
+
+class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
+    organized = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Respuesta
+        fields = (
+            'id_respuesta',
+            'fecha',
+            'organized',
+        )
+
+    def _generate_ingresos(self, obj, marca_nombre):
+        """
+        Genera cantidad vendida y dinero vendido de forma determinista
+        usando obj.id_respuesta como semilla para reproducibilidad.
+        Los rangos de precio aproximados dependen de la marca para mantener
+        proporcionalidad entre cantidad y dinero.
+        """
+        # seed determinista por id_respuesta (para que no cambie en cada request)
+        seed = getattr(obj, 'id_respuesta', None) or 0
+        rnd = random.Random(seed)
+
+        # cantidad entre 1 y 20 unidades (puedes ajustar)
+        cantidad = rnd.randint(1, 20)
+
+        # rango unitario por marca (valores aproximados en COP)
+        if marca_nombre == "Apple":
+            unit_low, unit_high = 1200000, 4200000
+        elif marca_nombre == "Xiaomi":
+            unit_low, unit_high = 250000, 1800000
+        elif marca_nombre == "Motorola":
+            unit_low, unit_high = 180000, 900000
+        elif marca_nombre == "Zte":
+            unit_low, unit_high = 120000, 800000
+        else:
+            unit_low, unit_high = 100000, 1000000
+
+        unit_price = rnd.randint(unit_low, unit_high)
+        dinero = cantidad * unit_price
+
+        # return as ints
+        return {
+            "cantidad vendida": int(cantidad),
+            "dinero vendido": int(dinero)
+        }
+
+    def get_organized(self, obj):
+        data = obj.data or {}
+
+        # =========================
+        # ✅ REGIÓN Y PUNTO (BRANCHING)
+        # =========================
+        region = data.get("Seleccione la región:")
+        punto = None
+        if region == "Zona sur:":
+            punto = data.get("Seleccione el punto de venta zona sur:")
+        elif region == "Zona norte:":
+            punto = data.get("Seleccione el punto de venta zona norte:")
+
+        regional = {
+            "Seleccione la región:": region,
+            "punto": punto
+        }
+
+        # =========================
+        # ✅ MARCA Y PRODUCTO (BRANCHING)
+        # =========================
+        marca_nombre = data.get("Seleccione la marca:")
+
+        producto = None
+        if marca_nombre == "Xiaomi":
+            producto = data.get("Seleccione celular Xiaomi")
+        elif marca_nombre == "Zte":
+            producto = data.get("Seleccione celular Zte")
+        elif marca_nombre == "Motorola":
+            producto = data.get("Seleccione celular Motorola")
+        elif marca_nombre == "Apple":
+            producto = data.get("Seleccione celular Apple")
+
+        marca = {
+            "Seleccione la marca:": marca_nombre,
+            "productos": {}
+        }
+
+        if marca_nombre:
+            # la clave exacta la construimos igual que antes
+            marca["productos"][marca_nombre] = {
+                f"Seleccione celular {marca_nombre}": producto
+            }
+
+        # =========================
+        # ✅ OTROS CAMPOS
+        # =========================
+        otros = {
+            "Nombre asesor:": data.get("Nombre asesor:"),
+            "Fecha venta:": data.get("Fecha venta:"),
+            "Observación (opcional)": data.get("Observación (opcional)"),
+        }
+
+        # =========================
+        # ✅ INGRESOS (GENERADOS SI NO EXISTEN EN DATA)
+        # =========================
+        # Si el formulario ya tuviera keys explícitas como "cantidad" o "dinero",
+        # podríamos utilizarlas; actualmente asumo que NO existen y las generamos.
+        ingresos = self._generate_ingresos(obj, marca_nombre)
+
+        return {
+            "regional": regional,
+            "marca": marca,
+            "otros": otros,
+            "Ingresos": ingresos
+        }

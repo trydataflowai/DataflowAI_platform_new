@@ -73,6 +73,9 @@ import RutaProtegida from "../components/componentes/RutaProtegida";
 // Contexto de tema
 import { ThemeProvider } from "../components/componentes/ThemeContext";
 
+// Dashboard Espacio y mercadeo del formulario ventas
+import DashboardFormsVentasEspacio from "../components/dashboards/DashboardFormsVentasEspacio";
+
 /* ---------------------------
    Configuración de layouts
    --------------------------- */
@@ -598,6 +601,19 @@ export const Rutas = () => {
                 <RutaProtegida>
                   <SideBarLayout>
                     <ChatPostgre />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+
+            <Route
+              path={"/ventas-en-punto-de-venta"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardFormsVentasEspacio />
                   </SideBarLayout>
                 </RutaProtegida>
               }
