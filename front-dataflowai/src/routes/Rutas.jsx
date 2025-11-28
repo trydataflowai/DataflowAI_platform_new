@@ -29,6 +29,8 @@ import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
 import ChatPostgre from "../components/pages/Chxtbut";
 import FormBuilder from '../components/pages/FormBuilder';
 import FormPublic from '../components/pages/FormPublic';
+import FormsEdit from "../components/pages/FormsEdit";
+import FormsPrevisualizado from "../components/pages/FormPrevisualizar";
 
 import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
@@ -565,6 +567,28 @@ export const Rutas = () => {
             />
 
             <Route
+              path={p("/FormEdit")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <FormsEdit />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={p("/FormPrevisualizado")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <FormsPrevisualizado />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
               path={p("/ChatPg")}
               element={
                 <RutaProtegida>
@@ -574,6 +598,8 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
+
+            
 
           </Routes>
         </VerificadorAutenticacionGlobal>

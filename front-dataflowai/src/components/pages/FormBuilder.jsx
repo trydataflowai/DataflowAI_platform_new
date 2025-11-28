@@ -1,6 +1,6 @@
 // front-dataflowai/src/components/pages/FormBuilder.jsx
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate, useLocation } from "react-router-dom";
 import defaultStyles from '../../styles/FormBuilder.module.css';
 import { obtenerInfoUsuario, createForm } from '../../api/FormBuilder';
 import { useTheme } from "../componentes/ThemeContext";
@@ -38,9 +38,25 @@ const emptyQuestion = (i = 0) => ({
   branching: [],
 });
 
+// simple modal used for exit confirmation
+const ExitModal = ({ open, onCancel, onDiscard }) => {
+  if (!open) return null;
+  return (
+    <div className="modalOverlay" role="dialog" aria-modal="true">
+      <div className="modalCard">
+        <h3>¿Estás seguro?</h3>
+        <p>Si sales ahora perderás los cambios no guardados.</p>
+        <div className="modalActions">
+          <button className="btnSecondary" onClick={onCancel}>Continuar editando</button>
+          <button className="btnDanger" onClick={onDiscard}>Salir y perder cambios</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FormBuilder = () => {
   const { theme } = useTheme();
-  // obtain company-aware styles from provider (no local dynamic import, provider avoids flash)
   const styles = useCompanyStyles('FormBuilder', defaultStyles);
 
   const [companySegment, setCompanySegment] = useState("");
@@ -56,7 +72,49 @@ const FormBuilder = () => {
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState(null);
   const [error, setError] = useState(null);
+
+  // exit confirmation
+  const [showExitModal, setShowExitModal] = useState(false);
+  const pendingDiscardRef = useRef(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isDirtyRef = useRef(false);
+
+  // mark dirty when any relevant field changes
+  useEffect(() => {
+    isDirtyRef.current = Boolean(
+      (nombre && nombre.trim() !== '') ||
+      (descripcion && descripcion.trim() !== '') ||
+      (preguntas && preguntas.length > 1) ||
+      (preguntas && preguntas.some(q => q.texto || (q.opciones || []).some(Boolean)))
+    );
+  }, [nombre, descripcion, preguntas]);
+
+  // If we come back from the preview (or any navigation) with location.state.form,
+  // restore the editor state so the user doesn't lose changes.
+  useEffect(() => {
+    const incoming = location?.state?.form;
+    if (incoming) {
+      setNombre(incoming.nombre || '');
+      setDescripcion(incoming.descripcion || '');
+      if (incoming.preguntas && incoming.preguntas.length > 0) {
+        // ensure shape: opciones array and branching array exist
+        const normalPreg = incoming.preguntas.map((p, i) => ({
+          texto: p.texto || '',
+          tipo: p.tipo || 'text',
+          orden: i,
+          requerido: !!p.requerido,
+          opciones: Array.isArray(p.opciones) ? p.opciones.slice() : [],
+          branching: Array.isArray(p.branching) ? p.branching.map(b => ({ ...b })) : [],
+        }));
+        setPreguntas(normalPreg);
+      } else {
+        setPreguntas([emptyQuestion(0)]);
+      }
+      isDirtyRef.current = true;
+    }
+    // we intentionally only watch the incoming form object
+  }, [location?.state?.form]);
 
   useEffect(() => {
     let mounted = true;
@@ -91,9 +149,7 @@ const FormBuilder = () => {
     };
 
     fetchUser();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   const buildTo = (to) => {
@@ -189,13 +245,83 @@ const FormBuilder = () => {
     try {
       const data = await createForm(payload);
       setCreated(data);
+      // reset dirty flag and form
       setNombre(''); setDescripcion(''); setPreguntas([emptyQuestion(0)]);
+      isDirtyRef.current = false;
     } catch (err) {
       console.error('Error creando formulario:', err);
       setError(err.message || 'Error creando formulario');
     } finally {
       setCreating(false);
     }
+  };
+
+  // --- Previsualizar: arma payload y navega pasando state (incluye returnTo)
+  const handlePreview = () => {
+    const payloadPreview = {
+      nombre: nombre.trim() || 'Formulario sin título',
+      descripcion: descripcion || '',
+      preguntas: preguntas.map((p, idx) => ({
+        texto: p.texto || `Pregunta ${idx + 1}`,
+        tipo: p.tipo,
+        orden: idx,
+        requerido: !!p.requerido,
+        opciones: (p.tipo === 'select' || p.tipo === 'checkbox') ? (p.opciones || []).filter(Boolean) : null,
+        branching: (p.branching || []).map(b => ({ when: b.when, goto: b.goto }))
+      }))
+    };
+
+    // navegar a vista de previsualización pasando el formulario actual en el state
+    // también paso returnTo para que la previsualización sepa a dónde volver explícitamente
+    navigate(buildTo("/FormPrevisualizado"), { state: { form: payloadPreview, returnTo: location.pathname } });
+  };
+
+  // --- Unsaved changes handling: beforeunload + back button
+  useEffect(() => {
+    const onBeforeUnload = (e) => {
+      if (!isDirtyRef.current) return;
+      e.preventDefault();
+      e.returnValue = ''; // Gecko + Chrome
+      return '';
+    };
+
+    // push a dummy history state so we can detect back/forward
+    try { window.history.pushState({ ms: Date.now() }, ''); } catch (err) {}
+
+    const onPopState = (ev) => {
+      if (!isDirtyRef.current) return; // allow navigation
+      // show modal and push state back to prevent leaving
+      setShowExitModal(true);
+      // push state back so the URL doesn't change until user confirms
+      try { window.history.pushState({ ms: Date.now() }, ''); } catch (err) {}
+      pendingDiscardRef.current = true;
+    };
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('popstate', onPopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, []);
+
+  // if user confirms discard, perform actual navigation (go back in history or navigate to stored location)
+  const handleDiscard = () => {
+    // allow navigation and clear dirty
+    isDirtyRef.current = false;
+    setShowExitModal(false);
+    // If the user triggered a browser back, we want to go back one step now
+    if (pendingDiscardRef.current) {
+      pendingDiscardRef.current = false;
+      window.history.back();
+    }
+  };
+
+  const handleCancelExit = () => {
+    // just close modal and stay on page
+    setShowExitModal(false);
+    pendingDiscardRef.current = false;
   };
 
   // --- Variante basada únicamente en ThemeContext (evita fallback oscuro)
@@ -208,15 +334,38 @@ const FormBuilder = () => {
   return (
     <main className={`${containerClass} ${variantClass}`} aria-labelledby="form-builder-title">
       
-      {/* Header Section */}
+      {/* Header Section with Preview button */}
       <section className={styles.FormBuilderheader}>
         <div className={styles.FormBuilderheaderContent}>
-          <h1 id="form-builder-title" className={styles.FormBuildertitle}>
-            Constructor de Formularios
-          </h1>
-          <p className={styles.FormBuildersubtitle}>
-            Crea formularios dinámicos con ramificación condicional
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', justifyContent: 'space-between' }}>
+            <div>
+              <h1 id="form-builder-title" className={styles.FormBuildertitle}>
+                Constructor de Formularios
+              </h1>
+              <p className={styles.FormBuildersubtitle}>
+                Crea formularios dinámicos con ramificación condicional
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                onClick={handlePreview}
+                className={styles.FormBuilderpreviewBtn || styles.FormBuildercreateBtn}
+                title="Previsualizar formulario"
+              >
+                Previsualizar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={creating}
+                className={styles.FormBuildercreateBtn}
+              >
+                {creating ? 'Creando formulario...' : 'Crear formulario'}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -340,7 +489,7 @@ const FormBuilder = () => {
                   </div>
                 )}
 
-                {/* Branching Section */}
+                {/* Branching Section (AHORA MUESTRA EL NOMBRE DE LA PREGUNTA COMO DESTINO) */}
                 <div className={styles.FormBuilderbranchingSection}>
                   <h4 className={styles.FormBuilderbranchingTitle}>Ramificación Condicional</h4>
                   <p className={styles.FormBuilderbranchingDesc}>
@@ -369,15 +518,19 @@ const FormBuilder = () => {
                         />
                       )}
 
+                      {/* Aquí se muestra el nombre de la pregunta destino (p.texto) */}
                       <select 
                         className={styles.FormBuilderselect} 
                         value={String(rule.goto)} 
                         onChange={(e) => updateBranchRule(idx, ri, 'goto', e.target.value)}
+                        aria-label={`Destino de la regla ${ri + 1}`}
                       >
                         <option value="end">Terminar formulario</option>
-                        {preguntas.map((_, qi) => (
+                        {preguntas.map((p, qi) => (
                           qi === idx ? null : (
-                            <option key={qi} value={qi}>Ir a Pregunta {qi + 1}</option>
+                            <option key={qi} value={String(qi)}>
+                              {p.texto ? `Ir a: ${p.texto}` : `Ir a: Pregunta ${qi + 1}`}
+                            </option>
                           )
                         ))}
                       </select>
@@ -404,7 +557,7 @@ const FormBuilder = () => {
               </div>
             ))}
 
-            {/* Action Buttons */} 
+            {/* Action Buttons (dejo crear también en header) */} 
             <div className={styles.FormBuilderactions}>
               <button 
                 type="button" 
@@ -412,14 +565,6 @@ const FormBuilder = () => {
                 className={styles.FormBuilderaddQuestionBtn}
               >
                 + Agregar pregunta
-              </button>
-              <button 
-                type="button" 
-                onClick={handleCreate} 
-                disabled={creating}
-                className={styles.FormBuildercreateBtn}
-              >
-                {creating ? 'Creando formulario...' : 'Crear formulario'}
               </button>
             </div>
 
@@ -454,6 +599,20 @@ const FormBuilder = () => {
           </div>
         </div>
       </section>
+
+      {/* Exit confirmation modal (rendered at root of this component) */}
+      <ExitModal open={showExitModal} onCancel={handleCancelExit} onDiscard={handleDiscard} />
+
+      {/* Minimal styles for modal — move to module CSS if you prefer */}
+      <style>{`
+        .modalOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999}
+        .modalCard{background:#fff;padding:20px;border-radius:8px;max-width:420px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.12);}
+        .modalCard h3{margin:0 0 8px;font-size:18px}
+        .modalCard p{margin:0 0 16px;color:#333}
+        .modalActions{display:flex;gap:8px;justify-content:flex-end}
+        .btnSecondary{background:#f3f4f6;border:1px solid #d1d5db;padding:8px 12px;border-radius:6px}
+        .btnDanger{background:#ef4444;color:#fff;border:none;padding:8px 12px;border-radius:6px}
+      `}</style>
     </main>
   );
 };
