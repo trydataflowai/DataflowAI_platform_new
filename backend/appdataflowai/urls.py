@@ -133,6 +133,15 @@ from .views import (
     ChatWebhookProxyAPIView,
 
 
+    #listado de Formularios
+
+    ListadoFormulariosView,
+
+
+    #Editar formulario
+    FormularioEditView
+
+
 
 )
 
@@ -286,6 +295,15 @@ urlpatterns = [
 
     #Chatbot N8N
     path("n8n/webhook-proxy/", ChatWebhookProxyAPIView.as_view(), name="webhook-proxy"),
+
+    #Listado dormulario
+
+     path('formularios/empresa/listado/', ListadoFormulariosView.as_view(), name='formularios-listado'),
+
+
+     #Editar Formularios
+
+     path('formularios/<slug:slug>/editar/', FormularioEditView.as_view(), name='formulario-edit'),
 
 
 

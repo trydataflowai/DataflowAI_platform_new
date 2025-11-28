@@ -985,3 +985,74 @@ class WebhookProxySerializer(serializers.Serializer):
     # ahora table es requerido: el frontend DEBE enviar la tabla seleccionada
     table = serializers.CharField()
     # NO aceptamos empresaId desde el cliente por seguridad
+
+
+
+
+
+
+
+# LISTADO DE LOS FORMUYLARIOS
+# your_app/serializers.py
+from rest_framework import serializers
+from .models import Formulario
+
+class ListadoFormulariosSerializer(serializers.ModelSerializer):
+    empresa_id = serializers.IntegerField(source='empresa.id_empresa', read_only=True)
+    usuario_id = serializers.IntegerField(source='usuario.id_usuario', read_only=True)
+    fecha_creacion = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
+    class Meta:
+        model = Formulario
+        fields = [
+            'id_formulario',
+            'nombre',
+            'descripcion',
+            'slug',
+            'fecha_creacion',
+            'empresa_id',
+            'usuario_id',
+        ]
+
+
+
+
+
+
+#Editar formulario
+# your_app/serializers.py
+from rest_framework import serializers
+from .models import Formulario, Pregunta
+
+class EditPreguntaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pregunta
+        fields = [
+            'id_pregunta',
+            'texto',
+            'tipo',
+            'orden',
+            'requerido',
+            'opciones',
+            'branching',
+        ]
+        read_only_fields = ['id_pregunta']
+
+class FormularioEditSerializer(serializers.ModelSerializer):
+    preguntas = EditPreguntaSerializer(many=True, read_only=True)
+    empresa_id = serializers.IntegerField(source='empresa.id_empresa', read_only=True)
+    usuario_id = serializers.IntegerField(source='usuario.id_usuario', read_only=True)
+    fecha_creacion = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
+    class Meta:
+        model = Formulario
+        fields = [
+            'id_formulario',
+            'nombre',
+            'descripcion',
+            'slug',
+            'fecha_creacion',
+            'empresa_id',
+            'usuario_id',
+            'preguntas',
+        ]

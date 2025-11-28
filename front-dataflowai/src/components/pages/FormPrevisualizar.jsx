@@ -1,228 +1,474 @@
-// front-dataflowai/src/components/pages/FormPrevisualizar.jsx
-import React, { useState } from 'react';
+// front-dataflowai/src/components/pages/FormsPrevisualizado.jsx
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import styles from '../../styles/FormBuilder.module.css'; // uso de estilos del form builder para consistencia
+import defaultFormPublic from '../../styles/FormPublic.module.css';
+import { useTheme } from '../componentes/ThemeContext';
+import { useCompanyStyles } from '../componentes/ThemeContextEmpresa';
+
+/**
+ * FormsPrevisualizado.jsx
+ * - Usa el objeto `form` que viene en location.state.form (desde el editor).
+ * - Reutiliza las clases desde FormPublic.module.css (company styles si existen).
+ * - Implementa el flujo con branching idéntico al FormPublic real.
+ * - El botón "Enviar respuestas" en esta vista *simula* el envío (muestra success).
+ */
 
 const FormsPrevisualizado = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const styles = useCompanyStyles('FormPublic', defaultFormPublic);
+
+  // helper defensivo para clases (devuelve clase disponible o string vacío)
+  const C = (cls) => (styles && styles[cls]) || (defaultFormPublic && defaultFormPublic[cls]) || '';
+
   const form = location?.state?.form || null;
   const returnTo = location?.state?.returnTo || null;
 
-  // estado para respuestas (opcional, solo para previsualizar interacción)
-  const [answers, setAnswers] = useState(() => {
-    if (!form?.preguntas) return {};
-    const initial = {};
-    form.preguntas.forEach((p, i) => {
-      if (p.tipo === 'checkbox') initial[i] = [];
-      else initial[i] = '';
+  const lastInputRef = useRef(null);
+
+  const [values, setValues] = useState({});
+  const [visibleIndices, setVisibleIndices] = useState([]);
+  const [ended, setEnded] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [errors, setErrors] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  // Inicializar estado cuando llega el form desde location.state
+  useEffect(() => {
+    if (!form) {
+      setValues({});
+      setVisibleIndices([]);
+      setEnded(false);
+      return;
+    }
+
+    const init = {};
+    (form.preguntas || []).forEach((p) => {
+      init[String(p.id_pregunta ?? p.orden ?? Math.random())] = p.tipo === 'checkbox' ? [] : '';
     });
-    return initial;
-  });
+    setValues(init);
+
+    if ((form.preguntas || []).length > 0) {
+      setVisibleIndices([0]);
+      setEnded(false);
+    } else {
+      setVisibleIndices([]);
+      setEnded(true);
+    }
+  }, [form]);
+
+  // focus automático al último input visible
+  useEffect(() => {
+    if (lastInputRef.current && typeof lastInputRef.current.focus === 'function') {
+      try { lastInputRef.current.focus(); } catch (e) {}
+    }
+  }, [visibleIndices]);
 
   if (!form) {
     return (
-      <div className={styles.FormBuildercontainer || ''} style={{ padding: 24 }}>
-        <h2>Previsualización</h2>
-        <p>No hay datos para previsualizar. Regresa al editor y haz clic en "Previsualizar".</p>
-        <div style={{ marginTop: 12 }}>
-          <button
-            onClick={() => {
-              // si tengo returnTo intento volver ahí, sino back
-              if (returnTo) navigate(returnTo, { state: { form: null } });
-              else navigate(-1);
-            }}
-            className={styles.FormBuildercreateBtn}
-          >
-            Volver al editor
-          </button>
+      <div className={`${C('container')} ${theme === 'dark' ? C('darkTheme') : C('lightTheme')}`}>
+        <div className={C('formContent')}>
+          <h2 className={C('formTitle')}>Previsualización</h2>
+          <p>No hay datos para previsualizar. Regresa al editor y haz clic en "Previsualizar".</p>
+          <div style={{ marginTop: 12 }}>
+            <button
+              onClick={() => {
+                if (returnTo) navigate(returnTo, { state: { form: null } });
+                else navigate(-1);
+              }}
+              className={C('submitButton')}
+            >
+              Volver al editor
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const handleChange = (index, value, tipo, optionValue) => {
-    setAnswers(prev => {
-      const next = { ...prev };
-      if (tipo === 'checkbox') {
-        const arr = new Set(next[index] || []);
-        if (arr.has(optionValue)) arr.delete(optionValue);
-        else arr.add(optionValue);
-        next[index] = Array.from(arr);
-      } else {
-        next[index] = value;
+  const preguntas = form.preguntas || [];
+
+  // Evalúa reglas de branching en una pregunta dada y un valor
+  const evaluateBranching = (pregunta, answerValue) => {
+    if (!pregunta || !pregunta.branching) return null;
+    const rules = pregunta.branching || [];
+
+    if (pregunta.tipo === 'checkbox' && Array.isArray(answerValue)) {
+      for (const rule of rules) {
+        if (!rule) continue;
+        const when = rule.when;
+        const goto = rule.goto;
+        if (when == null || when === '') continue;
+        for (const marked of answerValue) {
+          if (String(marked) === String(when)) return goto;
+        }
       }
-      return next;
-    });
+      return null;
+    }
+
+    for (const rule of rules) {
+      if (!rule) continue;
+      const when = rule.when;
+      const goto = rule.goto;
+      if (when == null) continue;
+      if (String(when) === String(answerValue)) return goto;
+    }
+    return null;
   };
 
-  const handleSimularSubmit = (e) => {
-    e.preventDefault();
-    // simplemente mostramos las respuestas en consola — puedes conectarlo a un submit real si quieres
-    console.log('Respuestas simuladas:', answers);
-    alert('Simulación enviada (revisa la consola).');
-  };
+  // recalcula la rama siguiente (sin enviar). Retorna [newVisibleIndices, endedFlag]
+  const computeNextVisible = (baseVisible, idx, pregunta, answerValue) => {
+    const basePos = baseVisible.indexOf(idx);
+    const base = basePos === -1 ? baseVisible : baseVisible.slice(0, basePos + 1);
 
-  const handleVolverAlEditor = () => {
-    // si tenemos returnTo (ruta de donde vino), navegamos a esa ruta pasando el mismo form en state
-    if (returnTo) {
-      navigate(returnTo, { state: { form } });
+    const goto = evaluateBranching(pregunta, answerValue);
+
+    if (goto === 'end') {
+      return [base, true];
+    }
+
+    if (goto != null && goto !== '') {
+      const targetIndex = Number(goto);
+      if (!Number.isNaN(targetIndex) && targetIndex >= 0 && targetIndex < preguntas.length) {
+        if (!base.includes(targetIndex)) {
+          return [[...base, targetIndex], false];
+        } else {
+          const pos = base.indexOf(targetIndex);
+          return [base.slice(0, pos + 1), false];
+        }
+      } else {
+        return [base, true];
+      }
+    }
+
+    const next = idx + 1;
+    if (next >= preguntas.length) {
+      return [base, true];
+    }
+    if (!base.includes(next)) {
+      return [[...base, next], false];
     } else {
-      // fallback: ir atrás en historial (no garantiza que el editor reciba el state)
-      navigate(-1);
+      const pos = base.indexOf(next);
+      return [base.slice(0, pos + 1), false];
     }
   };
 
-  return (
-    <main className={styles.FormBuildercontainer || ''} style={{ padding: 20 }}>
-      <section className={styles.FormBuilderheader}>
-        <div className={styles.FormBuilderheaderContent} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 className={styles.FormBuildertitle}>{form.nombre || 'Formulario (sin título)'}</h1>
-            {form.descripcion && <p className={styles.FormBuildersubtitle}>{form.descripcion}</p>}
-          </div>
-          <div>
-            <button onClick={handleVolverAlEditor} className={styles.FormBuilderaddQuestionBtn}>Volver al editor</button>
-          </div>
-        </div>
-      </section>
+  // Cuando el usuario responde la pregunta en index `idx`, actualizamos values y recalculamos visibleIndices
+  const handleAnswer = (idx, pregunta, newValue) => {
+    setErrors(null);
+    const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
 
-      <section style={{ marginTop: 18 }}>
-        <form onSubmit={handleSimularSubmit}>
-          {form.preguntas && form.preguntas.length > 0 ? (
-            form.preguntas.map((p, idx) => (
-              <div key={idx} className={styles.FormBuilderquestionCard} style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-                  {p.texto || `Pregunta ${idx + 1}`} {p.requerido ? <span aria-hidden="true" style={{ color: 'red' }}>*</span> : null}
+    setValues((prev) => ({ ...prev, [pidStr]: newValue }));
+
+    setVisibleIndices((prevVisible) => {
+      const [newVisible, isEnded] = computeNextVisible(prevVisible, idx, pregunta, newValue);
+      setEnded(isEnded);
+      return newVisible;
+    });
+  };
+
+  // handlers por tipo
+  const handleTextChange = (idx, pregunta, e) => {
+    const val = e.target.value;
+    const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+    setValues((prev) => ({ ...prev, [pidStr]: val }));
+  };
+
+  const handleTextBlurOrEnter = (idx, pregunta) => {
+    const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+    const val = values[pidStr];
+    if (pregunta.requerido && (val === '' || val == null)) {
+      setErrors('Por favor responde la pregunta antes de continuar.');
+      return;
+    }
+    handleAnswer(idx, pregunta, val);
+  };
+
+  const handleSelectChange = (idx, pregunta, e) => {
+    const val = e.target.value;
+    const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+    setValues((prev) => ({ ...prev, [pidStr]: val }));
+    if (pregunta.requerido && (val === '' || val == null)) {
+      setErrors('Por favor selecciona una opción.');
+      return;
+    }
+    handleAnswer(idx, pregunta, val);
+  };
+
+  const handleCheckboxToggle = (idx, pregunta, option, checked) => {
+    const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+    setValues((prev) => {
+      const arr = Array.isArray(prev[pidStr]) ? [...prev[pidStr]] : [];
+      if (checked) {
+        if (!arr.includes(option)) arr.push(option);
+      } else {
+        const i = arr.indexOf(option);
+        if (i > -1) arr.splice(i, 1);
+      }
+      const newArr = arr;
+      setTimeout(() => {
+        if (pregunta.requerido && (!newArr || newArr.length === 0)) {
+          setErrors('Por favor selecciona al menos una opción.');
+          return;
+        }
+        setErrors(null);
+        handleAnswer(idx, pregunta, newArr);
+      }, 0);
+      return { ...prev, [pidStr]: newArr };
+    });
+  };
+
+  const handleOtherChange = (idx, pregunta, e) => {
+    const val = e.target.value;
+    const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+    setValues((prev) => ({ ...prev, [pidStr]: val }));
+    if (pregunta.requerido && (val === '' || val == null)) {
+      setErrors('Por favor responde la pregunta antes de continuar.');
+      return;
+    }
+    handleAnswer(idx, pregunta, val);
+  };
+
+  // En esta vista de previsualización simulamos el envío (no llamamos al backend)
+  const submitAll = async () => {
+    setSending(true);
+    setErrors(null);
+    setSuccess(null);
+
+    try {
+      for (const idx of visibleIndices) {
+        const pregunta = preguntas[idx];
+        if (!pregunta) continue;
+        const pid = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+        const val = values[pid];
+        const isEmpty = val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0);
+        if (pregunta.requerido && isEmpty) {
+          setErrors(`Falta responder: "${pregunta.texto || `Pregunta ${idx + 1}`}"`);
+          setSending(false);
+          return;
+        }
+      }
+
+      // Simulación: mostramos respuestas en consola y un mensaje de éxito
+      const answers = {};
+      for (const idx of visibleIndices) {
+        const pregunta = preguntas[idx];
+        if (!pregunta) continue;
+        const pid = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+        const val = values[pid];
+        if (val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0)) {
+          answers[pid] = val;
+        }
+      }
+      console.log('Simulated submit (preview):', answers);
+
+      // mostrar success (simulado)
+      setSuccess('Simulación enviada — (vista de previsualización)');
+
+      // opcional: resetear (como en el ejemplo)
+      const resetValues = {};
+      preguntas.forEach((p) => {
+        resetValues[String(p.id_pregunta ?? p.orden ?? Math.random())] = p.tipo === 'checkbox' ? [] : '';
+      });
+      setValues(resetValues);
+      setVisibleIndices(preguntas.length > 0 ? [0] : []);
+      setEnded(false);
+    } catch (err) {
+      setErrors(err?.message || 'Error en la simulación');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // tema fallback
+  const themeClass =
+    theme === 'dark'
+      ? (styles && (styles.darkTheme || styles.FormPublicDark)) || defaultFormPublic.darkTheme || defaultFormPublic.FormPublicDark || ''
+      : (styles && (styles.lightTheme || styles.FormPublicLight)) || defaultFormPublic.lightTheme || defaultFormPublic.FormPublicLight || '';
+
+  return (
+    <div className={`${C('container')} ${themeClass}`}>
+      <div className={C('formContent')}>
+        <h1 className={C('formTitle')}>{form.nombre || 'Formulario (sin título)'}</h1>
+        {form.descripcion && <p className={C('formDescription')}>{form.descripcion}</p>}
+
+        <div className={C('questionsContainer')}>
+          {visibleIndices.map((idx, pos) => {
+            const pregunta = preguntas[idx];
+            if (!pregunta) return null;
+            const pidStr = String(pregunta.id_pregunta ?? pregunta.orden ?? idx);
+            const value = values[pidStr];
+            const isLast = pos === visibleIndices.length - 1;
+
+            return (
+              <div key={pidStr} className={C('questionCard')}>
+                <label className={C('questionLabel')}>
+                  {pregunta.texto || `Pregunta ${idx + 1}`} {pregunta.requerido && <span className={C('required')}>*</span>}
                 </label>
 
-                {/* render según tipo */}
-                {p.tipo === 'text' && (
+                {pregunta.tipo === 'text' && (
                   <input
-                    type="text"
-                    className={styles.FormBuilderinput}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    placeholder={p.texto || `Pregunta ${idx + 1}`}
-                    required={!!p.requerido}
+                    ref={isLast ? lastInputRef : null}
+                    className={C('input')}
+                    value={value || ''}
+                    onChange={(e) => handleTextChange(idx, pregunta, e)}
+                    onBlur={() => handleTextBlurOrEnter(idx, pregunta)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleTextBlurOrEnter(idx, pregunta);
+                      }
+                    }}
                   />
                 )}
 
-                {p.tipo === 'textarea' && (
+                {pregunta.tipo === 'textarea' && (
                   <textarea
-                    className={styles.FormBuildertextarea}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    rows={4}
-                    placeholder={p.texto || `Pregunta ${idx + 1}`}
-                    required={!!p.requerido}
+                    ref={isLast ? lastInputRef : null}
+                    className={C('textarea')}
+                    value={value || ''}
+                    onChange={(e) => handleTextChange(idx, pregunta, e)}
+                    onBlur={() => handleTextBlurOrEnter(idx, pregunta)}
                   />
                 )}
 
-                {p.tipo === 'date' && (
+                {pregunta.tipo === 'date' && (
                   <input
+                    ref={isLast ? lastInputRef : null}
                     type="date"
-                    className={styles.FormBuilderinput}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    required={!!p.requerido}
+                    className={C('input')}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
                   />
                 )}
 
-                {p.tipo === 'int' && (
+                {pregunta.tipo === 'int' && (
                   <input
+                    ref={isLast ? lastInputRef : null}
                     type="number"
                     step="1"
-                    className={styles.FormBuilderinput}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    required={!!p.requerido}
+                    className={C('input')}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
                   />
                 )}
 
-                {p.tipo === 'float' && (
+                {pregunta.tipo === 'float' && (
                   <input
+                    ref={isLast ? lastInputRef : null}
                     type="number"
                     step="any"
-                    className={styles.FormBuilderinput}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    required={!!p.requerido}
+                    className={C('input')}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
                   />
                 )}
 
-                {p.tipo === 'email' && (
+                {pregunta.tipo === 'email' && (
                   <input
+                    ref={isLast ? lastInputRef : null}
                     type="email"
-                    className={styles.FormBuilderinput}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    required={!!p.requerido}
+                    className={C('input')}
+                    value={value || ''}
+                    onChange={(e) => handleOtherChange(idx, pregunta, e)}
                   />
                 )}
 
-                {p.tipo === 'select' && (
+                {pregunta.tipo === 'select' && (
                   <select
-                    className={styles.FormBuilderselect}
-                    value={answers[idx] || ''}
-                    onChange={(e) => handleChange(idx, e.target.value, p.tipo)}
-                    required={!!p.requerido}
+                    ref={isLast ? lastInputRef : null}
+                    className={C('select')}
+                    value={value || ''}
+                    onChange={(e) => handleSelectChange(idx, pregunta, e)}
                   >
                     <option value="">-- seleccionar --</option>
-                    {(p.opciones || []).map((opt, oi) => (
-                      <option key={oi} value={opt}>{opt}</option>
+                    {(pregunta.opciones || []).map((opt, i) => (
+                      <option key={i} value={opt}>
+                        {opt}
+                      </option>
                     ))}
                   </select>
                 )}
 
-                {p.tipo === 'checkbox' && (
-                  <div>
-                    {(p.opciones || []).map((opt, oi) => {
-                      const checked = (answers[idx] || []).includes(opt);
+                {pregunta.tipo === 'checkbox' && (
+                  <div className={C('checkboxGroup')}>
+                    {(pregunta.opciones || []).map((opt, i) => {
+                      const checked = Array.isArray(value) && value.includes(opt);
                       return (
-                        <label key={oi} style={{ display: 'block', marginBottom: 6 }}>
+                        <label key={i} className={C('checkboxLabel')}>
                           <input
                             type="checkbox"
+                            value={opt}
                             checked={checked}
-                            onChange={() => handleChange(idx, null, p.tipo, opt)}
-                          />{' '}
-                          {opt}
+                            onChange={(e) => handleCheckboxToggle(idx, pregunta, opt, e.target.checked)}
+                            className={C('checkboxInput')}
+                          />
+                          <span className={C('checkboxText')}>{opt}</span>
                         </label>
                       );
                     })}
                   </div>
                 )}
 
-                {/* mostrar reglas de ramificación si existen (solo como info visual) */}
-                {p.branching && p.branching.length > 0 && (
+                {pregunta.branching && pregunta.branching.length > 0 && (
                   <div style={{ marginTop: 8, fontSize: 13, color: '#555' }}>
                     <strong>Ramificación:</strong>
                     <ul style={{ margin: '6px 0 0 16px' }}>
-                      {p.branching.map((b, i) => (
-                        <li key={i}>
-                          Si <em>{String(b.when)}</em> → {b.goto === 'end' ? 'Terminar' : `Ir a pregunta ${Number(b.goto) + 1}`}
-                        </li>
-                      ))}
+                      {pregunta.branching.map((b, i) => {
+                        let destino = 'Terminar';
+                        if (b.goto !== 'end') {
+                          const idxNum = Number(b.goto);
+                          const destPregunta = preguntas[idxNum];
+                          destino = destPregunta ? (`Ir a: ${destPregunta.texto || `Pregunta ${idxNum + 1}`}`) : `Ir a: pregunta ${idxNum + 1}`;
+                        }
+                        return (
+                          <li key={i}>
+                            Si <em>{String(b.when)}</em> → {destino}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
               </div>
-            ))
-          ) : (
-            <p>No hay preguntas configuradas.</p>
-          )}
+            );
+          })}
+        </div>
 
-          <div style={{ marginTop: 12 }}>
-            <button type="submit" className={styles.FormBuildercreateBtn} style={{ marginRight: 8 }}>
-              Simular envío
+        <div className={C('footer')}>
+          {errors && <div className={C('errorMessage')}>{errors}</div>}
+          {success && <div className={C('successMessage')}>{success}</div>}
+
+          <div className={C('actions')}>
+            <button type="button" onClick={() => submitAll()} disabled={sending} className={C('submitButton')}>
+              {sending ? (
+                <>
+                  <div className={C('spinner')}></div>
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                'Enviar respuestas (simulado)'
+              )}
             </button>
-            <button type="button" onClick={handleVolverAlEditor} className={styles.FormBuilderaddQuestionBtn}>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (returnTo) navigate(returnTo, { state: { form } });
+                else navigate(-1);
+              }}
+              className={C('secondaryButton') || C('addQuestionBtn') || C('submitButton')}
+              style={{ marginLeft: 12 }}
+            >
               Volver al editor
             </button>
           </div>
-        </form>
-      </section>
-    </main>
+
+          {ended && <div className={C('endMessage')}>Has llegado al final. Pulsa "Enviar respuestas" para terminar.</div>}
+        </div>
+      </div>
+    </div>
   );
 };
 

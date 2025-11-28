@@ -31,6 +31,7 @@ import FormBuilder from '../components/pages/FormBuilder';
 import FormPublic from '../components/pages/FormPublic';
 import FormsEdit from "../components/pages/FormsEdit";
 import FormsPrevisualizado from "../components/pages/FormPrevisualizar";
+import FormsListado from "../components/pages/FormsListado";
 
 import ConfiguracionUsuarios from "../components/pages/Pefil";
 import AppCambiarContrasena from "../components/pages/Perfil/CambiarContrasena";
@@ -566,16 +567,19 @@ export const Rutas = () => {
               }
             />
 
+            <Route path="/forms/edit/:slug" element={<RutaProtegida><SideBarLayout><FormsEdit /></SideBarLayout></RutaProtegida>} />
+
             <Route
-              path={p("/FormEdit")}
+              path={p("/FormsListado")}
               element={
                 <RutaProtegida>
                   <SideBarLayout>
-                    <FormsEdit />
+                    <FormsListado />
                   </SideBarLayout>
                 </RutaProtegida>
               }
             />
+
 
             <Route
               path={p("/FormPrevisualizado")}

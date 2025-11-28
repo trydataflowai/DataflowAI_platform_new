@@ -4892,3 +4892,147 @@ class ChatWebhookProxyAPIView(APIView):
 
         except Exception as exc:
             return Response({"detail": "Error interno en el servidor.", "error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# LISTADO DE LOS FORMUYLARIOS
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Formulario
+from .serializers import ListadoFormulariosSerializer
+
+class ListadoFormulariosView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        usuario = request.user
+
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        empresa = getattr(usuario, 'id_empresa', None)
+        if not empresa:
+            return Response({'error': 'Usuario sin empresa asignada'}, status=status.HTTP_400_BAD_REQUEST)
+
+        formularios = Formulario.objects.filter(
+            empresa=empresa
+        ).order_by('-fecha_creacion')
+
+        serializer = ListadoFormulariosSerializer(formularios, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+#Editar formulario
+
+# your_app/views.py
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Formulario, Pregunta
+from .serializers import FormularioEditSerializer
+
+class FormularioEditView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, slug):
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        formulario = get_object_or_404(Formulario, slug=slug)
+        empresa_usuario = getattr(usuario, 'id_empresa', None)
+        if empresa_usuario is None or formulario.empresa.id_empresa != empresa_usuario.id_empresa:
+            return Response({'error': 'No autorizado para este formulario'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = FormularioEditSerializer(formulario, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, slug):
+        """
+        Se espera payload:
+        {
+          "nombre": "Nuevo nombre",
+          "descripcion": "nueva desc",
+          "preguntas": [
+             {"texto":"P1", "tipo":"text", "orden":0, "requerido":false, "opciones":[], "branching":[]},
+             ...
+          ]
+        }
+        La operación reemplaza las preguntas actuales por las nuevas.
+        """
+        usuario = request.user
+        if not hasattr(usuario, 'id_usuario'):
+            return Response({'error': 'Usuario inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        formulario = get_object_or_404(Formulario, slug=slug)
+        empresa_usuario = getattr(usuario, 'id_empresa', None)
+        if empresa_usuario is None or formulario.empresa.id_empresa != empresa_usuario.id_empresa:
+            return Response({'error': 'No autorizado para este formulario'}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data
+        nombre = data.get('nombre', '').strip()
+        descripcion = data.get('descripcion', None)
+        preguntas_payload = data.get('preguntas', [])
+
+        if not nombre:
+            return Response({'error': 'El nombre es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                # actualizar formulario
+                formulario.nombre = nombre
+                formulario.descripcion = descripcion
+                formulario.save()
+
+                # eliminar preguntas previas y crear nuevas (reemplazo completo)
+                Pregunta.objects.filter(formulario=formulario).delete()
+
+                preguntas_creadas = []
+                for idx, p in enumerate(preguntas_payload):
+                    texto = p.get('texto', '').strip() or f'Pregunta {idx+1}'
+                    tipo = p.get('tipo', 'text')
+                    orden = p.get('orden', idx)
+                    requerido = bool(p.get('requerido', False))
+                    opciones = p.get('opciones', None)
+                    branching = p.get('branching', None)
+
+                    pregunta = Pregunta.objects.create(
+                        formulario=formulario,
+                        texto=texto,
+                        tipo=tipo,
+                        orden=orden,
+                        requerido=requerido,
+                        opciones=opciones if opciones not in ([], None) else None,
+                        branching=branching if branching not in ([], None) else None,
+                    )
+                    preguntas_creadas.append(pregunta)
+
+                # respuesta con estado actualizado
+                serializer = FormularioEditSerializer(formulario, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            # loguea si tienes logger configurado (no incluido aquí para mantenerlo simple)
+            return Response({'error': 'Error al actualizar formulario', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
