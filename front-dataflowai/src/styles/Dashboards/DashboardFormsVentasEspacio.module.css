@@ -1,0 +1,915 @@
+/* DashboardFormsVentasEspacio.module.css */
+
+/* =========================
+   Variables por variante - Diseño Formal Sobrio
+   ========================= */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --accent-1: #2563eb;
+  --accent-2: #1d4ed8;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-hover-bg: rgba(255, 255, 255, 1);
+  --card-border: rgba(0, 0, 0, 0.06);
+  --card-hover-border: rgba(37, 99, 235, 0.15);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --card-hover-shadow: 0 8px 30px rgba(37, 99, 235, 0.08);
+  --backdrop-filter: blur(10px);
+  --modal-bg: rgba(255, 255, 255, 0.98);
+  --modal-border: rgba(0, 0, 0, 0.08);
+  --btn-bg: var(--accent-gradient);
+  --btn-text: #ffffff;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Variables adicionales para dashboard */
+  --table-header-bg: #f7f9fc;
+  --table-row-hover: #f8fafc;
+  --stat-card-gradient-1: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+  --stat-card-gradient-2: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+  --stat-card-gradient-3: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  --stat-card-gradient-4: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  --stat-card-gradient-5: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+/* =========================
+   Estilos Base - Diseño Centrado y Formal
+   ========================= */
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Header Section - Centrado */
+.container h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  padding: 2.5rem 3rem 2rem;
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--card-border);
+}
+
+/* ✅ FILTROS - Diseño centrado y elegante */
+.filtrosContainer {
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--card-border);
+  padding: 2rem 3rem;
+  margin: 0;
+  width: 100%;
+}
+
+.filtrosRow {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.filtroGroup {
+  flex: 1;
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.filtroLabel {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filtroSelect {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-primary);
+  font-weight: 500;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  border: 1.5px solid #e2e8f0;
+}
+
+.filtroSelect:focus {
+  outline: none;
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filtroSelect:hover {
+  border-color: #cbd5e0;
+}
+
+.resetButton {
+  padding: 0.875rem 1.75rem;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+.resetButton:hover {
+  background: var(--accent-1);
+  border-color: var(--accent-1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.resetButton:active {
+  transform: translateY(0);
+}
+
+.filtroInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--card-border);
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.filtroText {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.filtroActivo {
+  font-size: 0.875rem;
+  color: var(--accent-1);
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ✅ CONTENIDO PRINCIPAL - Ancho aumentado */
+.statsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin: 2.5rem auto;
+  max-width: 1400px;
+  padding: 0 3rem;
+}
+
+/* ✅ TARJETAS DE RESUMEN - Diseño formal */
+.statCard {
+  background: var(--card-bg);
+  border: 15px solid var(--card-border);
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  transition: var(--transition);
+  backdrop-filter: var(--backdrop-filter);
+  -webkit-backdrop-filter: var(--backdrop-filter);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
+  background: var(--card-hover-bg);
+}
+
+.statCard:hover::before {
+  opacity: 1;
+}
+
+.statCard:nth-child(1) { background: var(--stat-card-gradient-1); }
+.statCard:nth-child(2) { background: var(--stat-card-gradient-2); }
+.statCard:nth-child(3) { background: var(--stat-card-gradient-3); }
+.statCard:nth-child(4) { background: var(--stat-card-gradient-4); }
+.statCard:nth-child(5) { background: var(--stat-card-gradient-5); }
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.90rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1px;
+}
+
+.statValue {
+  font-size: 1.2rem;
+  font-weight: 200;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.statSubtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ✅ GRÁFICAS - Ancho aumentado */
+.chartRow {
+  margin: 2.5rem auto;
+  max-width: 1400px;
+  padding: 0 3rem;
+}
+
+.fullWidthChart {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  height: 450px;
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
+  backdrop-filter: var(--backdrop-filter);
+  -webkit-backdrop-filter: var(--backdrop-filter);
+}
+
+.fullWidthChart:hover {
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--card-hover-border);
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2.5rem auto;
+  max-width: 1400px;
+  padding: 0 3rem;
+}
+
+.chartCard {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  height: 450px;
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
+  backdrop-filter: var(--backdrop-filter);
+  -webkit-backdrop-filter: var(--backdrop-filter);
+}
+
+.chartCard:hover {
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--card-hover-border);
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* ✅ TABLA DE ASESORES - Diseño formal con más ancho */
+.tablaContainer {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  margin: 3rem auto;
+  max-width: 1400px;
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--backdrop-filter);
+  -webkit-backdrop-filter: var(--backdrop-filter);
+}
+
+.tablaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.tablaHeader h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tablaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-align: right;
+  font-weight: 500;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--bg-primary);
+}
+
+.asesoresTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1200px;
+  background: var(--bg-primary);
+}
+
+.tableHeader {
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--table-header-bg);
+  border-bottom: 2px solid var(--card-border);
+  white-space: nowrap;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--card-border);
+  transition: var(--transition);
+  background: var(--bg-primary);
+}
+
+.tableRow:hover {
+  background: var(--table-row-hover);
+}
+
+.tableCell {
+  padding: 1.25rem 1.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--bg-primary);
+}
+
+.asesorNombre {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent-1);
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 40px;
+  height: 24px;
+}
+
+.cantidadBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  background: rgba(34, 197, 94, 0.1);
+  color: #059669;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 80px;
+  height: 24px;
+}
+
+.dineroValor {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.promedioValor {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.noDataCell {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 1rem;
+  font-weight: 500;
+  background: var(--bg-primary);
+}
+
+/* ✅ PAGINACIÓN - Diseño elegante */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--card-border);
+  background: var(--bg-primary);
+}
+
+.paginacionButton {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 110px;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+.paginacionButton:hover:not(.disabled) {
+  background: var(--accent-1);
+  border-color: var(--accent-1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.paginacionButton.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--bg-secondary);
+}
+
+.paginaInfo {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  min-width: 140px;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.paginasNumeros {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.paginaNumero {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.95rem;
+}
+
+.paginaNumero:hover {
+  background: var(--accent-1);
+  border-color: var(--accent-1);
+  color: white;
+}
+
+.paginaNumero.activa {
+  background: var(--accent-1);
+  border-color: var(--accent-1);
+  color: white;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* ✅ ESTADOS - Fondo blanco completo */
+.loading {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 500;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  margin: 3rem auto;
+  max-width: 1400px;
+  border: 1px solid var(--card-border);
+}
+
+.error {
+  text-align: center;
+  padding: 4rem;
+  color: #dc2626;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 3rem auto;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  box-shadow: var(--card-shadow);
+  max-width: 1400px;
+}
+
+/* ✅ RESPONSIVE DESIGN */
+@media (max-width: 1440px) {
+  .container h2 {
+    padding: 2rem 2.5rem 1.5rem;
+  }
+  
+  .filtrosContainer {
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .statsContainer,
+  .chartRow,
+  .chartsGrid,
+  .tablaContainer {
+    padding: 0 2.5rem;
+  }
+  
+  .chartsGrid {
+    gap: 1.5rem;
+  }
+  
+  .fullWidthChart,
+  .chartCard {
+    height: 400px;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .statsContainer,
+  .chartRow,
+  .chartsGrid,
+  .tablaContainer {
+    max-width: 100%;
+  }
+  
+  .filtrosRow {
+    max-width: 100%;
+  }
+  
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .container h2 {
+    font-size: 2rem;
+    padding: 1.5rem 2rem 1rem;
+  }
+  
+  .filtrosContainer {
+    padding: 1.5rem 2rem;
+  }
+  
+  .filtrosRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+  
+  .filtroGroup {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  
+  .resetButton {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .statsContainer {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  .statsContainer,
+  .chartRow,
+  .chartsGrid,
+  .tablaContainer {
+    padding: 0 2rem;
+  }
+  
+  .fullWidthChart,
+  .chartCard {
+    height: 350px;
+    padding: 1.25rem;
+  }
+  
+  .tablaContainer {
+    padding: 1.5rem;
+  }
+  
+  .tablaHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .tablaInfo {
+    text-align: left;
+  }
+  
+  .tableHeader,
+  .tableCell {
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .paginacion {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .paginacionButton {
+    min-width: 100px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .paginaInfo {
+    order: -1;
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container h2 {
+    font-size: 1.75rem;
+    padding: 1.5rem 1.5rem 1rem;
+  }
+  
+  .filtrosContainer {
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .statsContainer {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .statCard {
+    padding: 1.5rem;
+  }
+  
+  .statValue {
+    font-size: 1.75rem;
+  }
+  
+  .statsContainer,
+  .chartRow,
+  .chartsGrid,
+  .tablaContainer {
+    padding: 0 1.5rem;
+  }
+  
+  .fullWidthChart,
+  .chartCard {
+    height: 300px;
+    padding: 1rem;
+  }
+  
+  .tablaContainer {
+    padding: 1.25rem;
+  }
+  
+  .tableHeader,
+  .tableCell {
+    padding: 0.875rem;
+    font-size: 0.8125rem;
+  }
+  
+  .paginacionButton {
+    min-width: 90px;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .paginaNumero {
+    width: 36px;
+    height: 36px;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .fullWidthChart,
+  .chartCard {
+    height: 250px;
+  }
+  
+  .tableHeader,
+  .tableCell {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .badge,
+  .cantidadBadge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .paginacionButton {
+    min-width: 80px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .paginaNumero {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ✅ ANIMACIONES SUTILES */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filtrosContainer,
+.statsContainer,
+.chartRow,
+.chartsGrid,
+.tablaContainer {
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.filtrosContainer { animation-delay: 0.1s; }
+.statsContainer { animation-delay: 0.2s; }
+.chartRow { animation-delay: 0.3s; }
+.chartsGrid { animation-delay: 0.4s; }
+.tablaContainer { animation-delay: 0.5s; }
+
+/* ✅ SCROLLBAR PERSONALIZADO */
+.tableWrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 3px;
+  transition: var(--transition);
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ✅ FOCUS STATES ACCESIBLES */
+.filtroSelect:focus,
+.resetButton:focus,
+.paginacionButton:focus:not(.disabled),
+.paginaNumero:focus {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* ✅ ESTADOS DE HOVER MEJORADOS */
+.statCard:hover .statValue {
+  color: var(--accent-1);
+}
+
+.tableRow:hover .asesorNombre {
+  color: var(--accent-1);
+}
+
+/* ✅ FONDO COMPLETO BLANCO - Solución para cuadro negro */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  z-index: -1;
+}
+
+/* ✅ AJUSTES ESPECÍFICOS PARA GRÁFICAS DE ECHARTS */
+.echarts-for-react,
+.chart > div {
+  background: transparent !important;
+}
+
+.fullWidthChart .echarts-for-react,
+.chartCard .echarts-for-react {
+  background: transparent !important;
+}
+
+/* ✅ UTILIDADES */
+.loading:empty::after {
+  content: "Cargando datos...";
+  display: block;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ✅ ASEGURAR QUE TODO SEA BLANCO */
+.container,
+.filtrosContainer,
+.fullWidthChart,
+.chartCard,
+.tablaContainer,
+.tableWrapper,
+.asesoresTable,
+.tableRow,
+.tableCell,
+.paginacion,
+.loading,
+.error {
+  background: var(--bg-primary) !important;
+}
