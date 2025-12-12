@@ -5116,6 +5116,7 @@ class FormularioEditView(APIView):
 
 
 # backend/appdataflowai/views.py
+# backend/appdataflowai/views.py
 from django.utils.dateparse import parse_date
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -5146,22 +5147,20 @@ class DashboardFormsVentasPuntoVentaView(APIView):
             return Response({'error': 'Usuario inválido en request'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Obtener form_id desde query params o usar default
+        form_id_param = request.query_params.get('form_id')
         try:
-            form_id = int(request.query_params.get('form_id') or self.DEFAULT_FORM_ID)
-        except ValueError:
+            form_id = int(form_id_param) if form_id_param is not None else self.DEFAULT_FORM_ID
+        except (ValueError, TypeError):
             return Response({'error': 'form_id inválido. Debe ser entero.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Construir queryset
         try:
-            # Restringimos por formulario y por la empresa del usuario (si aplica)
             empresa_fk = getattr(usuario, 'id_empresa', None)
             queryset = Respuesta.objects.filter(formulario__id_formulario=form_id)
 
             if empresa_fk is not None:
-                # formulario.empresa es FK a Empresa -> filtramos por la empresa del formulario
                 queryset = queryset.filter(formulario__empresa=empresa_fk)
 
-            # Filtros de fecha (start / end) basados en campo fecha (DateTimeField)
+            # Filtros de fecha (start / end)
             start = request.query_params.get('start')
             end = request.query_params.get('end')
 
@@ -5177,7 +5176,6 @@ class DashboardFormsVentasPuntoVentaView(APIView):
                     return Response({'error': 'Formato de fecha "end" inválido. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
                 queryset = queryset.filter(fecha__date__lte=date_end)
 
-            # orden (opcional) - por defecto descendente ya que en model Meta se indica '-fecha'
             queryset = queryset.order_by('-fecha')
 
         except Exception as exc:

@@ -1084,14 +1084,10 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
         """
         Genera cantidad vendida y dinero vendido de forma determinista
         usando obj.id_respuesta como semilla para reproducibilidad.
-        Los rangos de precio aproximados dependen de la marca para mantener
-        proporcionalidad entre cantidad y dinero.
         """
-        # seed determinista por id_respuesta (para que no cambie en cada request)
         seed = getattr(obj, 'id_respuesta', None) or 0
         rnd = random.Random(seed)
 
-        # cantidad entre 1 y 20 unidades (puedes ajustar)
         cantidad = rnd.randint(1, 20)
 
         # rango unitario por marca (valores aproximados en COP)
@@ -1109,17 +1105,49 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
         unit_price = rnd.randint(unit_low, unit_high)
         dinero = cantidad * unit_price
 
-        # return as ints
         return {
             "cantidad vendida": int(cantidad),
             "dinero vendido": int(dinero)
         }
 
+    def _override_ingresos_from_data(self, ingresos, data):
+        """
+        Si en data vienen valores explícitos, los usa para sobreescribir
+        los generados. Soporta varias variantes de nombres comunes.
+        """
+        if not isinstance(data, dict):
+            return ingresos
+
+        # Posibles claves que el formulario puede usar (ordénadas por prioridad)
+        qty_keys = ["Cantidad vendida", "cantidad vendida", "Cantidad", "cantidad"]
+        money_keys = ["Dinero vendido", "dinero vendido", "Dinero", "dinero"]
+
+        # Override cantidad si existe en data
+        for k in qty_keys:
+            if k in data and data[k] not in (None, ""):
+                try:
+                    ingresos["cantidad vendida"] = int(float(data[k]))
+                except (ValueError, TypeError):
+                    # si no se puede convertir, lo ignoramos
+                    pass
+                break
+
+        # Override dinero si existe en data
+        for k in money_keys:
+            if k in data and data[k] not in (None, ""):
+                try:
+                    ingresos["dinero vendido"] = int(float(data[k]))
+                except (ValueError, TypeError):
+                    pass
+                break
+
+        return ingresos
+
     def get_organized(self, obj):
-        data = obj.data or {}
+        data = getattr(obj, 'data', {}) or {}
 
         # =========================
-        # ✅ REGIÓN Y PUNTO (BRANCHING)
+        # REGIÓN Y PUNTO
         # =========================
         region = data.get("Seleccione la región:")
         punto = None
@@ -1134,7 +1162,7 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
         }
 
         # =========================
-        # ✅ MARCA Y PRODUCTO (BRANCHING)
+        # MARCA Y PRODUCTO
         # =========================
         marca_nombre = data.get("Seleccione la marca:")
 
@@ -1154,13 +1182,12 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
         }
 
         if marca_nombre:
-            # la clave exacta la construimos igual que antes
             marca["productos"][marca_nombre] = {
                 f"Seleccione celular {marca_nombre}": producto
             }
 
         # =========================
-        # ✅ OTROS CAMPOS
+        # OTROS CAMPOS
         # =========================
         otros = {
             "Nombre asesor:": data.get("Nombre asesor:"),
@@ -1169,11 +1196,10 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
         }
 
         # =========================
-        # ✅ INGRESOS (GENERADOS SI NO EXISTEN EN DATA)
+        # INGRESOS: generar y luego sobreescribir si vienen en data
         # =========================
-        # Si el formulario ya tuviera keys explícitas como "cantidad" o "dinero",
-        # podríamos utilizarlas; actualmente asumo que NO existen y las generamos.
         ingresos = self._generate_ingresos(obj, marca_nombre)
+        ingresos = self._override_ingresos_from_data(ingresos, data)
 
         return {
             "regional": regional,

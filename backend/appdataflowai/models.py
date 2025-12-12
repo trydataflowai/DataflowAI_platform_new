@@ -1236,3 +1236,182 @@ class Respuesta(models.Model):
 
     def __str__(self):
         return f"Respuesta {self.id_respuesta} - {self.formulario.slug}"
+
+
+
+
+
+
+
+
+
+
+#-----------------------Dashboard Caso de USO Trade Marketing-------------------------
+
+
+from django.db import models
+from decimal import Decimal
+import calendar
+from datetime import date
+
+# Choices de meses (para dropdown)
+MONTH_CHOICES = [
+    ('enero', 'enero'), ('febrero', 'febrero'), ('marzo', 'marzo'),
+    ('abril', 'abril'), ('mayo', 'mayo'), ('junio', 'junio'),
+    ('julio', 'julio'), ('agosto', 'agosto'), ('septiembre', 'septiembre'),
+    ('octubre', 'octubre'), ('noviembre', 'noviembre'), ('diciembre', 'diciembre'),
+]
+
+class DashboardTradeVentas(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Datos de la venta / periodo
+    fecha_venta = models.DateField(db_column='fecha_venta', null=True, blank=True)
+    sem = models.IntegerField(db_column='sem', null=True, blank=True, help_text='numero de semana de la fecha_venta')
+    mes = models.CharField(max_length=15, db_column='mes', null=True, blank=True, help_text='mes en texto derivado de fecha_venta')
+    ano = models.IntegerField(db_column='ano', null=True, blank=True, help_text='ano derivado de fecha_venta')
+
+    # Punto de venta y producto
+    id_pos = models.CharField(max_length=100, db_column='id_pos', null=True, blank=True)
+    punto_de_venta = models.CharField(max_length=150, db_column='punto_de_venta', null=True, blank=True)
+    codigo_barras_product = models.CharField(max_length=100, db_column='codigo_barras_product', null=True, blank=True)
+    sku = models.CharField(max_length=100, db_column='sku', null=True, blank=True)
+    producto = models.CharField(max_length=250, db_column='producto', null=True, blank=True)
+
+    # Valores numericos
+    cantidad = models.IntegerField(db_column='cantidad', null=True, blank=True)
+    unit_price = models.DecimalField(max_digits=14, decimal_places=4, db_column='unit_price', null=True, blank=True)
+
+    # Campo calculado: cantidad * unit_price
+    total_sellthru = models.DecimalField(max_digits=18, decimal_places=4, db_column='total_sellthru', null=True, blank=True)
+
+    # Observaciones u otros
+    observaciones = models.TextField(db_column='observaciones', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_trade_ventas'
+        verbose_name_plural = 'Dashboard Trade Ventas'
+        ordering = ['-ano', '-mes', '-fecha_venta']
+
+    def save(self, *args, **kwargs):
+        # Derivar ano, mes, sem si hay fecha_venta
+        if self.fecha_venta:
+            self.ano = self.fecha_venta.year
+            # mes en texto en minuscula
+            self.mes = self.fecha_venta.strftime('%B').lower()
+            # numero ISO de semana
+            self.sem = int(self.fecha_venta.isocalendar()[1])
+        # Calcular total_sellthru si hay cantidad y unit_price
+        if (self.cantidad is not None) and (self.unit_price is not None):
+            # asegurar Decimal
+            q = Decimal(self.cantidad)
+            p = Decimal(self.unit_price)
+            self.total_sellthru = (q * p).quantize(Decimal('0.0001'))
+        else:
+            self.total_sellthru = None
+        super().save(*args, **kwargs)
+
+class DashboardTradeMetas(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Periodo y localizacion
+    mes = models.CharField(max_length=15, choices=MONTH_CHOICES, db_column='mes', null=True, blank=True)
+    ano = models.IntegerField(db_column='ano', null=True, blank=True)
+    ciudad = models.CharField(max_length=100, db_column='ciudad', null=True, blank=True)
+
+    # Identificadores de tienda / punto de venta para metas
+    ean_pvd = models.CharField(max_length=100, db_column='ean_pvd', null=True, blank=True)
+    tienda = models.CharField(max_length=150, db_column='tienda', null=True, blank=True)
+
+    # Metas
+    meta = models.DecimalField(max_digits=18, decimal_places=4, db_column='meta', null=True, blank=True, help_text='meta total del mes')
+    meta_diaria = models.DecimalField(max_digits=18, decimal_places=4, db_column='meta_diaria', null=True, blank=True, help_text='meta dividida por dias del mes')
+    meta_semanal = models.DecimalField(max_digits=18, decimal_places=4, db_column='meta_semanal', null=True, blank=True, help_text='meta dividida por semanas del mes')
+
+    observaciones = models.TextField(db_column='observaciones', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_trade_metas'
+        verbose_name_plural = 'Dashboard Trade Metas'
+        ordering = ['-ano', 'mes']
+
+    def save(self, *args, **kwargs):
+        # Si no hay ano o mes pero hay fecha implicita, no hacemos nada.
+        # Calcular meta_diaria y meta_semanal si meta y mes/ano disponibles
+        if self.meta is not None and self.ano:
+            # determinar dias del mes si mes especificado y valido
+            days_in_month = None
+            try:
+                # buscar indice de mes por texto (enero->1, etc)
+                if self.mes:
+                    month_name = self.mes.lower()
+                    month_map = {
+                        'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4,
+                        'mayo': 5, 'junio': 6, 'julio': 7, 'agosto': 8,
+                        'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12
+                    }
+                    month_idx = month_map.get(month_name)
+                    if month_idx:
+                        days_in_month = calendar.monthrange(self.ano, month_idx)[1]
+            except Exception:
+                days_in_month = None
+
+            # si no se pudo resolver dias del mes, se usa 31 (segun especificacion)
+            if not days_in_month:
+                days_in_month = 31
+
+            # calcular meta_diaria y meta_semanal (4 semanas por mes por defecto)
+            try:
+                self.meta_diaria = (Decimal(self.meta) / Decimal(days_in_month)).quantize(Decimal('0.0001'))
+                self.meta_semanal = (Decimal(self.meta) / Decimal(4)).quantize(Decimal('0.0001'))
+            except Exception:
+                self.meta_diaria = None
+                self.meta_semanal = None
+        else:
+            self.meta_diaria = None
+            self.meta_semanal = None
+
+        super().save(*args, **kwargs)
+
+class DashboardTradeInventario(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Fecha / periodo
+    fecha_inventario = models.DateField(db_column='fecha_inventario', null=True, blank=True)
+    mes = models.CharField(max_length=15, choices=MONTH_CHOICES, db_column='mes', null=True, blank=True)
+    ano = models.IntegerField(db_column='ano', null=True, blank=True)
+
+    # Punto de venta / producto
+    codigo_barras_product = models.CharField(max_length=100, db_column='codigo_barras_product', null=True, blank=True)
+    punto_de_venta = models.CharField(max_length=150, db_column='punto_de_venta', null=True, blank=True)
+    id_pos = models.CharField(max_length=100, db_column='id_pos', null=True, blank=True)
+    sku = models.CharField(max_length=100, db_column='sku', null=True, blank=True)
+    producto = models.CharField(max_length=250, db_column='producto', null=True, blank=True)
+
+    # Valores
+    cantidad = models.IntegerField(db_column='cantidad', null=True, blank=True)
+    unit_price = models.DecimalField(max_digits=14, decimal_places=4, db_column='unit_price', null=True, blank=True)
+
+    class Meta:
+        db_table = 'dashboard_trade_inventario'
+        verbose_name_plural = 'Dashboard Trade Inventario'
+        ordering = ['-ano', 'mes', '-fecha_inventario']
+
+    def save(self, *args, **kwargs):
+        # derivar ano y mes si hay fecha_inventario
+        if self.fecha_inventario:
+            self.ano = self.fecha_inventario.year
+            self.mes = self.fecha_inventario.strftime('%B').lower()
+        super().save(*args, **kwargs)
