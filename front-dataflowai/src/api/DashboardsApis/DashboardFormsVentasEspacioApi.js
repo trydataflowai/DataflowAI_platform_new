@@ -1,6 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const obtenerVentasRaw = async () => {
+export const obtenerVentasEspacioApi = async () => {
   const token = localStorage.getItem('token');
 
   const response = await fetch(

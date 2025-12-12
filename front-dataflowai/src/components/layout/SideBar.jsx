@@ -1,5 +1,5 @@
 // src/components/layout/SideBar.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cerrarSesion } from "../../api/Login";
 import { obtenerInfoUsuario } from "../../api/Usuario";
@@ -35,6 +35,12 @@ export const SideBar = () => {
   const [companySegment, setCompanySegment] = useState("");
 
   const [loaded, setLoaded] = useState(false);
+
+  // estado para popover compacto
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [buttonRect, setButtonRect] = useState(null);
+  const formBuilderBtnRef = useRef(null);
+  const popoverRef = useRef(null);
 
   const NO_PREFIX = [
     "/homeLogin",
@@ -183,70 +189,180 @@ export const SideBar = () => {
     return pathname === built.split("#")[0];
   };
 
+  // helper para usar clases del defaultStyles en caso de que el module por empresa no las tenga
+  const cls = (key) => {
+    try {
+      return styles && styles[key] ? styles[key] : defaultStyles[key] ? defaultStyles[key] : "";
+    } catch {
+      return defaultStyles[key] ? defaultStyles[key] : "";
+    }
+  };
+
+  // cerrar con Escape
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setPopoverOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // click fuera del popover -> cerrar
+  useEffect(() => {
+    const handleClickOutside = (ev) => {
+      if (!popoverOpen) return;
+      if (popoverRef.current && !popoverRef.current.contains(ev.target) &&
+          formBuilderBtnRef.current && !formBuilderBtnRef.current.contains(ev.target)) {
+        setPopoverOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [popoverOpen]);
+
+  // abrir/actualizar rect cuando haga click en el botón FormBuilder
+  const handleFormBuilderClick = () => {
+    const rect = formBuilderBtnRef.current?.getBoundingClientRect();
+    setButtonRect(rect ? { top: rect.top, left: rect.left, height: rect.height, width: rect.width } : null);
+    setPopoverOpen((s) => !s);
+  };
+
   if (!loaded) return null;
 
   const variantClass = theme === "dark" ? styles.dark : styles.light;
 
-  return (
-    <aside className={`${styles.sidebar} ${variantClass} ${collapsed ? styles.collapsed : ""}`}>
-      <div className={styles.logoContainer}>
-        <button className={styles.logoButton} onClick={handleLogoClick}>
-          {logoFound ? (
-            <img
-              src={logoUrl}
-              alt={companyName}
-              className={styles.logoImg}
-              onError={() => {
-                setLogoFound(false);
-                setLogoUrl(null);
-              }}
-            />
-          ) : (
-            <p className={styles.logoText}>{companyName}</p>
-          )}
-        </button>
-      </div>
+  // posición por defecto del popover cuando no hay rect
+  const defaultTop = 120;
+  const popoverWidth = 220;
+  const popoverHeight = 140; // estimado para lista vertical
 
-      {(planId === 3 || planId === 6) && (
-        <div className={styles.toggleThemeWrapper}>
-          <ThemeToggle />
+  const popoverTop = buttonRect
+    ? Math.max(12, (buttonRect.top + buttonRect.height / 2) - popoverHeight / 2)
+    : defaultTop;
+
+  const popoverLeft = collapsed ? 120 + 8 : 280 + 8; // small offset para separarlo del sidebar
+
+  return (
+    <>
+      <aside className={`${styles.sidebar} ${variantClass} ${collapsed ? styles.collapsed : ""}`}>
+        <div className={styles.logoContainer}>
+          <button className={styles.logoButton} onClick={handleLogoClick}>
+            {logoFound ? (
+              <img
+                src={logoUrl}
+                alt={companyName}
+                className={styles.logoImg}
+                onError={() => {
+                  setLogoFound(false);
+                  setLogoUrl(null);
+                }}
+              />
+            ) : (
+              <p className={styles.logoText}>{companyName}</p>
+            )}
+          </button>
+        </div>
+
+        {(planId === 3 || planId === 6) && (
+          <div className={styles.toggleThemeWrapper}>
+            <ThemeToggle />
+          </div>
+        )}
+
+        <nav className={styles.nav}>
+          {filteredLinks.map(({ to, icon, label }) => {
+            const builtTo = buildTo(to);
+
+            if (to === "/FormBuilder") {
+              return (
+                <button
+                  key={builtTo}
+                  ref={formBuilderBtnRef}
+                  className={`${styles.button} ${popoverOpen ? styles.active : ""}`}
+                  onClick={handleFormBuilderClick}
+                  aria-expanded={popoverOpen}
+                  aria-controls="sf-popover"
+                >
+                  <span className={`${styles.icon} ${styles.emojiWhite}`}>{icon}</span>
+                  <span className={styles.text}>{label}</span>
+                  <span className={styles.highlight} />
+                </button>
+              );
+            }
+
+            return (
+              <button
+                key={builtTo}
+                className={`${styles.button} ${isActiveLink(to) ? styles.active : ""}`}
+                onClick={() => {
+                  setPopoverOpen(false);
+                  navigate(builtTo);
+                }}
+              >
+                <span className={`${styles.icon} ${styles.emojiWhite}`}>{icon}</span>
+                <span className={styles.text}>{label}</span>
+                <span className={styles.highlight} />
+              </button>
+            );
+          })}
+
+          <button className={styles.button} onClick={handleLogout}>
+            <span className={`${styles.icon} ${styles.emojiWhite}`}>🚪</span>
+            <span className={styles.text}>Log out</span>
+            <span className={styles.highlight} />
+          </button>
+        </nav>
+
+        <div className={styles.toggleContainer}>
+          <button className={styles.toggleButton} onClick={toggleCollapsed}>
+            {collapsed ? "➡️" : "⬅️"}
+          </button>
+        </div>
+
+        <div className={styles.footer}>
+          <div className={styles.accentLine} />
+          <p className={styles.footerText}>By DataFlow AI</p>
+        </div>
+      </aside>
+
+      {/* Popover compacto (lista vertical) */}
+      {popoverOpen && (
+        <div
+          ref={popoverRef}
+          id="sf-popover"
+          role="dialog"
+          aria-label="Formulario links"
+          className={`${cls("popoverCompact")} ${variantClass}`}
+          style={{
+            top: `${popoverTop}px`,
+            left: `${popoverLeft}px`,
+            width: `${popoverWidth}px`,
+          }}
+        >
+          <div className={cls("popoverColumn")}>
+            <button
+              className={cls("popoverLink")}
+              onClick={() => {
+                setPopoverOpen(false);
+                navigate(buildTo("/FormBuilder"));
+              }}
+            >
+              🧩 FormBuilder
+            </button>
+
+            <button
+              className={cls("popoverLink")}
+              onClick={() => {
+                setPopoverOpen(false);
+                navigate(buildTo("/FormsListado"));
+              }}
+            >
+              📋 Forms Listado
+            </button>
+          </div>
         </div>
       )}
-
-      <nav className={styles.nav}>
-        {filteredLinks.map(({ to, icon, label }) => {
-          const builtTo = buildTo(to);
-          return (
-            <button
-              key={builtTo}
-              className={`${styles.button} ${isActiveLink(to) ? styles.active : ""}`}
-              onClick={() => navigate(builtTo)}
-            >
-              <span className={`${styles.icon} ${styles.emojiWhite}`}>{icon}</span>
-              <span className={styles.text}>{label}</span>
-              <span className={styles.highlight} />
-            </button>
-          );
-        })}
-
-        <button className={styles.button} onClick={handleLogout}>
-          <span className={`${styles.icon} ${styles.emojiWhite}`}>🚪</span>
-          <span className={styles.text}>Log out</span>
-          <span className={styles.highlight} />
-        </button>
-      </nav>
-
-      <div className={styles.toggleContainer}>
-        <button className={styles.toggleButton} onClick={toggleCollapsed}>
-          {collapsed ? "➡️" : "⬅️"}
-        </button>
-      </div>
-
-      <div className={styles.footer}>
-        <div className={styles.accentLine} />
-        <p className={styles.footerText}>By DataFlow AI</p>
-      </div>
-    </aside>
+    </>
   );
 };
 

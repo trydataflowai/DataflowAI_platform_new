@@ -15,6 +15,7 @@ import defaultChxtbut from '../../styles/Chxtbut.module.css';
 import defaultSoporteUsuario from '../../styles/SoporteUsuario.module.css';
 import defaultConfiguracionesDashboard from '../../styles/ConfiguracionesDashboard.module.css';
 import defaultToolsHome from '../../styles/ToolsHome.module.css';
+import defaultFormList from '../../styles/Formlist.module.css';
 
 
 const MODULES = {
@@ -30,6 +31,7 @@ const MODULES = {
   SoporteUsuario: { file: 'SoporteUsuario.module.css', defaultStyles: defaultSoporteUsuario },
   ConfiguracionesDashboard: { file: 'ConfiguracionesDashboard.module.css', defaultStyles: defaultConfiguracionesDashboard },
   ToolsHome: { file: 'ToolsHome.module.css', defaultStyles: defaultToolsHome },
+  FormList: { file: 'Formlist.module.css', defaultStyles: defaultFormList },
 };
 
 const CompanyStylesContext = createContext({

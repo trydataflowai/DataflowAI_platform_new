@@ -832,3 +832,180 @@ class PreguntaAdmin(admin.ModelAdmin):
 class RespuestaAdmin(admin.ModelAdmin):
     list_display = ('id_respuesta', 'formulario', 'fecha')
     readonly_fields = ('data',)
+
+
+
+
+
+
+
+
+
+from .models import (
+    DashboardTradeVentas,
+    DashboardTradeMetas,
+    DashboardTradeInventario,
+
+)
+
+# ADMIN VENTAS
+#
+@admin.register(DashboardTradeVentas)
+class DashboardTradeVentasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'fecha_venta',
+        'ano',
+        'mes',
+        'sem',
+        'id_pos',
+        'punto_de_venta',
+        'sku',
+        'producto',
+        'cantidad',
+        'unit_price',
+        'display_total_sellthru',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'id_producto',
+        'punto_de_venta',
+    )
+
+    search_fields = (
+        'producto',
+        'sku',
+        'codigo_barras_product',
+        'id_pos',
+        'punto_de_venta',
+    )
+
+    ordering = ('-fecha_venta',)
+    date_hierarchy = 'fecha_venta'
+    list_per_page = 50
+    readonly_fields = ('total_sellthru',)
+
+    # optimizacion de consultas relacionadas
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('id_empresa', 'id_producto')
+
+    # mostrar total_sellthru calculado (siempre redondeado)
+    def display_total_sellthru(self, obj):
+        if obj.total_sellthru is None:
+            return '-'
+        return obj.total_sellthru
+    display_total_sellthru.short_description = 'total_sellthru'
+
+#
+# ADMIN METAS
+#
+@admin.register(DashboardTradeMetas)
+class DashboardTradeMetasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'ano',
+        'mes',
+        'ciudad',
+        'tienda',
+        'meta',
+        'display_meta_diaria',
+        'display_meta_semanal',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'ciudad',
+        'tienda',
+    )
+
+    search_fields = (
+        'tienda',
+        'ean_pvd',
+    )
+
+    ordering = ('-ano', 'mes')
+    list_per_page = 50
+    readonly_fields = ('meta_diaria', 'meta_semanal')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('id_empresa', 'id_producto')
+
+    def display_meta_diaria(self, obj):
+        if obj.meta_diaria is None:
+            return '-'
+        return obj.meta_diaria
+    display_meta_diaria.short_description = 'meta_diaria'
+
+    def display_meta_semanal(self, obj):
+        if obj.meta_semanal is None:
+            return '-'
+        return obj.meta_semanal
+    display_meta_semanal.short_description = 'meta_semanal'
+
+#
+# ADMIN INVENTARIO
+#
+@admin.register(DashboardTradeInventario)
+class DashboardTradeInventarioAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'fecha_inventario',
+        'ano',
+        'mes',
+        'id_pos',
+        'punto_de_venta',
+        'sku',
+        'producto',
+        'cantidad',
+        'unit_price',
+        'display_stock_value',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'punto_de_venta',
+    )
+
+    search_fields = (
+        'producto',
+        'sku',
+        'codigo_barras_product',
+        'id_pos',
+    )
+
+    ordering = ('-fecha_inventario',)
+    date_hierarchy = 'fecha_inventario'
+    list_per_page = 50
+
+    readonly_fields = ()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('id_empresa', 'id_producto')
+
+    # stock_value = cantidad * unit_price (siempre mostrar si hay datos)
+    def display_stock_value(self, obj):
+        try:
+            if obj.cantidad is None or obj.unit_price is None:
+                return '-'
+            return obj.cantidad * obj.unit_price
+        except Exception:
+            return '-'
+    display_stock_value.short_description = 'stock_value'
+
+

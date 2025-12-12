@@ -311,7 +311,6 @@ urlpatterns = [
 
 
      #Serializador para dashboard de ventas de formulario de ventas espacio y mercadeo
-   
      path('dashboard/forms/ventas-punto-venta/', DashboardFormsVentasPuntoVentaView.as_view(), name='dashboard-forms-ventas-punto-venta'),
 ]
 

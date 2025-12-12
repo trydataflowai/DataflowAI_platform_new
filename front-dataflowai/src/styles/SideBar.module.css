@@ -225,3 +225,96 @@
   height: 36px;
   border-radius: 6px;
 }
+
+
+/* -------------------
+   NUEVAS CLASES: Popover compacto (lista vertical)
+   ------------------- */
+
+.popoverCompact {
+  position: fixed;
+  z-index: 1100;
+  padding: 8px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(8, 15, 30, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  backdrop-filter: blur(0.6px);
+  /* altura flexible (auto) para contener la lista vertical */
+}
+
+/* soporte tema oscuro: tanto si hay un ancestro .dark como si el mismo elemento tiene la clase dark */
+.dark .popoverCompact,
+.popoverCompact.dark,
+.popoverCompact .dark {
+  background: linear-gradient(180deg, var(--black-deep), var(--black-cosmos));
+  color: var(--text-primary);
+  border: 1px solid rgba(0,199,255,0.06);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* nota: .popoverCompact.dark y .dark .popoverCompact cubren los dos casos comunes en módulos CSS */
+
+/* columna vertical para los links */
+.popoverColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  align-items: stretch;
+  padding: 6px;
+}
+
+/* botón link compacto dentro del popover */
+.popoverLink {
+  background: transparent;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.12s ease;
+  color: #0f172a;
+  justify-content: flex-start;
+}
+.dark .popoverLink,
+.popoverLink.dark {
+  color: var(--text-primary);
+}
+.popoverLink:hover {
+  background: rgba(0, 199, 255, 0.06);
+}
+
+/* arrow pequeño (pseudo) */
+.popoverCompact::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  border-left: 1px solid rgba(15,23,42,0.06);
+  border-top: 1px solid rgba(15,23,42,0.06);
+  box-shadow: none;
+  z-index: -1;
+}
+
+/* responsive: en pantallas pequeñas el popover ocupa menos width y se centra */
+@media (max-width: 600px) {
+  .popoverCompact {
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    top: 80px !important;
+  }
+}
