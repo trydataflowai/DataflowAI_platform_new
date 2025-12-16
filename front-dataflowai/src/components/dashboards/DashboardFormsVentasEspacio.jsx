@@ -894,14 +894,12 @@ const DashboardFormsVentasEspacio = () => {
     return acc + Number(cantidad);
   }, 0);
 
-
   const totalDinero = Math.round(
     ventasFiltradas.reduce((acc, item) => {
       const dinero = item?.organized?.Ingresos?.['dinero vendido'] ?? 0;
       return acc + Number(dinero);
     }, 0)
   );
-
 
   const marcasUnicas = [...new Set(ventasFiltradas.map(item =>
     item?.organized?.marca?.['Seleccione la marca:'] || 'Sin Marca'
@@ -928,16 +926,16 @@ const DashboardFormsVentasEspacio = () => {
 
   // ✅ RENDER
   return (
-    <div className={styles.container}>
+    <div className={styles['dash-ventas-espmercade-container']}>
       <h2>Dashboard Ventas Punto de Venta</h2>
 
       {/* ✅ FILTROS */}
-      <div className={styles.filtrosContainer}>
-        <div className={styles.filtrosRow}>
-          <div className={styles.filtroGroup}>
-            <label className={styles.filtroLabel}>Regional:</label>
+      <div className={styles['dash-ventas-espmercade-filtrosContainer']}>
+        <div className={styles['dash-ventas-espmercade-filtrosRow']}>
+          <div className={styles['dash-ventas-espmercade-filtroGroup']}>
+            <label className={styles['dash-ventas-espmercade-filtroLabel']}>Regional:</label>
             <select
-              className={styles.filtroSelect}
+              className={styles['dash-ventas-espmercade-filtroSelect']}
               value={filtros.regional}
               onChange={(e) => handleFiltroChange('regional', e.target.value)}
             >
@@ -948,10 +946,10 @@ const DashboardFormsVentasEspacio = () => {
             </select>
           </div>
 
-          <div className={styles.filtroGroup}>
-            <label className={styles.filtroLabel}>Marca:</label>
+          <div className={styles['dash-ventas-espmercade-filtroGroup']}>
+            <label className={styles['dash-ventas-espmercade-filtroLabel']}>Marca:</label>
             <select
-              className={styles.filtroSelect}
+              className={styles['dash-ventas-espmercade-filtroSelect']}
               value={filtros.marca}
               onChange={(e) => handleFiltroChange('marca', e.target.value)}
             >
@@ -962,10 +960,10 @@ const DashboardFormsVentasEspacio = () => {
             </select>
           </div>
 
-          <div className={styles.filtroGroup}>
-            <label className={styles.filtroLabel}>Año:</label>
+          <div className={styles['dash-ventas-espmercade-filtroGroup']}>
+            <label className={styles['dash-ventas-espmercade-filtroLabel']}>Año:</label>
             <select
-              className={styles.filtroSelect}
+              className={styles['dash-ventas-espmercade-filtroSelect']}
               value={filtros.año}
               onChange={(e) => handleFiltroChange('año', e.target.value)}
             >
@@ -977,19 +975,19 @@ const DashboardFormsVentasEspacio = () => {
           </div>
 
           <button
-            className={styles.resetButton}
+            className={styles['dash-ventas-espmercade-resetButton']}
             onClick={resetFiltros}
           >
             Limpiar Filtros
           </button>
         </div>
 
-        <div className={styles.filtroInfo}>
-          <span className={styles.filtroText}>
+        <div className={styles['dash-ventas-espmercade-filtroInfo']}>
+          <span className={styles['dash-ventas-espmercade-filtroText']}>
             Mostrando {ventasFiltradas.length} de {ventas.length} registros
           </span>
           {Object.values(filtros).some(filtro => filtro !== 'todas' && filtro !== 'todos') && (
-            <span className={styles.filtroActivo}>
+            <span className={styles['dash-ventas-espmercade-filtroActivo']}>
               Filtros activos:
               {filtros.regional !== 'todas' && ` Regional: ${filtros.regional}`}
               {filtros.marca !== 'todas' && ` | Marca: ${filtros.marca}`}
@@ -1000,145 +998,145 @@ const DashboardFormsVentasEspacio = () => {
       </div>
 
       {loading ? (
-        <div className={styles.loading}>
+        <div className={styles['dash-ventas-espmercade-loading']}>
           <p>Cargando ventas...</p>
         </div>
       ) : error ? (
-        <div className={styles.error}>
+        <div className={styles['dash-ventas-espmercade-error']}>
           <p>Error: {error}</p>
         </div>
       ) : (
         <>
           {/* ✅ TARJETAS DE RESUMEN */}
-          <div className={styles.statsContainer}>
+          <div className={styles['dash-ventas-espmercade-statsContainer']}>
             {/* ✅ TOTAL CANTIDAD */}
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Cantidad Vendida</div>
-              <div className={styles.statValue}>{totalCantidad}</div>
-              <div className={styles.statSubtitle}>unidades</div>
+            <div className={styles['dash-ventas-espmercade-statCard']}>
+              <div className={styles['dash-ventas-espmercade-statLabel']}>Cantidad Vendida</div>
+              <div className={styles['dash-ventas-espmercade-statValue']}>{totalCantidad}</div>
+              <div className={styles['dash-ventas-espmercade-statSubtitle']}>unidades</div>
             </div>
 
             {/* ✅ TOTAL DINERO */}
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Dinero Vendido</div>
-              <div className={styles.statValue}>{formatCurrency(totalDinero)}</div>
-              <div className={styles.statSubtitle}>ingresos</div>
+            <div className={styles['dash-ventas-espmercade-statCard']}>
+              <div className={styles['dash-ventas-espmercade-statLabel']}>Dinero Vendido</div>
+              <div className={styles['dash-ventas-espmercade-statValue']}>{formatCurrency(totalDinero)}</div>
+              <div className={styles['dash-ventas-espmercade-statSubtitle']}>ingresos</div>
             </div>
 
             {/* ✅ TOTAL REGISTROS */}
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Registros</div>
-              <div className={styles.statValue}>{ventasFiltradas.length}</div>
-              <div className={styles.statSubtitle}>ventas</div>
+            <div className={styles['dash-ventas-espmercade-statCard']}>
+              <div className={styles['dash-ventas-espmercade-statLabel']}>Registros</div>
+              <div className={styles['dash-ventas-espmercade-statValue']}>{ventasFiltradas.length}</div>
+              <div className={styles['dash-ventas-espmercade-statSubtitle']}>ventas</div>
             </div>
 
             {/* ✅ ASESORES ÚNICOS */}
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Asesores Activos</div>
-              <div className={styles.statValue}>{asesoresUnicos.length}</div>
-              <div className={styles.statSubtitle}>activos</div>
+            <div className={styles['dash-ventas-espmercade-statCard']}>
+              <div className={styles['dash-ventas-espmercade-statLabel']}>Asesores Activos</div>
+              <div className={styles['dash-ventas-espmercade-statValue']}>{asesoresUnicos.length}</div>
+              <div className={styles['dash-ventas-espmercade-statSubtitle']}>activos</div>
             </div>
 
             {/* ✅ PUNTOS DE VENTA ÚNICOS */}
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Puntos de Venta</div>
-              <div className={styles.statValue}>{puntosUnicos.length}</div>
-              <div className={styles.statSubtitle}>activos</div>
+            <div className={styles['dash-ventas-espmercade-statCard']}>
+              <div className={styles['dash-ventas-espmercade-statLabel']}>Puntos de Venta</div>
+              <div className={styles['dash-ventas-espmercade-statValue']}>{puntosUnicos.length}</div>
+              <div className={styles['dash-ventas-espmercade-statSubtitle']}>activos</div>
             </div>
           </div>
 
           {/* ✅ GRÁFICA DE LÍNEAS (FULL WIDTH) */}
-          <div className={styles.chartRow}>
-            <div className={styles.fullWidthChart}>
+          <div className={styles['dash-ventas-espmercade-chartRow']}>
+            <div className={styles['dash-ventas-espmercade-fullWidthChart']}>
               <div
                 ref={chartLineRef}
-                className={styles.chart}
+                className={styles['dash-ventas-espmercade-chart']}
                 style={{ height: '399px' }}
               />
             </div>
           </div>
 
           {/* ✅ GRÁFICAS EN LAYOUT DE 2 COLUMNAS (FILA 1) */}
-          <div className={styles.chartsGrid}>
+          <div className={styles['dash-ventas-espmercade-chartsGrid']}>
             {/* ✅ GRÁFICA DE TORTA */}
-            <div className={styles.chartCard}>
+            <div className={styles['dash-ventas-espmercade-chartCard']}>
               <div
                 ref={chartPieRef}
-                className={styles.chart}
+                className={styles['dash-ventas-espmercade-chart']}
                 style={{ height: '399px' }}
               />
             </div>
 
             {/* ✅ GRÁFICA DE BARRAS POR MARCA */}
-            <div className={styles.chartCard}>
+            <div className={styles['dash-ventas-espmercade-chartCard']}>
               <div
                 ref={chartBarMarcaRef}
-                className={styles.chart}
+                className={styles['dash-ventas-espmercade-chart']}
                 style={{ height: '400px' }}
               />
             </div>
           </div>
 
           {/* ✅ GRÁFICA DE BARRAS POR PUNTO DE VENTA */}
-          <div className={styles.chartRow}>
-            <div className={styles.fullWidthChart}>
+          <div className={styles['dash-ventas-espmercade-chartRow']}>
+            <div className={styles['dash-ventas-espmercade-fullWidthChart']}>
               <div
                 ref={chartBarPuntoRef}
-                className={styles.chart}
+                className={styles['dash-ventas-espmercade-chart']}
                 style={{ height: '400px' }}
               />
             </div>
           </div>
 
           {/* ✅ TABLA DE ASESORES */}
-          <div className={styles.tablaContainer}>
-            <div className={styles.tablaHeader}>
+          <div className={styles['dash-ventas-espmercade-tablaContainer']}>
+            <div className={styles['dash-ventas-espmercade-tablaHeader']}>
               <h3>Desempeño por Asesor</h3>
-              <div className={styles.tablaInfo}>
+              <div className={styles['dash-ventas-espmercade-tablaInfo']}>
                 <span>Total asesores: {asesoresData.length}</span>
                 <span>Mostrando {asesoresPaginados.length} de {asesoresData.length}</span>
               </div>
             </div>
 
-            <div className={styles.tableWrapper}>
-              <table className={styles.asesoresTable}>
+            <div className={styles['dash-ventas-espmercade-tableWrapper']}>
+              <table className={styles['dash-ventas-espmercade-asesoresTable']}>
                 <thead>
                   <tr>
-                    <th className={styles.tableHeader}>#</th>
-                    <th className={styles.tableHeader}>Asesor</th>
-                    <th className={styles.tableHeader}>Total Ventas</th>
-                    <th className={styles.tableHeader}>Cantidad Vendida</th>
-                    <th className={styles.tableHeader}>Dinero Vendido</th>
-                    <th className={styles.tableHeader}>Promedio por Venta</th>
+                    <th className={styles['dash-ventas-espmercade-tableHeader']}>#</th>
+                    <th className={styles['dash-ventas-espmercade-tableHeader']}>Asesor</th>
+                    <th className={styles['dash-ventas-espmercade-tableHeader']}>Total Ventas</th>
+                    <th className={styles['dash-ventas-espmercade-tableHeader']}>Cantidad Vendida</th>
+                    <th className={styles['dash-ventas-espmercade-tableHeader']}>Dinero Vendido</th>
+                    <th className={styles['dash-ventas-espmercade-tableHeader']}>Promedio por Venta</th>
                   </tr>
                 </thead>
                 <tbody>
                   {asesoresPaginados.length > 0 ? (
                     asesoresPaginados.map((asesor, index) => (
-                      <tr key={index} className={styles.tableRow}>
-                        <td className={styles.tableCell}>{inicio + index + 1}</td>
-                        <td className={`${styles.tableCell} ${styles.asesorNombre}`}>
+                      <tr key={index} className={styles['dash-ventas-espmercade-tableRow']}>
+                        <td className={styles['dash-ventas-espmercade-tableCell']}>{inicio + index + 1}</td>
+                        <td className={`${styles['dash-ventas-espmercade-tableCell']} ${styles['dash-ventas-espmercade-asesorNombre']}`}>
                           {asesor.nombre}
                         </td>
-                        <td className={styles.tableCell}>
-                          <span className={styles.badge}>{asesor.ventasCount}</span>
+                        <td className={styles['dash-ventas-espmercade-tableCell']}>
+                          <span className={styles['dash-ventas-espmercade-badge']}>{asesor.ventasCount}</span>
                         </td>
-                        <td className={styles.tableCell}>
-                          <span className={styles.cantidadBadge}>{asesor.totalCantidad} unidades</span>
+                        <td className={styles['dash-ventas-espmercade-tableCell']}>
+                          <span className={styles['dash-ventas-espmercade-cantidadBadge']}>{asesor.totalCantidad} unidades</span>
                         </td>
-                        <td className={styles.tableCell}>
-                          <span className={styles.dineroValor}>{formatCurrency(asesor.totalDinero)}</span>
+                        <td className={styles['dash-ventas-espmercade-tableCell']}>
+                          <span className={styles['dash-ventas-espmercade-dineroValor']}>{formatCurrency(asesor.totalDinero)}</span>
                         </td>
-                        <td className={styles.tableCell}>
-                          <span className={styles.promedioValor}>
+                        <td className={styles['dash-ventas-espmercade-tableCell']}>
+                          <span className={styles['dash-ventas-espmercade-promedioValor']}>
                             {formatCurrency(asesor.totalDinero / asesor.ventasCount)}
                           </span>
                         </td>
                       </tr>
                     ))
                   ) : (
-                    <tr className={styles.tableRow}>
-                      <td colSpan="6" className={styles.noDataCell}>
+                    <tr className={styles['dash-ventas-espmercade-tableRow']}>
+                      <td colSpan="6" className={styles['dash-ventas-espmercade-noDataCell']}>
                         No hay datos de asesores para los filtros seleccionados
                       </td>
                     </tr>
@@ -1149,20 +1147,20 @@ const DashboardFormsVentasEspacio = () => {
 
             {/* ✅ PAGINACIÓN */}
             {totalPaginas > 1 && (
-              <div className={styles.paginacion}>
+              <div className={styles['dash-ventas-espmercade-paginacion']}>
                 <button
-                  className={`${styles.paginacionButton} ${paginaActual === 1 ? styles.disabled : ''}`}
+                  className={`${styles['dash-ventas-espmercade-paginacionButton']} ${paginaActual === 1 ? styles['dash-ventas-espmercade-disabled'] : ''}`}
                   onClick={() => cambiarPagina(paginaActual - 1)}
                   disabled={paginaActual === 1}
                 >
                   ← Anterior
                 </button>
 
-                <div className={styles.paginaInfo}>
+                <div className={styles['dash-ventas-espmercade-paginaInfo']}>
                   Página {paginaActual} de {totalPaginas}
                 </div>
 
-                <div className={styles.paginasNumeros}>
+                <div className={styles['dash-ventas-espmercade-paginasNumeros']}>
                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                     let paginaNum;
                     if (totalPaginas <= 5) {
@@ -1178,7 +1176,7 @@ const DashboardFormsVentasEspacio = () => {
                     return (
                       <button
                         key={paginaNum}
-                        className={`${styles.paginaNumero} ${paginaActual === paginaNum ? styles.activa : ''}`}
+                        className={`${styles['dash-ventas-espmercade-paginaNumero']} ${paginaActual === paginaNum ? styles['dash-ventas-espmercade-activa'] : ''}`}
                         onClick={() => cambiarPagina(paginaNum)}
                       >
                         {paginaNum}
@@ -1188,7 +1186,7 @@ const DashboardFormsVentasEspacio = () => {
                 </div>
 
                 <button
-                  className={`${styles.paginacionButton} ${paginaActual === totalPaginas ? styles.disabled : ''}`}
+                  className={`${styles['dash-ventas-espmercade-paginacionButton']} ${paginaActual === totalPaginas ? styles['dash-ventas-espmercade-disabled'] : ''}`}
                   onClick={() => cambiarPagina(paginaActual + 1)}
                   disabled={paginaActual === totalPaginas}
                 >
