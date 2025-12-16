@@ -315,10 +315,9 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 
 #ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+# serializers.py
 from rest_framework import serializers
-from .models import Usuario, Producto, DetalleProducto, EmpresaDashboard
-from django.conf import settings
-
+from .models import Usuario, Producto, DetalleProducto, EmpresaDashboard, DashboardContext
 
 class AsgDashboardUsuarioListSerializer(serializers.ModelSerializer):
     area = serializers.CharField(source='id_area.area_trabajo', read_only=True)
@@ -331,7 +330,6 @@ class AsgDashboardUsuarioListSerializer(serializers.ModelSerializer):
 
 class AsgDashboardProductoSerializer(serializers.ModelSerializer):
     area = serializers.CharField(source='id_area.area_trabajo', read_only=True)
-    # Lista de empresas propietarias (si las hay). Puede ser None o lista.
     owned_by = serializers.SerializerMethodField(method_name='asgdashboard_get_owned_by')
 
     class Meta:
@@ -361,17 +359,59 @@ class AsgDashboardProductoSerializer(serializers.ModelSerializer):
         ]
 
 
+class DashboardContextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardContext
+        fields = (
+            'id_registro',
+            'session_id',
+            'dashboard_name',
+            'dashboard_context',
+            'tables',
+            'formularios_id',
+            'empresa_id',
+        )
+
+
 class AsgDashboardDetalleProductoSerializer(serializers.ModelSerializer):
     # Devuelve info simple del producto en la asignación
     producto = AsgDashboardProductoSerializer(source='id_producto', read_only=True)
+    # Devuelve el DashboardContext asociado (si existe) para la empresa del usuario asignado
+    dashboard_context = serializers.SerializerMethodField()
 
     class Meta:
         model = DetalleProducto
-        fields = ('id_usuario', 'id_producto', 'producto')
+        fields = ('id_usuario', 'id_producto', 'producto', 'dashboard_context')
+
+    def get_dashboard_context(self, obj):
+        # obj.id_usuario -> Usuario instance
+        # obj.id_producto -> Producto instance
+        usuario = getattr(obj, 'id_usuario', None)
+        producto = getattr(obj, 'id_producto', None)
+        if not usuario or not producto:
+            return None
+        empresa = getattr(usuario, 'id_empresa', None)
+        if not empresa:
+            return None
+        empresa_id = getattr(empresa, 'id_empresa', None) or empresa  # por si id_empresa es int o FK
+        if empresa_id is None:
+            return None
+
+        qs = DashboardContext.objects.filter(dashboard_name=producto.producto, empresa_id=empresa_id)
+        if not qs.exists():
+            return None
+        return DashboardContextSerializer(qs.first()).data
+
+
+
+
+
+
+
+
 
 
 #Serializador del Dashboard Sales Review
-
 from rest_framework import serializers
 from .models import DashboardSalesreview
 

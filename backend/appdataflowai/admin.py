@@ -96,6 +96,18 @@ class UsuarioAdmin(admin.ModelAdmin):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
     list_display = (
@@ -105,16 +117,61 @@ class ProductoAdmin(admin.ModelAdmin):
         'tipo_producto',
         'id_area',
         'id_estado',
+        'dashboard_context',
+        'tables',
+        'formularios_id',
     )
-    search_fields = ('producto', 'slug')
+
+    search_fields = ('producto', 'slug', 'dashboard_context')
+
     list_filter = (
         'categoria_producto',
         'tipo_producto',
         'id_area',
         'id_estado',
     )
+
     ordering = ('id_producto',)
-    prepopulated_fields = {"slug": ("producto",)}  # autogenera el slug
+
+    prepopulated_fields = {"slug": ("producto",)}
+
+    # 🔹 Opcional: mejor experiencia en el formulario
+    fieldsets = (
+        ('Información básica', {
+            'fields': (
+                'producto',
+                'slug',
+                'categoria_producto',
+                'tipo_producto',
+                'id_area',
+                'id_estado',
+            )
+        }),
+        ('Configuración Dashboard', {
+            'fields': (
+                'dashboard_context',
+                'tables',
+                'formularios_id',
+            ),
+            'classes': ('collapse',),
+        }),
+        ('Integraciones', {
+            'fields': (
+                'iframe',
+                'link_pb',
+                'link_dashboard_externo',
+                'db_name',
+            )
+        }),
+    )
+
+
+
+
+
+
+
+
 
 @admin.register(DetalleProducto)
 class DetalleProductoAdmin(admin.ModelAdmin):
@@ -1026,8 +1083,7 @@ class DashboardContextAdmin(admin.ModelAdmin):
 
     search_fields = (
         'dashboard_name',
-        'session_id',
-        'chat_input'
+        'session_id'
     )
 
     list_filter = (

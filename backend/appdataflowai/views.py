@@ -1816,6 +1816,7 @@ class AreasListView(APIView):
 
 
 #ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+# views.py
 import jwt
 from django.conf import settings
 from rest_framework.views import APIView
@@ -1824,11 +1825,12 @@ from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from django.db import transaction
 
-from .models import Usuario, Producto, DetalleProducto, EmpresaDashboard
+from .models import Usuario, Producto, DetalleProducto, EmpresaDashboard, DashboardContext
 from .serializers import (
     AsgDashboardUsuarioListSerializer,
     AsgDashboardProductoSerializer,
-    AsgDashboardDetalleProductoSerializer
+    AsgDashboardDetalleProductoSerializer,
+    DashboardContextSerializer
 )
 
 # Mapa de límites por id_plan (usa el tuyo)
@@ -1941,6 +1943,10 @@ class AsgDashboardUsuarioAsignacionesView(AsgDashboardBasePerfilView):
     def post(self, request, id_usuario):
         """
         Body: { "id_producto": <int> }
+        Al asignar:
+          - se crea DetalleProducto
+          - se crea (o recupera) DashboardContext con session_id='Dataflow' y los campos tomados del Producto
+          - se devuelve el detalle serializado (incluye dashboard_context via serializer)
         """
         try:
             target, err_resp = self.asgdashboard_get_target_usuario_or_401(request, id_usuario)
@@ -1988,8 +1994,44 @@ class AsgDashboardUsuarioAsignacionesView(AsgDashboardBasePerfilView):
 
         # Crear la asociación
         detalle = DetalleProducto.objects.create(id_usuario=target, id_producto=producto)
+
+        # --- Crear o recuperar DashboardContext asociado a esta empresa+nombre ---
+        # Obtener empresa_id como entero
+        empresa_fk = getattr(target, 'id_empresa', None)
+        empresa_id = None
+        if empresa_fk is not None:
+            empresa_id = getattr(empresa_fk, 'id_empresa', empresa_fk)  # si FK o int
+
+        dc_defaults = {
+            'dashboard_context': producto.dashboard_context or '',
+            'tables': producto.tables or {},
+            'formularios_id': producto.formularios_id or None,
+        }
+
+        # Usamos get_or_create para evitar duplicados por empresa+nombre
+        dc, created = DashboardContext.objects.get_or_create(
+            session_id='Dataflow',
+            dashboard_name=producto.producto,
+            empresa_id=empresa_id,
+            defaults=dc_defaults
+        )
+        # Si ya existía y deseas actualizarlo con la info del producto, descomenta:
+        # if not created:
+        #     dc.dashboard_context = producto.dashboard_context or dc.dashboard_context
+        #     dc.tables = producto.tables or dc.tables
+        #     dc.formularios_id = producto.formularios_id or dc.formularios_id
+        #     dc.save()
+
+        # Serializar detalle (incluye dashboard_context via serializer)
         serializer = AsgDashboardDetalleProductoSerializer(detalle)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # También devolvemos info resumida del DashboardContext creado/recuperado
+        dc_ser = DashboardContextSerializer(dc).data if dc else None
+        response_data = serializer.data
+        response_data['_dashboard_context'] = {
+            'created': bool(created),
+            'dashboard_context': dc_ser
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class AsgDashboardUsuarioEliminarAsignacionView(AsgDashboardBasePerfilView):
@@ -2020,20 +2062,6 @@ class AsgDashboardUsuarioEliminarAsignacionView(AsgDashboardBasePerfilView):
             return Response({'detail': 'Asignación eliminada.'}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({'error': 'Asignación no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

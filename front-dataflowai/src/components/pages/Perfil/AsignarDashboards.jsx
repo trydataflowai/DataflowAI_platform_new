@@ -9,7 +9,7 @@ import {
   AsgDashboard_asignarProductoUsuario,
   AsgDashboard_eliminarAsignacionUsuario
 } from '../../../api/Profile';
-import { obtenerInfoUsuario } from '../../../api/Usuario';
+import { obtenerInfoUsuario } from '../../../api/Usuario'; // si lo usas en otras partes, lo dejamos
 
 // Importar estilos por defecto (fallback)
 import defaultStyles from '../../../styles/Profile/AsignarDashboard.module.css';
@@ -132,8 +132,19 @@ const AsgDashboardAsignarDashboards = () => {
     setError(null);
     setActionLoading(producto.id_producto);
     try {
-      await AsgDashboard_asignarProductoUsuario(selectedUser.id_usuario, producto.id_producto);
-      setMsg('Dashboard asignado correctamente.');
+      const resp = await AsgDashboard_asignarProductoUsuario(selectedUser.id_usuario, producto.id_producto);
+      // Resp contiene el detalle y _dashboard_context
+      if (resp && resp._dashboard_context) {
+        const created = resp._dashboard_context.created;
+        if (created) {
+          setMsg('Dashboard asignado y contexto guardado para la empresa.');
+        } else {
+          setMsg('Dashboard asignado (contexto ya existía).');
+        }
+      } else {
+        setMsg('Dashboard asignado correctamente.');
+      }
+
       const data = await AsgDashboard_obtenerAsignacionesUsuario(selectedUser.id_usuario);
       setAsignaciones(data || []);
     } catch (err) {
@@ -370,10 +381,7 @@ const AsgDashboardAsignarDashboards = () => {
                                     aria-label={`${assigned ? 'Ya asignado' : 'Asignar'} dashboard ${producto.producto}`}
                                   >
                                     {actionLoading === producto.id_producto ? (
-                                      <>
-                                        <span className={C('AsignardashboardbuttonSpinner')}></span>
-                                        Procesando...
-                                      </>
+                                      <span className={C('AsignardashboardbuttonSpinner')}></span>
                                     ) : assigned ? (
                                       'Asignado'
                                     ) : (
@@ -476,10 +484,7 @@ const AsgDashboardAsignarDashboards = () => {
                                     aria-label={`Quitar dashboard ${producto.producto}`}
                                   >
                                     {actionLoading === producto.id_producto ? (
-                                      <>
-                                        <span className={C('AsignardashboardbuttonSpinner')}></span>
-                                        Procesando...
-                                      </>
+                                      <span className={C('AsignardashboardbuttonSpinner')}></span>
                                     ) : (
                                       'Quitar'
                                     )}
