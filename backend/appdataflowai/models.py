@@ -121,6 +121,12 @@ class Usuario(models.Model):
         return self.nombres
 
 
+
+
+
+
+
+
 from django.utils.text import slugify
 from django.db import models
 
@@ -134,13 +140,12 @@ class Producto(models.Model):
     TIPO_PRODUCTO_CHOICES = [
         ('publico', 'Publico'),
         ('privado', 'Privado'),
-
     ]
 
     id_producto = models.AutoField(primary_key=True, db_column='id_producto')
     producto = models.CharField(max_length=200, db_column='producto')
     id_area = models.ForeignKey(Areas, on_delete=models.PROTECT, db_column='id_area')
-    
+
     slug = models.SlugField(
         max_length=250,
         unique=True,
@@ -165,14 +170,13 @@ class Producto(models.Model):
     )
 
     id_estado = models.ForeignKey(
-        Estado, 
-        on_delete=models.PROTECT, 
+        Estado,
+        on_delete=models.PROTECT,
         db_column='id_estado'
     )
 
     iframe = models.CharField(max_length=500, db_column='iframe')
 
-    # Nuevo campo para links Power BI u otros
     link_pb = models.URLField(
         max_length=500,
         db_column='link_pb',
@@ -187,8 +191,32 @@ class Producto(models.Model):
         blank=True,
         help_text='URL del dashboard externos'
     )
-    
-    db_name = models.CharField(max_length=255, null=True, blank=True, db_column='db_name')
+
+    db_name = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_column='db_name'
+    )
+
+    # 🔽 CAMPOS AGREGADOS 🔽
+    dashboard_context = models.TextField(
+        null=True,
+        blank=True,
+        db_column='dashboard_context'
+    )
+
+    tables = models.JSONField(
+        null=True,
+        blank=True,
+        db_column='tables'
+    )
+
+    formularios_id = models.JSONField(
+        null=True,
+        blank=True,
+        db_column='formularios_id'
+    )
 
     class Meta:
         db_table = 'productos'
@@ -201,9 +229,6 @@ class Producto(models.Model):
         if not self.slug:
             self.slug = slugify(self.producto)
         super().save(*args, **kwargs)
-
-
-
 
 
 
@@ -1426,7 +1451,6 @@ from django.db import models
 class DashboardContext(models.Model):
     id_registro = models.AutoField(primary_key=True)
 
-    chat_input = models.TextField()
     session_id = models.CharField(max_length=100)
 
     dashboard_name = models.CharField(max_length=200)

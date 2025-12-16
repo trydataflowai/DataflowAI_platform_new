@@ -209,7 +209,7 @@ urlpatterns = [
     path('perfil/empresa/', EmpresaView.as_view(), name='perfil_empresa'),# 
 
 
-#ASOCIAR DASHBOARDS POR MEDIO DE PERFIL
+#ASOCIAR DASHBOARDS POR MEDIO DE PERFIL $
     path('asg/perfil/usuarios/', AsgDashboardUsuariosEmpresaView.as_view(), name='asg_dashboard_perfil_usuarios'),
     path('asg/perfil/productos/', AsgDashboardProductosListView.as_view(), name='asg_dashboard_perfil_productos'),
     path('asg/perfil/usuarios/<int:id_usuario>/asignaciones/', AsgDashboardUsuarioAsignacionesView.as_view(), name='asg_dashboard_usuario_asignaciones'),

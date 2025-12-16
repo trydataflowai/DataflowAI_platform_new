@@ -41,6 +41,10 @@ async function requestWithToken(path, options = {}) {
   return await res.json();
 }
 
+/* =========================
+   Auth / Perfil
+   ========================= */
+
 /**
  * Cambia la contraseña del usuario autenticado
  * PATCH /editar/perfil/contrasena
@@ -174,7 +178,7 @@ export const obtenerAreas = async () => {
 };
 
 /* =========================
-   Endpoints AsgDashboard (si existen)
+   Endpoints AsgDashboard
    ========================= */
 
 /**
@@ -203,6 +207,7 @@ export const AsgDashboard_obtenerAsignacionesUsuario = async (id_usuario) => {
 /**
  * POST /asg/perfil/usuarios/<id_usuario>/asignaciones/
  * body: { id_producto }
+ * Respuesta: detalle creado + campo _dashboard_context con info del DashboardContext
  */
 export const AsgDashboard_asignarProductoUsuario = async (id_usuario, id_producto) => {
   return await requestWithToken(`asg/perfil/usuarios/${id_usuario}/asignaciones/`, {
