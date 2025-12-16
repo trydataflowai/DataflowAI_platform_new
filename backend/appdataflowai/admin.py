@@ -1009,3 +1009,31 @@ class DashboardTradeInventarioAdmin(admin.ModelAdmin):
     display_stock_value.short_description = 'stock_value'
 
 
+
+#admin para contexto del chat
+from django.contrib import admin
+from .models import DashboardContext
+
+
+@admin.register(DashboardContext)
+class DashboardContextAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'dashboard_name',
+        'session_id',
+        'empresa_id'
+    )
+
+    search_fields = (
+        'dashboard_name',
+        'session_id',
+        'chat_input'
+    )
+
+    list_filter = (
+        'empresa_id',
+    )
+
+    readonly_fields = (
+        'id_registro',
+    )

@@ -1415,3 +1415,27 @@ class DashboardTradeInventario(models.Model):
             self.ano = self.fecha_inventario.year
             self.mes = self.fecha_inventario.strftime('%B').lower()
         super().save(*args, **kwargs)
+
+
+
+
+#Tabla para interacción con el chat
+
+from django.db import models
+
+class DashboardContext(models.Model):
+    id_registro = models.AutoField(primary_key=True)
+
+    chat_input = models.TextField()
+    session_id = models.CharField(max_length=100)
+
+    dashboard_name = models.CharField(max_length=200)
+    dashboard_context = models.TextField()
+
+    tables = models.JSONField()
+    formularios_id = models.JSONField(blank=True, null=True)
+
+    empresa_id = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.dashboard_name} - Empresa {self.empresa_id}"

@@ -130,7 +130,7 @@ from .views import (
 
 
     #CHAT N8N
-    ChatWebhookProxyAPIView,
+    ChatWebhookProxyAPIView, DashboardContextListAPIView,
 
 
     #listado de Formularios
@@ -298,6 +298,7 @@ urlpatterns = [
 
     #Chatbot N8N
     path("n8n/webhook-proxy/", ChatWebhookProxyAPIView.as_view(), name="webhook-proxy"),
+    path("n8n/dashboard-contexts/", DashboardContextListAPIView.as_view(), name="dashboard-context-list"),
 
     #Listado dormulario
 
