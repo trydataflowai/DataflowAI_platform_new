@@ -974,20 +974,30 @@ class RespuestaSerializer(serializers.ModelSerializer):
 
 
 #CHATBOT DE N8N# myapp/serializers.py
-# myapp/serializers.py
-# myapp/serializers.py
-# myapp/serializers.py
 from rest_framework import serializers
+from .models import DashboardContext
+
+class DashboardContextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardContext
+        fields = (
+            "id_registro",
+            "session_id",
+            "dashboard_name",
+            "dashboard_context",
+            "tables",
+            "formularios_id",
+            "empresa_id",
+        )
 
 class WebhookProxySerializer(serializers.Serializer):
+    """
+    El body que el frontend enviará para pedir que se ejecute el webhook.
+    - id_registro: integer (id del DashboardContext a usar)
+    - chatInput: string (lo que escribió el usuario; NO se leerá desde la BD)
+    """
+    id_registro = serializers.IntegerField()
     chatInput = serializers.CharField()
-    sessionId = serializers.CharField()
-    # ahora table es requerido: el frontend DEBE enviar la tabla seleccionada
-    table = serializers.CharField()
-    # NO aceptamos empresaId desde el cliente por seguridad
-
-
-
 
 
 
