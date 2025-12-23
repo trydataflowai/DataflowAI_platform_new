@@ -1,11 +1,8 @@
-/* src/styles/Chxtbut.module.css */
-
 /* =========================
-   Variables por variante - Diseño Limpio
+   Variables por variante - Diseño Limpioaa
    ========================= */
 
 .ChatpostgreDark {
-  /* Paleta EXACTA que me pediste */
   --black-deep: #0a0a12;
   --black-cosmos: #12121d;
   --accent-neon: #00b43f;
@@ -14,7 +11,6 @@
   --text-secondary: #b8c2d9;
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-  /* Mapeos compatibles con el resto del CSS */
   --bg-primary: var(--black-deep);
   --bg-secondary: var(--black-cosmos);
   --bg-gradient: linear-gradient(135deg, var(--black-cosmos) 0%, var(--black-deep) 100%);
@@ -31,7 +27,7 @@
   --success-color: #00ffaa;
   --error-color: #ff3366;
 
-  --user-message-bg: rgba(0, 180, 63, 0.10); /* basado en --accent-neon (#00b43f) */
+  --user-message-bg: rgba(0, 180, 63, 0.10);
   --bot-message-bg: rgba(255, 255, 255, 0.03);
   --system-message-bg: rgba(255, 255, 255, 0.02);
 }
@@ -74,7 +70,6 @@
   overflow: hidden;
 }
 
-/* Header Compacto */
 .Chatpostgreheader {
   background: var(--bg-primary);
   border-bottom: 1px solid var(--card-border);
@@ -167,7 +162,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Panel de Dashboards Compacto */
 .ChatpostgreproductsCompact {
   margin-top: 12px;
   animation: slideDown 0.2s ease-out;
@@ -229,6 +223,7 @@
   flex: 1;
   overflow: hidden;
   padding: 0;
+  min-width: 0; /* importante para que el flex pueda encoger */
 }
 
 .Chatpostgremessages {
@@ -238,11 +233,13 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0; /* clave para prevenir overflow horizontal en flex children */
 }
 
 .Chatpostgremessage {
   display: flex;
   animation: messageAppear 0.2s ease-out;
+  min-width: 0; /* que los mensajes puedan encoger en contenedores flex */
 }
 
 .ChatpostgremessageUser {
@@ -263,13 +260,23 @@
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 12px 16px;
+  min-width: 0; /* muy importante en flex layouts */
+  overflow-wrap: anywhere; /* permite romper palabras largas */
+  word-break: break-word;
+  white-space: pre-wrap; /* permite wraps en <pre>-like text */
+  overflow-x: hidden; /* quitar overflow horizontal */
+  /* si un mensaje es extremadamente largo: limitar alto y permitir scroll vertical */
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
+/* variante user */
 .ChatpostgremessageUser .ChatpostgremessageContent {
   background: var(--user-message-bg);
   border-color: var(--accent-1);
 }
 
+/* header dentro del mensaje */
 .ChatpostgremessageHeader {
   margin-bottom: 6px;
 }
@@ -289,6 +296,21 @@
   color: var(--text-primary);
   white-space: pre-wrap;
   font-family: inherit;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Estilado específico para <pre> dentro del mensaje */
+.ChatpostgremessagePre {
+  margin: 0;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  white-space: pre-wrap; /* permite wrap en líneas de código/JSON */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Mensaje del Sistema */
@@ -540,7 +562,7 @@
 
 /* Scrollbar */
 .Chatpostgremessages::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 
 .Chatpostgremessages::-webkit-scrollbar-track {
@@ -549,7 +571,7 @@
 
 .Chatpostgremessages::-webkit-scrollbar-thumb {
   background: var(--text-muted);
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 .Chatpostgremessages::-webkit-scrollbar-thumb:hover {
@@ -585,25 +607,25 @@
   .Chatpostgreheader {
     padding: 12px 16px;
   }
-  
+
   .ChatpostgreheaderMain {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .ChatpostgreheaderActions {
     justify-content: space-between;
   }
-  
+
   .Chatpostgremessages {
     padding: 16px;
   }
-  
+
   .ChatpostgreinputSection {
     padding: 12px 16px;
   }
-  
+
   .ChatpostgremessageContent {
     max-width: 85%;
   }
@@ -613,26 +635,61 @@
   .Chatpostgretitle {
     font-size: 1.1rem;
   }
-  
+
   .Chatpostgresubtitle {
     font-size: 0.75rem;
   }
-  
+
   .ChatpostgreproductBadge {
     font-size: 0.75rem;
   }
-  
+
   .ChatpostgreproductsToggle {
     font-size: 0.75rem;
     padding: 6px 12px;
   }
-  
+
   .ChatpostgremessageContent {
     max-width: 90%;
     padding: 10px 12px;
   }
-  
+
   .ChatpostgremessageText {
     font-size: 0.85rem;
   }
 }
+
+/* ---------- ADICIONES IMPORTANTES PARA EVITAR DESPLACE HORIZONTAL ---------- */
+
+/* Asegura que los elementos flex puedan encoger en layouts complejos */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Forzar que el layout no permita overflow horizontal desde mensajes */
+.Chatpostgrecontainer {
+  overflow-x: hidden;
+}
+
+/* Si usas icon- or sidebar con flex, siempre aplicar min-width:0 en hijos flexibles */
+.ChatpostgrechatSection,
+.Chatpostgremessages,
+.Chatpostgremessage,
+.ChatpostgremessageContent {
+  min-width: 0;
+}
+
+/* protección extra para enlaces o strings sin espacios */
+.ChatpostgremessageContent a,
+.ChatpostgremessageContent code,
+.ChatpostgremessageContent span {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* si quieres que bloques de código grandes muestren scrollbar horizontal en vez de romper (opcional)
+   pero por defecto lo ocultamos para que no rompa el layout. */
+/* .ChatpostgremessagePre { overflow-x: auto; } */
+

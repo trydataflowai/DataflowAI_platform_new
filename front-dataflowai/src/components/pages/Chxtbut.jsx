@@ -27,7 +27,9 @@ export default function ChatPostgre() {
   const [companyId, setCompanyId] = useState(null);
 
   const messagesEndRef = useRef(null);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   useEffect(() => {
     let mounted = true;
@@ -58,7 +60,6 @@ export default function ChatPostgre() {
     if (contexts.length === 0 && !showContexts) {
       try {
         const list = await fetchDashboardContexts();
-        // list es array de DashboardContext (ver serializer backend)
         setContexts(Array.isArray(list) ? list : []);
       } catch (err) {
         console.error(err);
@@ -206,7 +207,10 @@ export default function ChatPostgre() {
       <section className={styles.ChatpostgrechatSection || defaultStyles.ChatpostgrechatSection}>
         <div className={styles.Chatpostgremessages || defaultStyles.Chatpostgremessages}>
           {messages.map((message) => (
-            <div key={message.id} className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${message.role === 'user' ? (styles.ChatpostgremessageUser || defaultStyles.ChatpostgremessageUser) : message.role === 'bot' ? (styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot) : (styles.ChatpostgremessageSystem || defaultStyles.ChatpostgremessageSystem)}`}>
+            <div
+              key={message.id}
+              className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${message.role === 'user' ? (styles.ChatpostgremessageUser || defaultStyles.ChatpostgremessageUser) : message.role === 'bot' ? (styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot) : (styles.ChatpostgremessageSystem || defaultStyles.ChatpostgremessageSystem)}`}
+            >
               {message.role === 'system' ? (
                 <div className={styles.ChatpostgresystemMessage || defaultStyles.ChatpostgresystemMessage}>
                   <div className={styles.ChatpostgresystemIcon || defaultStyles.ChatpostgresystemIcon}>💡</div>
@@ -230,7 +234,10 @@ export default function ChatPostgre() {
                   <div className={styles.ChatpostgremessageHeader || defaultStyles.ChatpostgremessageHeader}>
                     <span className={styles.ChatpostgremessageRole || defaultStyles.ChatpostgremessageRole}>{message.role === 'user' ? 'Tú' : 'Asistente'}</span>
                   </div>
-                  <pre className={styles.ChatpostgremessageText || defaultStyles.ChatpostgremessageText}>{message.text}</pre>
+                  {/* pre con clase dedicada para controlar wrap/scroll */}
+                  <pre className={styles.ChatpostgremessagePre || defaultStyles.ChatpostgremessagePre}>
+                    {message.text}
+                  </pre>
                 </div>
               )}
             </div>
