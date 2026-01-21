@@ -1093,3 +1093,166 @@ class DashboardContextAdmin(admin.ModelAdmin):
     readonly_fields = (
         'id_registro',
     )
+
+
+from django.contrib import admin
+from .models import (
+    DashDfTiendas,
+    DashDfProductos,
+    DashDfVentas,
+    DashDfMetas,
+    DashDfInventarios
+)
+
+
+# =========================
+# TIENDAS
+# =========================
+@admin.register(DashDfTiendas)
+class DashDfTiendasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_tienda',
+        'nombre_tienda',
+        'ciudad',
+        'canal',
+        'estado',
+        'id_empresa'
+    )
+
+    search_fields = (
+        'nombre_tienda',
+        'ciudad',
+        'canal'
+    )
+
+    list_filter = (
+        'estado',
+        'canal',
+        'ciudad',
+        'id_empresa'
+    )
+
+    readonly_fields = (
+        'id_tienda',
+    )
+
+
+# =========================
+# PRODUCTOS
+# =========================
+@admin.register(DashDfProductos)
+class DashDfProductosAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_producto',
+        'nombre_producto',
+        'categoria',
+        'marca',
+        'valor_producto',
+        'id_empresa'
+    )
+
+    search_fields = (
+        'nombre_producto',
+        'categoria',
+        'marca'
+    )
+
+    list_filter = (
+        'categoria',
+        'marca',
+        'id_empresa'
+    )
+
+    readonly_fields = (
+        'id_producto',
+    )
+
+
+# =========================
+# VENTAS
+# =========================
+@admin.register(DashDfVentas)
+class DashDfVentasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_tienda',
+        'id_producto',
+        'cantidad_vendida',
+        'dinero_vendido',
+        'fecha_venta',
+        'id_empresa'
+    )
+
+    search_fields = (
+        'id_tienda__nombre_tienda',
+        'id_producto__nombre_producto'
+    )
+
+    list_filter = (
+        'fecha_venta',
+        'id_empresa',
+        'id_tienda'
+    )
+
+    readonly_fields = (
+        'id_registro',
+    )
+
+
+# =========================
+# METAS
+# =========================
+@admin.register(DashDfMetas)
+class DashDfMetasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_tienda',
+        'id_producto',
+        'meta_cantidad',
+        'meta_dinero',
+        'fecha_meta',
+        'id_empresa'
+    )
+
+    search_fields = (
+        'id_tienda__nombre_tienda',
+        'id_producto__nombre_producto'
+    )
+
+    list_filter = (
+        'fecha_meta',
+        'id_empresa',
+        'id_tienda'
+    )
+
+    readonly_fields = (
+        'id_registro',
+    )
+
+
+# =========================
+# INVENTARIOS
+# =========================
+@admin.register(DashDfInventarios)
+class DashDfInventariosAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_tienda',
+        'id_producto',
+        'inventario_cantidad',
+        'id_empresa'
+    )
+
+    search_fields = (
+        'id_tienda__nombre_tienda',
+        'id_producto__nombre_producto'
+    )
+
+    list_filter = (
+        'id_empresa',
+        'id_tienda'
+    )
+
+    readonly_fields = (
+        'id_registro',
+    )
