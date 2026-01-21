@@ -1463,3 +1463,137 @@ class DashboardContext(models.Model):
 
     def __str__(self):
         return f"{self.dashboard_name} - Empresa {self.empresa_id}"
+
+
+
+from django.db import models
+
+
+# =========================
+# TIENDAS
+# =========================
+class DashDfTiendas(models.Model):
+    id_tienda = models.AutoField(primary_key=True)
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+    nombre_tienda = models.CharField(max_length=50)
+    direccion_tienda = models.CharField(max_length=50)
+    horario_tienda = models.CharField(max_length=50)
+    ciudad = models.CharField(max_length=50)
+    telefono = models.CharField(max_length=50)
+    email = models.CharField(max_length=50)
+    canal = models.CharField(max_length=50)
+    estado = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'dash_df_tiendas'
+
+    def __str__(self):
+        return self.nombre_tienda
+
+
+# =========================
+# PRODUCTOS
+# =========================
+class DashDfProductos(models.Model):
+    id_producto = models.AutoField(primary_key=True)
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+    nombre_producto = models.CharField(max_length=50)
+    categoria = models.CharField(max_length=50)
+    marca = models.CharField(max_length=50)
+    valor_producto = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        db_table = 'dash_df_productos'
+
+    def __str__(self):
+        return self.nombre_producto
+
+
+# =========================
+# VENTAS
+# =========================
+class DashDfVentas(models.Model):
+    id_registro = models.AutoField(primary_key=True)
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+    id_tienda = models.ForeignKey(
+        DashDfTiendas,
+        on_delete=models.PROTECT,
+        db_column='id_tienda'
+    )
+    id_producto = models.ForeignKey(
+        DashDfProductos,
+        on_delete=models.PROTECT,
+        db_column='id_producto'
+    )
+    cantidad_vendida = models.IntegerField()
+    dinero_vendido = models.DecimalField(max_digits=14, decimal_places=2)
+    fecha_venta = models.DateField()
+
+    class Meta:
+        db_table = 'dash_df_ventas'
+
+
+# =========================
+# METAS
+# =========================
+class DashDfMetas(models.Model):
+    id_registro = models.AutoField(primary_key=True)
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+    id_tienda = models.ForeignKey(
+        DashDfTiendas,
+        on_delete=models.PROTECT,
+        db_column='id_tienda'
+    )
+    id_producto = models.ForeignKey(
+        DashDfProductos,
+        on_delete=models.PROTECT,
+        db_column='id_producto'
+    )
+    meta_cantidad = models.IntegerField()
+    meta_dinero = models.DecimalField(max_digits=14, decimal_places=2)
+    fecha_meta = models.DateField()
+
+    class Meta:
+        db_table = 'dash_df_metas'
+
+
+# =========================
+# INVENTARIOS
+# =========================
+class DashDfInventarios(models.Model):
+    id_registro = models.AutoField(primary_key=True)
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+    id_tienda = models.ForeignKey(
+        DashDfTiendas,
+        on_delete=models.PROTECT,
+        db_column='id_tienda'
+    )
+    id_producto = models.ForeignKey(
+        DashDfProductos,
+        on_delete=models.PROTECT,
+        db_column='id_producto'
+    )
+    inventario_cantidad = models.IntegerField()
+
+    class Meta:
+        db_table = 'dash_df_inventarios'
