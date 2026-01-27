@@ -1257,3 +1257,153 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
             "otros": otros,
             "Ingresos": ingresos
         }
+
+
+
+
+
+
+
+
+
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfTiendas
+
+class DashDfTiendasSerializer(serializers.ModelSerializer):
+    # id_empresa será read-only — se asigna desde el token en el backend
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = DashDfTiendas
+        fields = [
+            'id_tienda',
+            'id_empresa',
+            'nombre_tienda',
+            'direccion_tienda',
+            'horario_tienda',
+            'ciudad',
+            'telefono',
+            'email',
+            'canal',
+            'estado',
+        ]
+        read_only_fields = ['id_tienda', 'id_empresa']
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfProductos
+
+class DashVeinteProductSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = DashDfProductos
+        fields = [
+            'id_producto',
+            'id_empresa',
+            'nombre_producto',
+            'categoria',
+            'marca',
+            'valor_producto',
+        ]
+        read_only_fields = ['id_producto', 'id_empresa']
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfInventarios
+
+class DashVeinteInventarioSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    tienda_nombre = serializers.SerializerMethodField(read_only=True)
+    producto_nombre = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashDfInventarios
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_tienda',
+            'tienda_nombre',
+            'id_producto',
+            'producto_nombre',
+            'inventario_cantidad',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa', 'tienda_nombre', 'producto_nombre']
+
+    def get_tienda_nombre(self, obj):
+        return getattr(obj.id_tienda, 'nombre_tienda', None)
+
+    def get_producto_nombre(self, obj):
+        return getattr(obj.id_producto, 'nombre_producto', None)
+
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfVentas
+
+class DashVeinteVentaSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    tienda_nombre = serializers.SerializerMethodField(read_only=True)
+    producto_nombre = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashDfVentas
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_tienda',
+            'tienda_nombre',
+            'id_producto',
+            'producto_nombre',
+            'cantidad_vendida',
+            'dinero_vendido',
+            'fecha_venta',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa', 'tienda_nombre', 'producto_nombre']
+
+    def get_tienda_nombre(self, obj):
+        return getattr(obj.id_tienda, 'nombre_tienda', None)
+
+    def get_producto_nombre(self, obj):
+        return getattr(obj.id_producto, 'nombre_producto', None)
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfMetas
+
+class DashVeinteMetaSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    tienda_nombre = serializers.SerializerMethodField(read_only=True)
+    producto_nombre = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashDfMetas
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_tienda',
+            'tienda_nombre',
+            'id_producto',
+            'producto_nombre',
+            'meta_cantidad',
+            'meta_dinero',
+            'fecha_meta',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa', 'tienda_nombre', 'producto_nombre']
+
+    def get_tienda_nombre(self, obj):
+        return getattr(obj.id_tienda, 'nombre_tienda', None)
+
+    def get_producto_nombre(self, obj):
+        return getattr(obj.id_producto, 'nombre_producto', None)

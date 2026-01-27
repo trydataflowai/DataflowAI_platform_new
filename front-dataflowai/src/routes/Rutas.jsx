@@ -76,6 +76,22 @@ import { ThemeProvider } from "../components/componentes/ThemeContext";
 // Dashboard Espacio y mercadeo del formulario ventas
 import DashboardFormsVentasEspacio from "../components/dashboards/DashboardFormsVentasEspacio";
 
+// RUTAS DASHBOARD dashboard-ventas-e-inventarios asignado con ID 20
+import DashboardVentaseInventarios from "../components/dashboards/dashboard-ventas-e-inventarios/layout";
+import DashboardVentaseInventariosCrudTiendas from "../components/dashboards/dashboard-ventas-e-inventarios/CrudTiendas";
+import DashboardVentaseInventariosCrudProductos from "../components/dashboards/dashboard-ventas-e-inventarios/CrudProductos";
+
+import DashboardVentaseInventariosCrudInventarios from "../components/dashboards/dashboard-ventas-e-inventarios/CrudInventarios";
+import DashboardVentaseInventariosCrudVentas from "../components/dashboards/dashboard-ventas-e-inventarios/crudVentas";
+import DashboardVentaseInventariosCrudMetas from "../components/dashboards/dashboard-ventas-e-inventarios/CrudMetas";
+import DashboardVentaseInventariosAnalisisVenta from "../components/dashboards/dashboard-ventas-e-inventarios/AnalisisVentas";
+import DashboardVentaseInventariosAnalisisInventarios from "../components/dashboards/dashboard-ventas-e-inventarios/AnalisisInventarios";
+
+
+
+
+
+
 /* ---------------------------
    Configuración de layouts
    --------------------------- */
@@ -619,7 +635,103 @@ export const Rutas = () => {
               }
             />
 
-            
+            <Route
+              path={"/dashboard-ventas-e-inventarios"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventarios />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+             <Route
+              path={"/dashboard-ventas-e-inventarios/crudTiendas"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosCrudTiendas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+             <Route
+              path={"/dashboard-ventas-e-inventarios/crudProductos"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosCrudProductos />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+             <Route
+              path={"/dashboard-ventas-e-inventarios/crudInventarios"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosCrudInventarios />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+             <Route
+              path={"/dashboard-ventas-e-inventarios/crudVentas"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosCrudVentas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+               <Route
+              path={"/dashboard-ventas-e-inventarios/crudMetas"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosCrudMetas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/dashboard-ventas-e-inventarios/AnalisisVentas"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosAnalisisVenta />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path={"/dashboard-ventas-e-inventarios/AnalisisInventarios"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardVentaseInventariosAnalisisInventarios />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+
+
+
+
+
+
+
+
+
 
           </Routes>
         </VerificadorAutenticacionGlobal>

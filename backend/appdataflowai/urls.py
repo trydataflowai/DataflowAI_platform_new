@@ -142,8 +142,20 @@ from .views import (
     FormularioEditView,
 
     #Serializador para dashboard de ventas de formulario de ventas espacio y mercadeo
-    DashboardFormsVentasPuntoVentaView
+    DashboardFormsVentasPuntoVentaView,
 
+
+    #
+    TiendaListCreateView,
+    TiendaDetailView,
+    DashVeinteProductListCreateView,
+    DashVeinteProductDetailView,
+    DashVeinteInventarioListCreateView,
+    DashVeinteInventarioDetailView,
+    DashVeinteVentaListCreateView,
+    DashVeinteVentaDetailView,
+    DashVeinteMetaListCreateView,
+    DashVeinteMetaDetailView
 
 
 )
@@ -313,6 +325,19 @@ urlpatterns = [
 
      #Serializador para dashboard de ventas de formulario de ventas espacio y mercadeo
      path('dashboard/forms/ventas-punto-venta/', DashboardFormsVentasPuntoVentaView.as_view(), name='dashboard-forms-ventas-punto-venta'),
+
+
+
+    path('tiendas/', TiendaListCreateView.as_view(), name='tienda-list-create'),
+    path('tiendas/<int:pk>/', TiendaDetailView.as_view(), name='tienda-detail'),
+    path('DashVeinte/Prodcutos/', DashVeinteProductListCreateView.as_view(), name='dashveinte-product-list-create'),
+    path('DashVeinte/Prodcutos/<int:pk>/', DashVeinteProductDetailView.as_view(), name='dashveinte-product-detail'),
+    path('DashVeinte/Inventarios/', DashVeinteInventarioListCreateView.as_view(), name='dashveinte-inventario-list-create'),
+    path('DashVeinte/Inventarios/<int:pk>/', DashVeinteInventarioDetailView.as_view(), name='dashveinte-inventario-detail'),
+    path('DashVeinte/Ventas/', DashVeinteVentaListCreateView.as_view(), name='dashveinte-venta-list-create'),
+    path('DashVeinte/Ventas/<int:pk>/', DashVeinteVentaDetailView.as_view(), name='dashveinte-venta-detail'),
+    path('DashVeinte/Metas/', DashVeinteMetaListCreateView.as_view(), name='dashveinte-meta-list-create'),
+    path('DashVeinte/Metas/<int:pk>/', DashVeinteMetaDetailView.as_view(), name='dashveinte-meta-detail'),
 ]
 
 
