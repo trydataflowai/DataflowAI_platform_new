@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "../../../styles/CreacionUsuario.module.css";
+import styles from '../../../styles/Dashboards/dashboard-ventas-e-inventarios/Layout.module.css';
 
 // APIs ya creadas
 import { fetchTiendas } from "../../../api/DashboardsApis/dashboard-ventas-e-inventarios/DashboardApiCrudTiendas";

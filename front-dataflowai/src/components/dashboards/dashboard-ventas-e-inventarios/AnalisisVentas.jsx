@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReactECharts from "echarts-for-react";
-import styles from "../../../styles/CreacionUsuario.module.css";
+import styles from '../../../styles/Dashboards/dashboard-ventas-e-inventarios/AnalisisVentas.module.css';
 
 import {
   fetchDashVeinteVentas,
@@ -492,10 +492,18 @@ const AnalisisVentas = () => {
       title: {
         text: `Ventas vs Meta — ${new Date(year, month).toLocaleString("es-CO", { month: "long", year: "numeric" })}`,
         left: "center",
-        textStyle: { fontFamily: "Arial" },
+        textStyle: { 
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontSize: 16,
+          fontWeight: 600,
+          color: 'var(--text-primary)'
+        },
       },
       tooltip: {
         trigger: "axis",
+        backgroundColor: 'var(--card-bg)',
+        borderColor: 'var(--card-border)',
+        textStyle: { color: 'var(--text-primary)' },
         formatter: (params) => {
           const axisValue = params[0]?.axisValue;
           const ventaPoint = params.find(p => p.seriesName === "Ventas");
@@ -507,40 +515,136 @@ const AnalisisVentas = () => {
           const tiendaName = selectedTiendaId ? (tiendaById[selectedTiendaId]?.nombre_tienda || "") : (selectedCiudad ? `Ciudad: ${selectedCiudad}` : "");
           const productoName = selectedProductoId ? (productoById[selectedProductoId]?.nombre_producto || "") : (selectedMarca ? `Marca: ${selectedMarca}` : "");
 
-          let header = `<strong>Día ${axisValue}</strong><br/>`;
+          let header = `<strong style="color: var(--accent-1)">Día ${axisValue}</strong><br/>`;
           if (tiendaName) header += `${tiendaName}<br/>`;
           if (productoName) header += `${productoName}<br/>`;
 
           return `${header}
-            🔴 Meta diaria: ${Number(meta).toLocaleString("es-CO", { maximumFractionDigits: 2 })}<br/>
-            ⚫ Ventas: ${Number(venta).toLocaleString("es-CO", { maximumFractionDigits: 2 })}<br/>
-            ✅ Cumplimiento: <b>${cumplimiento}%</b>
+            <span style="color: #d9534f">🔴 Meta diaria: ${Number(meta).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</span><br/>
+            <span style="color: #111111">⚫ Ventas: ${Number(venta).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</span><br/>
+            <span style="color: var(--accent-1)">✅ Cumplimiento: <b>${cumplimiento}%</b></span>
           `;
         },
         axisPointer: { type: "shadow" },
       },
-      legend: { top: 36, data: ["Meta diaria", "Ventas"], textStyle: { fontFamily: "Arial" } },
+      legend: { 
+        top: 36, 
+        data: ["Meta diaria", "Ventas"], 
+        textStyle: { 
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          color: 'var(--text-secondary)'
+        } 
+      },
       toolbox: { 
         feature: { 
-          saveAsImage: { title: "Guardar imagen" },
-          dataView: { readOnly: true }
+          saveAsImage: { 
+            title: "Guardar imagen",
+            pixelRatio: 2
+          },
+          dataView: { 
+            readOnly: true,
+            title: "Ver datos"
+          }
         }, 
-        right: 10 
+        right: 10,
+        top: 10
       },
-      grid: { left: "6%", right: "6%", bottom: "8%", containLabel: true },
-      xAxis: { type: "category", data: labels.map(String), name: "Día", axisLabel: { fontFamily: "Arial" } },
+      grid: { 
+        left: "6%", 
+        right: "6%", 
+        bottom: "8%", 
+        top: "15%",
+        containLabel: true 
+      },
+      xAxis: { 
+        type: "category", 
+        data: labels.map(String), 
+        name: "Día", 
+        nameLocation: "middle",
+        nameGap: 25,
+        axisLabel: { 
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          color: 'var(--text-secondary)'
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'var(--card-border)'
+          }
+        }
+      },
       yAxis: {
         type: "value",
-        name: "Valor",
+        name: "Valor ($)",
+        nameLocation: "middle",
+        nameGap: 40,
         axisLabel: {
-          formatter: (v) => Number(v).toLocaleString("es-CO", { maximumFractionDigits: 0 }),
-          fontFamily: "Arial",
+          formatter: (v) => {
+            if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
+            if (v >= 1000) return `$${(v / 1000).toFixed(0)}K`;
+            return `$${v}`;
+          },
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          color: 'var(--text-secondary)'
         },
+        axisLine: {
+          lineStyle: {
+            color: 'var(--card-border)'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: 'var(--card-border)',
+            type: 'dashed'
+          }
+        }
       },
       series: [
-        { name: "Meta diaria", type: "line", smooth: true, areaStyle: {}, data: metasSeries, lineStyle: { width: 2, color: '#d9534f' } },
-        { name: "Ventas", type: "line", smooth: true, data: ventasSeries, showSymbol: true, symbolSize: 6, lineStyle: { width: 3, color: '#111111' } },
+        { 
+          name: "Meta diaria", 
+          type: "line", 
+          smooth: true, 
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [{
+                offset: 0, color: 'rgba(217, 83, 79, 0.3)'
+              }, {
+                offset: 1, color: 'rgba(217, 83, 79, 0.05)'
+              }]
+            }
+          }, 
+          data: metasSeries, 
+          lineStyle: { 
+            width: 3, 
+            color: '#d9534f' 
+          },
+          symbol: 'circle',
+          symbolSize: 6,
+          itemStyle: {
+            color: '#d9534f'
+          }
+        },
+        { 
+          name: "Ventas", 
+          type: "line", 
+          smooth: true, 
+          data: ventasSeries, 
+          showSymbol: true, 
+          symbolSize: 8, 
+          lineStyle: { 
+            width: 3, 
+            color: '#111111' 
+          },
+          itemStyle: {
+            color: '#111111'
+          }
+        },
       ],
+      color: ['#d9534f', '#111111', '#0A66C2']
     };
   }, [labels, metasSeries, ventasSeries, year, month, selectedTiendaId, selectedProductoId, selectedCiudad, selectedMarca, tiendaById, productoById]);
 
@@ -550,13 +654,21 @@ const AnalisisVentas = () => {
       title: {
         text: 'Top 5 Tiendas - Ventas por Marca',
         left: 'center',
-        textStyle: { fontFamily: 'Arial', fontSize: 16 }
+        textStyle: { 
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontSize: 16,
+          fontWeight: 600,
+          color: 'var(--text-primary)'
+        }
       },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
+        backgroundColor: 'var(--card-bg)',
+        borderColor: 'var(--card-border)',
+        textStyle: { color: 'var(--text-primary)' },
         formatter: function(params) {
-          let result = `<strong>${params[0].name}</strong><br/>`;
+          let result = `<strong style="color: var(--accent-1)">${params[0].name}</strong><br/>`;
           let total = 0;
           
           params.forEach(param => {
@@ -565,45 +677,73 @@ const AnalisisVentas = () => {
             result += `${param.marker} ${param.seriesName}: ${money(value)}<br/>`;
           });
           
-          result += `<hr style="margin: 5px 0; border-color: #ccc;"/>`;
-          result += `<strong>Total: ${money(total)}</strong>`;
+          result += `<hr style="margin: 5px 0; border-color: var(--card-border);"/>`;
+          result += `<strong style="color: var(--accent-1)">Total: ${money(total)}</strong>`;
           return result;
         }
       },
       legend: {
         top: 30,
-        data: datosGraficoBarras.series.map(s => s.name)
+        data: datosGraficoBarras.series.slice(0, 5).map(s => s.name),
+        textStyle: { 
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          color: 'var(--text-secondary)'
+        }
       },
       grid: {
         left: '3%',
         right: '4%',
-        bottom: '3%',
+        bottom: '10%',
+        top: '15%',
         containLabel: true
       },
       xAxis: {
         type: 'category',
-        data: datosGraficoBarras.tiendas.slice(0, 5), // Solo top 5
+        data: datosGraficoBarras.tiendas.slice(0, 5),
         axisLabel: {
           rotate: 45,
-          fontSize: 12
+          fontSize: 12,
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          color: 'var(--text-secondary)'
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'var(--card-border)'
+          }
         }
       },
       yAxis: {
         type: 'value',
         name: 'Ventas ($)',
+        nameLocation: 'middle',
+        nameGap: 30,
         axisLabel: {
           formatter: (value) => {
             if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
             if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
             return `$${value}`;
+          },
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          color: 'var(--text-secondary)'
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'var(--card-border)'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: 'var(--card-border)',
+            type: 'dashed'
           }
         }
       },
-      series: datosGraficoBarras.series.slice(0, 5), // Limitar a 5 marcas
+      series: datosGraficoBarras.series.slice(0, 5),
       color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
     };
   }, [datosGraficoBarras]);
 
+  // Reset filters
   const resetFilters = () => {
     setSelectedCiudad("");
     setSelectedTiendaId("");
@@ -611,9 +751,7 @@ const AnalisisVentas = () => {
     setSelectedProductoId("");
   };
 
-  /* ========== TABLAS AGREGADAS ========== */
-
-  // Tabla por tienda (aplica filtros actuales)
+  // Datos para tablas
   const tablaPorTienda = useMemo(() => {
     const baseTiendas = selectedTiendaId ? (tiendaById[selectedTiendaId] ? [tiendaById[selectedTiendaId]] : []) : tiendasFiltered;
     return baseTiendas.map(t => {
@@ -641,7 +779,6 @@ const AnalisisVentas = () => {
     });
   }, [tiendasFiltered, selectedTiendaId, ventasFiltered, metasFiltered, inventariosFiltered, tiendaById]);
 
-  // Tabla por producto (aplica filtros actuales)
   const tablaPorProducto = useMemo(() => {
     const baseProductos = selectedProductoId ? (productoById[selectedProductoId] ? [productoById[selectedProductoId]] : []) : productosFiltered;
     return baseProductos.map(p => {
@@ -673,634 +810,614 @@ const AnalisisVentas = () => {
   /* ========== RENDER ========== */
 
   return (
-    <div className={styles.container} style={{ fontFamily: "Arial, sans-serif" }}>
-      <h1>Análisis Diario: Ventas vs Meta</h1>
-
-      {/* FILTROS */}
-      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
-        <label>
-          Mes:
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={{ marginLeft: 6 }}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <option key={i} value={i}>
-                {new Date(0, i).toLocaleString("es-CO", { month: "long" })}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Año:
-          <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} style={{ width: 90, marginLeft: 6 }} />
-        </label>
-
-        <div style={{ width: 12 }} />
-
-        <label>
-          Ciudad:
-          <select value={selectedCiudad} onChange={(e) => { setSelectedCiudad(e.target.value); setSelectedTiendaId(""); }} style={{ marginLeft: 6 }}>
-            <option value="">(todas)</option>
-            {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </label>
-
-        <label>
-          Tienda:
-          <select value={selectedTiendaId} onChange={(e) => setSelectedTiendaId(e.target.value)} style={{ marginLeft: 6 }}>
-            <option value="">(todas)</option>
-            {tiendasFiltered.map(t => {
-              const id = t.id_tienda ?? t.id ?? t.pk;
-              return <option key={id} value={id}>{t.nombre_tienda ?? t.nombre}</option>;
-            })}
-          </select>
-        </label>
-
-        <div style={{ width: 12 }} />
-
-        <label>
-          Marca:
-          <select value={selectedMarca} onChange={(e) => { setSelectedMarca(e.target.value); setSelectedProductoId(""); }} style={{ marginLeft: 6 }}>
-            <option value="">(todas)</option>
-            {marcas.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </label>
-
-        <label>
-          Producto:
-          <select value={selectedProductoId} onChange={(e) => setSelectedProductoId(e.target.value)} style={{ marginLeft: 6 }}>
-            <option value="">(todos)</option>
-            {productosFiltered.map(p => {
-              const id = p.id_producto ?? p.id ?? p.pk;
-              return <option key={id} value={id}>{p.nombre_producto ?? p.nombre}</option>;
-            })}
-          </select>
-        </label>
-
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button className={styles.button} onClick={() => { resetFilters(); }}>
-            Reset filtros
-          </button>
-          <button className={styles.button} onClick={() => {
-            // Forzar recarga manual
-            setLoading(true);
-            (async () => {
-              try {
-                const start_date = formatYMD(year, month, 1);
-                const end_date = formatYMD(year, month, daysInMonth);
-                const params = { start_date, end_date };
-                if (selectedTiendaId) params.id_tienda = selectedTiendaId;
-                if (selectedProductoId) params.id_producto = selectedProductoId;
-                const [vResp, mResp, iResp] = await Promise.all([
-                  fetchDashVeinteVentas(params),
-                  fetchDashVeinteMetas(params),
-                  fetchDashVeinteInventarios({ start_date, end_date }),
-                ]);
-                setVentasRaw(Array.isArray(vResp) ? vResp : (vResp.results || []));
-                setMetasRaw(Array.isArray(mResp) ? mResp : (mResp.results || []));
-                setInventariosRaw(Array.isArray(iResp) ? iResp : (iResp.results || []));
-              } catch (err) {
-                setError(String(err));
-              } finally {
-                setLoading(false);
-              }
-            })();
-          }}>
-            Refrescar
-          </button>
+    <main className={`${styles.DashboardGeneralcontainer} ${styles.DashboardGeneralLight}`}>
+      
+      {/* Header Section */}
+      <section className={styles.DashboardGeneralheader}>
+        <div className={styles.DashboardGeneralheaderContent}>
+          <h1 className={styles.DashboardGeneraltitle}>
+            Análisis de Ventas vs Metas
+          </h1>
+          <p className={styles.DashboardGeneralsubtitle}>
+            Monitorea y analiza el desempeño de ventas comparado con las metas establecidas
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* TARJETAS DE RESUMEN */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", 
-        gap: 16, 
-        marginBottom: 24 
-      }}>
-        {/* Tarjeta 1: Meta Mensual */}
-        <div style={{
-          background: "#f8f9fa",
-          border: "1px solid #dee2e6",
-          borderRadius: 8,
-          padding: 20,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 12 
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: 16, 
-              color: "#495057",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}>
-              <span style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#d9534f"
-              }}></span>
-              Meta Mensual
-            </h3>
-            <span style={{
-              fontSize: 14,
-              color: "#6c757d"
-            }}>
-              {new Date(year, month).toLocaleString("es-CO", { month: "long", year: "numeric" })}
-            </span>
-          </div>
-          <div style={{ 
-            fontSize: 28, 
-            fontWeight: "bold", 
-            color: "#d9534f",
-            marginBottom: 8
-          }}>
-            {money(totalMetaMes)}
-          </div>
-          <div style={{ 
-            fontSize: 14, 
-            color: "#6c757d",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <span>Meta diaria: {money(metaDiaria)}</span>
-            <span>{daysInMonth} días</span>
-          </div>
-        </div>
-
-        {/* Tarjeta 2: Total de Ventas */}
-        <div style={{
-          background: "#f8f9fa",
-          border: "1px solid #dee2e6",
-          borderRadius: 8,
-          padding: 20,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 12 
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: 16, 
-              color: "#495057",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}>
-              <span style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#111111"
-              }}></span>
-              Total de Ventas
-            </h3>
-            <span style={{
-              fontSize: 14,
-              color: "#6c757d"
-            }}>
-              Actual
-            </span>
-          </div>
-          <div style={{ 
-            fontSize: 28, 
-            fontWeight: "bold", 
-            color: "#111111",
-            marginBottom: 8
-          }}>
-            {money(totalVentasMes)}
-          </div>
-          <div style={{ 
-            fontSize: 14, 
-            color: "#6c757d",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <span>Promedio diario: {money(totalVentasMes / daysInMonth)}</span>
-            <span>{ventasFiltered.length} transacciones</span>
-          </div>
-        </div>
-
-        {/* Tarjeta 3: Cumplimiento */}
-        <div style={{
-          background: "#f8f9fa",
-          border: "1px solid #dee2e6",
-          borderRadius: 8,
-          padding: 20,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 12 
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: 16, 
-              color: "#495057",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}>
-              <span style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: cumplimientoGeneral >= 100 ? "#28a745" : 
-                          cumplimientoGeneral >= 80 ? "#ffc107" : "#dc3545"
-              }}></span>
-              Cumplimiento
-            </h3>
-            <span style={{
-              fontSize: 14,
-              color: "#6c757d"
-            }}>
-              General
-            </span>
-          </div>
-          <div style={{ 
-            fontSize: 28, 
-            fontWeight: "bold", 
-            color: cumplimientoGeneral >= 100 ? "#28a745" : 
-                   cumplimientoGeneral >= 80 ? "#ffc107" : "#dc3545",
-            marginBottom: 8
-          }}>
-            {pct(cumplimientoGeneral)}
-          </div>
-          <div style={{ 
-            fontSize: 14, 
-            color: "#6c757d",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <span>
-              {cumplimientoGeneral >= 100 ? "✅ Meta superada" : 
-               cumplimientoGeneral >= 80 ? "⚠️ Cerca de la meta" : "❌ Por debajo de la meta"}
-            </span>
-            <span>
-              {totalMetaMes > 0 ? 
-                `${money(totalVentasMes)} / ${money(totalMetaMes)}` : 
-                "Sin meta definida"}
-            </span>
-          </div>
-        </div>
-
-        {/* Tarjeta 4: Crecimiento vs Mes Anterior */}
-        <div style={{
-          background: "#f8f9fa",
-          border: "1px solid #dee2e6",
-          borderRadius: 8,
-          padding: 20,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 12 
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: 16, 
-              color: "#495057",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}>
-              <span style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: crecimientoVsMesAnterior >= 0 ? "#28a745" : "#dc3545"
-              }}></span>
-              Crecimiento vs Mes Anterior
-            </h3>
-            <span style={{
-              fontSize: 14,
-              color: "#6c757d"
-            }}>
-              {new Date(getMesAnterior.year, getMesAnterior.month).toLocaleString("es-CO", { month: "short" })}
-            </span>
-          </div>
-          <div style={{ 
-            fontSize: 28, 
-            fontWeight: "bold", 
-            color: crecimientoVsMesAnterior >= 0 ? "#28a745" : "#dc3545",
-            marginBottom: 8
-          }}>
-            {crecimientoVsMesAnterior >= 0 ? "+" : ""}{pct(crecimientoVsMesAnterior)}
-          </div>
-          <div style={{ 
-            fontSize: 14, 
-            color: "#6c757d",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <span>
-              {crecimientoVsMesAnterior >= 0 ? "📈 Crecimiento positivo" : "📉 Crecimiento negativo"}
-            </span>
-            <span>
-              Mes ant: {money(ventasMesAnterior)}
-            </span>
-          </div>
-        </div>
-
-        {/* Tarjeta 5: Productos Más Vendidos */}
-        <div style={{
-          background: "#f8f9fa",
-          border: "1px solid #dee2e6",
-          borderRadius: 8,
-          padding: 20,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 12 
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: 16, 
-              color: "#495057",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}>
-              <span style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#17a2b8"
-              }}></span>
-              Productos Más Vendidos
-            </h3>
-            <span style={{
-              fontSize: 14,
-              color: "#6c757d"
-            }}>
-              Top 5
-            </span>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            {productosMasVendidos.length > 0 ? (
-              <ol style={{ margin: 0, paddingLeft: 20 }}>
-                {productosMasVendidos.slice(0, 3).map((prod, idx) => (
-                  <li key={prod.id} style={{ marginBottom: 6 }}>
-                    <div style={{ fontSize: 14, fontWeight: "bold" }}>
-                      {prod.nombre}
-                    </div>
-                    <div style={{ fontSize: 12, color: "#6c757d", display: "flex", justifyContent: "space-between" }}>
-                      <span>{prod.cantidad} unidades</span>
-                      <span>{money(prod.dinero)}</span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div style={{ fontSize: 14, color: "#6c757d", textAlign: "center" }}>
-                Sin datos
+      {/* Filters Section */}
+      <section className={styles.filtersSection}>
+        <div className={styles.filtersContainer}>
+          
+          {/* Date Filters */}
+          <div className={styles.filterGroup}>
+            <div className={styles.filterLabel}>Periodo</div>
+            <div className={styles.filterControls}>
+              <div className={styles.selectWrapper}>
+                <select 
+                  value={month} 
+                  onChange={(e) => setMonth(Number(e.target.value))}
+                  className={styles.select}
+                  aria-label="Seleccionar mes"
+                >
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <option key={i} value={i}>
+                      {new Date(0, i).toLocaleString("es-CO", { month: "long" })}
+                    </option>
+                  ))}
+                </select>
+                <span className={styles.selectArrow}>▼</span>
               </div>
-            )}
-          </div>
-          <div style={{ 
-            fontSize: 12, 
-            color: "#6c757d",
-            textAlign: "right"
-          }}>
-            Total: {productosMasVendidos.reduce((acc, prod) => acc + prod.cantidad, 0)} unidades
-          </div>
-        </div>
 
-        {/* Tarjeta 6: Top 5 Tiendas */}
-        <div style={{
-          background: "#f8f9fa",
-          border: "1px solid #dee2e6",
-          borderRadius: 8,
-          padding: 20,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-        }}>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between",
-            marginBottom: 12 
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: 16, 
-              color: "#495057",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}>
-              <span style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#6f42c1"
-              }}></span>
-              Top 5 Tiendas
-            </h3>
-            <span style={{
-              fontSize: 14,
-              color: "#6c757d"
-            }}>
-              Por ventas
-            </span>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            {top5Tiendas.length > 0 ? (
-              <ol style={{ margin: 0, paddingLeft: 20 }}>
-                {top5Tiendas.map((tienda, idx) => (
-                  <li key={tienda.id} style={{ marginBottom: 6 }}>
-                    <div style={{ fontSize: 14, fontWeight: idx < 3 ? "bold" : "normal" }}>
-                      {tienda.nombre}
-                    </div>
-                    <div style={{ fontSize: 12, color: "#6c757d", textAlign: "right" }}>
-                      {money(tienda.valor)}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div style={{ fontSize: 14, color: "#6c757d", textAlign: "center" }}>
-                Sin datos
+              <div className={styles.selectWrapper}>
+                <input 
+                  type="number" 
+                  value={year} 
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className={styles.inputNumber}
+                  aria-label="Año"
+                  min="2000"
+                  max="2100"
+                />
               </div>
-            )}
+            </div>
           </div>
-          <div style={{ 
-            fontSize: 12, 
-            color: "#6c757d",
-            textAlign: "right"
-          }}>
-            Total top 5: {money(top5Tiendas.reduce((acc, t) => acc + t.valor, 0))}
-          </div>
-        </div>
-      </div>
 
-      {loading && <div style={{ textAlign: "center", padding: 20, color: "#6c757d" }}>Cargando datos...</div>}
-      {error && <div style={{ color: "red", padding: 10, background: "#f8d7da", borderRadius: 4 }}>{error}</div>}
+          {/* Location Filters */}
+          <div className={styles.filterGroup}>
+            <div className={styles.filterLabel}>Ubicación</div>
+            <div className={styles.filterControls}>
+              <div className={styles.selectWrapper}>
+                <select 
+                  value={selectedCiudad} 
+                  onChange={(e) => { setSelectedCiudad(e.target.value); setSelectedTiendaId(""); }}
+                  className={styles.select}
+                  aria-label="Seleccionar ciudad"
+                >
+                  <option value="">Todas las ciudades</option>
+                  {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <span className={styles.selectArrow}>▼</span>
+              </div>
+
+              <div className={styles.selectWrapper}>
+                <select 
+                  value={selectedTiendaId} 
+                  onChange={(e) => setSelectedTiendaId(e.target.value)}
+                  className={styles.select}
+                  aria-label="Seleccionar tienda"
+                >
+                  <option value="">Todas las tiendas</option>
+                  {tiendasFiltered.map(t => {
+                    const id = t.id_tienda ?? t.id ?? t.pk;
+                    return <option key={id} value={id}>{t.nombre_tienda ?? t.nombre}</option>;
+                  })}
+                </select>
+                <span className={styles.selectArrow}>▼</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Filters */}
+          <div className={styles.filterGroup}>
+            <div className={styles.filterLabel}>Productos</div>
+            <div className={styles.filterControls}>
+              <div className={styles.selectWrapper}>
+                <select 
+                  value={selectedMarca} 
+                  onChange={(e) => { setSelectedMarca(e.target.value); setSelectedProductoId(""); }}
+                  className={styles.select}
+                  aria-label="Seleccionar marca"
+                >
+                  <option value="">Todas las marcas</option>
+                  {marcas.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <span className={styles.selectArrow}>▼</span>
+              </div>
+
+              <div className={styles.selectWrapper}>
+                <select 
+                  value={selectedProductoId} 
+                  onChange={(e) => setSelectedProductoId(e.target.value)}
+                  className={styles.select}
+                  aria-label="Seleccionar producto"
+                >
+                  <option value="">Todos los productos</option>
+                  {productosFiltered.map(p => {
+                    const id = p.id_producto ?? p.id ?? p.pk;
+                    return <option key={id} value={id}>{p.nombre_producto ?? p.nombre}</option>;
+                  })}
+                </select>
+                <span className={styles.selectArrow}>▼</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className={styles.filterActions}>
+            <button 
+              className={`${styles.button} ${styles.buttonSecondary}`}
+              onClick={resetFilters}
+              aria-label="Restablecer todos los filtros"
+            >
+              <span className={styles.buttonIcon}>↺</span>
+              Restablecer
+            </button>
+            <button 
+              className={`${styles.button} ${styles.buttonPrimary}`}
+              onClick={() => {
+                setLoading(true);
+                (async () => {
+                  try {
+                    const start_date = formatYMD(year, month, 1);
+                    const end_date = formatYMD(year, month, daysInMonth);
+                    const params = { start_date, end_date };
+                    if (selectedTiendaId) params.id_tienda = selectedTiendaId;
+                    if (selectedProductoId) params.id_producto = selectedProductoId;
+                    const [vResp, mResp, iResp] = await Promise.all([
+                      fetchDashVeinteVentas(params),
+                      fetchDashVeinteMetas(params),
+                      fetchDashVeinteInventarios({ start_date, end_date }),
+                    ]);
+                    setVentasRaw(Array.isArray(vResp) ? vResp : (vResp.results || []));
+                    setMetasRaw(Array.isArray(mResp) ? mResp : (mResp.results || []));
+                    setInventariosRaw(Array.isArray(iResp) ? iResp : (iResp.results || []));
+                  } catch (err) {
+                    setError(String(err));
+                  } finally {
+                    setLoading(false);
+                  }
+                })();
+              }}
+              aria-label="Actualizar datos"
+              disabled={loading}
+            >
+              <span className={styles.buttonIcon}>↻</span>
+              Actualizar
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Loading & Error States */}
+      {loading && (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <div className={styles.loadingText}>Cargando datos...</div>
+        </div>
+      )}
+      
+      {error && (
+        <div className={styles.errorContainer}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <div className={styles.errorText}>{error}</div>
+          <button 
+            className={styles.errorButton}
+            onClick={() => setError(null)}
+            aria-label="Cerrar mensaje de error"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {!loading && !error && (
         <>
-          {/* GRÁFICO PRINCIPAL */}
-          <div style={{ marginBottom: 24 }}>
-            <h2>Ventas vs Meta Diaria</h2>
-            <ReactECharts option={optionPrincipal} style={{ height: 480, width: "100%" }} notMerge={true} lazyUpdate={true} />
-          </div>
+          {/* Summary Cards */}
+          <section className={styles.cardsSection}>
+            <div className={styles.cardsContainer}>
+              
+              {/* Card 1: Meta Mensual */}
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryCardHeader}>
+                  <div className={styles.summaryCardIcon}>
+                    <span style={{ background: '#d9534f' }}></span>
+                  </div>
+                  <h3 className={styles.summaryCardTitle}>Meta Mensual</h3>
+                  <div className={styles.summaryCardBadge}>
+                    {new Date(year, month).toLocaleString("es-CO", { month: "short", year: "numeric" })}
+                  </div>
+                </div>
+                <div className={styles.summaryCardContent}>
+                  <div className={styles.summaryCardValue}>{money(totalMetaMes)}</div>
+                  <div className={styles.summaryCardSubtitle}>
+                    Meta diaria: {money(metaDiaria)}
+                  </div>
+                </div>
+                <div className={styles.summaryCardFooter}>
+                  <span>{daysInMonth} días en el mes</span>
+                </div>
+              </div>
 
-          {/* GRÁFICO DE BARRAS APILADAS */}
-          <div style={{ marginBottom: 24 }}>
-            <h2>Ventas por Tienda y Marca (Top 5 Tiendas)</h2>
-            <ReactECharts option={optionBarrasApiladas} style={{ height: 400, width: "100%" }} />
-          </div>
+              {/* Card 2: Total de Ventas */}
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryCardHeader}>
+                  <div className={styles.summaryCardIcon}>
+                    <span style={{ background: '#111111' }}></span>
+                  </div>
+                  <h3 className={styles.summaryCardTitle}>Total de Ventas</h3>
+                  <div className={styles.summaryCardBadge}>
+                    Actual
+                  </div>
+                </div>
+                <div className={styles.summaryCardContent}>
+                  <div className={styles.summaryCardValue}>{money(totalVentasMes)}</div>
+                  <div className={styles.summaryCardSubtitle}>
+                    Promedio diario: {money(totalVentasMes / daysInMonth)}
+                  </div>
+                </div>
+                <div className={styles.summaryCardFooter}>
+                  <span>{ventasFiltered.length} transacciones</span>
+                </div>
+              </div>
 
-          {/* TABLA PIVOT / RESUMEN DINÁMICO */}
-          <h2>Resumen Dinámico: Tiendas vs Marcas</h2>
-          <div style={{ overflowX: "auto", marginBottom: 20 }}>
-            <table className={styles.table} style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#f8f9fa" }}>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "left" }}>Tienda</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "left" }}>Ciudad</th>
-                  {tablaPivot.length > 0 && Object.keys(tablaPivot[0])
-                    .filter(key => !['tienda', 'ciudad', 'total'].includes(key))
-                    .map(marca => (
-                      <th key={marca} style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>
-                        {marca}
+              {/* Card 3: Cumplimiento */}
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryCardHeader}>
+                  <div className={styles.summaryCardIcon}>
+                    <span style={{ 
+                      background: cumplimientoGeneral >= 100 ? '#28a745' : 
+                                 cumplimientoGeneral >= 80 ? '#ffc107' : '#dc3545' 
+                    }}></span>
+                  </div>
+                  <h3 className={styles.summaryCardTitle}>Cumplimiento</h3>
+                  <div className={styles.summaryCardBadge}>
+                    General
+                  </div>
+                </div>
+                <div className={styles.summaryCardContent}>
+                  <div className={styles.summaryCardValue} style={{ 
+                    color: cumplimientoGeneral >= 100 ? '#28a745' : 
+                           cumplimientoGeneral >= 80 ? '#ffc107' : '#dc3545' 
+                  }}>
+                    {pct(cumplimientoGeneral)}
+                  </div>
+                  <div className={styles.summaryCardSubtitle}>
+                    {cumplimientoGeneral >= 100 ? '✅ Meta superada' : 
+                     cumplimientoGeneral >= 80 ? '⚠️ Cerca de la meta' : '❌ Por debajo de la meta'}
+                  </div>
+                </div>
+                <div className={styles.summaryCardFooter}>
+                  <span>
+                    {totalMetaMes > 0 ? 
+                      `${money(totalVentasMes)} / ${money(totalMetaMes)}` : 
+                      'Sin meta definida'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 4: Crecimiento */}
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryCardHeader}>
+                  <div className={styles.summaryCardIcon}>
+                    <span style={{ 
+                      background: crecimientoVsMesAnterior >= 0 ? '#28a745' : '#dc3545' 
+                    }}></span>
+                  </div>
+                  <h3 className={styles.summaryCardTitle}>Crecimiento</h3>
+                  <div className={styles.summaryCardBadge}>
+                    vs {new Date(getMesAnterior.year, getMesAnterior.month).toLocaleString("es-CO", { month: "short" })}
+                  </div>
+                </div>
+                <div className={styles.summaryCardContent}>
+                  <div className={styles.summaryCardValue} style={{ 
+                    color: crecimientoVsMesAnterior >= 0 ? '#28a745' : '#dc3545' 
+                  }}>
+                    {crecimientoVsMesAnterior >= 0 ? '+' : ''}{pct(crecimientoVsMesAnterior)}
+                  </div>
+                  <div className={styles.summaryCardSubtitle}>
+                    {crecimientoVsMesAnterior >= 0 ? '📈 Crecimiento positivo' : '📉 Crecimiento negativo'}
+                  </div>
+                </div>
+                <div className={styles.summaryCardFooter}>
+                  <span>Mes anterior: {money(ventasMesAnterior)}</span>
+                </div>
+              </div>
+
+              {/* Card 5: Top Productos */}
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryCardHeader}>
+                  <div className={styles.summaryCardIcon}>
+                    <span style={{ background: '#17a2b8' }}></span>
+                  </div>
+                  <h3 className={styles.summaryCardTitle}>Productos Más Vendidos</h3>
+                  <div className={styles.summaryCardBadge}>
+                    Top 5
+                  </div>
+                </div>
+                <div className={styles.summaryCardContent}>
+                  {productosMasVendidos.length > 0 ? (
+                    <div className={styles.topList}>
+                      {productosMasVendidos.slice(0, 3).map((prod, idx) => (
+                        <div key={prod.id} className={styles.topListItem}>
+                          <div className={styles.topListRank}>{idx + 1}</div>
+                          <div className={styles.topListContent}>
+                            <div className={styles.topListTitle}>{prod.nombre}</div>
+                            <div className={styles.topListMeta}>
+                              <span>{prod.cantidad} unidades</span>
+                              <span>{money(prod.dinero)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.emptyState}>Sin datos</div>
+                  )}
+                </div>
+                <div className={styles.summaryCardFooter}>
+                  <span>
+                    Total: {productosMasVendidos.reduce((acc, prod) => acc + prod.cantidad, 0)} unidades
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 6: Top Tiendas */}
+              <div className={styles.summaryCard}>
+                <div className={styles.summaryCardHeader}>
+                  <div className={styles.summaryCardIcon}>
+                    <span style={{ background: '#6f42c1' }}></span>
+                  </div>
+                  <h3 className={styles.summaryCardTitle}>Top 5 Tiendas</h3>
+                  <div className={styles.summaryCardBadge}>
+                    Por ventas
+                  </div>
+                </div>
+                <div className={styles.summaryCardContent}>
+                  {top5Tiendas.length > 0 ? (
+                    <div className={styles.topList}>
+                      {top5Tiendas.map((tienda, idx) => (
+                        <div key={tienda.id} className={styles.topListItem}>
+                          <div className={styles.topListRank}>{idx + 1}</div>
+                          <div className={styles.topListContent}>
+                            <div className={styles.topListTitle}>{tienda.nombre}</div>
+                            <div className={styles.topListMeta}>
+                              <span>{money(tienda.valor)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.emptyState}>Sin datos</div>
+                  )}
+                </div>
+                <div className={styles.summaryCardFooter}>
+                  <span>
+                    Total top 5: {money(top5Tiendas.reduce((acc, t) => acc + t.valor, 0))}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* Main Chart Section */}
+          <section className={styles.chartSection}>
+            <div className={styles.chartContainer}>
+              <h2 className={styles.sectionTitle}>Ventas vs Meta Diaria</h2>
+              <div className={styles.chartWrapper}>
+                <ReactECharts 
+                  option={optionPrincipal} 
+                  style={{ height: 480, width: "100%" }} 
+                  notMerge={true} 
+                  lazyUpdate={true}
+                  className={styles.chart}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Stacked Bar Chart */}
+          <section className={styles.chartSection}>
+            <div className={styles.chartContainer}>
+              <h2 className={styles.sectionTitle}>Ventas por Tienda y Marca (Top 5)</h2>
+              <div className={styles.chartWrapper}>
+                <ReactECharts 
+                  option={optionBarrasApiladas} 
+                  style={{ height: 400, width: "100%" }}
+                  className={styles.chart}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Pivot Table */}
+          <section className={styles.tableSection}>
+            <div className={styles.tableContainer}>
+              <div className={styles.tableHeader}>
+                <h2 className={styles.sectionTitle}>Resumen Dinámico: Tiendas vs Marcas</h2>
+              </div>
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.tableHeaderCell}>Tienda</th>
+                      <th className={styles.tableHeaderCell}>Ciudad</th>
+                      {tablaPivot.length > 0 && Object.keys(tablaPivot[0])
+                        .filter(key => !['tienda', 'ciudad', 'total'].includes(key))
+                        .map(marca => (
+                          <th key={marca} className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>
+                            {marca}
+                          </th>
+                        ))
+                      }
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right', fontWeight: 600 }}>
+                        Total
                       </th>
-                    ))
-                  }
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right", fontWeight: "bold" }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tablaPivot.length === 0 && (
-                  <tr><td colSpan="10" style={{ textAlign: "center", padding: 12 }}>No hay datos para mostrar la tabla pivot</td></tr>
-                )}
-                {tablaPivot.map((fila, idx) => (
-                  <tr key={idx} style={{ borderBottom: "1px solid #dee2e6" }}>
-                    <td style={{ padding: "12px", fontWeight: "bold" }}>{fila.tienda}</td>
-                    <td style={{ padding: "12px" }}>{fila.ciudad}</td>
-                    {Object.keys(fila)
-                      .filter(key => !['tienda', 'ciudad', 'total'].includes(key))
-                      .map(marca => (
-                        <td key={marca} style={{ padding: "12px", textAlign: "right" }}>
-                          {money(fila[marca])}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tablaPivot.length === 0 && (
+                      <tr>
+                        <td colSpan="10" className={styles.tableEmptyCell}>
+                          No hay datos para mostrar la tabla pivot
                         </td>
-                      ))
-                    }
-                    <td style={{ padding: "12px", textAlign: "right", fontWeight: "bold", background: "#f8f9fa" }}>
-                      {money(fila.total)}
-                    </td>
-                  </tr>
-                ))}
-                {/* Fila de totales */}
-                {tablaPivot.length > 0 && (
-                  <tr style={{ background: "#e9ecef", fontWeight: "bold" }}>
-                    <td style={{ padding: "12px" }} colSpan="2">Total General</td>
-                    {Object.keys(tablaPivot[0])
-                      .filter(key => !['tienda', 'ciudad', 'total'].includes(key))
-                      .map(marca => {
-                        const totalMarca = tablaPivot.reduce((sum, fila) => sum + (fila[marca] || 0), 0);
-                        return (
-                          <td key={marca} style={{ padding: "12px", textAlign: "right" }}>
-                            {money(totalMarca)}
-                          </td>
-                        );
-                      })
-                    }
-                    <td style={{ padding: "12px", textAlign: "right" }}>
-                      {money(tablaPivot.reduce((sum, fila) => sum + fila.total, 0))}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </tr>
+                    )}
+                    {tablaPivot.map((fila, idx) => (
+                      <tr key={idx} className={styles.tableRow}>
+                        <td className={styles.tableCell} style={{ fontWeight: 600 }}>{fila.tienda}</td>
+                        <td className={styles.tableCell}>{fila.ciudad}</td>
+                        {Object.keys(fila)
+                          .filter(key => !['tienda', 'ciudad', 'total'].includes(key))
+                          .map(marca => (
+                            <td key={marca} className={styles.tableCell} style={{ textAlign: 'right' }}>
+                              {money(fila[marca])}
+                            </td>
+                          ))
+                        }
+                        <td className={styles.tableCell} style={{ 
+                          textAlign: 'right', 
+                          fontWeight: 600,
+                          background: 'var(--bg-secondary)'
+                        }}>
+                          {money(fila.total)}
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Totals Row */}
+                    {tablaPivot.length > 0 && (
+                      <tr className={styles.tableTotalsRow}>
+                        <td className={styles.tableCell} colSpan="2" style={{ fontWeight: 600 }}>
+                          Total General
+                        </td>
+                        {Object.keys(tablaPivot[0])
+                          .filter(key => !['tienda', 'ciudad', 'total'].includes(key))
+                          .map(marca => {
+                            const totalMarca = tablaPivot.reduce((sum, fila) => sum + (fila[marca] || 0), 0);
+                            return (
+                              <td key={marca} className={styles.tableCell} style={{ textAlign: 'right', fontWeight: 600 }}>
+                                {money(totalMarca)}
+                              </td>
+                            );
+                          })
+                        }
+                        <td className={styles.tableCell} style={{ 
+                          textAlign: 'right', 
+                          fontWeight: 600,
+                          background: 'var(--accent-1)',
+                          color: 'white'
+                        }}>
+                          {money(tablaPivot.reduce((sum, fila) => sum + fila.total, 0))}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
-          {/* Tabla por Tienda */}
-          <h2>Resumen Detallado por Tienda</h2>
-          <div style={{ overflowX: "auto", marginBottom: 20 }}>
-            <table className={styles.table} style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#f8f9fa" }}>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6" }}>Nombre Tienda</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Meta (dinero)</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Dinero vendido</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Cumplimiento %</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Cantidad vendida</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Inventario cantidad</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tablaPorTienda.length === 0 && (
-                  <tr><td colSpan="6" style={{ textAlign: "center", padding: 12 }}>No hay datos</td></tr>
-                )}
-                {tablaPorTienda.map(row => (
-                  <tr key={row.id} style={{ borderBottom: "1px solid #dee2e6" }}>
-                    <td style={{ padding: 12 }}>{row.nombre_tienda}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{money(row.meta_dinero)}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{money(row.dinero_vendido)}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{pct(row.cumplimiento)}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{row.cantidad_vendida}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{row.inventario_cantidad}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Detailed Tables */}
+          <section className={styles.tablesGrid}>
+            
+            {/* Stores Table */}
+            <div className={styles.tableCard}>
+              <div className={styles.tableCardHeader}>
+                <h3 className={styles.tableCardTitle}>Resumen por Tienda</h3>
+                <div className={styles.tableCardCount}>
+                  {tablaPorTienda.length} tiendas
+                </div>
+              </div>
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.tableHeaderCell}>Nombre Tienda</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Meta</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Ventas</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Cumplimiento</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Cantidad</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Inventario</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tablaPorTienda.length === 0 && (
+                      <tr>
+                        <td colSpan="6" className={styles.tableEmptyCell}>
+                          No hay datos
+                        </td>
+                      </tr>
+                    )}
+                    {tablaPorTienda.map(row => (
+                      <tr key={row.id} className={styles.tableRow}>
+                        <td className={styles.tableCell}>{row.nombre_tienda}</td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{money(row.meta_dinero)}</td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{money(row.dinero_vendido)}</td>
+                        <td className={styles.tableCell} style={{ 
+                          textAlign: 'right',
+                          color: row.cumplimiento >= 100 ? '#28a745' : 
+                                 row.cumplimiento >= 80 ? '#ffc107' : '#dc3545',
+                          fontWeight: 600
+                        }}>
+                          {pct(row.cumplimiento)}
+                        </td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{row.cantidad_vendida}</td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{row.inventario_cantidad}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-          {/* Tabla por Producto/Marca */}
-          <h2>Resumen por Producto / Marca</h2>
-          <div style={{ overflowX: "auto", marginBottom: 40 }}>
-            <table className={styles.table} style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#f8f9fa" }}>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6" }}>Marca</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6" }}>Nombre Producto</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Meta (dinero)</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Dinero vendido</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Cumplimiento %</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Cantidad vendida</th>
-                  <th style={{ padding: "12px", borderBottom: "2px solid #dee2e6", textAlign: "right" }}>Inventario cantidad</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tablaPorProducto.length === 0 && (
-                  <tr><td colSpan="7" style={{ textAlign: "center", padding: 12 }}>No hay datos</td></tr>
-                )}
-                {tablaPorProducto.map(row => (
-                  <tr key={row.id} style={{ borderBottom: "1px solid #dee2e6" }}>
-                    <td style={{ padding: 12 }}>{row.marca}</td>
-                    <td style={{ padding: 12 }}>{row.nombre_producto}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{money(row.meta_dinero)}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{money(row.dinero_vendido)}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{pct(row.cumplimiento)}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{row.cantidad_vendida}</td>
-                    <td style={{ padding: 12, textAlign: "right" }}>{row.inventario_cantidad}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            {/* Products Table */}
+            <div className={styles.tableCard}>
+              <div className={styles.tableCardHeader}>
+                <h3 className={styles.tableCardTitle}>Resumen por Producto / Marca</h3>
+                <div className={styles.tableCardCount}>
+                  {tablaPorProducto.length} productos
+                </div>
+              </div>
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.tableHeaderCell}>Marca</th>
+                      <th className={styles.tableHeaderCell}>Producto</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Meta</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Ventas</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Cumplimiento</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Cantidad</th>
+                      <th className={styles.tableHeaderCell} style={{ textAlign: 'right' }}>Inventario</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tablaPorProducto.length === 0 && (
+                      <tr>
+                        <td colSpan="7" className={styles.tableEmptyCell}>
+                          No hay datos
+                        </td>
+                      </tr>
+                    )}
+                    {tablaPorProducto.map(row => (
+                      <tr key={row.id} className={styles.tableRow}>
+                        <td className={styles.tableCell}>{row.marca}</td>
+                        <td className={styles.tableCell}>{row.nombre_producto}</td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{money(row.meta_dinero)}</td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{money(row.dinero_vendido)}</td>
+                        <td className={styles.tableCell} style={{ 
+                          textAlign: 'right',
+                          color: row.cumplimiento >= 100 ? '#28a745' : 
+                                 row.cumplimiento >= 80 ? '#ffc107' : '#dc3545',
+                          fontWeight: 600
+                        }}>
+                          {pct(row.cumplimiento)}
+                        </td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{row.cantidad_vendida}</td>
+                        <td className={styles.tableCell} style={{ textAlign: 'right' }}>{row.inventario_cantidad}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </section>
         </>
       )}
-    </div>
+    </main>
   );
 };
 
