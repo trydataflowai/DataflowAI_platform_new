@@ -2,42 +2,75 @@
    Variables para Diseño Light - CRUD Ventas
    ========================= */
 
-.CrudVentasLight {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  --text-primary: #2d3748;
-  --text-secondary: #4a5568;
-  --text-muted: #718096;
-  --text-light: #a0aec0;
-  --accent-1: #0A66C2;
-  --accent-2: #0073b1;
-  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --accent-light: rgba(10, 102, 194, 0.1);
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-hover-bg: rgba(255, 255, 255, 1);
-  --card-border: rgba(0, 0, 0, 0.08);
-  --card-hover-border: rgba(10, 102, 194, 0.3);
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
-  --backdrop-filter: blur(10px);
-  --modal-bg: rgba(255, 255, 255, 0.95);
-  --modal-border: rgba(0, 0, 0, 0.1);
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
-  --info-color: #3b82f6;
-  --border-radius-sm: 6px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+:root {
+  /* Paleta de colores con prefijo dh-veinte-crdventas */
+  --dh-veinte-crdventas-bg-primary: #ffffff;
+  --dh-veinte-crdventas-bg-secondary: #f8f9fa;
+  --dh-veinte-crdventas-bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --dh-veinte-crdventas-text-primary: #2d3748;
+  --dh-veinte-crdventas-text-secondary: #4a5568;
+  --dh-veinte-crdventas-text-muted: #718096;
+  --dh-veinte-crdventas-text-light: #a0aec0;
+  --dh-veinte-crdventas-accent-1: #0A66C2;
+  --dh-veinte-crdventas-accent-2: #0073b1;
+  --dh-veinte-crdventas-accent-gradient: linear-gradient(135deg, var(--dh-veinte-crdventas-accent-1), var(--dh-veinte-crdventas-accent-2));
+  --dh-veinte-crdventas-accent-light: rgba(10, 102, 194, 0.1);
+  --dh-veinte-crdventas-card-bg: rgba(255, 255, 255, 0.9);
+  --dh-veinte-crdventas-card-hover-bg: rgba(255, 255, 255, 1);
+  --dh-veinte-crdventas-card-border: rgba(0, 0, 0, 0.08);
+  --dh-veinte-crdventas-card-hover-border: rgba(10, 102, 194, 0.3);
+  --dh-veinte-crdventas-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --dh-veinte-crdventas-card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
+  --dh-veinte-crdventas-backdrop-filter: blur(10px);
+  --dh-veinte-crdventas-modal-bg: rgba(255, 255, 255, 0.95);
+  --dh-veinte-crdventas-modal-border: rgba(0, 0, 0, 0.1);
+  --dh-veinte-crdventas-success-color: #10b981;
+  --dh-veinte-crdventas-warning-color: #f59e0b;
+  --dh-veinte-crdventas-error-color: #ef4444;
+  --dh-veinte-crdventas-info-color: #3b82f6;
+  --dh-veinte-crdventas-border-radius-sm: 6px;
+  --dh-veinte-crdventas-border-radius-md: 8px;
+  --dh-veinte-crdventas-border-radius-lg: 12px;
+  --dh-veinte-crdventas-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.dh-veinte-crdventas-CrudVentasLight {
+  /* Usando las variables con prefijo */
+  --bg-primary: var(--dh-veinte-crdventas-bg-primary);
+  --bg-secondary: var(--dh-veinte-crdventas-bg-secondary);
+  --bg-gradient: var(--dh-veinte-crdventas-bg-gradient);
+  --text-primary: var(--dh-veinte-crdventas-text-primary);
+  --text-secondary: var(--dh-veinte-crdventas-text-secondary);
+  --text-muted: var(--dh-veinte-crdventas-text-muted);
+  --text-light: var(--dh-veinte-crdventas-text-light);
+  --accent-1: var(--dh-veinte-crdventas-accent-1);
+  --accent-2: var(--dh-veinte-crdventas-accent-2);
+  --accent-gradient: var(--dh-veinte-crdventas-accent-gradient);
+  --accent-light: var(--dh-veinte-crdventas-accent-light);
+  --card-bg: var(--dh-veinte-crdventas-card-bg);
+  --card-hover-bg: var(--dh-veinte-crdventas-card-hover-bg);
+  --card-border: var(--dh-veinte-crdventas-card-border);
+  --card-hover-border: var(--dh-veinte-crdventas-card-hover-border);
+  --card-shadow: var(--dh-veinte-crdventas-card-shadow);
+  --card-hover-shadow: var(--dh-veinte-crdventas-card-hover-shadow);
+  --backdrop-filter: var(--dh-veinte-crdventas-backdrop-filter);
+  --modal-bg: var(--dh-veinte-crdventas-modal-bg);
+  --modal-border: var(--dh-veinte-crdventas-modal-border);
+  --success-color: var(--dh-veinte-crdventas-success-color);
+  --warning-color: var(--dh-veinte-crdventas-warning-color);
+  --error-color: var(--dh-veinte-crdventas-error-color);
+  --info-color: var(--dh-veinte-crdventas-info-color);
+  --border-radius-sm: var(--dh-veinte-crdventas-border-radius-sm);
+  --border-radius-md: var(--dh-veinte-crdventas-border-radius-md);
+  --border-radius-lg: var(--dh-veinte-crdventas-border-radius-lg);
+  --transition: var(--dh-veinte-crdventas-transition);
 }
 
 /* =========================
    Estilos Base
    ========================= */
 
-.container {
+.dh-veinte-crdventas-container {
   width: 100%;
   min-height: 100vh;
   background: var(--bg-gradient);
@@ -49,18 +82,18 @@
 }
 
 /* Header Section */
-.header {
+.dh-veinte-crdventas-header {
   padding: 40px 32px 32px;
   border-bottom: 1px solid var(--card-border);
   background: var(--bg-primary);
 }
 
-.headerContent {
+.dh-veinte-crdventas-headerContent {
   max-width: 1400px;
   margin: 0 auto;
 }
 
-.title {
+.dh-veinte-crdventas-title {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 8px 0;
@@ -68,7 +101,7 @@
   letter-spacing: -0.02em;
 }
 
-.subtitle {
+.dh-veinte-crdventas-subtitle {
   font-size: 1rem;
   color: var(--text-secondary);
   margin: 0;
@@ -76,13 +109,13 @@
 }
 
 /* Filters Section */
-.filtersSection {
+.dh-veinte-crdventas-filtersSection {
   padding: 24px 32px;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--card-border);
 }
 
-.filtersContainer {
+.dh-veinte-crdventas-filtersContainer {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
@@ -91,24 +124,24 @@
   align-items: center;
 }
 
-.searchGroup {
+.dh-veinte-crdventas-searchGroup {
   min-width: 300px;
 }
 
-.searchInputWrapper {
+.dh-veinte-crdventas-searchInputWrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.searchIcon {
+.dh-veinte-crdventas-searchIcon {
   position: absolute;
   left: 12px;
   color: var(--text-light);
   pointer-events: none;
 }
 
-.searchInput {
+.dh-veinte-crdventas-searchInput {
   width: 100%;
   padding: 10px 12px 10px 36px;
   background: var(--bg-secondary);
@@ -119,35 +152,35 @@
   transition: var(--transition);
 }
 
-.searchInput:focus {
+.dh-veinte-crdventas-searchInput:focus {
   outline: none;
   border-color: var(--accent-1);
   box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
 }
 
-.searchInput::placeholder {
+.dh-veinte-crdventas-searchInput::placeholder {
   color: var(--text-light);
 }
 
-.dateGroup {
+.dh-veinte-crdventas-dateGroup {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
-.dateInputWrapper {
+.dh-veinte-crdventas-dateInputWrapper {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.dateLabel {
+.dh-veinte-crdventas-dateLabel {
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
-.dateInput {
+.dh-veinte-crdventas-dateInput {
   padding: 8px 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--card-border);
@@ -158,23 +191,23 @@
   transition: var(--transition);
 }
 
-.dateInput:focus {
+.dh-veinte-crdventas-dateInput:focus {
   outline: none;
   border-color: var(--accent-1);
   box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
 }
 
-.actionsGroup {
+.dh-veinte-crdventas-actionsGroup {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
 /* Button Styles */
-.btnPrimary,
-.btnSecondary,
-.btnCancel,
-.btnSubmit {
+.dh-veinte-crdventas-btnPrimary,
+.dh-veinte-crdventas-btnSecondary,
+.dh-veinte-crdventas-btnCancel,
+.dh-veinte-crdventas-btnSubmit {
   padding: 10px 20px;
   border-radius: var(--border-radius-md);
   font-weight: 500;
@@ -188,83 +221,83 @@
   min-height: 40px;
 }
 
-.btnPrimary {
+.dh-veinte-crdventas-btnPrimary {
   background: var(--accent-gradient);
   color: white;
 }
 
-.btnPrimary:hover:not(:disabled) {
+.dh-veinte-crdventas-btnPrimary:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(10, 102, 194, 0.2);
 }
 
-.btnSecondary {
+.dh-veinte-crdventas-btnSecondary {
   background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--card-border);
 }
 
-.btnSecondary:hover {
+.dh-veinte-crdventas-btnSecondary:hover {
   background: var(--card-bg);
   border-color: var(--accent-1);
 }
 
-.btnCancel {
+.dh-veinte-crdventas-btnCancel {
   background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--card-border);
 }
 
-.btnCancel:hover {
+.dh-veinte-crdventas-btnCancel:hover {
   background: #e5e7eb;
 }
 
-.btnSubmit {
+.dh-veinte-crdventas-btnSubmit {
   background: var(--accent-gradient);
   color: white;
 }
 
-.btnSubmit:hover:not(:disabled) {
+.dh-veinte-crdventas-btnSubmit:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(10, 102, 194, 0.2);
 }
 
-.btnSubmit:disabled {
+.dh-veinte-crdventas-btnSubmit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.btnIcon {
+.dh-veinte-crdventas-btnIcon {
   flex-shrink: 0;
 }
 
-.btnLoading {
+.dh-veinte-crdventas-btnLoading {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.btnSpinner {
+.dh-veinte-crdventas-btnSpinner {
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: white;
-  animation: spin 0.8s linear infinite;
+  animation: dh-veinte-crdventas-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
+@keyframes dh-veinte-crdventas-spin {
   to { transform: rotate(360deg); }
 }
 
 /* Content Section */
-.contentSection {
+.dh-veinte-crdventas-contentSection {
   padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-.contentContainer {
+.dh-veinte-crdventas-contentContainer {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--border-radius-lg);
@@ -273,7 +306,7 @@
 }
 
 /* Loading State */
-.loadingState {
+.dh-veinte-crdventas-loadingState {
   padding: 40px;
   display: flex;
   flex-direction: column;
@@ -282,22 +315,22 @@
   gap: 16px;
 }
 
-.loadingSpinner {
+.dh-veinte-crdventas-loadingSpinner {
   width: 40px;
   height: 40px;
   border: 3px solid var(--accent-light);
   border-radius: 50%;
   border-top-color: var(--accent-1);
-  animation: spin 0.8s linear infinite;
+  animation: dh-veinte-crdventas-spin 0.8s linear infinite;
 }
 
-.loadingText {
+.dh-veinte-crdventas-loadingText {
   color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
 /* Error State */
-.errorState {
+.dh-veinte-crdventas-errorState {
   margin: 20px;
   padding: 16px;
   background: rgba(239, 68, 68, 0.1);
@@ -308,7 +341,7 @@
   gap: 12px;
 }
 
-.errorIcon {
+.dh-veinte-crdventas-errorIcon {
   width: 24px;
   height: 24px;
   background: var(--error-color);
@@ -322,14 +355,14 @@
   flex-shrink: 0;
 }
 
-.errorText {
+.dh-veinte-crdventas-errorText {
   color: var(--error-color);
   font-size: 0.9rem;
   flex: 1;
   margin: 0;
 }
 
-.errorClose {
+.dh-veinte-crdventas-errorClose {
   background: none;
   border: none;
   color: var(--error-color);
@@ -345,12 +378,12 @@
   transition: var(--transition);
 }
 
-.errorClose:hover {
+.dh-veinte-crdventas-errorClose:hover {
   background: rgba(239, 68, 68, 0.1);
 }
 
 /* Empty State */
-.emptyState {
+.dh-veinte-crdventas-emptyState {
   padding: 60px 20px;
   display: flex;
   flex-direction: column;
@@ -359,7 +392,7 @@
   text-align: center;
 }
 
-.emptyIcon {
+.dh-veinte-crdventas-emptyIcon {
   width: 64px;
   height: 64px;
   background: var(--accent-light);
@@ -371,14 +404,14 @@
   color: var(--accent-1);
 }
 
-.emptyTitle {
+.dh-veinte-crdventas-emptyTitle {
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
-.emptyDescription {
+.dh-veinte-crdventas-emptyDescription {
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin: 0;
@@ -386,21 +419,21 @@
 }
 
 /* Table Styles */
-.tableContainer {
+.dh-veinte-crdventas-tableContainer {
   overflow-x: auto;
 }
 
-.table {
+.dh-veinte-crdventas-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.tableHeader {
+.dh-veinte-crdventas-tableHeader {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--card-border);
 }
 
-.tableHeaderCell {
+.dh-veinte-crdventas-tableHeaderCell {
   padding: 16px 20px;
   text-align: left;
   font-weight: 600;
@@ -411,20 +444,20 @@
   white-space: nowrap;
 }
 
-.tableBody {
+.dh-veinte-crdventas-tableBody {
   background: var(--bg-primary);
 }
 
-.tableRow {
+.dh-veinte-crdventas-tableRow {
   border-bottom: 1px solid var(--card-border);
   transition: var(--transition);
 }
 
-.tableRow:hover {
+.dh-veinte-crdventas-tableRow:hover {
   background: rgba(10, 102, 194, 0.02);
 }
 
-.tableCell {
+.dh-veinte-crdventas-tableCell {
   padding: 16px 20px;
   font-size: 0.95rem;
   color: var(--text-primary);
@@ -432,7 +465,7 @@
 }
 
 /* Table Cell Components */
-.idBadge {
+.dh-veinte-crdventas-idBadge {
   display: inline-block;
   padding: 4px 8px;
   background: var(--accent-light);
@@ -443,21 +476,21 @@
   font-family: 'SF Mono', monospace;
 }
 
-.dateCell {
+.dh-veinte-crdventas-dateCell {
   display: flex;
   flex-direction: column;
 }
 
-.dateValue {
+.dh-veinte-crdventas-dateValue {
   font-family: 'SF Mono', monospace;
   font-size: 0.9rem;
 }
 
-.entityName {
+.dh-veinte-crdventas-entityName {
   font-weight: 500;
 }
 
-.quantityBadge {
+.dh-veinte-crdventas-quantityBadge {
   display: inline-block;
   padding: 4px 12px;
   background: rgba(16, 185, 129, 0.1);
@@ -467,7 +500,7 @@
   font-size: 0.9rem;
 }
 
-.amountBadge {
+.dh-veinte-crdventas-amountBadge {
   display: inline-block;
   padding: 4px 12px;
   background: rgba(59, 130, 246, 0.1);
@@ -478,13 +511,13 @@
   font-family: 'SF Mono', monospace;
 }
 
-.actionButtons {
+.dh-veinte-crdventas-actionButtons {
   display: flex;
   gap: 8px;
 }
 
-.actionBtnEdit,
-.actionBtnDelete {
+.dh-veinte-crdventas-actionBtnEdit,
+.dh-veinte-crdventas-actionBtnDelete {
   width: 32px;
   height: 32px;
   border-radius: var(--border-radius-sm);
@@ -498,28 +531,28 @@
   padding: 0;
 }
 
-.actionBtnEdit {
+.dh-veinte-crdventas-actionBtnEdit {
   color: var(--accent-1);
   border-color: var(--accent-light);
 }
 
-.actionBtnEdit:hover {
+.dh-veinte-crdventas-actionBtnEdit:hover {
   background: var(--accent-light);
   transform: translateY(-1px);
 }
 
-.actionBtnDelete {
+.dh-veinte-crdventas-actionBtnDelete {
   color: var(--error-color);
   border-color: rgba(239, 68, 68, 0.1);
 }
 
-.actionBtnDelete:hover {
+.dh-veinte-crdventas-actionBtnDelete:hover {
   background: rgba(239, 68, 68, 0.1);
   transform: translateY(-1px);
 }
 
 /* Pagination */
-.pagination {
+.dh-veinte-crdventas-pagination {
   padding: 20px;
   border-top: 1px solid var(--card-border);
   display: flex;
@@ -527,13 +560,13 @@
   align-items: center;
 }
 
-.paginationInfo {
+.dh-veinte-crdventas-paginationInfo {
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
 
 /* Modal Styles */
-.modalOverlay {
+.dh-veinte-crdventas-modalOverlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
@@ -545,7 +578,7 @@
   backdrop-filter: blur(4px);
 }
 
-.modal {
+.dh-veinte-crdventas-modal {
   width: 100%;
   max-width: 720px;
   background: var(--modal-bg);
@@ -553,10 +586,10 @@
   border-radius: var(--border-radius-lg);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   backdrop-filter: var(--backdrop-filter);
-  animation: modalSlideIn 0.3s ease-out;
+  animation: dh-veinte-crdventas-modalSlideIn 0.3s ease-out;
 }
 
-@keyframes modalSlideIn {
+@keyframes dh-veinte-crdventas-modalSlideIn {
   from {
     opacity: 0;
     transform: translateY(-20px);
@@ -567,7 +600,7 @@
   }
 }
 
-.modalHeader {
+.dh-veinte-crdventas-modalHeader {
   padding: 24px 24px 16px;
   border-bottom: 1px solid var(--card-border);
   display: flex;
@@ -575,14 +608,14 @@
   align-items: center;
 }
 
-.modalTitle {
+.dh-veinte-crdventas-modalTitle {
   font-size: 1.3rem;
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
 }
 
-.modalClose {
+.dh-veinte-crdventas-modalClose {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -598,26 +631,26 @@
   padding: 0;
 }
 
-.modalClose:hover {
+.dh-veinte-crdventas-modalClose:hover {
   background: #e5e7eb;
   color: var(--text-primary);
 }
 
-.modalForm {
+.dh-veinte-crdventas-modalForm {
   padding: 24px;
 }
 
-.formGrid {
+.dh-veinte-crdventas-formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
 
-.formGroup {
+.dh-veinte-crdventas-formGroup {
   margin-bottom: 0;
 }
 
-.formLabel {
+.dh-veinte-crdventas-formLabel {
   display: block;
   font-size: 0.9rem;
   font-weight: 500;
@@ -625,13 +658,13 @@
   margin-bottom: 8px;
 }
 
-.required {
+.dh-veinte-crdventas-required {
   color: var(--error-color);
   margin-left: 4px;
 }
 
-.formInput,
-.formSelect {
+.dh-veinte-crdventas-formInput,
+.dh-veinte-crdventas-formSelect {
   width: 100%;
   padding: 10px 12px;
   background: var(--bg-secondary);
@@ -642,14 +675,14 @@
   transition: var(--transition);
 }
 
-.formInput:focus,
-.formSelect:focus {
+.dh-veinte-crdventas-formInput:focus,
+.dh-veinte-crdventas-formSelect:focus {
   outline: none;
   border-color: var(--accent-1);
   box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
 }
 
-.formSelect {
+.dh-veinte-crdventas-formSelect {
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%23718096' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -658,7 +691,7 @@
   padding-right: 36px;
 }
 
-.modalActions {
+.dh-veinte-crdventas-modalActions {
   margin-top: 32px;
   padding-top: 20px;
   border-top: 1px solid var(--card-border);
@@ -669,68 +702,68 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .filtersContainer {
+  .dh-veinte-crdventas-filtersContainer {
     grid-template-columns: 1fr;
     gap: 16px;
   }
   
-  .searchGroup {
+  .dh-veinte-crdventas-searchGroup {
     min-width: 100%;
   }
   
-  .formGrid {
+  .dh-veinte-crdventas-formGrid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .header,
-  .filtersSection,
-  .contentSection {
+  .dh-veinte-crdventas-header,
+  .dh-veinte-crdventas-filtersSection,
+  .dh-veinte-crdventas-contentSection {
     padding: 24px 20px;
   }
   
-  .title {
+  .dh-veinte-crdventas-title {
     font-size: 1.75rem;
   }
   
-  .dateGroup {
+  .dh-veinte-crdventas-dateGroup {
     flex-direction: column;
     align-items: stretch;
   }
   
-  .actionsGroup {
+  .dh-veinte-crdventas-actionsGroup {
     flex-direction: column;
     align-items: stretch;
   }
   
-  .btnPrimary,
-  .btnSecondary {
+  .dh-veinte-crdventas-btnPrimary,
+  .dh-veinte-crdventas-btnSecondary {
     width: 100%;
     justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
-  .header {
+  .dh-veinte-crdventas-header {
     padding: 20px 16px;
   }
   
-  .tableHeaderCell,
-  .tableCell {
+  .dh-veinte-crdventas-tableHeaderCell,
+  .dh-veinte-crdventas-tableCell {
     padding: 12px;
   }
   
-  .modal {
+  .dh-veinte-crdventas-modal {
     max-width: 100%;
     margin: 0 16px;
   }
 }
 
 /* Focus States para Accesibilidad */
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
+.dh-veinte-crdventas button:focus-visible,
+.dh-veinte-crdventas input:focus-visible,
+.dh-veinte-crdventas select:focus-visible {
   outline: 2px solid var(--accent-1);
   outline-offset: 2px;
 }

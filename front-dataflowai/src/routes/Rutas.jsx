@@ -89,6 +89,10 @@ import DashboardVentaseInventariosAnalisisInventarios from "../components/dashbo
 
 
 
+//Rutas para modulo de CRM
+import PerfilBrokers from "../components/pages/brokers/ProfileBrokers";
+import CrmBrokers from "../components/pages/brokers/CrmBrokers";
+
 
 
 
@@ -646,7 +650,7 @@ export const Rutas = () => {
               }
             />
 
-             <Route
+            <Route
               path={"/dashboard-ventas-e-inventarios/crudTiendas"}
               element={
                 <RutaProtegida>
@@ -657,7 +661,7 @@ export const Rutas = () => {
               }
             />
 
-             <Route
+            <Route
               path={"/dashboard-ventas-e-inventarios/crudProductos"}
               element={
                 <RutaProtegida>
@@ -668,7 +672,7 @@ export const Rutas = () => {
               }
             />
 
-             <Route
+            <Route
               path={"/dashboard-ventas-e-inventarios/crudInventarios"}
               element={
                 <RutaProtegida>
@@ -679,7 +683,7 @@ export const Rutas = () => {
               }
             />
 
-             <Route
+            <Route
               path={"/dashboard-ventas-e-inventarios/crudVentas"}
               element={
                 <RutaProtegida>
@@ -690,7 +694,7 @@ export const Rutas = () => {
               }
             />
 
-               <Route
+            <Route
               path={"/dashboard-ventas-e-inventarios/crudMetas"}
               element={
                 <RutaProtegida>
@@ -724,7 +728,27 @@ export const Rutas = () => {
 
 
 
+              <Route
+              path={p("/brk/perfil")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <PerfilBrokers />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
+            <Route
+              path={p("/brk/CrmBrokers")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <CrmBrokers />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
 
 

@@ -1597,3 +1597,242 @@ class DashDfInventarios(models.Model):
 
     class Meta:
         db_table = 'dash_df_inventarios'
+
+
+
+
+
+
+
+
+from django.db import models
+
+
+class OdooSaleFlat(models.Model):
+    # --- IDs Odoo ---
+
+    id_empresa = models.ForeignKey(
+        'Empresa',
+        on_delete=models.PROTECT,
+        db_column='id_empresa'
+    )
+
+    sale_odoo_id = models.IntegerField()
+    partner_odoo_id = models.IntegerField(null=True, blank=True)
+    user_odoo_id = models.IntegerField(null=True, blank=True)
+    company_odoo_id = models.IntegerField(null=True, blank=True)
+    invoice_odoo_id = models.IntegerField(null=True, blank=True)
+    product_odoo_id = models.IntegerField(null=True, blank=True)
+
+    # --- Referencias ---
+    sale_reference = models.CharField(max_length=100)
+    invoice_name = models.CharField(max_length=100, null=True, blank=True)
+
+    # --- Fechas ---
+    create_date = models.DateTimeField()
+    commitment_date = models.DateField(null=True, blank=True)
+    invoice_date = models.DateField(null=True, blank=True)
+
+    # --- Cliente ---
+    partner_name = models.CharField(max_length=255)
+
+    # --- Vendedor ---
+    user_name = models.CharField(max_length=255, null=True, blank=True)
+
+    # --- Empresa ---
+    company_name = models.CharField(max_length=255, null=True, blank=True)
+
+    # --- Canal / fuente ---
+    canal = models.CharField(max_length=100, null=True, blank=True)
+    orden_fuente = models.CharField(max_length=100, null=True, blank=True)
+    fuente = models.CharField(max_length=100, null=True, blank=True)
+
+    # --- Producto ---
+    product_name = models.CharField(max_length=255, null=True, blank=True)
+    product_brand = models.CharField(max_length=100, null=True, blank=True)
+
+    # --- Cantidades ---
+    product_uom_qty = models.FloatField(default=0)
+    qty_invoiced = models.FloatField(default=0)
+    qty_delivered = models.FloatField(default=0)
+
+    # --- Precios ---
+    price_unit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    price_subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    amount_total = models.DecimalField(max_digits=12, decimal_places=2)
+
+    # --- Estados ---
+    sale_state = models.CharField(max_length=50)
+    invoice_state = models.CharField(max_length=50, null=True, blank=True)
+    invoice_status = models.CharField(max_length=50, null=True, blank=True)
+
+    # --- Otros ---
+    cart_quantity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.sale_reference} - {self.partner_name}"
+
+
+
+
+
+from decimal import Decimal
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+# Asumo que el modelo Usuario ya existe en el mismo archivo o importado:
+# from .models import Usuario
+# (En tu caso Usuario ya lo tienes definido más arriba)
+
+TIPO_CUENTA_CHOICES = [
+    ('AH', 'Cuenta de ahorros'),
+    ('CO', 'Cuenta corriente'),
+    ('OT', 'Otro'),
+]
+
+TIPO_IDENTIFICACION_CHOICES = [
+    ('CC', 'Cédula de ciudadanía'),
+    ('CE', 'Cédula de extranjería'),
+    ('TI', 'Tarjeta de identidad'),
+    ('NIT', 'NIT'),
+    ('PA', 'Pasaporte'),
+]
+
+TAMANIO_EMPRESA_CHOICES = [
+    ('PE', 'Pequeña'),
+    ('ME', 'Mediana'),
+    ('GR', 'Grande'),
+]
+
+ETAPA_LEAD_CHOICES = [
+    ('lead_prospecto', 'lead prospecto'),
+    ('lead_prospecto_calificado', 'lead prospecto calificado'),  # opcional
+    ('lead_calificado', 'lead calificado'),
+    ('lead_demo', 'lead demo'),
+    ('propuesta_enviada', 'propuesta enviada'),
+    ('lead_ganado', 'lead ganado'),
+    ('lead_perdido', 'lead perdido'),
+]
+
+class UsuariosBrokers(models.Model):
+    id_broker = models.AutoField(primary_key=True, db_column='id_broker')
+    id_usuario = models.ForeignKey(
+        'Usuario',
+        on_delete=models.PROTECT,
+        db_column='id_usuario',
+        related_name='brokers'
+    )
+    numero_telefono = models.CharField(max_length=30, db_column='numero_telefono', blank=True)
+    pais_residencia = models.CharField(max_length=100, db_column='pais_residencia', blank=True)
+    entidad_financiera = models.CharField(max_length=100, db_column='entidad_financiera', blank=True)
+    numero_cuenta = models.CharField(max_length=100, db_column='numero_cuenta', blank=True)
+    tipo_cuenta = models.CharField(max_length=2, choices=TIPO_CUENTA_CHOICES, db_column='tipo_cuenta', blank=True)
+    codigo_swift = models.CharField(max_length=50, db_column='codigo_swift', blank=True)
+    tipo_identificacion = models.CharField(max_length=4, choices=TIPO_IDENTIFICACION_CHOICES, db_column='tipo_identificacion', blank=True)
+    numero_identificacion = models.CharField(max_length=60, db_column='numero_identificacion', blank=True)
+
+    class Meta:
+        db_table = 'usuarios_brokers'
+        verbose_name_plural = 'Usuarios Brokers'
+
+    def __str__(self):
+        # Muestra el usuario y el id_broker para identificar fácilmente
+        return f'Broker {self.id_broker} - Usuario: {self.id_usuario}'
+
+
+class LeadsBrokers(models.Model):
+    id_lead = models.AutoField(primary_key=True, db_column='id_lead')
+    id_broker = models.ForeignKey(
+        UsuariosBrokers,
+        on_delete=models.PROTECT,
+        db_column='id_broker',
+        related_name='leads'
+    )
+    nombre_lead = models.CharField(max_length=200, db_column='nombre_lead')
+    correo = models.EmailField(max_length=255, db_column='correo', blank=True)
+    persona_de_contacto = models.CharField(max_length=200, db_column='persona_de_contacto', blank=True)
+    telefono = models.CharField(max_length=30, db_column='telefono', blank=True)
+    pais = models.CharField(max_length=100, db_column='pais', blank=True)
+    industria = models.CharField(max_length=150, db_column='industria', blank=True)
+    tamano_empresa = models.CharField(max_length=2, choices=TAMANIO_EMPRESA_CHOICES, db_column='tamano_empresa', blank=True)
+    ticket_estimado = models.DecimalField(max_digits=14, decimal_places=2, db_column='ticket_estimado', null=True, blank=True)  # almacenar en moneda (ej. USD)
+    moneda_ticket = models.CharField(max_length=10, db_column='moneda_ticket', default='USD', blank=True)
+    probabilidad_cierre = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
+        db_column='probabilidad_cierre',
+        null=True,
+        blank=True
+    )  # porcentaje 0-100
+    campo_etiqueta = models.CharField(max_length=100, db_column='campo_etiqueta', blank=True)
+    fuente_lead = models.CharField(max_length=150, db_column='fuente_lead', blank=True)
+    comentarios = models.TextField(db_column='comentarios', blank=True)
+    etapa = models.CharField(max_length=30, choices=ETAPA_LEAD_CHOICES, db_column='etapa', default='lead_prospecto')
+
+    class Meta:
+        db_table = 'leads_brokers'
+        verbose_name_plural = 'Leads Brokers'
+
+    def __str__(self):
+        return f'{self.nombre_lead} ({self.id_lead})'
+
+
+class FacturacionLeadsBrokers(models.Model):
+    numero_factura = models.IntegerField(primary_key=True, db_column='numero_factura')
+    id_broker = models.ForeignKey(
+        UsuariosBrokers,
+        on_delete=models.PROTECT,
+        db_column='id_broker',
+        related_name='facturas'
+    )
+    id_lead = models.ForeignKey(
+        LeadsBrokers,
+        on_delete=models.PROTECT,
+        db_column='id_lead',
+        related_name='facturas'
+    )
+    fecha_facturacion = models.DateField(db_column='fecha_facturacion')
+    valor_facturado = models.DecimalField(max_digits=14, decimal_places=2, db_column='valor_facturado')
+    # Guardamos la comisión como porcentaje (ej. 20.00 para 20%)
+    comision_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00')), MaxValueValidator(Decimal('100.00'))],
+        db_column='comision_percent',
+        default=Decimal('20.00')
+    )
+
+    class Meta:
+        db_table = 'facturacion_leads_brokers'
+        verbose_name_plural = 'Facturación Leads Brokers'
+
+    def __str__(self):
+        return f'Factura {self.numero_factura} - Lead {self.id_lead}'
+
+    @property
+    def valor_comision_amount(self):
+        """Retorna el valor de la comisión (valor_facturado * comision_percent / 100)."""
+        if self.valor_facturado is None or self.comision_percent is None:
+            return Decimal('0.00')
+        return (self.valor_facturado * (self.comision_percent / Decimal('100.00'))).quantize(Decimal('0.01'))
+
+
+class PagosBrokersLeads(models.Model):
+    id_pago = models.AutoField(primary_key=True, db_column='id_pago')
+    fecha_pago = models.DateField(db_column='fecha_pago')
+    numero_factura = models.ForeignKey(
+        FacturacionLeadsBrokers,
+        on_delete=models.PROTECT,
+        db_column='numero_factura',
+        related_name='pagos'
+    )
+    valor_pagado = models.DecimalField(max_digits=14, decimal_places=2, db_column='valor_pagado')
+    estado = models.BooleanField(default=False, db_column='estado')  # False = pendiente, True = pagado
+
+    class Meta:
+        db_table = 'pagos_brokers_leads'
+        verbose_name_plural = 'Pagos Brokers Leads'
+
+    def __str__(self):
+        return f'Pago {self.id_pago} - Factura {self.numero_factura.numero_factura}'

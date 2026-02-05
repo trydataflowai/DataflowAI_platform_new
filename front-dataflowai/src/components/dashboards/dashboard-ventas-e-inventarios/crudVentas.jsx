@@ -164,21 +164,21 @@ const DashboardVentaseInventariosCrudVentas = () => {
   };
 
   return (
-    <main className={`${styles.container} ${styles.CrudVentasLight}`}>
+    <main className={`${styles["dh-veinte-crdventas-container"]} ${styles["dh-veinte-crdventas-CrudVentasLight"]}`}>
       {/* Header Section */}
-      <section className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.title}>CRUD Ventas</h1>
-          <p className={styles.subtitle}>Gestión de registros de ventas del sistema</p>
+      <section className={styles["dh-veinte-crdventas-header"]}>
+        <div className={styles["dh-veinte-crdventas-headerContent"]}>
+          <h1 className={styles["dh-veinte-crdventas-title"]}>CRUD Ventas</h1>
+          <p className={styles["dh-veinte-crdventas-subtitle"]}>Gestión de registros de ventas del sistema</p>
         </div>
       </section>
 
       {/* Filtros Section */}
-      <section className={styles.filtersSection}>
-        <div className={styles.filtersContainer}>
-          <div className={styles.searchGroup}>
-            <div className={styles.searchInputWrapper}>
-              <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <section className={styles["dh-veinte-crdventas-filtersSection"]}>
+        <div className={styles["dh-veinte-crdventas-filtersContainer"]}>
+          <div className={styles["dh-veinte-crdventas-searchGroup"]}>
+            <div className={styles["dh-veinte-crdventas-searchInputWrapper"]}>
+              <svg className={styles["dh-veinte-crdventas-searchIcon"]} width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M11.3333 11.3333L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" strokeWidth="1.5"/>
               </svg>
@@ -187,44 +187,44 @@ const DashboardVentaseInventariosCrudVentas = () => {
                 placeholder="Buscar por tienda o producto..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={styles.searchInput}
+                className={styles["dh-veinte-crdventas-searchInput"]}
               />
             </div>
           </div>
 
-          <div className={styles.dateGroup}>
-            <div className={styles.dateInputWrapper}>
-              <span className={styles.dateLabel}>Desde:</span>
+          <div className={styles["dh-veinte-crdventas-dateGroup"]}>
+            <div className={styles["dh-veinte-crdventas-dateInputWrapper"]}>
+              <span className={styles["dh-veinte-crdventas-dateLabel"]}>Desde:</span>
               <input 
                 type="date" 
                 value={startDate} 
                 onChange={(e) => setStartDate(e.target.value)}
-                className={styles.dateInput}
+                className={styles["dh-veinte-crdventas-dateInput"]}
               />
             </div>
-            <div className={styles.dateInputWrapper}>
-              <span className={styles.dateLabel}>Hasta:</span>
+            <div className={styles["dh-veinte-crdventas-dateInputWrapper"]}>
+              <span className={styles["dh-veinte-crdventas-dateLabel"]}>Hasta:</span>
               <input 
                 type="date" 
                 value={endDate} 
                 onChange={(e) => setEndDate(e.target.value)}
-                className={styles.dateInput}
+                className={styles["dh-veinte-crdventas-dateInput"]}
               />
             </div>
           </div>
 
-          <div className={styles.actionsGroup}>
+          <div className={styles["dh-veinte-crdventas-actionsGroup"]}>
             <button 
               onClick={() => setRefreshFlag(f => f + 1)} 
-              className={styles.btnSecondary}
+              className={styles["dh-veinte-crdventas-btnSecondary"]}
             >
-              <svg className={styles.btnIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <svg className={styles["dh-veinte-crdventas-btnIcon"]} width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M13.5 8C13.5 11.0376 11.0376 13.5 8 13.5C4.96243 13.5 2.5 11.0376 2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C10.1579 2.5 12.0379 3.73188 13 5.5M13.5 2.5V5.5H10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Refrescar
             </button>
-            <button onClick={openCreate} className={styles.btnPrimary}>
-              <svg className={styles.btnIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <button onClick={openCreate} className={styles["dh-veinte-crdventas-btnPrimary"]}>
+              <svg className={styles["dh-veinte-crdventas-btnIcon"]} width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M8 3.5V12.5M12.5 8H3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               Nueva Venta
@@ -234,24 +234,24 @@ const DashboardVentaseInventariosCrudVentas = () => {
       </section>
 
       {/* Main Content */}
-      <section className={styles.contentSection}>
-        <div className={styles.contentContainer}>
+      <section className={styles["dh-veinte-crdventas-contentSection"]}>
+        <div className={styles["dh-veinte-crdventas-contentContainer"]}>
           {/* Loading State */}
           {loading && (
-            <div className={styles.loadingState}>
-              <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Cargando registros...</p>
+            <div className={styles["dh-veinte-crdventas-loadingState"]}>
+              <div className={styles["dh-veinte-crdventas-loadingSpinner"]}></div>
+              <p className={styles["dh-veinte-crdventas-loadingText"]}>Cargando registros...</p>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className={styles.errorState}>
-              <div className={styles.errorIcon}>!</div>
-              <p className={styles.errorText}>{error}</p>
+            <div className={styles["dh-veinte-crdventas-errorState"]}>
+              <div className={styles["dh-veinte-crdventas-errorIcon"]}>!</div>
+              <p className={styles["dh-veinte-crdventas-errorText"]}>{error}</p>
               <button 
                 onClick={() => setError(null)} 
-                className={styles.errorClose}
+                className={styles["dh-veinte-crdventas-errorClose"]}
               >
                 ×
               </button>
@@ -259,62 +259,62 @@ const DashboardVentaseInventariosCrudVentas = () => {
           )}
 
           {/* Table Section */}
-          <div className={styles.tableContainer}>
+          <div className={styles["dh-veinte-crdventas-tableContainer"]}>
             {ventas.length === 0 && !loading ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
+              <div className={styles["dh-veinte-crdventas-emptyState"]}>
+                <div className={styles["dh-veinte-crdventas-emptyIcon"]}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                     <path d="M3 10H21M7 15H8M12 15H13M6 21H18C19.6569 21 21 19.6569 21 18V6C21 4.34315 19.6569 3 18 3H6C4.34315 3 3 4.34315 3 6V18C3 19.6569 4.34315 21 6 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <h3 className={styles.emptyTitle}>No hay registros de ventas</h3>
-                <p className={styles.emptyDescription}>
+                <h3 className={styles["dh-veinte-crdventas-emptyTitle"]}>No hay registros de ventas</h3>
+                <p className={styles["dh-veinte-crdventas-emptyDescription"]}>
                   {search || startDate || endDate 
                     ? "Intenta cambiar los filtros de búsqueda" 
                     : "Comienza creando una nueva venta"}
                 </p>
               </div>
             ) : (
-              <table className={styles.table}>
-                <thead className={styles.tableHeader}>
+              <table className={styles["dh-veinte-crdventas-table"]}>
+                <thead className={styles["dh-veinte-crdventas-tableHeader"]}>
                   <tr>
-                    <th className={styles.tableHeaderCell}>ID</th>
-                    <th className={styles.tableHeaderCell}>Fecha</th>
-                    <th className={styles.tableHeaderCell}>Tienda</th>
-                    <th className={styles.tableHeaderCell}>Producto</th>
-                    <th className={styles.tableHeaderCell}>Cantidad</th>
-                    <th className={styles.tableHeaderCell}>Dinero</th>
-                    <th className={styles.tableHeaderCell}>Acciones</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>ID</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>Fecha</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>Tienda</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>Producto</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>Cantidad</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>Dinero</th>
+                    <th className={styles["dh-veinte-crdventas-tableHeaderCell"]}>Acciones</th>
                   </tr>
                 </thead>
-                <tbody className={styles.tableBody}>
+                <tbody className={styles["dh-veinte-crdventas-tableBody"]}>
                   {ventas.map(v => (
-                    <tr key={v.id_registro ?? v.id ?? v.pk} className={styles.tableRow}>
-                      <td className={styles.tableCell}>
-                        <span className={styles.idBadge}>{v.id_registro ?? v.id ?? v.pk}</span>
+                    <tr key={v.id_registro ?? v.id ?? v.pk} className={styles["dh-veinte-crdventas-tableRow"]}>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <span className={styles["dh-veinte-crdventas-idBadge"]}>{v.id_registro ?? v.id ?? v.pk}</span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <div className={styles.dateCell}>
-                          <span className={styles.dateValue}>{v.fecha_venta}</span>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <div className={styles["dh-veinte-crdventas-dateCell"]}>
+                          <span className={styles["dh-veinte-crdventas-dateValue"]}>{v.fecha_venta}</span>
                         </div>
                       </td>
-                      <td className={styles.tableCell}>
-                        <span className={styles.entityName}>{v.tienda_nombre ?? v.id_tienda}</span>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <span className={styles["dh-veinte-crdventas-entityName"]}>{v.tienda_nombre ?? v.id_tienda}</span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <span className={styles.entityName}>{v.producto_nombre ?? v.id_producto}</span>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <span className={styles["dh-veinte-crdventas-entityName"]}>{v.producto_nombre ?? v.id_producto}</span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <span className={styles.quantityBadge}>{v.cantidad_vendida}</span>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <span className={styles["dh-veinte-crdventas-quantityBadge"]}>{v.cantidad_vendida}</span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <span className={styles.amountBadge}>${parseFloat(v.dinero_vendido).toLocaleString()}</span>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <span className={styles["dh-veinte-crdventas-amountBadge"]}>${parseFloat(v.dinero_vendido).toLocaleString()}</span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <div className={styles.actionButtons}>
+                      <td className={styles["dh-veinte-crdventas-tableCell"]}>
+                        <div className={styles["dh-veinte-crdventas-actionButtons"]}>
                           <button 
                             onClick={() => openEdit(v.id_registro ?? v.id ?? v.pk)} 
-                            className={styles.actionBtnEdit}
+                            className={styles["dh-veinte-crdventas-actionBtnEdit"]}
                             title="Editar"
                           >
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -323,7 +323,7 @@ const DashboardVentaseInventariosCrudVentas = () => {
                           </button>
                           <button 
                             onClick={() => handleDelete(v.id_registro ?? v.id ?? v.pk)} 
-                            className={styles.actionBtnDelete}
+                            className={styles["dh-veinte-crdventas-actionBtnDelete"]}
                             title="Eliminar"
                           >
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -341,8 +341,8 @@ const DashboardVentaseInventariosCrudVentas = () => {
 
           {/* Pagination */}
           {ventas.length > 0 && (
-            <div className={styles.pagination}>
-              <div className={styles.paginationInfo}>
+            <div className={styles["dh-veinte-crdventas-pagination"]}>
+              <div className={styles["dh-veinte-crdventas-paginationInfo"]}>
                 Mostrando {ventas.length} registros
               </div>
             </div>
@@ -353,31 +353,31 @@ const DashboardVentaseInventariosCrudVentas = () => {
       {/* Modal */}
       {showModal && (
         <div 
-          className={styles.modalOverlay}
+          className={styles["dh-veinte-crdventas-modalOverlay"]}
           onClick={() => setShowModal(false)}
         >
           <div 
-            className={styles.modal}
+            className={styles["dh-veinte-crdventas-modal"]}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>
+            <div className={styles["dh-veinte-crdventas-modalHeader"]}>
+              <h2 className={styles["dh-veinte-crdventas-modalTitle"]}>
                 {isEditing ? 'Editar Venta' : 'Crear Venta'}
               </h2>
               <button 
                 onClick={() => setShowModal(false)} 
-                className={styles.modalClose}
+                className={styles["dh-veinte-crdventas-modalClose"]}
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className={styles.modalForm}>
-              <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+            <form onSubmit={handleSubmit} className={styles["dh-veinte-crdventas-modalForm"]}>
+              <div className={styles["dh-veinte-crdventas-formGrid"]}>
+                <div className={styles["dh-veinte-crdventas-formGroup"]}>
+                  <label className={styles["dh-veinte-crdventas-formLabel"]}>
                     Fecha de venta
-                    <span className={styles.required}>*</span>
+                    <span className={styles["dh-veinte-crdventas-required"]}>*</span>
                   </label>
                   <input 
                     name="fecha_venta" 
@@ -385,21 +385,21 @@ const DashboardVentaseInventariosCrudVentas = () => {
                     value={form.fecha_venta} 
                     onChange={handleChange} 
                     required 
-                    className={styles.formInput}
+                    className={styles["dh-veinte-crdventas-formInput"]}
                   />
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles["dh-veinte-crdventas-formGroup"]}>
+                  <label className={styles["dh-veinte-crdventas-formLabel"]}>
                     Tienda
-                    <span className={styles.required}>*</span>
+                    <span className={styles["dh-veinte-crdventas-required"]}>*</span>
                   </label>
                   <select 
                     name="id_tienda" 
                     value={form.id_tienda} 
                     onChange={handleChange} 
                     required 
-                    className={styles.formSelect}
+                    className={styles["dh-veinte-crdventas-formSelect"]}
                   >
                     <option value="">-- Seleccionar tienda --</option>
                     {tiendas.map(t => (
@@ -410,17 +410,17 @@ const DashboardVentaseInventariosCrudVentas = () => {
                   </select>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles["dh-veinte-crdventas-formGroup"]}>
+                  <label className={styles["dh-veinte-crdventas-formLabel"]}>
                     Producto
-                    <span className={styles.required}>*</span>
+                    <span className={styles["dh-veinte-crdventas-required"]}>*</span>
                   </label>
                   <select 
                     name="id_producto" 
                     value={form.id_producto} 
                     onChange={handleChange} 
                     required 
-                    className={styles.formSelect}
+                    className={styles["dh-veinte-crdventas-formSelect"]}
                   >
                     <option value="">-- Seleccionar producto --</option>
                     {productos.map(p => (
@@ -431,10 +431,10 @@ const DashboardVentaseInventariosCrudVentas = () => {
                   </select>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles["dh-veinte-crdventas-formGroup"]}>
+                  <label className={styles["dh-veinte-crdventas-formLabel"]}>
                     Cantidad vendida
-                    <span className={styles.required}>*</span>
+                    <span className={styles["dh-veinte-crdventas-required"]}>*</span>
                   </label>
                   <input 
                     name="cantidad_vendida" 
@@ -443,15 +443,15 @@ const DashboardVentaseInventariosCrudVentas = () => {
                     value={form.cantidad_vendida} 
                     onChange={handleChange} 
                     required 
-                    className={styles.formInput}
+                    className={styles["dh-veinte-crdventas-formInput"]}
                     placeholder="Ej: 10"
                   />
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles["dh-veinte-crdventas-formGroup"]}>
+                  <label className={styles["dh-veinte-crdventas-formLabel"]}>
                     Dinero vendido ($)
-                    <span className={styles.required}>*</span>
+                    <span className={styles["dh-veinte-crdventas-required"]}>*</span>
                   </label>
                   <input 
                     name="dinero_vendido" 
@@ -461,28 +461,28 @@ const DashboardVentaseInventariosCrudVentas = () => {
                     value={form.dinero_vendido} 
                     onChange={handleChange} 
                     required 
-                    className={styles.formInput}
+                    className={styles["dh-veinte-crdventas-formInput"]}
                     placeholder="Ej: 1500.50"
                   />
                 </div>
               </div>
 
-              <div className={styles.modalActions}>
+              <div className={styles["dh-veinte-crdventas-modalActions"]}>
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)} 
-                  className={styles.btnCancel}
+                  className={styles["dh-veinte-crdventas-btnCancel"]}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className={styles.btnSubmit}
+                  className={styles["dh-veinte-crdventas-btnSubmit"]}
                 >
                   {loading ? (
-                    <span className={styles.btnLoading}>
-                      <span className={styles.btnSpinner}></span>
+                    <span className={styles["dh-veinte-crdventas-btnLoading"]}>
+                      <span className={styles["dh-veinte-crdventas-btnSpinner"]}></span>
                       Procesando...
                     </span>
                   ) : (

@@ -155,7 +155,14 @@ from .views import (
     DashVeinteVentaListCreateView,
     DashVeinteVentaDetailView,
     DashVeinteMetaListCreateView,
-    DashVeinteMetaDetailView
+    DashVeinteMetaDetailView,
+
+
+    PerfilBrokerView,
+    LeadsBrokersListCreateView,
+    LeadsBrokersDetailView,
+    LeadsBrokersImportView,
+
 
 
 )
@@ -338,6 +345,14 @@ urlpatterns = [
     path('DashVeinte/Ventas/<int:pk>/', DashVeinteVentaDetailView.as_view(), name='dashveinte-venta-detail'),
     path('DashVeinte/Metas/', DashVeinteMetaListCreateView.as_view(), name='dashveinte-meta-list-create'),
     path('DashVeinte/Metas/<int:pk>/', DashVeinteMetaDetailView.as_view(), name='dashveinte-meta-detail'),
+
+
+
+    path('brokers/perfil/', PerfilBrokerView.as_view(), name='perfil-broker'),
+    path('brokers/leads/', LeadsBrokersListCreateView.as_view(), name='brokers-leads-list-create'),
+    path('brokers/leads/<int:pk>/', LeadsBrokersDetailView.as_view(), name='brokers-leads-detail'),
+    path('brokers/leads/import/', LeadsBrokersImportView.as_view(), name='brokers-leads-import'),
+
 ]
 
 

@@ -1256,3 +1256,157 @@ class DashDfInventariosAdmin(admin.ModelAdmin):
     readonly_fields = (
         'id_registro',
     )
+
+
+
+from django.contrib import admin
+from .models import (
+    UsuariosBrokers,
+    LeadsBrokers,
+    FacturacionLeadsBrokers,
+    PagosBrokersLeads,
+)
+
+# ---------- UsuariosBrokers ----------
+@admin.register(UsuariosBrokers)
+class UsuariosBrokersAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_broker',
+        'id_usuario',
+        'numero_telefono',
+        'pais_residencia',
+        'entidad_financiera',
+        'tipo_cuenta',
+        'numero_identificacion',
+    )
+
+    search_fields = (
+        'id_usuario__nombres',
+        'id_usuario__correo',
+        'numero_identificacion',
+        'entidad_financiera',
+    )
+
+    list_filter = (
+        'pais_residencia',
+        'entidad_financiera',
+        'tipo_cuenta',
+    )
+
+    readonly_fields = (
+        'id_broker',
+    )
+
+
+# ---------- LeadsBrokers ----------
+@admin.register(LeadsBrokers)
+class LeadsBrokersAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_lead',
+        'nombre_lead',
+        'id_broker',
+        'correo',
+        'persona_de_contacto',
+        'telefono',
+        'pais',
+        'industria',
+        'tamano_empresa',
+        'etapa',
+        'probabilidad_cierre',
+        'ticket_estimado',
+    )
+
+    search_fields = (
+        'nombre_lead',
+        'correo',
+        'persona_de_contacto',
+        'id_broker__id_usuario__nombres',
+        'id_broker__id_usuario__correo',
+    )
+
+    list_filter = (
+        'tamano_empresa',
+        'etapa',
+        'pais',
+        'industria',
+        'id_broker',
+    )
+
+    readonly_fields = (
+        'id_lead',
+    )
+
+    ordering = ('-id_lead',)
+
+
+# ---------- FacturacionLeadsBrokers ----------
+@admin.register(FacturacionLeadsBrokers)
+class FacturacionLeadsBrokersAdmin(admin.ModelAdmin):
+    list_display = (
+        'numero_factura',
+        'id_broker',
+        'id_lead',
+        'fecha_facturacion',
+        'valor_facturado',
+        'comision_percent',
+        'valor_comision_display',
+    )
+
+    search_fields = (
+        'numero_factura',
+        'id_lead__nombre_lead',
+        'id_broker__id_usuario__nombres',
+    )
+
+    list_filter = (
+        'fecha_facturacion',
+        'id_broker',
+        'id_lead',
+    )
+
+    readonly_fields = (
+        'numero_factura',
+        'valor_comision_display',
+    )
+
+    date_hierarchy = 'fecha_facturacion'
+    ordering = ('-fecha_facturacion',)
+
+    def valor_comision_display(self, obj):
+        """Muestra el valor calculado de la comisión (propiedad del modelo)."""
+        # Aseguramos que devuelva un valor legible incluso si es None
+        try:
+            return obj.valor_comision_amount
+        except Exception:
+            return None
+    valor_comision_display.short_description = 'Valor comisión'
+
+
+# ---------- PagosBrokersLeads ----------
+@admin.register(PagosBrokersLeads)
+class PagosBrokersLeadsAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_pago',
+        'fecha_pago',
+        'numero_factura',
+        'valor_pagado',
+        'estado',
+    )
+
+    search_fields = (
+        'id_pago',
+        'numero_factura__numero_factura',
+        'numero_factura__id_lead__nombre_lead',
+    )
+
+    list_filter = (
+        'estado',
+        'fecha_pago',
+        'numero_factura__id_broker',
+    )
+
+    readonly_fields = (
+        'id_pago',
+    )
+
+    ordering = ('-fecha_pago',)

@@ -3383,7 +3383,8 @@ class DashboardSalesCorporativoDetailProd15(APIView):
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+"""ODOO_URL
+"""
 class DashboardSalesCorporativoBulkDeleteProd15(APIView):
     """
     POST: borra registros por filtros y empresa del usuario. Responde {'deleted': <cantidad>}
@@ -6126,3 +6127,465 @@ class DashVeinteMetaDetailView(APIView):
 
         meta.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
+
+
+
+
+
+
+# appdataflowai/views.py
+import jwt
+from datetime import timedelta
+from django.conf import settings
+from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import EditarPerfilBrokersSerializer, UsuariosBrokersSerializer
+from .models import UsuariosBrokers, Usuario
+from django.shortcuts import get_object_or_404
+
+class PerfilBrokerView(APIView):
+    """
+    GET -> retorna perfil del broker (usuario) según token JWT.
+    PUT -> actualiza Usuario y/o UsuariosBrokers y devuelve nuevo token access.
+          Permite cambiar contraseña en texto plano si se envía contrasena_actual y contrasena_nueva.
+    """
+
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get(self, request):
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        try:
+            broker = UsuariosBrokers.objects.select_related('id_usuario').get(id_usuario=usuario)
+        except UsuariosBrokers.DoesNotExist:
+            return Response({'detail': 'No existe perfil broker para este usuario.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UsuariosBrokersSerializer(broker)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        serializer = EditarPerfilBrokersSerializer(data=request.data, context={'request': request, 'id_usuario': user_id})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            usuario_obj, broker_obj = serializer.update_or_create(id_usuario=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as exc:
+            return Response({'error': 'Error interno al actualizar perfil', 'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        broker_ser = UsuariosBrokersSerializer(broker_obj)
+
+        # Generar nuevo access token con datos actualizados (2 horas)
+        now = timezone.now()
+        access_exp = now + timedelta(hours=2)
+        payload = {
+            'id_usuario': usuario_obj.id_usuario,
+            'correo': usuario_obj.correo,
+            'type': 'access',
+            'exp': int(access_exp.timestamp()),
+            'iat': int(now.timestamp())
+        }
+        try:
+            new_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+            if isinstance(new_token, bytes):
+                new_token = new_token.decode('utf-8')
+        except Exception:
+            new_token = None
+
+        response_data = {
+            'broker': broker_ser.data,
+            'usuario': {
+                'id_usuario': usuario_obj.id_usuario,
+                'nombres': usuario_obj.nombres,
+                'apellidos': usuario_obj.apellidos,
+                'correo': usuario_obj.correo,
+            },
+            'token': new_token,
+            'expires_in': 7200
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+# appdataflowai/views.py
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Usuario, UsuariosBrokers, LeadsBrokers
+from .serializers import LeadsBrokersListSerializer
+
+class LeadsBrokersListView(APIView):
+    """
+    GET: Retorna leads asociados a los brokers del usuario autenticado.
+    Opcional: ?q=texto para buscar por nombre_lead, persona_de_contacto o correo.
+    """
+
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get(self, request):
+        # extraer user id del token
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+
+        # obtener los brokers vinculados al usuario autenticado
+        broker_ids = list(UsuariosBrokers.objects.filter(id_usuario=usuario).values_list('id_broker', flat=True))
+        if not broker_ids:
+            return Response([], status=status.HTTP_200_OK)
+
+        # construimos queryset de leads asociados a esos brokers
+        leads_qs = LeadsBrokers.objects.select_related('id_broker', 'id_broker__id_usuario')\
+                    .filter(id_broker__in=broker_ids).order_by('-id_lead')
+
+        # filtro de búsqueda opcional
+        q = request.GET.get('q', '').strip()
+        if q:
+            from django.db.models import Q
+            leads_qs = leads_qs.filter(
+                Q(nombre_lead__icontains=q) |
+                Q(persona_de_contacto__icontains=q) |
+                Q(correo__icontains=q)
+            )
+
+        serializer = LeadsBrokersListSerializer(leads_qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+# appdataflowai/views.py
+import csv
+import io
+import jwt
+from decimal import Decimal, InvalidOperation
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Usuario, UsuariosBrokers, LeadsBrokers
+from .serializers import LeadsBrokersListSerializer, LeadsBrokersCreateUpdateSerializer
+
+class LeadsBrokersListCreateView(APIView):
+    """
+    GET: Lista leads asociados a los brokers del usuario autenticado.
+    POST: Crea un lead y lo asigna al primer broker del usuario autenticado.
+    """
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get(self, request):
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        broker_ids = list(UsuariosBrokers.objects.filter(id_usuario=usuario).values_list('id_broker', flat=True))
+        if not broker_ids:
+            return Response([], status=status.HTTP_200_OK)
+
+        qs = LeadsBrokers.objects.select_related('id_broker', 'id_broker__id_usuario').filter(id_broker__in=broker_ids).order_by('-id_lead')
+
+        # filtro opcional
+        q = request.GET.get('q', '').strip()
+        if q:
+            from django.db.models import Q
+            qs = qs.filter(Q(nombre_lead__icontains=q) | Q(persona_de_contacto__icontains=q) | Q(correo__icontains=q))
+
+        serializer = LeadsBrokersListSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        # crear lead asignado automáticamente al broker del usuario
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+
+        broker = UsuariosBrokers.objects.filter(id_usuario=usuario).first()
+        if not broker:
+            return Response({'error': 'Usuario no tiene broker asociado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = LeadsBrokersCreateUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        # manejar ticket_estimado y probabilidad_cierre parsing si vienen como strings
+        if 'ticket_estimado' in data and data['ticket_estimado'] is not None:
+            try:
+                data['ticket_estimado'] = Decimal(str(data['ticket_estimado']))
+            except (InvalidOperation, ValueError):
+                data['ticket_estimado'] = None
+        if 'probabilidad_cierre' in data and data['probabilidad_cierre'] is not None:
+            try:
+                data['probabilidad_cierre'] = Decimal(str(data['probabilidad_cierre']))
+            except (InvalidOperation, ValueError):
+                data['probabilidad_cierre'] = None
+
+        lead = LeadsBrokers.objects.create(id_broker=broker, **data)
+        out_ser = LeadsBrokersListSerializer(lead)
+        return Response(out_ser.data, status=status.HTTP_201_CREATED)
+
+
+class LeadsBrokersDetailView(APIView):
+    """
+    GET: obtener lead por id (solo si pertenece a broker del usuario autenticado)
+    PUT: actualizar lead (id_broker no se puede modificar)
+    """
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get_object_and_check(self, pk, usuario):
+        lead = get_object_or_404(LeadsBrokers, pk=pk)
+        # revisar que el lead pertenezca a uno de los brokers del usuario
+        allowed = UsuariosBrokers.objects.filter(id_usuario=usuario, id_broker=lead.id_broker.id_broker).exists()
+        if not allowed:
+            return None, Response({'error': 'No autorizado para ver este lead'}, status=status.HTTP_403_FORBIDDEN)
+        return lead, None
+
+    def get(self, request, pk):
+        user_id, err = self._get_user_id_from_token(request)
+        if err:
+            return err
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        lead, err = self.get_object_and_check(pk, usuario)
+        if err:
+            return err
+        serializer = LeadsBrokersListSerializer(lead)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        user_id, err = self._get_user_id_from_token(request)
+        if err:
+            return err
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        lead, err = self.get_object_and_check(pk, usuario)
+        if err:
+            return err
+
+        # no permitir cambiar id_broker vía payload (se ignora si envían)
+        serializer = LeadsBrokersCreateUpdateSerializer(instance=lead, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        # parse decimals
+        if 'ticket_estimado' in data and data['ticket_estimado'] is not None:
+            from decimal import Decimal, InvalidOperation
+            try:
+                data['ticket_estimado'] = Decimal(str(data['ticket_estimado']))
+            except (InvalidOperation, ValueError):
+                data['ticket_estimado'] = None
+        for key, val in data.items():
+            setattr(lead, key, val)
+        lead.save()
+        out_ser = LeadsBrokersListSerializer(lead)
+        return Response(out_ser.data, status=status.HTTP_200_OK)
+
+
+class LeadsBrokersImportView(APIView):
+    """
+    POST: importar leads desde CSV (multipart/form-data file). 
+    Asigna id_broker automáticamente según el usuario autenticado (primer broker).
+    CSV espera cabeceras: nombre_lead, correo, persona_de_contacto, telefono, pais, industria,
+    tamano_empresa, ticket_estimado, moneda_ticket, probabilidad_cierre, campo_etiqueta, fuente_lead, comentarios, etapa
+    """
+    parser_classes = (MultiPartParser, FormParser)
+
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def post(self, request):
+        user_id, err = self._get_user_id_from_token(request)
+        if err:
+            return err
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        broker = UsuariosBrokers.objects.filter(id_usuario=usuario).first()
+        if not broker:
+            return Response({'error': 'Usuario no tiene broker asociado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # archivo esperado en campo 'file'
+        uploaded = request.FILES.get('file')
+        if not uploaded:
+            return Response({'error': 'No se recibió archivo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # asumimos CSV UTF-8 (si no, adaptar)
+        try:
+            text_io = io.TextIOWrapper(uploaded.file, encoding='utf-8')
+            reader = csv.DictReader(text_io)
+        except Exception as e:
+            return Response({'error': 'Error leyendo CSV', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        created = 0
+        errors = []
+        line = 1
+        for row in reader:
+            line += 1
+            # normalizar keys: usar directamente las cabeceras esperadas
+            data = {
+                'nombre_lead': row.get('nombre_lead') or row.get('nombre') or row.get('name'),
+                'correo': row.get('correo'),
+                'persona_de_contacto': row.get('persona_de_contacto') or row.get('contacto'),
+                'telefono': row.get('telefono'),
+                'pais': row.get('pais'),
+                'industria': row.get('industria'),
+                'tamano_empresa': row.get('tamano_empresa'),
+                'ticket_estimado': None,
+                'moneda_ticket': row.get('moneda_ticket') or row.get('moneda'),
+                'probabilidad_cierre': None,
+                'campo_etiqueta': row.get('campo_etiqueta') or row.get('etiqueta'),
+                'fuente_lead': row.get('fuente_lead') or row.get('fuente'),
+                'comentarios': row.get('comentarios'),
+                'etapa': row.get('etapa'),
+            }
+            # parse numeric fields
+            te = row.get('ticket_estimado') or row.get('ticket')
+            pc = row.get('probabilidad_cierre') or row.get('probabilidad')
+            from decimal import Decimal, InvalidOperation
+            if te:
+                try:
+                    # limpiar comas/puntos si vienen formateados
+                    te_clean = te.replace(',', '').replace('$', '').strip()
+                    data['ticket_estimado'] = Decimal(te_clean)
+                except Exception:
+                    data['ticket_estimado'] = None
+            if pc:
+                try:
+                    pc_clean = pc.replace('%', '').replace(',', '.').strip()
+                    data['probabilidad_cierre'] = Decimal(pc_clean)
+                except Exception:
+                    data['probabilidad_cierre'] = None
+
+            # validar mínimo: nombre_lead
+            if not data['nombre_lead']:
+                errors.append({'line': line, 'error': 'Falta nombre_lead'})
+                continue
+
+            try:
+                LeadsBrokers.objects.create(id_broker=broker, **data)
+                created += 1
+            except Exception as e:
+                errors.append({'line': line, 'error': str(e)})
+
+        return Response({'created': created, 'errors': errors}, status=status.HTTP_201_CREATED if created else status.HTTP_400_BAD_REQUEST)
