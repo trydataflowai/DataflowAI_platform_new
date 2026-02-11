@@ -1,4 +1,3 @@
-// src/components/pages/brokers/CrmBrokers.jsx
 import React, { useEffect, useState } from 'react';
 import styles from '../../../styles/CreacionUsuario.module.css';
 import {
@@ -25,6 +24,15 @@ const emptyLead = {
   etapa: 'lead_prospecto',
 };
 
+const ETAPAS = [
+  { key: 'lead_prospecto', label: 'lead prospecto' },
+  { key: 'lead_calificado', label: 'lead calificado' },
+  { key: 'lead_demo', label: 'lead demo' },
+  { key: 'propuesta_enviada', label: 'propuesta enviada' },
+  { key: 'lead_ganado', label: 'lead ganado' },
+  { key: 'lead_perdido', label: 'lead perdido' },
+];
+
 const CrmBrokers = () => {
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState([]);
@@ -39,6 +47,8 @@ const CrmBrokers = () => {
   const [importResult, setImportResult] = useState(null);
   const [file, setFile] = useState(null);
   const [refreshToggle, setRefreshToggle] = useState(false);
+  const [view, setView] = useState('table'); // 'table' | 'kanban'
+  const [dragOverCol, setDragOverCol] = useState(null);
 
   useEffect(() => {
     loadLeads();
@@ -74,9 +84,7 @@ const CrmBrokers = () => {
     setSaving(true);
     setError(null);
     try {
-      // quitar campos vacíos que no queremos enviar
       const payload = { ...form };
-      // enviar
       await crearLead(payload);
       setShowCreate(false);
       setRefreshToggle(s => !s);
@@ -89,7 +97,6 @@ const CrmBrokers = () => {
   };
 
   const openEdit = (lead) => {
-    // preparar data para editar (no traer id_broker en el payload)
     const payload = {
       nombre_lead: lead.nombre_lead || '',
       correo: lead.correo || '',
@@ -152,7 +159,6 @@ const CrmBrokers = () => {
     } finally {
       setImporting(false);
       setFile(null);
-      // limpiar input file (si existe)
       const input = document.getElementById('csv-file-input');
       if (input) input.value = '';
     }
@@ -163,29 +169,99 @@ const CrmBrokers = () => {
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
+  // utils
+  const getBrokerName = (r) => {
+    // r.id_broker?.usuario may be shaped differently; guard defensively
+    const u = r?.id_broker?.usuario || r?.id_broker;
+    if (!u) return '—';
+    const nombres = u.nombres || u.nombre || '';
+    const apellidos = u.apellidos || u.apellido || '';
+    const full = `${nombres} ${apellidos}`.trim();
+    return full || '—';
+  };
+
+  // Drag & Drop handlers
+  const onDragStart = (e, leadId) => {
+    e.dataTransfer.setData('text/plain', leadId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onDragOver = (e, etapaKey) => {
+    e.preventDefault();
+    setDragOverCol(etapaKey);
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const onDragLeave = () => {
+    setDragOverCol(null);
+  };
+
+  const onDrop = async (e, newEtapa) => {
+    e.preventDefault();
+    setDragOverCol(null);
+    const idStr = e.dataTransfer.getData('text/plain');
+    const id = parseInt(idStr, 10);
+    if (!id) return;
+    const lead = leads.find(l => l.id_lead === id);
+    if (!lead) return;
+    if (lead.etapa === newEtapa) return;
+
+    // optimistic update
+    const prevLeads = [...leads];
+    setLeads((prev) => prev.map(l => l.id_lead === id ? { ...l, etapa: newEtapa } : l));
+
+    try {
+      await editarLead(id, { etapa: newEtapa });
+    } catch (err) {
+      console.error('Error actualizando etapa:', err);
+      setError('No se pudo actualizar la etapa (revirtiendo)...');
+      setLeads(prevLeads); // revert
+    }
+  };
+
+  // group leads by etapa
+  const leadsByEtapa = ETAPAS.reduce((acc, e) => {
+    acc[e.key] = leads.filter(l => l.etapa === e.key);
+    return acc;
+  }, {});
+
   return (
     <div className={styles.container}>
       <h1>CRM - Leads</h1>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-        <form onSubmit={handleSearch}>
+      <div className={styles.toolbar}>
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             placeholder="Buscar por nombre, contacto o correo..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             style={{ padding: '6px 8px', width: 320 }}
           />
-          <button type="submit" style={{ marginLeft: 8 }}>Buscar</button>
+          <button type="submit">Buscar</button>
+          <button type="button" onClick={() => { setQ(''); loadLeads(''); }}>Limpiar</button>
         </form>
 
-        <button onClick={() => { setQ(''); loadLeads(''); }} style={{ marginLeft: 8 }}>Limpiar</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button onClick={openCreate}>Crear lead</button>
 
-        <button onClick={openCreate} style={{ marginLeft: 8 }}>Crear lead</button>
-
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <input id="csv-file-input" type="file" accept=".csv,text/csv" onChange={handleImportFile} />
           <button onClick={submitImport} disabled={importing}>{importing ? 'Importando...' : 'Importar CSV'}</button>
           <button onClick={() => setRefreshToggle(s => !s)}>Refrescar</button>
+
+          <div className={styles.viewToggle}>
+            <button
+              className={view === 'table' ? styles.active : ''}
+              onClick={() => setView('table')}
+            >
+              TABLA
+            </button>
+            <button
+              className={view === 'kanban' ? styles.active : ''}
+              onClick={() => setView('kanban')}
+            >
+              KANBAN
+            </button>
+          </div>
         </div>
       </div>
 
@@ -198,50 +274,43 @@ const CrmBrokers = () => {
       {loading && <div>Cargando leads...</div>}
       {error && <div style={{ color: 'crimson' }}>{error}</div>}
 
-      {!loading && !error && (
+      {/* TABLE VIEW */}
+      {view === 'table' && !loading && !error && (
         <div style={{ overflowX: 'auto' }}>
           <table className={styles.table || ''} style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th>#</th>
                 <th>Nombre lead</th>
-                <th>Contacto</th>
+                <th>Broker</th>
+                <th>Campo de Etiqueta</th>
+                <th>%Probabilidad de Cierre</th>
+                <th>Ticket Estimado</th>
                 <th>Teléfono</th>
                 <th>Correo</th>
-                <th>País</th>
-                <th>Industria</th>
-                <th>Ticket</th>
-                <th>Prob. cierre</th>
-                <th>Etiqueta</th>
-                <th>Fuente</th>
+                <th>Persona de Contacto</th>
                 <th>Etapa</th>
-                <th>Broker (usuario)</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {leads.length === 0 && (
                 <tr>
-                  <td colSpan={14} style={{ textAlign: 'center', padding: 12 }}>No hay leads</td>
+                  <td colSpan={11} style={{ textAlign: 'center', padding: 12 }}>No hay leads</td>
                 </tr>
               )}
               {leads.map((r) => (
                 <tr key={r.id_lead}>
                   <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.id_lead}</td>
                   <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.nombre_lead}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.persona_de_contacto}</td>
+                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{getBrokerName(r)}</td>
+                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.campo_etiqueta}</td>
+                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.probabilidad_cierre ?? '-'}</td>
+                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.ticket_estimado ? `${r.moneda_ticket || ''} ${r.ticket_estimado}` : '-'}</td>
                   <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.telefono}</td>
                   <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.correo}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.pais}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.industria}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.ticket_estimado ? `${r.moneda_ticket || ''} ${r.ticket_estimado}` : '-'}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.probabilidad_cierre ?? '-'}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.campo_etiqueta}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.fuente_lead}</td>
+                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.persona_de_contacto}</td>
                   <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.etapa}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>
-                    {r.id_broker?.usuario ? `${r.id_broker.usuario.nombres || ''} ${r.id_broker.usuario.apellidos || ''} (${r.id_broker.usuario.correo})` : '—'}
-                  </td>
                   <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>
                     <button onClick={() => openEdit(r)}>Editar</button>
                   </td>
@@ -249,6 +318,54 @@ const CrmBrokers = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* KANBAN VIEW */}
+      {view === 'kanban' && !loading && !error && (
+        <div className={styles.kanbanWrapper}>
+          <div className={styles.kanbanBoard} /* row-reverse to show columns right-to-left visually */>
+            {ETAPAS.map((et) => (
+              <div
+                key={et.key}
+                className={`${styles.kanbanColumn} ${dragOverCol === et.key ? styles.dragOver : ''}`}
+                onDragOver={(e) => onDragOver(e, et.key)}
+                onDragLeave={onDragLeave}
+                onDrop={(e) => onDrop(e, et.key)}
+                role="list"
+              >
+                <div className={styles.columnHeader}>{et.label}</div>
+                <div className={styles.columnBody}>
+                  {leadsByEtapa[et.key] && leadsByEtapa[et.key].length === 0 && (
+                    <div className={styles.emptyColumn}>—</div>
+                  )}
+                  {leadsByEtapa[et.key] && leadsByEtapa[et.key].map((l) => (
+                    <div
+                      key={l.id_lead}
+                      className={styles.card}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, l.id_lead)}
+                      onDoubleClick={() => openEdit(l)}
+                    >
+                      <div className={styles.cardTitle}>{l.nombre_lead}</div>
+                      <div className={styles.cardMeta}>
+                        <small>{getBrokerName(l)}</small>
+                      </div>
+                      <div className={styles.cardMeta}>
+                        <small>{l.campo_etiqueta || '-'}</small>
+                      </div>
+                      <div className={styles.cardMeta}>
+                        <small>% {l.probabilidad_cierre ?? '-'}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 13, color: '#666' }}>
+            * Arrastra una tarjeta a otra columna para cambiar su etapa. Doble-click en una tarjeta para editar.
+          </div>
         </div>
       )}
 
