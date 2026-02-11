@@ -3383,7 +3383,8 @@ class DashboardSalesCorporativoDetailProd15(APIView):
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+"""ODOO_URL
+"""
 class DashboardSalesCorporativoBulkDeleteProd15(APIView):
     """
     POST: borra registros por filtros y empresa del usuario. Responde {'deleted': <cantidad>}
@@ -5228,3 +5229,1363 @@ class DashboardFormsVentasPuntoVentaView(APIView):
 
         serializer = DashboardFormsVentasPuntoVentaSAerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# app/views.py
+import jwt
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_date
+from django.db.models import Q
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+
+from .models import (
+    DashDfTiendas,
+    DashDfProductos,
+    DashDfInventarios,
+    DashDfVentas,
+    DashDfMetas,
+    Usuario,
+    Empresa
+)
+from .serializers import (
+    DashDfTiendasSerializer,
+    DashVeinteProductSerializer,
+    DashVeinteInventarioSerializer,
+    DashVeinteVentaSerializer,
+    DashVeinteMetaSerializer
+)
+
+
+def _get_company_id_from_token(request):
+    """
+    Decodifica el JWT (header Bearer ...) y retorna el company_id (int) y posible Response de error.
+    - Primero busca company id en el payload (company_id, id_empresa, empresa_id).
+    - Si no existe, busca id_usuario en el payload y consulta Usuario.id_empresa.
+    Retorna (company_id_int, None) o (None, Response(error...))
+    """
+    auth_header = get_authorization_header(request).split()
+    if not auth_header or auth_header[0].lower() != b'bearer':
+        return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        token = auth_header[1].decode('utf-8')
+    except Exception:
+        return None, Response({'error': 'Formato de token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+    except jwt.DecodeError:
+        return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception:
+        return None, Response({'error': 'Error decodificando token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 1) Intentar obtener company id directamente del payload
+    company_id = payload.get('company_id') or payload.get('id_empresa') or payload.get('empresa_id')
+    if company_id is not None:
+        try:
+            return int(company_id), None
+        except (TypeError, ValueError):
+            return None, Response({'error': 'company_id inválido en token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 2) Fallback: obtener id_usuario del payload y consultar Usuario -> id_empresa
+    user_id = payload.get('id_usuario') or payload.get('user_id') or payload.get('id')
+    if user_id is None:
+        return None, Response({'error': 'Token no contiene company_id ni id_usuario'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        return None, Response({'error': 'id_usuario inválido en token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        usuario = Usuario.objects.select_related('id_empresa').get(pk=user_id)
+    except Usuario.DoesNotExist:
+        return None, Response({'error': 'Usuario del token no existe'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception:
+        return None, Response({'error': 'Error consultando usuario'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    empresa = getattr(usuario, 'id_empresa', None)
+    if not empresa:
+        return None, Response({'error': 'Usuario no tiene empresa asignada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        return int(empresa.id_empresa), None
+    except Exception:
+        return None, Response({'error': 'Id de empresa inválido'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# -------------------------
+# Tiendas
+# -------------------------
+class TiendaListCreateView(APIView):
+    """
+    GET: lista las tiendas de la empresa (según token).
+    POST: crea una tienda asignada a la empresa del token.
+    """
+    def get(self, request):
+        company_id, err_response = _get_company_id_from_token(request)
+        if err_response:
+            return err_response
+
+        tiendas = DashDfTiendas.objects.filter(id_empresa_id=company_id)
+        serializer = DashDfTiendasSerializer(tiendas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        company_id, err_response = _get_company_id_from_token(request)
+        if err_response:
+            return err_response
+
+        # asegurar que la empresa exista
+        try:
+            empresa = Empresa.objects.get(pk=company_id)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # No permitir que el cliente fije id_empresa en request.data
+        data = request.data.copy()
+        # Build serializer without id_empresa from payload
+        serializer = DashDfTiendasSerializer(data=data)
+        if serializer.is_valid():
+            # save forcing id_empresa
+            serializer.save(id_empresa=empresa)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TiendaDetailView(APIView):
+    """
+    GET/PUT/PATCH/DELETE sobre una tienda específica.
+    Solo puede acceder/modificar/eliminar si la tienda pertenece a la empresa del token.
+    """
+    def _get_instance_for_company(self, pk, company_id):
+        return get_object_or_404(DashDfTiendas, pk=pk, id_empresa_id=company_id)
+
+    def get(self, request, pk):
+        company_id, err_response = _get_company_id_from_token(request)
+        if err_response:
+            return err_response
+
+        try:
+            tienda = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DashDfTiendasSerializer(tienda)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        company_id, err_response = _get_company_id_from_token(request)
+        if err_response:
+            return err_response
+
+        try:
+            tienda = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        # Ensure id_empresa not changed
+        data.pop('id_empresa', None)
+        serializer = DashDfTiendasSerializer(tienda, data=data)
+        if serializer.is_valid():
+            serializer.save()  # id_empresa permanece igual
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        company_id, err_response = _get_company_id_from_token(request)
+        if err_response:
+            return err_response
+
+        try:
+            tienda = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        data.pop('id_empresa', None)
+        serializer = DashDfTiendasSerializer(tienda, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        company_id, err_response = _get_company_id_from_token(request)
+        if err_response:
+            return err_response
+
+        try:
+            tienda = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        tienda.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# -------------------------
+# Productos
+# -------------------------
+class DashVeinteProductListCreateView(APIView):
+    """
+    GET: lista productos de la empresa del token.
+    POST: crea un producto asignado a la empresa del token.
+    """
+    def get(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        productos = DashDfProductos.objects.filter(id_empresa_id=company_id)
+        serializer = DashVeinteProductSerializer(productos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            empresa = Empresa.objects.get(pk=company_id)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data = request.data.copy()
+        data.pop('id_empresa', None)  # evitar inyección
+        serializer = DashVeinteProductSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(id_empresa=empresa)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashVeinteProductDetailView(APIView):
+    """
+    GET, PUT, PATCH, DELETE para un producto específico,
+    solo si pertenece a la empresa del token.
+    """
+    def _get_instance_for_company(self, pk, company_id):
+        return get_object_or_404(DashDfProductos, pk=pk, id_empresa_id=company_id)
+
+    def get(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            producto = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DashVeinteProductSerializer(producto)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            producto = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        data.pop('id_empresa', None)
+        serializer = DashVeinteProductSerializer(producto, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            producto = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        data.pop('id_empresa', None)
+        serializer = DashVeinteProductSerializer(producto, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            producto = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        producto.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# -------------------------
+# Inventarios
+# -------------------------
+class DashVeinteInventarioListCreateView(APIView):
+    """
+    GET: lista inventarios de la empresa.
+    POST: crear inventario (id_empresa forzado desde token). Verifica que tienda/producto pertenezcan a la empresa.
+    """
+    def get(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        inventarios = DashDfInventarios.objects.filter(id_empresa_id=company_id).select_related('id_tienda', 'id_producto')
+        serializer = DashVeinteInventarioSerializer(inventarios, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        # validar empresa existe
+        try:
+            empresa = Empresa.objects.get(pk=company_id)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data = request.data.copy()
+        # Requerimos id_tienda e id_producto en el payload
+        id_tienda = data.get('id_tienda')
+        id_producto = data.get('id_producto')
+        inventario_cantidad = data.get('inventario_cantidad')
+
+        if id_tienda is None or id_producto is None:
+            return Response({'error': 'id_tienda e id_producto son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # comprobar que la tienda y el producto pertenecen a company_id
+        try:
+            tienda = DashDfTiendas.objects.get(pk=int(id_tienda), id_empresa_id=company_id)
+        except DashDfTiendas.DoesNotExist:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            return Response({'error': 'Error consultando tienda'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            producto = DashDfProductos.objects.get(pk=int(id_producto), id_empresa_id=company_id)
+        except DashDfProductos.DoesNotExist:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            return Response({'error': 'Error consultando producto'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # preparar serializer
+        payload = {
+            'id_tienda': tienda.pk,
+            'id_producto': producto.pk,
+            'inventario_cantidad': inventario_cantidad,
+        }
+        serializer = DashVeinteInventarioSerializer(data=payload)
+        if serializer.is_valid():
+            # crear forzando id_empresa y referencias a instancia
+            instance = DashDfInventarios(
+                id_empresa=empresa,
+                id_tienda=tienda,
+                id_producto=producto,
+                inventario_cantidad=serializer.validated_data.get('inventario_cantidad', 0)
+            )
+            instance.save()
+            out_serializer = DashVeinteInventarioSerializer(instance)
+            return Response(out_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashVeinteInventarioDetailView(APIView):
+    """
+    GET, PUT, PATCH, DELETE para un inventario específico (solo dentro de la empresa).
+    """
+    def _get_instance_for_company(self, pk, company_id):
+        return get_object_or_404(DashDfInventarios, pk=pk, id_empresa_id=company_id)
+
+    def get(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            inventario = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DashVeinteInventarioSerializer(inventario)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            inventario = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        # Si cambian id_tienda o id_producto, validar pertenencia
+        id_tienda = data.get('id_tienda')
+        id_producto = data.get('id_producto')
+
+        if id_tienda is not None:
+            try:
+                tienda = DashDfTiendas.objects.get(pk=int(id_tienda), id_empresa_id=company_id)
+            except DashDfTiendas.DoesNotExist:
+                return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+            inventario.id_tienda = tienda
+
+        if id_producto is not None:
+            try:
+                producto = DashDfProductos.objects.get(pk=int(id_producto), id_empresa_id=company_id)
+            except DashDfProductos.DoesNotExist:
+                return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+            inventario.id_producto = producto
+
+        # actualizar cantidad si viene
+        if 'inventario_cantidad' in data:
+            try:
+                inventario.inventario_cantidad = int(data.get('inventario_cantidad') or 0)
+            except (TypeError, ValueError):
+                return Response({'error': 'inventario_cantidad inválido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        inventario.save()
+        serializer = DashVeinteInventarioSerializer(inventario)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        # patch usa la misma lógica que put pero parcial
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            inventario = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        inventario.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# -------------------------
+# Ventas
+# -------------------------
+class DashVeinteVentaListCreateView(APIView):
+    """
+    GET: lista ventas de la empresa (filtros opcionales: start_date, end_date, id_tienda, id_producto).
+    POST: crear venta (id_empresa forzado desde token). Verifica que tienda/producto pertenezcan a la empresa.
+    """
+    def get(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        qs = DashDfVentas.objects.filter(id_empresa_id=company_id).select_related('id_tienda', 'id_producto')
+
+        # filtros opcionales
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        id_tienda = request.query_params.get('id_tienda')
+        id_producto = request.query_params.get('id_producto')
+        search = request.query_params.get('search')
+
+        if start_date:
+            sd = parse_date(start_date)
+            if sd:
+                qs = qs.filter(fecha_venta__gte=sd)
+        if end_date:
+            ed = parse_date(end_date)
+            if ed:
+                qs = qs.filter(fecha_venta__lte=ed)
+        if id_tienda:
+            try:
+                qs = qs.filter(id_tienda_id=int(id_tienda))
+            except (TypeError, ValueError):
+                pass
+        if id_producto:
+            try:
+                qs = qs.filter(id_producto_id=int(id_producto))
+            except (TypeError, ValueError):
+                pass
+        if search:
+            qs = qs.filter(
+                Q(id_tienda__nombre_tienda__icontains=search) |
+                Q(id_producto__nombre_producto__icontains=search)
+            )
+
+        serializer = DashVeinteVentaSerializer(qs.order_by('-fecha_venta'), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            empresa = Empresa.objects.get(pk=company_id)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data = request.data.copy()
+        id_tienda = data.get('id_tienda')
+        id_producto = data.get('id_producto')
+        cantidad_vendida = data.get('cantidad_vendida')
+        dinero_vendido = data.get('dinero_vendido')
+        fecha_venta = data.get('fecha_venta')
+
+        # Validaciones básicas
+        if id_tienda is None or id_producto is None or fecha_venta is None:
+            return Response({'error': 'id_tienda, id_producto y fecha_venta son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # validar tienda y producto pertenecen a company_id
+        try:
+            tienda = DashDfTiendas.objects.get(pk=int(id_tienda), id_empresa_id=company_id)
+        except DashDfTiendas.DoesNotExist:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            return Response({'error': 'Error consultando tienda'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            producto = DashDfProductos.objects.get(pk=int(id_producto), id_empresa_id=company_id)
+        except DashDfProductos.DoesNotExist:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            return Response({'error': 'Error consultando producto'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # parse fecha
+        fd = parse_date(fecha_venta)
+        if not fd:
+            return Response({'error': 'fecha_venta inválida. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # parse numeric
+        try:
+            cantidad_vendida = int(cantidad_vendida) if cantidad_vendida is not None else 0
+        except (TypeError, ValueError):
+            return Response({'error': 'cantidad_vendida inválida'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dinero_vendido = float(dinero_vendido) if dinero_vendido is not None and dinero_vendido != '' else 0.0
+        except (TypeError, ValueError):
+            return Response({'error': 'dinero_vendido inválido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # preparar serializer
+        payload = {
+            'id_tienda': tienda.pk,
+            'id_producto': producto.pk,
+            'cantidad_vendida': cantidad_vendida,
+            'dinero_vendido': dinero_vendido,
+            'fecha_venta': fd,
+        }
+        serializer = DashVeinteVentaSerializer(data=payload)
+        if serializer.is_valid():
+            instance = DashDfVentas(
+                id_empresa=empresa,
+                id_tienda=tienda,
+                id_producto=producto,
+                cantidad_vendida=serializer.validated_data.get('cantidad_vendida', 0),
+                dinero_vendido=serializer.validated_data.get('dinero_vendido', 0),
+                fecha_venta=serializer.validated_data.get('fecha_venta'),
+            )
+            instance.save()
+            out = DashVeinteVentaSerializer(instance)
+            return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashVeinteVentaDetailView(APIView):
+    """
+    GET, PUT, PATCH, DELETE para una venta específica (solo dentro de la empresa).
+    """
+    def _get_instance_for_company(self, pk, company_id):
+        return get_object_or_404(DashDfVentas, pk=pk, id_empresa_id=company_id)
+
+    def get(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            venta = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DashVeinteVentaSerializer(venta)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            venta = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        # si cambian id_tienda o id_producto, validar pertenencia
+        id_tienda = data.get('id_tienda')
+        id_producto = data.get('id_producto')
+        fecha_venta = data.get('fecha_venta')
+
+        if id_tienda is not None:
+            try:
+                tienda = DashDfTiendas.objects.get(pk=int(id_tienda), id_empresa_id=company_id)
+            except DashDfTiendas.DoesNotExist:
+                return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+            venta.id_tienda = tienda
+
+        if id_producto is not None:
+            try:
+                producto = DashDfProductos.objects.get(pk=int(id_producto), id_empresa_id=company_id)
+            except DashDfProductos.DoesNotExist:
+                return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+            venta.id_producto = producto
+
+        if 'cantidad_vendida' in data:
+            try:
+                venta.cantidad_vendida = int(data.get('cantidad_vendida') or 0)
+            except (TypeError, ValueError):
+                return Response({'error': 'cantidad_vendida inválida'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'dinero_vendido' in data:
+            try:
+                venta.dinero_vendido = float(data.get('dinero_vendido') or 0)
+            except (TypeError, ValueError):
+                return Response({'error': 'dinero_vendido inválido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if fecha_venta is not None:
+            fd = parse_date(fecha_venta)
+            if not fd:
+                return Response({'error': 'fecha_venta inválida'}, status=status.HTTP_400_BAD_REQUEST)
+            venta.fecha_venta = fd
+
+        venta.save()
+        serializer = DashVeinteVentaSerializer(venta)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        # patch delega a put para reusar validaciones (parcial)
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            venta = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        venta.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# -------------------------
+# Metas
+# -------------------------
+class DashVeinteMetaListCreateView(APIView):
+    """
+    GET: lista metas de la empresa (filtros opcionales: start_date,end_date,id_tienda,id_producto,search)
+    POST: crear meta (id_empresa forzado desde token). Verifica que tienda/producto pertenezcan a la empresa.
+    """
+    def get(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        qs = DashDfMetas.objects.filter(id_empresa_id=company_id).select_related('id_tienda', 'id_producto')
+
+        # filtros opcionales
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        id_tienda = request.query_params.get('id_tienda')
+        id_producto = request.query_params.get('id_producto')
+        search = request.query_params.get('search')
+
+        if start_date:
+            sd = parse_date(start_date)
+            if sd:
+                qs = qs.filter(fecha_meta__gte=sd)
+        if end_date:
+            ed = parse_date(end_date)
+            if ed:
+                qs = qs.filter(fecha_meta__lte=ed)
+        if id_tienda:
+            try:
+                qs = qs.filter(id_tienda_id=int(id_tienda))
+            except (TypeError, ValueError):
+                pass
+        if id_producto:
+            try:
+                qs = qs.filter(id_producto_id=int(id_producto))
+            except (TypeError, ValueError):
+                pass
+        if search:
+            qs = qs.filter(
+                Q(id_tienda__nombre_tienda__icontains=search) |
+                Q(id_producto__nombre_producto__icontains=search)
+            )
+
+        serializer = DashVeinteMetaSerializer(qs.order_by('-fecha_meta'), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            empresa = Empresa.objects.get(pk=company_id)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data = request.data.copy()
+        id_tienda = data.get('id_tienda')
+        id_producto = data.get('id_producto')
+        meta_cantidad = data.get('meta_cantidad')
+        meta_dinero = data.get('meta_dinero')
+        fecha_meta = data.get('fecha_meta')
+
+        if id_tienda is None or id_producto is None or fecha_meta is None:
+            return Response({'error': 'id_tienda, id_producto y fecha_meta son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # validar tienda y producto pertenecen a company_id
+        try:
+            tienda = DashDfTiendas.objects.get(pk=int(id_tienda), id_empresa_id=company_id)
+        except DashDfTiendas.DoesNotExist:
+            return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            return Response({'error': 'Error consultando tienda'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            producto = DashDfProductos.objects.get(pk=int(id_producto), id_empresa_id=company_id)
+        except DashDfProductos.DoesNotExist:
+            return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            return Response({'error': 'Error consultando producto'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # parse fecha
+        fd = parse_date(fecha_meta)
+        if not fd:
+            return Response({'error': 'fecha_meta inválida. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # parse numeric fields
+        try:
+            meta_cantidad = int(meta_cantidad) if meta_cantidad is not None and meta_cantidad != '' else 0
+        except (TypeError, ValueError):
+            return Response({'error': 'meta_cantidad inválida'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            meta_dinero = float(meta_dinero) if meta_dinero is not None and meta_dinero != '' else 0.0
+        except (TypeError, ValueError):
+            return Response({'error': 'meta_dinero inválido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            'id_tienda': tienda.pk,
+            'id_producto': producto.pk,
+            'meta_cantidad': meta_cantidad,
+            'meta_dinero': meta_dinero,
+            'fecha_meta': fd,
+        }
+        serializer = DashVeinteMetaSerializer(data=payload)
+        if serializer.is_valid():
+            instance = DashDfMetas(
+                id_empresa=empresa,
+                id_tienda=tienda,
+                id_producto=producto,
+                meta_cantidad=serializer.validated_data.get('meta_cantidad', 0),
+                meta_dinero=serializer.validated_data.get('meta_dinero', 0),
+                fecha_meta=serializer.validated_data.get('fecha_meta'),
+            )
+            instance.save()
+            out = DashVeinteMetaSerializer(instance)
+            return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DashVeinteMetaDetailView(APIView):
+    """
+    GET, PUT, PATCH, DELETE para una meta específica (solo dentro de la empresa).
+    """
+    def _get_instance_for_company(self, pk, company_id):
+        return get_object_or_404(DashDfMetas, pk=pk, id_empresa_id=company_id)
+
+    def get(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            meta = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DashVeinteMetaSerializer(meta)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            meta = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        id_tienda = data.get('id_tienda')
+        id_producto = data.get('id_producto')
+        fecha_meta = data.get('fecha_meta')
+
+        if id_tienda is not None:
+            try:
+                tienda = DashDfTiendas.objects.get(pk=int(id_tienda), id_empresa_id=company_id)
+            except DashDfTiendas.DoesNotExist:
+                return Response({'error': 'Tienda no encontrada o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+            meta.id_tienda = tienda
+
+        if id_producto is not None:
+            try:
+                producto = DashDfProductos.objects.get(pk=int(id_producto), id_empresa_id=company_id)
+            except DashDfProductos.DoesNotExist:
+                return Response({'error': 'Producto no encontrado o no pertenece a su empresa'}, status=status.HTTP_403_FORBIDDEN)
+            meta.id_producto = producto
+
+        if 'meta_cantidad' in data:
+            try:
+                meta.meta_cantidad = int(data.get('meta_cantidad') or 0)
+            except (TypeError, ValueError):
+                return Response({'error': 'meta_cantidad inválida'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'meta_dinero' in data:
+            try:
+                meta.meta_dinero = float(data.get('meta_dinero') or 0)
+            except (TypeError, ValueError):
+                return Response({'error': 'meta_dinero inválido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if fecha_meta is not None:
+            fd = parse_date(fecha_meta)
+            if not fd:
+                return Response({'error': 'fecha_meta inválida'}, status=status.HTTP_400_BAD_REQUEST)
+            meta.fecha_meta = fd
+
+        meta.save()
+        serializer = DashVeinteMetaSerializer(meta)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        company_id, err = _get_company_id_from_token(request)
+        if err:
+            return err
+
+        try:
+            meta = self._get_instance_for_company(pk, company_id)
+        except:
+            return Response({'error': 'Registro no encontrado o no pertenece a su empresa'}, status=status.HTTP_404_NOT_FOUND)
+
+        meta.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
+
+
+
+
+
+
+# appdataflowai/views.py
+import jwt
+from datetime import timedelta
+from django.conf import settings
+from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import EditarPerfilBrokersSerializer, UsuariosBrokersSerializer
+from .models import UsuariosBrokers, Usuario
+from django.shortcuts import get_object_or_404
+
+class PerfilBrokerView(APIView):
+    """
+    GET -> retorna perfil del broker (usuario) según token JWT.
+    PUT -> actualiza Usuario y/o UsuariosBrokers y devuelve nuevo token access.
+          Permite cambiar contraseña en texto plano si se envía contrasena_actual y contrasena_nueva.
+    """
+
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get(self, request):
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        try:
+            broker = UsuariosBrokers.objects.select_related('id_usuario').get(id_usuario=usuario)
+        except UsuariosBrokers.DoesNotExist:
+            return Response({'detail': 'No existe perfil broker para este usuario.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UsuariosBrokersSerializer(broker)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        serializer = EditarPerfilBrokersSerializer(data=request.data, context={'request': request, 'id_usuario': user_id})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            usuario_obj, broker_obj = serializer.update_or_create(id_usuario=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as exc:
+            return Response({'error': 'Error interno al actualizar perfil', 'detail': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        broker_ser = UsuariosBrokersSerializer(broker_obj)
+
+        # Generar nuevo access token con datos actualizados (2 horas)
+        now = timezone.now()
+        access_exp = now + timedelta(hours=2)
+        payload = {
+            'id_usuario': usuario_obj.id_usuario,
+            'correo': usuario_obj.correo,
+            'type': 'access',
+            'exp': int(access_exp.timestamp()),
+            'iat': int(now.timestamp())
+        }
+        try:
+            new_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+            if isinstance(new_token, bytes):
+                new_token = new_token.decode('utf-8')
+        except Exception:
+            new_token = None
+
+        response_data = {
+            'broker': broker_ser.data,
+            'usuario': {
+                'id_usuario': usuario_obj.id_usuario,
+                'nombres': usuario_obj.nombres,
+                'apellidos': usuario_obj.apellidos,
+                'correo': usuario_obj.correo,
+            },
+            'token': new_token,
+            'expires_in': 7200
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+# appdataflowai/views.py
+import jwt
+from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Usuario, UsuariosBrokers, LeadsBrokers
+from .serializers import LeadsBrokersListSerializer
+
+class LeadsBrokersListView(APIView):
+    """
+    GET: Retorna leads asociados a los brokers del usuario autenticado.
+    Opcional: ?q=texto para buscar por nombre_lead, persona_de_contacto o correo.
+    """
+
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get(self, request):
+        # extraer user id del token
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+
+        # obtener los brokers vinculados al usuario autenticado
+        broker_ids = list(UsuariosBrokers.objects.filter(id_usuario=usuario).values_list('id_broker', flat=True))
+        if not broker_ids:
+            return Response([], status=status.HTTP_200_OK)
+
+        # construimos queryset de leads asociados a esos brokers
+        leads_qs = LeadsBrokers.objects.select_related('id_broker', 'id_broker__id_usuario')\
+                    .filter(id_broker__in=broker_ids).order_by('-id_lead')
+
+        # filtro de búsqueda opcional
+        q = request.GET.get('q', '').strip()
+        if q:
+            from django.db.models import Q
+            leads_qs = leads_qs.filter(
+                Q(nombre_lead__icontains=q) |
+                Q(persona_de_contacto__icontains=q) |
+                Q(correo__icontains=q)
+            )
+
+        serializer = LeadsBrokersListSerializer(leads_qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+# appdataflowai/views.py
+import csv
+import io
+import jwt
+from decimal import Decimal, InvalidOperation
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Usuario, UsuariosBrokers, LeadsBrokers
+from .serializers import LeadsBrokersListSerializer, LeadsBrokersCreateUpdateSerializer
+
+class LeadsBrokersListCreateView(APIView):
+    """
+    GET: Lista leads asociados a los brokers del usuario autenticado.
+    POST: Crea un lead y lo asigna al primer broker del usuario autenticado.
+    """
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get(self, request):
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        broker_ids = list(UsuariosBrokers.objects.filter(id_usuario=usuario).values_list('id_broker', flat=True))
+        if not broker_ids:
+            return Response([], status=status.HTTP_200_OK)
+
+        qs = LeadsBrokers.objects.select_related('id_broker', 'id_broker__id_usuario').filter(id_broker__in=broker_ids).order_by('-id_lead')
+
+        # filtro opcional
+        q = request.GET.get('q', '').strip()
+        if q:
+            from django.db.models import Q
+            qs = qs.filter(Q(nombre_lead__icontains=q) | Q(persona_de_contacto__icontains=q) | Q(correo__icontains=q))
+
+        serializer = LeadsBrokersListSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        # crear lead asignado automáticamente al broker del usuario
+        user_id, error_response = self._get_user_id_from_token(request)
+        if error_response:
+            return error_response
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+
+        broker = UsuariosBrokers.objects.filter(id_usuario=usuario).first()
+        if not broker:
+            return Response({'error': 'Usuario no tiene broker asociado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = LeadsBrokersCreateUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        # manejar ticket_estimado y probabilidad_cierre parsing si vienen como strings
+        if 'ticket_estimado' in data and data['ticket_estimado'] is not None:
+            try:
+                data['ticket_estimado'] = Decimal(str(data['ticket_estimado']))
+            except (InvalidOperation, ValueError):
+                data['ticket_estimado'] = None
+        if 'probabilidad_cierre' in data and data['probabilidad_cierre'] is not None:
+            try:
+                data['probabilidad_cierre'] = Decimal(str(data['probabilidad_cierre']))
+            except (InvalidOperation, ValueError):
+                data['probabilidad_cierre'] = None
+
+        lead = LeadsBrokers.objects.create(id_broker=broker, **data)
+        out_ser = LeadsBrokersListSerializer(lead)
+        return Response(out_ser.data, status=status.HTTP_201_CREATED)
+
+
+class LeadsBrokersDetailView(APIView):
+    """
+    GET: obtener lead por id (solo si pertenece a broker del usuario autenticado)
+    PUT: actualizar lead (id_broker no se puede modificar)
+    """
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def get_object_and_check(self, pk, usuario):
+        lead = get_object_or_404(LeadsBrokers, pk=pk)
+        # revisar que el lead pertenezca a uno de los brokers del usuario
+        allowed = UsuariosBrokers.objects.filter(id_usuario=usuario, id_broker=lead.id_broker.id_broker).exists()
+        if not allowed:
+            return None, Response({'error': 'No autorizado para ver este lead'}, status=status.HTTP_403_FORBIDDEN)
+        return lead, None
+
+    def get(self, request, pk):
+        user_id, err = self._get_user_id_from_token(request)
+        if err:
+            return err
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        lead, err = self.get_object_and_check(pk, usuario)
+        if err:
+            return err
+        serializer = LeadsBrokersListSerializer(lead)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        user_id, err = self._get_user_id_from_token(request)
+        if err:
+            return err
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        lead, err = self.get_object_and_check(pk, usuario)
+        if err:
+            return err
+
+        # no permitir cambiar id_broker vía payload (se ignora si envían)
+        serializer = LeadsBrokersCreateUpdateSerializer(instance=lead, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        # parse decimals
+        if 'ticket_estimado' in data and data['ticket_estimado'] is not None:
+            from decimal import Decimal, InvalidOperation
+            try:
+                data['ticket_estimado'] = Decimal(str(data['ticket_estimado']))
+            except (InvalidOperation, ValueError):
+                data['ticket_estimado'] = None
+        for key, val in data.items():
+            setattr(lead, key, val)
+        lead.save()
+        out_ser = LeadsBrokersListSerializer(lead)
+        return Response(out_ser.data, status=status.HTTP_200_OK)
+
+
+class LeadsBrokersImportView(APIView):
+    """
+    POST: importar leads desde CSV (multipart/form-data file). 
+    Asigna id_broker automáticamente según el usuario autenticado (primer broker).
+    CSV espera cabeceras: nombre_lead, correo, persona_de_contacto, telefono, pais, industria,
+    tamano_empresa, ticket_estimado, moneda_ticket, probabilidad_cierre, campo_etiqueta, fuente_lead, comentarios, etapa
+    """
+    parser_classes = (MultiPartParser, FormParser)
+
+    def _get_user_id_from_token(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if not auth_header or auth_header[0].lower() != 'bearer':
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = auth_header[1]
+        except IndexError:
+            return None, Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('id_usuario')
+            if not user_id:
+                return None, Response({'error': 'Token inválido (sin id_usuario)'}, status=status.HTTP_401_UNAUTHORIZED)
+            return user_id, None
+        except jwt.ExpiredSignatureError:
+            return None, Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.DecodeError:
+            return None, Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return None, Response({'error': 'Error al procesar token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def post(self, request):
+        user_id, err = self._get_user_id_from_token(request)
+        if err:
+            return err
+        usuario = get_object_or_404(Usuario, id_usuario=user_id)
+        broker = UsuariosBrokers.objects.filter(id_usuario=usuario).first()
+        if not broker:
+            return Response({'error': 'Usuario no tiene broker asociado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # archivo esperado en campo 'file'
+        uploaded = request.FILES.get('file')
+        if not uploaded:
+            return Response({'error': 'No se recibió archivo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # asumimos CSV UTF-8 (si no, adaptar)
+        try:
+            text_io = io.TextIOWrapper(uploaded.file, encoding='utf-8')
+            reader = csv.DictReader(text_io)
+        except Exception as e:
+            return Response({'error': 'Error leyendo CSV', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        created = 0
+        errors = []
+        line = 1
+        for row in reader:
+            line += 1
+            # normalizar keys: usar directamente las cabeceras esperadas
+            data = {
+                'nombre_lead': row.get('nombre_lead') or row.get('nombre') or row.get('name'),
+                'correo': row.get('correo'),
+                'persona_de_contacto': row.get('persona_de_contacto') or row.get('contacto'),
+                'telefono': row.get('telefono'),
+                'pais': row.get('pais'),
+                'industria': row.get('industria'),
+                'tamano_empresa': row.get('tamano_empresa'),
+                'ticket_estimado': None,
+                'moneda_ticket': row.get('moneda_ticket') or row.get('moneda'),
+                'probabilidad_cierre': None,
+                'campo_etiqueta': row.get('campo_etiqueta') or row.get('etiqueta'),
+                'fuente_lead': row.get('fuente_lead') or row.get('fuente'),
+                'comentarios': row.get('comentarios'),
+                'etapa': row.get('etapa'),
+            }
+            # parse numeric fields
+            te = row.get('ticket_estimado') or row.get('ticket')
+            pc = row.get('probabilidad_cierre') or row.get('probabilidad')
+            from decimal import Decimal, InvalidOperation
+            if te:
+                try:
+                    # limpiar comas/puntos si vienen formateados
+                    te_clean = te.replace(',', '').replace('$', '').strip()
+                    data['ticket_estimado'] = Decimal(te_clean)
+                except Exception:
+                    data['ticket_estimado'] = None
+            if pc:
+                try:
+                    pc_clean = pc.replace('%', '').replace(',', '.').strip()
+                    data['probabilidad_cierre'] = Decimal(pc_clean)
+                except Exception:
+                    data['probabilidad_cierre'] = None
+
+            # validar mínimo: nombre_lead
+            if not data['nombre_lead']:
+                errors.append({'line': line, 'error': 'Falta nombre_lead'})
+                continue
+
+            try:
+                LeadsBrokers.objects.create(id_broker=broker, **data)
+                created += 1
+            except Exception as e:
+                errors.append({'line': line, 'error': str(e)})
+
+        return Response({'created': created, 'errors': errors}, status=status.HTTP_201_CREATED if created else status.HTTP_400_BAD_REQUEST)

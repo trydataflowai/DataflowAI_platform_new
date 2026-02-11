@@ -5,13 +5,11 @@ import defaultStyles from '../../styles/Chxtbut.module.css';
 import { sendChatMessage, fetchDashboardContexts } from "../../api/ChatPg";
 import { obtenerInfoUsuario } from "../../api/Usuario";
 
-const normalizeSegment = (nombreCorto) =>
-  nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
+const normalizeSegment = (nombreCorto) => nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
 
 export default function ChatPostgre() {
   const { theme } = useTheme();
   const styles = useCompanyStyles('Chxtbut', defaultStyles);
-
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     { id: 0, role: "system", text: "Selecciona un dashboard para comenzar." },
@@ -21,12 +19,13 @@ export default function ChatPostgre() {
   const [contexts, setContexts] = useState([]);
   const [showContexts, setShowContexts] = useState(false);
   const [selectedContext, setSelectedContext] = useState(null);
-
   const [companySegment, setCompanySegment] = useState("");
   const [planId, setPlanId] = useState(null);
   const [companyId, setCompanyId] = useState(null);
-
+  
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -96,10 +95,9 @@ export default function ChatPostgre() {
     const userMsg = { id: Date.now(), role: "user", text: promptText };
     setMessages((m) => [...m, userMsg]);
     setLoading(true);
-
+    
     try {
       const reply = await sendChatMessage(selectedContext.id_registro, promptText);
-
       let isEmpty = false;
       if (!reply) isEmpty = true;
       else if (typeof reply === "object") {
@@ -109,7 +107,7 @@ export default function ChatPostgre() {
         const trimmed = reply.trim();
         if (trimmed === "" || trimmed === "{}" || trimmed === "null") isEmpty = true;
       }
-
+      
       if (isEmpty) {
         const botEmpty = {
           id: Date.now() + 1,
@@ -128,7 +126,11 @@ export default function ChatPostgre() {
     } catch (err) {
       console.error(err);
       setError(err?.message || "Error de conexión");
-      const errMsg = { id: Date.now() + 2, role: "bot", text: "Error: " + (err?.message || "No se pudo procesar la solicitud") };
+      const errMsg = {
+        id: Date.now() + 2,
+        role: "bot",
+        text: "Error: " + (err?.message || "No se pudo procesar la solicitud")
+      };
       setMessages((m) => [...m, errMsg]);
     } finally {
       setLoading(false);
@@ -154,8 +156,8 @@ export default function ChatPostgre() {
     }
   };
 
-  const variantClass = theme === "dark"
-    ? (styles?.ChatpostgreDark || defaultStyles.ChatpostgreDark)
+  const variantClass = theme === "dark" 
+    ? (styles?.ChatpostgreDark || defaultStyles.ChatpostgreDark) 
     : (styles?.ChatpostgreLight || defaultStyles.ChatpostgreLight);
 
   return (
@@ -170,15 +172,24 @@ export default function ChatPostgre() {
             {selectedContext ? (
               <div className={styles.ChatpostgreproductBadge || defaultStyles.ChatpostgreproductBadge}>
                 <span className={styles.ChatpostgreproductName || defaultStyles.ChatpostgreproductName}>{selectedContext.dashboard_name}</span>
-                <button className={styles.ChatpostgreclearButton || defaultStyles.ChatpostgreclearButton} onClick={handleClearSelection} aria-label="Desconectar dashboard">×</button>
+                <button 
+                  className={styles.ChatpostgreclearButton || defaultStyles.ChatpostgreclearButton} 
+                  onClick={handleClearSelection} 
+                  aria-label="Desconectar dashboard"
+                >
+                  ×
+                </button>
               </div>
             ) : null}
-            <button className={styles.ChatpostgreproductsToggle || defaultStyles.ChatpostgreproductsToggle} onClick={handleOpenContexts} aria-expanded={showContexts}>
+            <button 
+              className={styles.ChatpostgreproductsToggle || defaultStyles.ChatpostgreproductsToggle} 
+              onClick={handleOpenContexts} 
+              aria-expanded={showContexts}
+            >
               {showContexts ? '▲' : '▼'} Dashboards
             </button>
           </div>
         </div>
-
         {showContexts && (
           <div className={styles.ChatpostgreproductsCompact || defaultStyles.ChatpostgreproductsCompact}>
             <div className={styles.ChatpostgreproductsList || defaultStyles.ChatpostgreproductsList}>
@@ -188,13 +199,19 @@ export default function ChatPostgre() {
                 contexts.map((ctx) => {
                   const isActive = selectedContext && selectedContext.id_registro === ctx.id_registro;
                   return (
-                    <button
-                      key={ctx.id_registro}
-                      className={`${styles.ChatpostgreproductItem || defaultStyles.ChatpostgreproductItem} ${isActive ? (styles.ChatpostgreproductItemActive || defaultStyles.ChatpostgreproductItemActive) : ''}`}
+                    <button 
+                      key={ctx.id_registro} 
+                      className={`${styles.ChatpostgreproductItem || defaultStyles.ChatpostgreproductItem} ${
+                        isActive ? (styles.ChatpostgreproductItemActive || defaultStyles.ChatpostgreproductItemActive) : ''
+                      }`}
                       onClick={() => handleSelectContext(ctx)}
                     >
-                      <span className={styles.ChatpostgreproductItemName || defaultStyles.ChatpostgreproductItemName}>{ctx.dashboard_name}</span>
-                      <span className={styles.ChatpostgreproductItemDb || defaultStyles.ChatpostgreproductItemDb}>ID {ctx.id_registro}</span>
+                      <span className={styles.ChatpostgreproductItemName || defaultStyles.ChatpostgreproductItemName}>
+                        {ctx.dashboard_name}
+                      </span>
+                      <span className={styles.ChatpostgreproductItemDb || defaultStyles.ChatpostgreproductItemDb}>
+                        ID {ctx.id_registro}
+                      </span>
                     </button>
                   );
                 })
@@ -203,13 +220,22 @@ export default function ChatPostgre() {
           </div>
         )}
       </header>
-
-      <section className={styles.ChatpostgrechatSection || defaultStyles.ChatpostgrechatSection}>
+      
+      <section 
+        className={styles.ChatpostgrechatSection || defaultStyles.ChatpostgrechatSection}
+        ref={messagesContainerRef}
+      >
         <div className={styles.Chatpostgremessages || defaultStyles.Chatpostgremessages}>
           {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${message.role === 'user' ? (styles.ChatpostgremessageUser || defaultStyles.ChatpostgremessageUser) : message.role === 'bot' ? (styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot) : (styles.ChatpostgremessageSystem || defaultStyles.ChatpostgremessageSystem)}`}
+            <div 
+              key={message.id} 
+              className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${
+                message.role === 'user' 
+                  ? (styles.ChatpostgremessageUser || defaultStyles.ChatpostgremessageUser) 
+                  : message.role === 'bot' 
+                  ? (styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot) 
+                  : (styles.ChatpostgremessageSystem || defaultStyles.ChatpostgremessageSystem)
+              }`}
             >
               {message.role === 'system' ? (
                 <div className={styles.ChatpostgresystemMessage || defaultStyles.ChatpostgresystemMessage}>
@@ -224,7 +250,12 @@ export default function ChatPostgre() {
                     </div>
                     <p className={styles.ChatpostgremessageText || defaultStyles.ChatpostgremessageText}>
                       {message.text}, {' '}
-                      <button className={styles.ChatpostgreactionButton || defaultStyles.ChatpostgreactionButton} onClick={handleEmptyActionClick}>{message.actionLabel}</button>{' '}
+                      <button 
+                        className={styles.ChatpostgreactionButton || defaultStyles.ChatpostgreactionButton} 
+                        onClick={handleEmptyActionClick}
+                      >
+                        {message.actionLabel}
+                      </button>{' '}
                       para más ayuda.
                     </p>
                   </div>
@@ -232,9 +263,10 @@ export default function ChatPostgre() {
               ) : (
                 <div className={styles.ChatpostgremessageContent || defaultStyles.ChatpostgremessageContent}>
                   <div className={styles.ChatpostgremessageHeader || defaultStyles.ChatpostgremessageHeader}>
-                    <span className={styles.ChatpostgremessageRole || defaultStyles.ChatpostgremessageRole}>{message.role === 'user' ? 'Tú' : 'Asistente'}</span>
+                    <span className={styles.ChatpostgremessageRole || defaultStyles.ChatpostgremessageRole}>
+                      {message.role === 'user' ? 'Tú' : 'Asistente'}
+                    </span>
                   </div>
-                  {/* pre con clase dedicada para controlar wrap/scroll */}
                   <pre className={styles.ChatpostgremessagePre || defaultStyles.ChatpostgremessagePre}>
                     {message.text}
                   </pre>
@@ -242,6 +274,7 @@ export default function ChatPostgre() {
               )}
             </div>
           ))}
+          
           {loading && (
             <div className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot}`}>
               <div className={styles.ChatpostgremessageContent || defaultStyles.ChatpostgremessageContent}>
@@ -259,21 +292,36 @@ export default function ChatPostgre() {
           <div ref={messagesEndRef} />
         </div>
       </section>
-
+      
       <footer className={styles.ChatpostgreinputSection || defaultStyles.ChatpostgreinputSection}>
         <div className={styles.ChatpostgreinputContainer || defaultStyles.ChatpostgreinputContainer}>
           <div className={styles.ChatpostgreinputWrapper || defaultStyles.ChatpostgreinputWrapper}>
-            <textarea className={styles.Chatpostgretextarea || defaultStyles.Chatpostgretextarea}
+            <textarea 
+              className={styles.Chatpostgretextarea || defaultStyles.Chatpostgretextarea}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder={ selectedContext ? "Escribe tu pregunta sobre los datos..." : "Selecciona un dashboard para comenzar" }
+              placeholder={
+                selectedContext 
+                  ? "Escribe tu pregunta sobre los datos..." 
+                  : "Selecciona un dashboard para comenzar"
+              }
               rows={2}
               disabled={loading || !selectedContext}
             />
-            <button className={`${styles.ChatpostgresendButton || defaultStyles.ChatpostgresendButton} ${loading || !selectedContext ? (styles.ChatpostgresendButtonDisabled || defaultStyles.ChatpostgresendButtonDisabled) : ''}`}
-              onClick={handleSend} disabled={loading || !selectedContext}>
-              {loading ? (<span className={styles.Chatpostgrespinner || defaultStyles.Chatpostgrespinner}></span>) : (<span className={styles.ChatpostgresendIcon || defaultStyles.ChatpostgresendIcon}>↑</span>)}
+            <button 
+              className={`${styles.ChatpostgresendButton || defaultStyles.ChatpostgresendButton} ${
+                loading || !selectedContext 
+                  ? (styles.ChatpostgresendButtonDisabled || defaultStyles.ChatpostgresendButtonDisabled) 
+                  : ''
+              }`}
+              onClick={handleSend}
+              disabled={loading || !selectedContext}
+            >
+              {loading 
+                ? (<span className={styles.Chatpostgrespinner || defaultStyles.Chatpostgrespinner}></span>) 
+                : (<span className={styles.ChatpostgresendIcon || defaultStyles.ChatpostgresendIcon}>↑</span>)
+              }
             </button>
           </div>
           {error && (

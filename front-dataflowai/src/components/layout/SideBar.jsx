@@ -174,6 +174,8 @@ export const SideBar = () => {
     { to: "/SoporteUsuario", icon: "🆘", label: "Support" },
     { to: "/ChatPg", icon: "🤖", label: "AI Insights" },
     { to: "/FormBuilder", icon: "🧩", label: "FormBuilder" },
+    { to: "/brk/perfil", icon: "🧩", label: "Perfil Broker" },
+    { to: "/brk/CrmBrokers", icon: "🧩", label: "Crm" },
   ];
 
   const denied = companyId ? accesosEmpresa[String(companyId)] ?? [] : [];

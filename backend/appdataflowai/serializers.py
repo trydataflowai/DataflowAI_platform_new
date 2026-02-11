@@ -1257,3 +1257,459 @@ class DashboardFormsVentasPuntoVentaSAerializer(serializers.ModelSerializer):
             "otros": otros,
             "Ingresos": ingresos
         }
+
+
+
+
+
+
+
+
+
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfTiendas
+
+class DashDfTiendasSerializer(serializers.ModelSerializer):
+    # id_empresa será read-only — se asigna desde el token en el backend
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = DashDfTiendas
+        fields = [
+            'id_tienda',
+            'id_empresa',
+            'nombre_tienda',
+            'direccion_tienda',
+            'horario_tienda',
+            'ciudad',
+            'telefono',
+            'email',
+            'canal',
+            'estado',
+        ]
+        read_only_fields = ['id_tienda', 'id_empresa']
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfProductos
+
+class DashVeinteProductSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = DashDfProductos
+        fields = [
+            'id_producto',
+            'id_empresa',
+            'nombre_producto',
+            'categoria',
+            'marca',
+            'valor_producto',
+        ]
+        read_only_fields = ['id_producto', 'id_empresa']
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfInventarios
+
+class DashVeinteInventarioSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    tienda_nombre = serializers.SerializerMethodField(read_only=True)
+    producto_nombre = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashDfInventarios
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_tienda',
+            'tienda_nombre',
+            'id_producto',
+            'producto_nombre',
+            'inventario_cantidad',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa', 'tienda_nombre', 'producto_nombre']
+
+    def get_tienda_nombre(self, obj):
+        return getattr(obj.id_tienda, 'nombre_tienda', None)
+
+    def get_producto_nombre(self, obj):
+        return getattr(obj.id_producto, 'nombre_producto', None)
+
+
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfVentas
+
+class DashVeinteVentaSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    tienda_nombre = serializers.SerializerMethodField(read_only=True)
+    producto_nombre = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashDfVentas
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_tienda',
+            'tienda_nombre',
+            'id_producto',
+            'producto_nombre',
+            'cantidad_vendida',
+            'dinero_vendido',
+            'fecha_venta',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa', 'tienda_nombre', 'producto_nombre']
+
+    def get_tienda_nombre(self, obj):
+        return getattr(obj.id_tienda, 'nombre_tienda', None)
+
+    def get_producto_nombre(self, obj):
+        return getattr(obj.id_producto, 'nombre_producto', None)
+
+
+# app/serializers.py
+from rest_framework import serializers
+from .models import DashDfMetas
+
+class DashVeinteMetaSerializer(serializers.ModelSerializer):
+    id_empresa = serializers.PrimaryKeyRelatedField(read_only=True)
+    tienda_nombre = serializers.SerializerMethodField(read_only=True)
+    producto_nombre = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = DashDfMetas
+        fields = [
+            'id_registro',
+            'id_empresa',
+            'id_tienda',
+            'tienda_nombre',
+            'id_producto',
+            'producto_nombre',
+            'meta_cantidad',
+            'meta_dinero',
+            'fecha_meta',
+        ]
+        read_only_fields = ['id_registro', 'id_empresa', 'tienda_nombre', 'producto_nombre']
+
+    def get_tienda_nombre(self, obj):
+        return getattr(obj.id_tienda, 'nombre_tienda', None)
+
+    def get_producto_nombre(self, obj):
+        return getattr(obj.id_producto, 'nombre_producto', None)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# appdataflowai/serializers.py
+from rest_framework import serializers
+from django.db import transaction
+from .models import UsuariosBrokers, Usuario
+
+class UsuarioMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ('id_usuario', 'nombres', 'apellidos', 'correo')
+        read_only_fields = ('id_usuario',)
+
+    def validate_correo(self, value):
+        user_id = self.instance.id_usuario if self.instance else None
+        qs = Usuario.objects.filter(correo=value)
+        if user_id:
+            qs = qs.exclude(id_usuario=user_id)
+        if qs.exists():
+            raise serializers.ValidationError("El correo ya está en uso por otro usuario.")
+        return value
+
+
+class UsuariosBrokersSerializer(serializers.ModelSerializer):
+    id_usuario = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all())
+    usuario = UsuarioMiniSerializer(source='id_usuario', read_only=True)
+
+    class Meta:
+        model = UsuariosBrokers
+        fields = (
+            'id_broker',
+            'id_usuario',
+            'usuario',
+            'numero_telefono',
+            'pais_residencia',
+            'entidad_financiera',
+            'numero_cuenta',
+            'tipo_cuenta',
+            'codigo_swift',
+            'tipo_identificacion',
+            'numero_identificacion',
+        )
+        read_only_fields = ('id_broker', 'usuario')
+
+
+class EditarPerfilBrokersSerializer(serializers.Serializer):
+    # Usuario
+    nombres = serializers.CharField(required=False, allow_blank=False, max_length=200)
+    apellidos = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    correo = serializers.EmailField(required=False, allow_blank=False, max_length=255)
+
+    # Contraseña (texto plano según tu requerimiento)
+    contrasena_actual = serializers.CharField(required=False, write_only=True, allow_blank=False, max_length=255)
+    contrasena_nueva = serializers.CharField(required=False, write_only=True, allow_blank=False, max_length=255)
+
+    # Broker
+    numero_telefono = serializers.CharField(required=False, allow_blank=True, max_length=30)
+    pais_residencia = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    entidad_financiera = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    numero_cuenta = serializers.CharField(required=False, allow_blank=True, max_length=100)
+    tipo_cuenta = serializers.CharField(required=False, allow_blank=True, max_length=10)
+    codigo_swift = serializers.CharField(required=False, allow_blank=True, max_length=50)
+    tipo_identificacion = serializers.CharField(required=False, allow_blank=True, max_length=10)
+    numero_identificacion = serializers.CharField(required=False, allow_blank=True, max_length=60)
+
+    def validate_correo(self, value):
+        user_id = self.context.get('id_usuario')
+        qs = Usuario.objects.filter(correo=value)
+        if user_id:
+            qs = qs.exclude(id_usuario=user_id)
+        if qs.exists():
+            raise serializers.ValidationError("El correo ya está en uso.")
+        return value
+
+    def validate(self, attrs):
+        """
+        Si se solicita cambiar contraseña (contrasena_nueva), exigir contrasena_actual y validar que coincida.
+        """
+        id_usuario = self.context.get('id_usuario')
+        if not id_usuario:
+            raise serializers.ValidationError("Falta contexto de usuario (id_usuario).")
+
+        # Si quieren cambiar contraseña
+        new_pw = attrs.get('contrasena_nueva')
+        if new_pw is not None:
+            old_pw = attrs.get('contrasena_actual')
+            if not old_pw:
+                raise serializers.ValidationError({"contrasena_actual": "La contraseña actual es requerida para cambiar la contraseña."})
+            # comprobar que la contrasena_actual coincida con la que está en la BD (texto plano)
+            try:
+                usuario = Usuario.objects.get(id_usuario=id_usuario)
+            except Usuario.DoesNotExist:
+                raise serializers.ValidationError("Usuario no encontrado al validar contraseña.")
+
+            if usuario.contrasena != old_pw:
+                raise serializers.ValidationError({"contrasena_actual": "Contraseña actual incorrecta."})
+
+            # Opcional: validaciones de longitud mínima
+            if len(new_pw) < 4:
+                raise serializers.ValidationError({"contrasena_nueva": "La contraseña nueva debe tener al menos 4 caracteres."})
+        return attrs
+
+    def update_or_create(self, id_usuario: int):
+        """
+        Actualiza Usuario y UsuariosBrokers. Si contrasena_nueva está presente, actualiza usuario.contrasena (texto plano).
+        Retorna (usuario_obj, broker_obj).
+        """
+        data = self.validated_data
+        with transaction.atomic():
+            usuario = Usuario.objects.select_for_update().get(id_usuario=id_usuario)
+
+            # Actualizar campos del usuario
+            usuario_changed = False
+            if 'nombres' in data:
+                usuario.nombres = data['nombres']
+                usuario_changed = True
+            if 'apellidos' in data:
+                usuario.apellidos = data['apellidos']
+                usuario_changed = True
+            if 'correo' in data:
+                usuario.correo = data['correo']
+                usuario_changed = True
+
+            # Actualizar contraseña en texto plano si viene contrasena_nueva
+            if 'contrasena_nueva' in data:
+                usuario.contrasena = data['contrasena_nueva']
+                usuario_changed = True
+
+            if usuario_changed:
+                usuario.save()
+
+            # Obtener o crear broker asociado
+            broker, created = UsuariosBrokers.objects.get_or_create(id_usuario=usuario, defaults={
+                'numero_telefono': data.get('numero_telefono', ''),
+                'pais_residencia': data.get('pais_residencia', ''),
+                'entidad_financiera': data.get('entidad_financiera', ''),
+                'numero_cuenta': data.get('numero_cuenta', ''),
+                'tipo_cuenta': data.get('tipo_cuenta', ''),
+                'codigo_swift': data.get('codigo_swift', ''),
+                'tipo_identificacion': data.get('tipo_identificacion', ''),
+                'numero_identificacion': data.get('numero_identificacion', ''),
+            })
+
+            if not created:
+                broker_changed = False
+                for fld in [
+                    'numero_telefono', 'pais_residencia', 'entidad_financiera',
+                    'numero_cuenta', 'tipo_cuenta', 'codigo_swift',
+                    'tipo_identificacion', 'numero_identificacion'
+                ]:
+                    if fld in data:
+                        setattr(broker, fld, data[fld])
+                        broker_changed = True
+                if broker_changed:
+                    broker.save()
+
+        return usuario, broker
+
+
+
+
+
+# appdataflowai/serializers.py
+from rest_framework import serializers
+from .models import LeadsBrokers, UsuariosBrokers, Usuario
+
+class UsuarioMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ('id_usuario', 'nombres', 'apellidos', 'correo')
+        read_only_fields = ('id_usuario',)
+
+class UsuariosBrokersMiniSerializer(serializers.ModelSerializer):
+    # incluye mini info del usuario dueño del broker
+    usuario = UsuarioMiniSerializer(source='id_usuario', read_only=True)
+
+    class Meta:
+        model = UsuariosBrokers
+        fields = ('id_broker', 'usuario', 'numero_telefono', 'pais_residencia', 'entidad_financiera')
+        read_only_fields = fields
+
+class LeadsBrokersListSerializer(serializers.ModelSerializer):
+    """
+    Serializer para listar leads. Incluye mini info del broker y del usuario que creó el broker.
+    """
+    id_broker = UsuariosBrokersMiniSerializer(read_only=True)
+
+    class Meta:
+        model = LeadsBrokers
+        fields = (
+            'id_lead',
+            'id_broker',
+            'nombre_lead',
+            'correo',
+            'persona_de_contacto',
+            'telefono',
+            'pais',
+            'industria',
+            'tamano_empresa',
+            'ticket_estimado',
+            'moneda_ticket',
+            'probabilidad_cierre',
+            'campo_etiqueta',
+            'fuente_lead',
+            'comentarios',
+            'etapa',
+        )
+        read_only_fields = fields
+
+
+# appdataflowai/serializers.py
+from rest_framework import serializers
+from .models import LeadsBrokers, UsuariosBrokers, Usuario
+
+class LeadsBrokersListSerializer(serializers.ModelSerializer):
+    """
+    Serializer para listar leads (incluye mini info del broker -> usuario).
+    """
+    id_broker = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeadsBrokers
+        fields = (
+            'id_lead',
+            'id_broker',
+            'nombre_lead',
+            'correo',
+            'persona_de_contacto',
+            'telefono',
+            'pais',
+            'industria',
+            'tamano_empresa',
+            'ticket_estimado',
+            'moneda_ticket',
+            'probabilidad_cierre',
+            'campo_etiqueta',
+            'fuente_lead',
+            'comentarios',
+            'etapa',
+        )
+        read_only_fields = fields
+
+    def get_id_broker(self, obj):
+        broker = obj.id_broker
+        if not broker:
+            return None
+        usuario = getattr(broker, 'id_usuario', None)
+        return {
+            'id_broker': broker.id_broker,
+            'numero_telefono': broker.numero_telefono,
+            'pais_residencia': broker.pais_residencia,
+            'entidad_financiera': broker.entidad_financiera,
+            'usuario': {
+                'id_usuario': usuario.id_usuario if usuario else None,
+                'nombres': usuario.nombres if usuario else None,
+                'apellidos': usuario.apellidos if usuario else None,
+                'correo': usuario.correo if usuario else None,
+            }
+        }
+
+class LeadsBrokersCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer usado para crear/editar leads desde el frontend.
+    id_broker NO es enviado por el cliente (se asigna en la vista según el usuario autenticado).
+    """
+    class Meta:
+        model = LeadsBrokers
+        # NO incluir id_broker como writable
+        fields = (
+            'id_lead',
+            'nombre_lead',
+            'correo',
+            'persona_de_contacto',
+            'telefono',
+            'pais',
+            'industria',
+            'tamano_empresa',
+            'ticket_estimado',
+            'moneda_ticket',
+            'probabilidad_cierre',
+            'campo_etiqueta',
+            'fuente_lead',
+            'comentarios',
+            'etapa',
+        )
+        read_only_fields = ('id_lead',)

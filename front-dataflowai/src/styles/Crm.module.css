@@ -1,0 +1,173 @@
+/* Contenedor general */
+.container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  color: #111;
+  background: #fff;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* View toggle (KANBAN / TABLA) */
+.viewToggle {
+  display: inline-flex;
+  gap: 6px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #e6e6e6;
+}
+.viewToggle button {
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+}
+.viewToggle button:hover {
+  background: #f4f4f4;
+}
+.active {
+  background: #111;
+  color: #fff !important;
+}
+
+/* Table */
+.table th, .table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+.table thead th {
+  background: #fafafa;
+  font-weight: 700;
+}
+
+/* Modal (create/edit) */
+.modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 720px;
+  max-width: 95%;
+  background: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  z-index: 9999;
+  padding: 18px;
+}
+
+/* Kanban */
+.kanbanWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kanbanBoard {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  /* show columns from right to left visually */
+  flex-direction: row-reverse;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+/* individual column */
+.kanbanColumn {
+  min-width: 220px;
+  max-width: 300px;
+  background: #fbfbfb;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  height: 420px;
+}
+
+/* column header */
+.columnHeader {
+  padding: 10px 12px;
+  font-weight: 700;
+  border-bottom: 1px solid #eee;
+  background: linear-gradient(180deg, #fff, #fafafa);
+  text-transform: lowercase;
+}
+
+/* column body scroll */
+.columnBody {
+  padding: 10px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* empty column placeholder */
+.emptyColumn {
+  color: #888;
+  padding: 8px;
+  font-size: 14px;
+}
+
+/* card */
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.card:active {
+  cursor: grabbing;
+  transform: scale(0.995);
+}
+.cardTitle {
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.cardMeta {
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+/* drag over highlight */
+.dragOver {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  border-color: #cfe8ff;
+  background: linear-gradient(180deg, #f7fbff, #fbfbff);
+}
+
+/* small responsiveness */
+@media (max-width: 900px) {
+  .kanbanBoard { gap: 8px; }
+  .kanbanColumn { min-width: 200px; height: 360px; }
+  .cardTitle { font-size: 13px; }
+}
+
+/* other util */
+button {
+  background: #0b66ff;
+  color: white;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:hover { opacity: 0.95; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* keep modals and table font sizing comfortable */
+.container h1 { font-size: 20px; margin-bottom: 12px; }
