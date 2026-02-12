@@ -1,3 +1,4 @@
+//nueva base de datos
 import { Rutas } from './routes/Rutas.jsx'
 
 function App() {
