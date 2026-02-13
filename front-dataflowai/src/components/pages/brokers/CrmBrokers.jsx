@@ -6,6 +6,7 @@ import {
   editarLead,
   importarLeads,
 } from '../../../api/Brokers/ListadoLeads';
+import { exportLeads } from '../../../api/Brokers/ExportLeads';
 
 const emptyLead = {
   nombre_lead: '',
@@ -47,8 +48,13 @@ const CrmBrokers = () => {
   const [importResult, setImportResult] = useState(null);
   const [file, setFile] = useState(null);
   const [refreshToggle, setRefreshToggle] = useState(false);
-  const [view, setView] = useState('table'); // 'table' | 'kanban'
+  const [view, setView] = useState('table');
   const [dragOverCol, setDragOverCol] = useState(null);
+
+  const [exportFormat, setExportFormat] = useState('csv');
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(null);
+  const [exportSuccessMsg, setExportSuccessMsg] = useState(null);
 
   useEffect(() => {
     loadLeads();
@@ -164,23 +170,54 @@ const CrmBrokers = () => {
     }
   };
 
+  const handleExport = async () => {
+    setExportError(null);
+    setExportSuccessMsg(null);
+    setExporting(true);
+    try {
+      await exportLeads(exportFormat, q);
+      setExportSuccessMsg(`Exportado correctamente (${exportFormat.toUpperCase()})`);
+      setTimeout(() => setExportSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error('Error exportando leads:', err);
+      setExportError(err.message || 'Error exportando leads');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportPlantilla = () => {
+    const link = document.createElement('a');
+    link.href = '/plantillas_brokers/leads_brokers_ejemplo.csv';
+    link.download = 'leads_brokers_ejemplo.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // utils
   const getBrokerName = (r) => {
-    // r.id_broker?.usuario may be shaped differently; guard defensively
-    const u = r?.id_broker?.usuario || r?.id_broker;
-    if (!u) return '—';
-    const nombres = u.nombres || u.nombre || '';
-    const apellidos = u.apellidos || u.apellido || '';
-    const full = `${nombres} ${apellidos}`.trim();
-    return full || '—';
+    // r.id_broker puede ser objeto con 'usuario' o 'id_usuario' o simplemente un string/ID
+    const broker = r?.id_broker;
+    if (!broker) return '—';
+
+    // si viene con objeto usuario
+    const usuario = broker?.usuario || broker?.id_usuario || broker?.user;
+    if (usuario) {
+      const nombres = usuario?.nombres || usuario?.nombre || '';
+      const apellidos = usuario?.apellidos || usuario?.apellido || '';
+      const full = `${nombres} ${apellidos}`.trim();
+      if (full) return full;
+    }
+
+    // fallback nombre broker / telefono / id
+    return broker?.nombre || broker?.nombre_broker || broker?.numero_telefono || broker?.telefono || String(broker?.id_broker || broker?.pk || broker) || '—';
   };
 
-  // Drag & Drop handlers
   const onDragStart = (e, leadId) => {
     e.dataTransfer.setData('text/plain', leadId);
     e.dataTransfer.effectAllowed = 'move';
@@ -206,7 +243,6 @@ const CrmBrokers = () => {
     if (!lead) return;
     if (lead.etapa === newEtapa) return;
 
-    // optimistic update
     const prevLeads = [...leads];
     setLeads((prev) => prev.map(l => l.id_lead === id ? { ...l, etapa: newEtapa } : l));
 
@@ -215,11 +251,10 @@ const CrmBrokers = () => {
     } catch (err) {
       console.error('Error actualizando etapa:', err);
       setError('No se pudo actualizar la etapa (revirtiendo)...');
-      setLeads(prevLeads); // revert
+      setLeads(prevLeads);
     }
   };
 
-  // group leads by etapa
   const leadsByEtapa = ETAPAS.reduce((acc, e) => {
     acc[e.key] = leads.filter(l => l.etapa === e.key);
     return acc;
@@ -243,6 +278,7 @@ const CrmBrokers = () => {
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={openCreate}>Crear lead</button>
+          <button onClick={handleExportPlantilla}>Exportar plantilla</button>
 
           <input id="csv-file-input" type="file" accept=".csv,text/csv" onChange={handleImportFile} />
           <button onClick={submitImport} disabled={importing}>{importing ? 'Importando...' : 'Importar CSV'}</button>
@@ -265,6 +301,20 @@ const CrmBrokers = () => {
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
+        <label style={{ fontSize: 13 }}>Exportar:</label>
+        <select value={exportFormat} onChange={(e) => setExportFormat(e.target.value)}>
+          <option value="csv">CSV</option>
+          <option value="xlsx">Excel (.xlsx)</option>
+        </select>
+        <button onClick={handleExport} disabled={exporting}>
+          {exporting ? 'Exportando...' : `Exportar ${exportFormat === 'xlsx' ? 'Excel' : 'CSV'}`}
+        </button>
+
+        {exportSuccessMsg && <div style={{ color: 'green' }}>{exportSuccessMsg}</div>}
+        {exportError && <div style={{ color: 'crimson' }}>{exportError}</div>}
+      </div>
+
       {importResult && (
         <div style={{ marginBottom: 12 }}>
           <strong>Import result:</strong> {JSON.stringify(importResult)}
@@ -274,7 +324,6 @@ const CrmBrokers = () => {
       {loading && <div>Cargando leads...</div>}
       {error && <div style={{ color: 'crimson' }}>{error}</div>}
 
-      {/* TABLE VIEW */}
       {view === 'table' && !loading && !error && (
         <div style={{ overflowX: 'auto' }}>
           <table className={styles.table || ''} style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -321,10 +370,9 @@ const CrmBrokers = () => {
         </div>
       )}
 
-      {/* KANBAN VIEW */}
       {view === 'kanban' && !loading && !error && (
         <div className={styles.kanbanWrapper}>
-          <div className={styles.kanbanBoard} /* row-reverse to show columns right-to-left visually */>
+          <div className={styles.kanbanBoard}>
             {ETAPAS.map((et) => (
               <div
                 key={et.key}
@@ -369,7 +417,6 @@ const CrmBrokers = () => {
         </div>
       )}
 
-      {/* Modal Create */}
       {showCreate && (
         <div className={styles.modal || ''} style={{ padding: 12 }}>
           <h3>Crear lead</h3>
@@ -388,7 +435,6 @@ const CrmBrokers = () => {
         </div>
       )}
 
-      {/* Modal Edit */}
       {showEdit && editingLead && (
         <div className={styles.modal || ''} style={{ padding: 12 }}>
           <h3>Editar lead #{editingLead.id_lead}</h3>

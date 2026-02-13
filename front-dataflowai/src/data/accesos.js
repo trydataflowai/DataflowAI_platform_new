@@ -4,15 +4,21 @@
 // "Dashboards", "Tools", "Profile", "Marketplace", "Support", "AI Insights", "FormBuilder"
 
 const permissions = {
-  // EJEMPLO:
-  // La empresa 2 NO puede ver FormBuilder
-  "2": ["FormBuilder", "Tools"],
-  "4": ["Tools"]
+  "1": ["Perfil", "Crm", "Pagos"],
+  "2": ["FormBuilder", "Tools", "Perfil", "Crm", "Pagos"],
+  "3": ["Perfil", "Crm", "Pagos"],
+  "4": ["Tools", "Perfil", "Crm"],
 
-
-  // Agrega más si quieres:
-  // "5": ["Marketplace", "AI Insights"],
-  // "10": ["FormBuilder", "Tools"]
+  // Empresa 5 NO ve nada del menú principal
+  "5": [
+    "Dashboards",
+    "Tools",
+    "Profile",
+    "Marketplace",
+    "Support",
+    "AI Insights",
+    "FormBuilder"
+  ]
 };
 
 export function getHiddenItemsFor(companyId) {

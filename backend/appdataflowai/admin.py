@@ -1340,8 +1340,13 @@ class LeadsBrokersAdmin(admin.ModelAdmin):
 
 
 # ---------- FacturacionLeadsBrokers ----------
+from django.contrib import admin
+from .models import FacturacionLeadsBrokers
+
+
 @admin.register(FacturacionLeadsBrokers)
 class FacturacionLeadsBrokersAdmin(admin.ModelAdmin):
+
     list_display = (
         'numero_factura',
         'id_broker',
@@ -1364,8 +1369,8 @@ class FacturacionLeadsBrokersAdmin(admin.ModelAdmin):
         'id_lead',
     )
 
+    # 🔥 IMPORTANTE: quitamos numero_factura de readonly
     readonly_fields = (
-        'numero_factura',
         'valor_comision_display',
     )
 
@@ -1374,11 +1379,11 @@ class FacturacionLeadsBrokersAdmin(admin.ModelAdmin):
 
     def valor_comision_display(self, obj):
         """Muestra el valor calculado de la comisión (propiedad del modelo)."""
-        # Aseguramos que devuelva un valor legible incluso si es None
         try:
             return obj.valor_comision_amount
         except Exception:
             return None
+
     valor_comision_display.short_description = 'Valor comisión'
 
 

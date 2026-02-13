@@ -92,6 +92,7 @@ import DashboardVentaseInventariosAnalisisInventarios from "../components/dashbo
 //Rutas para modulo de CRM
 import PerfilBrokers from "../components/pages/brokers/ProfileBrokers";
 import CrmBrokers from "../components/pages/brokers/CrmBrokers";
+import LiqPagosBrokers from "../components/pages/brokers/LiqPagosBrokers";
 
 
 
@@ -745,6 +746,18 @@ export const Rutas = () => {
                 <RutaProtegida>
                   <SideBarLayout>
                     <CrmBrokers />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+            <Route
+              path={p("/brk/LiquidacionPagosBrokers")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <LiqPagosBrokers />
                   </SideBarLayout>
                 </RutaProtegida>
               }

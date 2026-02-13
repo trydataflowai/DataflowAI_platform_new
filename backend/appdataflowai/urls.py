@@ -162,6 +162,8 @@ from .views import (
     LeadsBrokersListCreateView,
     LeadsBrokersDetailView,
     LeadsBrokersImportView,
+    LeadsBrokersExportView,
+    BrokerLiqPagosView
 
 
 
@@ -352,6 +354,8 @@ urlpatterns = [
     path('brokers/leads/', LeadsBrokersListCreateView.as_view(), name='brokers-leads-list-create'),
     path('brokers/leads/<int:pk>/', LeadsBrokersDetailView.as_view(), name='brokers-leads-detail'),
     path('brokers/leads/import/', LeadsBrokersImportView.as_view(), name='brokers-leads-import'),
+    path('brokers/leads/export/', LeadsBrokersExportView.as_view(), name='brokers-leads-export'),
+    path('usuario/broker/liquidacion/', BrokerLiqPagosView.as_view(), name='broker_liq_pagos'),
 
 ]
 

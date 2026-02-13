@@ -1713,3 +1713,146 @@ class LeadsBrokersCreateUpdateSerializer(serializers.ModelSerializer):
             'etapa',
         )
         read_only_fields = ('id_lead',)
+
+
+
+
+# app/serializers.py
+# app/serializers.py
+from rest_framework import serializers
+from .models import LeadsBrokers
+
+class LeadsBrokersExportSerializer(serializers.ModelSerializer):
+    """
+    Serializer orientado a exportación: devuelve los campos en el orden
+    útil para CSV/Excel y normaliza info del broker -> usuario.
+    """
+    broker_usuario = serializers.SerializerMethodField()
+    broker_id = serializers.SerializerMethodField()
+    ticket_estimado_str = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeadsBrokers
+        fields = (
+            'id_lead',
+            'nombre_lead',
+            'broker_id',
+            'broker_usuario',
+            'campo_etiqueta',
+            'probabilidad_cierre',
+            'ticket_estimado',
+            'ticket_estimado_str',
+            'moneda_ticket',
+            'telefono',
+            'correo',
+            'persona_de_contacto',
+            'etapa',
+            'pais',
+            'industria',
+            'tamano_empresa',
+            'fuente_lead',
+            'comentarios',
+        )
+        read_only_fields = fields
+
+    def get_broker_usuario(self, obj):
+        """
+        Intenta sacar nombre completo del usuario relacionado al broker.
+        Acepta distintas convenciones de nombres: 'id_usuario', 'usuario', 'user'.
+        """
+        try:
+            broker = getattr(obj, 'id_broker', None) or getattr(obj, 'broker', None)
+            if not broker:
+                return ''
+
+            # múltiples posibilidades según tu modelo UsuariosBrokers
+            usuario = getattr(broker, 'id_usuario', None) or getattr(broker, 'usuario', None) or getattr(broker, 'user', None)
+            if usuario:
+                nombres = getattr(usuario, 'nombres', None) or getattr(usuario, 'nombre', None) or ''
+                apellidos = getattr(usuario, 'apellidos', None) or getattr(usuario, 'apellido', None) or ''
+                full = f"{nombres} {apellidos}".strip()
+                if full:
+                    return full
+
+            # fallback: broker tiene nombre o telefono
+            nombre_broker = getattr(broker, 'nombre', None) or getattr(broker, 'nombre_broker', None)
+            if nombre_broker:
+                return str(nombre_broker)
+
+            numero_telefono = getattr(broker, 'numero_telefono', None) or getattr(broker, 'telefono', None)
+            if numero_telefono:
+                return str(numero_telefono)
+
+            # último fallback: id del broker
+            return f"broker_{getattr(broker, 'id_broker', getattr(broker, 'pk', '') or '')}"
+        except Exception:
+            return ''
+
+    def get_broker_id(self, obj):
+        try:
+            broker = getattr(obj, 'id_broker', None) or getattr(obj, 'broker', None)
+            return getattr(broker, 'id_broker', None) or getattr(broker, 'pk', None)
+        except Exception:
+            return None
+
+    def get_ticket_estimado_str(self, obj):
+        if obj.ticket_estimado is None:
+            return ''
+        return f"{obj.ticket_estimado}"
+
+
+
+
+# apps/brokers/serializers.py
+# serializers.py
+
+# serializers.py
+from rest_framework import serializers
+from .models import FacturacionLeadsBrokers, PagosBrokersLeads, LeadsBrokers
+
+class PagoBrokerSerializer(serializers.ModelSerializer):
+    numero_factura_num = serializers.IntegerField(source='numero_factura.numero_factura', read_only=True)
+
+    class Meta:
+        model = PagosBrokersLeads
+        fields = [
+            'id_pago',
+            'fecha_pago',
+            'numero_factura_num',
+            'valor_pagado',
+            'estado',
+        ]
+
+
+class LeadSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeadsBrokers
+        fields = ['id_lead', 'nombre_lead', 'correo', 'telefono']
+
+
+class FacturaBrokerSerializer(serializers.ModelSerializer):
+    id_lead = LeadSimpleSerializer(read_only=True)
+    pagos = PagoBrokerSerializer(many=True, read_only=True)  # usa related_name='pagos' en PagosBrokersLeads
+    valor_comision_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FacturacionLeadsBrokers
+        fields = [
+            'numero_factura',
+            'fecha_facturacion',
+            'valor_facturado',
+            'comision_percent',
+            'valor_comision_amount',
+            'id_lead',
+            'pagos',
+        ]
+
+    def get_valor_comision_amount(self, obj):
+        # usa la propiedad del modelo si existe
+        try:
+            return getattr(obj, 'valor_comision_amount')
+        except Exception:
+            # cálculo de respaldo
+            if obj.valor_facturado is None or obj.comision_percent is None:
+                return None
+            return (obj.valor_facturado * (obj.comision_percent / 100)).quantize(obj.valor_facturado.as_tuple()) if hasattr(obj.valor_facturado, 'as_tuple') else float(obj.valor_facturado * (obj.comision_percent / 100))
