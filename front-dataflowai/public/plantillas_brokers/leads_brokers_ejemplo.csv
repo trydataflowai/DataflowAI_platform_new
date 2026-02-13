@@ -1,0 +1,4 @@
+nombre_lead,correo,persona_de_contacto,telefono,pais,industria,tamano_empresa,ticket_estimado,moneda_ticket,probabilidad_cierre,campo_etiqueta,fuente_lead,comentarios,etapa
+Empresa Alpha SAS,contacto@alpha.com,Juan Pérez,3001234567,Colombia,Tecnología,M,15000.0,USD,65.5,CRM,LinkedIn,Interesados en demo,lead_prospecto
+Beta Logistics,ventas@beta.com,María Gómez,3109876543,México,Logística,L,42000.0,USD,80.0,ERP,Referencia,Presupuesto aprobado,negociacion
+Gamma Retail,info@gamma.com,Carlos Ruiz,3015558899,Chile,Retail,S,8000.0,USD,40.0,POS,Web,Primer contacto,lead_prospecto

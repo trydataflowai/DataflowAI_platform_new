@@ -6589,3 +6589,197 @@ class LeadsBrokersImportView(APIView):
                 errors.append({'line': line, 'error': str(e)})
 
         return Response({'created': created, 'errors': errors}, status=status.HTTP_201_CREATED if created else status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# app/views.py
+# app/views.py
+import csv
+import io
+from datetime import datetime
+
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.response import Response
+
+from openpyxl import Workbook
+
+from .models import LeadsBrokers, UsuariosBrokers
+from .serializers import LeadsBrokersExportSerializer
+
+class LeadsBrokersExportView(APIView):
+    """
+    GET: exportar leads del broker asociado al usuario autenticado.
+    Query params:
+      - file: 'csv' (default) or 'xlsx'
+      - q: texto para búsqueda (nombre_lead, correo, persona_de_contacto)
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        usuario = request.user
+
+        # Comprobación defensiva: IsAuthenticated ya asegura que el usuario está autenticado,
+        # pero por seguridad validamos que el objeto tenga PK o atributo identificador.
+        if not usuario or not getattr(usuario, 'pk', None):
+            return Response({'error': 'Usuario no autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # buscar el registro de broker asociado al usuario
+        broker = UsuariosBrokers.objects.filter(id_usuario=usuario).first()
+        if not broker:
+            # intenta buscar con otras convenciones (por si tu FK tiene nombre distinto)
+            broker = UsuariosBrokers.objects.filter(usuario=usuario).first() or UsuariosBrokers.objects.filter(user=usuario).first()
+
+        if not broker:
+            return Response({'error': 'Usuario no tiene broker asociado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = LeadsBrokers.objects.filter(id_broker=broker).order_by('id_lead')
+
+        # filtro simple q (busqueda en nombre, correo, persona_de_contacto)
+        q = request.GET.get('q', '').strip()
+        if q:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(nombre_lead__icontains=q) |
+                Q(correo__icontains=q) |
+                Q(persona_de_contacto__icontains=q)
+            )
+
+        serializer = LeadsBrokersExportSerializer(qs, many=True)
+        data = serializer.data
+
+        fmt = request.GET.get('file', 'csv').lower()
+        now_str = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        filename_base = f"leads_brokers_export_{now_str}"
+
+        headers = [
+            'id_lead',
+            'nombre_lead',
+            'broker_id',
+            'broker_usuario',
+            'campo_etiqueta',
+            'probabilidad_cierre',
+            'ticket_estimado',
+            'ticket_estimado_str',
+            'moneda_ticket',
+            'telefono',
+            'correo',
+            'persona_de_contacto',
+            'etapa',
+            'pais',
+            'industria',
+            'tamano_empresa',
+            'fuente_lead',
+            'comentarios',
+        ]
+
+        if fmt == 'xlsx':
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Leads"
+            ws.append(headers)
+
+            for row in data:
+                ws.append([row.get(h, '') for h in headers])
+
+            out = io.BytesIO()
+            wb.save(out)
+            out.seek(0)
+            resp = HttpResponse(
+                out.read(),
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            resp['Content-Disposition'] = f'attachment; filename="{filename_base}.xlsx"'
+            return resp
+
+        # CSV por defecto (utf-8-sig para Excel)
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        for row in data:
+            writer.writerow([row.get(h, '') for h in headers])
+
+        csv_content = output.getvalue()
+        resp = HttpResponse(csv_content.encode('utf-8-sig'), content_type='text/csv; charset=utf-8')
+        resp['Content-Disposition'] = f'attachment; filename="{filename_base}.csv"'
+        return resp
+
+
+
+
+
+
+# apps/brokers/views.py
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import get_authorization_header
+from django.conf import settings
+import jwt
+from jwt import ExpiredSignatureError, DecodeError, InvalidTokenError
+
+from .models import UsuariosBrokers, FacturacionLeadsBrokers, PagosBrokersLeads
+from .serializers import FacturaBrokerSerializer, PagoBrokerSerializer
+
+
+class BrokerLiqPagosView(APIView):
+    """
+    Retorna facturas (con pagos incluidos) asociadas al broker encontrado
+    a partir del id_usuario presente en el JWT (payload: 'id_usuario' o 'user_id').
+    """
+    def get(self, request):
+        # Validación manual del header como en tu ejemplo
+        auth_header = get_authorization_header(request).split()
+        if not auth_header or auth_header[0].lower() != b'bearer' or len(auth_header) < 2:
+            return Response({'error': 'Token no enviado'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = auth_header[1].decode('utf-8')
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except ExpiredSignatureError:
+            return Response({'error': 'Token expirado'}, status=status.HTTP_401_UNAUTHORIZED)
+        except (DecodeError, InvalidTokenError):
+            return Response({'error': 'Token inválido'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception:
+            return Response({'error': 'Error validando token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Extraer id_usuario desde distintos claims posibles
+        usuario_id = payload.get('id_usuario') or payload.get('user_id') or payload.get('sub')
+        if not usuario_id:
+            return Response({'error': 'ID de usuario no encontrado en token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Intentar resolver el broker relacionado con este usuario.
+        # --- SUPOSICIÓN: UsuariosBrokers tiene alguna referencia al Usuario (p. ej. id_usuario FK).
+        # Probaremos varias formas para ser tolerantes a la estructura de tu modelo.
+        broker = None
+        try:
+            # intento común: UsuariosBrokers tiene FK llamado 'id_usuario' apuntando a Usuario
+            broker = UsuariosBrokers.objects.get(id_usuario__id_usuario=usuario_id)
+        except Exception:
+            try:
+                # alternativa: UsuariosBrokers.id_usuario directamente guarda el pk del usuario
+                broker = UsuariosBrokers.objects.get(id_usuario=usuario_id)
+            except Exception:
+                try:
+                    # alternativa: el id_usuario del token es en realidad el id_broker
+                    broker = UsuariosBrokers.objects.get(pk=usuario_id)
+                except UsuariosBrokers.DoesNotExist:
+                    return Response({'error': 'Broker no encontrado para este usuario'}, status=status.HTTP_404_NOT_FOUND)
+
+        # obtener facturas y prefetch de pagos y lead
+        facturas_qs = FacturacionLeadsBrokers.objects.filter(id_broker=broker).select_related('id_lead').prefetch_related('pagos').order_by('-fecha_facturacion')
+        serializer_facturas = FacturaBrokerSerializer(facturas_qs, many=True, context={'request': request})
+
+        # opcional: lista plana de pagos (si quieres también enviarla)
+        pagos_qs = PagosBrokersLeads.objects.filter(numero_factura__id_broker=broker).select_related('numero_factura').order_by('-fecha_pago')
+        serializer_pagos = PagoBrokerSerializer(pagos_qs, many=True, context={'request': request})
+
+        return Response({
+            'broker_id': getattr(broker, 'id_broker', None) or getattr(broker, 'pk', None),
+            'facturas': serializer_facturas.data,
+            'pagos': serializer_pagos.data,
+        }, status=status.HTTP_200_OK)
