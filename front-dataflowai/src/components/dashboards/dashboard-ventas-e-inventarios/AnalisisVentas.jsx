@@ -496,14 +496,14 @@ const AnalisisVentas = () => {
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
           fontSize: 16,
           fontWeight: 600,
-          color: 'var(--text-primary)'
+          color: 'var(--dhveinte-anlv-text-primary)'
         },
       },
       tooltip: {
         trigger: "axis",
-        backgroundColor: 'var(--card-bg)',
-        borderColor: 'var(--card-border)',
-        textStyle: { color: 'var(--text-primary)' },
+        backgroundColor: 'var(--dhveinte-anlv-card-bg)',
+        borderColor: 'var(--dhveinte-anlv-card-border)',
+        textStyle: { color: 'var(--dhveinte-anlv-text-primary)' },
         formatter: (params) => {
           const axisValue = params[0]?.axisValue;
           const ventaPoint = params.find(p => p.seriesName === "Ventas");
@@ -515,14 +515,14 @@ const AnalisisVentas = () => {
           const tiendaName = selectedTiendaId ? (tiendaById[selectedTiendaId]?.nombre_tienda || "") : (selectedCiudad ? `Ciudad: ${selectedCiudad}` : "");
           const productoName = selectedProductoId ? (productoById[selectedProductoId]?.nombre_producto || "") : (selectedMarca ? `Marca: ${selectedMarca}` : "");
 
-          let header = `<strong style="color: var(--accent-1)">Día ${axisValue}</strong><br/>`;
+          let header = `<strong style="color: var(--dhveinte-anlv-accent-1)">Día ${axisValue}</strong><br/>`;
           if (tiendaName) header += `${tiendaName}<br/>`;
           if (productoName) header += `${productoName}<br/>`;
 
           return `${header}
             <span style="color: #d9534f">🔴 Meta diaria: ${Number(meta).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</span><br/>
             <span style="color: #111111">⚫ Ventas: ${Number(venta).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</span><br/>
-            <span style="color: var(--accent-1)">✅ Cumplimiento: <b>${cumplimiento}%</b></span>
+            <span style="color: var(--dhveinte-anlv-accent-1)">✅ Cumplimiento: <b>${cumplimiento}%</b></span>
           `;
         },
         axisPointer: { type: "shadow" },
@@ -532,7 +532,7 @@ const AnalisisVentas = () => {
         data: ["Meta diaria", "Ventas"], 
         textStyle: { 
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          color: 'var(--text-secondary)'
+          color: 'var(--dhveinte-anlv-text-secondary)'
         } 
       },
       toolbox: { 
@@ -564,11 +564,11 @@ const AnalisisVentas = () => {
         nameGap: 25,
         axisLabel: { 
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          color: 'var(--text-secondary)'
+          color: 'var(--dhveinte-anlv-text-secondary)'
         },
         axisLine: {
           lineStyle: {
-            color: 'var(--card-border)'
+            color: 'var(--dhveinte-anlv-card-border)'
           }
         }
       },
@@ -584,16 +584,16 @@ const AnalisisVentas = () => {
             return `$${v}`;
           },
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          color: 'var(--text-secondary)'
+          color: 'var(--dhveinte-anlv-text-secondary)'
         },
         axisLine: {
           lineStyle: {
-            color: 'var(--card-border)'
+            color: 'var(--dhveinte-anlv-card-border)'
           }
         },
         splitLine: {
           lineStyle: {
-            color: 'var(--card-border)',
+            color: 'var(--dhveinte-anlv-card-border)',
             type: 'dashed'
           }
         }
@@ -658,17 +658,17 @@ const AnalisisVentas = () => {
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
           fontSize: 16,
           fontWeight: 600,
-          color: 'var(--text-primary)'
+          color: 'var(--dhveinte-anlv-text-primary)'
         }
       },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        backgroundColor: 'var(--card-bg)',
-        borderColor: 'var(--card-border)',
-        textStyle: { color: 'var(--text-primary)' },
+        backgroundColor: 'var(--dhveinte-anlv-card-bg)',
+        borderColor: 'var(--dhveinte-anlv-card-border)',
+        textStyle: { color: 'var(--dhveinte-anlv-text-primary)' },
         formatter: function(params) {
-          let result = `<strong style="color: var(--accent-1)">${params[0].name}</strong><br/>`;
+          let result = `<strong style="color: var(--dhveinte-anlv-accent-1)">${params[0].name}</strong><br/>`;
           let total = 0;
           
           params.forEach(param => {
@@ -677,8 +677,8 @@ const AnalisisVentas = () => {
             result += `${param.marker} ${param.seriesName}: ${money(value)}<br/>`;
           });
           
-          result += `<hr style="margin: 5px 0; border-color: var(--card-border);"/>`;
-          result += `<strong style="color: var(--accent-1)">Total: ${money(total)}</strong>`;
+          result += `<hr style="margin: 5px 0; border-color: var(--dhveinte-anlv-card-border);"/>`;
+          result += `<strong style="color: var(--dhveinte-anlv-accent-1)">Total: ${money(total)}</strong>`;
           return result;
         }
       },
@@ -687,7 +687,7 @@ const AnalisisVentas = () => {
         data: datosGraficoBarras.series.slice(0, 5).map(s => s.name),
         textStyle: { 
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          color: 'var(--text-secondary)'
+          color: 'var(--dhveinte-anlv-text-secondary)'
         }
       },
       grid: {
@@ -704,11 +704,11 @@ const AnalisisVentas = () => {
           rotate: 45,
           fontSize: 12,
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          color: 'var(--text-secondary)'
+          color: 'var(--dhveinte-anlv-text-secondary)'
         },
         axisLine: {
           lineStyle: {
-            color: 'var(--card-border)'
+            color: 'var(--dhveinte-anlv-card-border)'
           }
         }
       },
@@ -724,16 +724,16 @@ const AnalisisVentas = () => {
             return `$${value}`;
           },
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          color: 'var(--text-secondary)'
+          color: 'var(--dhveinte-anlv-text-secondary)'
         },
         axisLine: {
           lineStyle: {
-            color: 'var(--card-border)'
+            color: 'var(--dhveinte-anlv-card-border)'
           }
         },
         splitLine: {
           lineStyle: {
-            color: 'var(--card-border)',
+            color: 'var(--dhveinte-anlv-card-border)',
             type: 'dashed'
           }
         }
@@ -1270,7 +1270,7 @@ const AnalisisVentas = () => {
                         <td className={styles.tableCell} style={{ 
                           textAlign: 'right', 
                           fontWeight: 600,
-                          background: 'var(--bg-secondary)'
+                          background: 'var(--dhveinte-anlv-bg-secondary)'
                         }}>
                           {money(fila.total)}
                         </td>
@@ -1296,7 +1296,7 @@ const AnalisisVentas = () => {
                         <td className={styles.tableCell} style={{ 
                           textAlign: 'right', 
                           fontWeight: 600,
-                          background: 'var(--accent-1)',
+                          background: 'var(--dhveinte-anlv-accent-1)',
                           color: 'white'
                         }}>
                           {money(tablaPivot.reduce((sum, fila) => sum + fila.total, 0))}

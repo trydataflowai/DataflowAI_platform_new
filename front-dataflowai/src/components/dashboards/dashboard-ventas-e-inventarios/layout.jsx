@@ -19,32 +19,32 @@ const Card = ({ texto, ruta, onCardClick, styles }) => {
   return (
     <div
       ref={ref}
-      className={styles.DashboardGeneralcard}
+      className={styles.dhveinteLayCard}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
       aria-label={texto}
     >
-      <div className={styles.DashboardGeneralcardInner}>
-        <div className={styles.DashboardGeneralcardContent}>
-          <div className={styles.DashboardGeneralcardHeader}>
-            <div className={styles.DashboardGeneralcardIcon}>
-              <span className={styles.DashboardGeneralicon}></span>
+      <div className={styles.dhveinteLayCardInner}>
+        <div className={styles.dhveinteLayCardContent}>
+          <div className={styles.dhveinteLayCardHeader}>
+            <div className={styles.dhveinteLayCardIcon}>
+              <span className={styles.dhveinteLayIcon}></span>
             </div>
-            <h3 className={styles.DashboardGeneralcardTitle}>{texto}</h3>
+            <h3 className={styles.dhveinteLayCardTitle}>{texto}</h3>
           </div>
 
-          <div className={styles.DashboardGeneralcardBody}>
-            <p className={styles.DashboardGeneralcardDesc}>
+          <div className={styles.dhveinteLayCardBody}>
+            <p className={styles.dhveinteLayCardDesc}>
               Gestiona y visualiza información de ventas e inventarios
             </p>
           </div>
 
-          <div className={styles.DashboardGeneralcardFooter}>
-            <span className={styles.DashboardGeneralcta}>
+          <div className={styles.dhveinteLayCardFooter}>
+            <span className={styles.dhveinteLayCta}>
               Acceder
-              <span className={styles.DashboardGeneralctaArrow}>→</span>
+              <span className={styles.dhveinteLayCtaArrow}>→</span>
             </span>
           </div>
         </div>
@@ -99,23 +99,23 @@ const DashboardVentaseInventarios = () => {
   };
 
   return (
-    <main className={`${styles.DashboardGeneralcontainer} ${styles.DashboardGeneralLight}`} aria-labelledby="dashboard-ventas-title">
+    <main className={`${styles.dhveinteLayContainer} ${styles.dhveinteLayLight}`} aria-labelledby="dashboard-ventas-title">
       
       {/* Header Section */}
-      <section className={styles.DashboardGeneralheader}>
-        <div className={styles.DashboardGeneralheaderContent}>
-          <h1 id="dashboard-ventas-title" className={styles.DashboardGeneraltitle}>
+      <section className={styles.dhveinteLayHeader}>
+        <div className={styles.dhveinteLayHeaderContent}>
+          <h1 id="dashboard-ventas-title" className={styles.dhveinteLayTitle}>
             Dashboard Ventas e Inventarios
           </h1>
-          <p className={styles.DashboardGeneralsubtitle}>
+          <p className={styles.dhveinteLaySubtitle}>
             Gestiona, analiza y visualiza información comercial de tu negocio
           </p>
         </div>
       </section>
 
       {/* Cards Grid */}
-      <section className={styles.DashboardGeneralcardsSection} aria-label="Módulos de ventas e inventarios">
-        <div className={styles.DashboardGeneralcardsContainer}>
+      <section className={styles.dhveinteLayCardsSection} aria-label="Módulos de ventas e inventarios">
+        <div className={styles.dhveinteLayCardsContainer}>
           {opciones.map((opcion, index) => (
             <Card
               key={index}

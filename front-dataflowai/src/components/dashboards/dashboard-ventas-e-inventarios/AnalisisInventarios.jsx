@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from '../../../styles/Dashboards/dashboard-ventas-e-inventarios/Layout.module.css';
+import styles from '../../../styles/Dashboards/dashboard-ventas-e-inventarios/AnalisisInventarios.module.css';
 
 // APIs ya creadas
 import { fetchTiendas } from "../../../api/DashboardsApis/dashboard-ventas-e-inventarios/DashboardApiCrudTiendas";
@@ -46,136 +46,148 @@ const DashboardVentaseInventariosAnalisisInventarios = () => {
     loadData();
   }, []);
 
-  if (loading) return <p>Cargando datos...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p className={styles['dhveinte-inlv-loading']}>Cargando datos...</p>;
+  if (error) return <p className={styles['dhveinte-inlv-error']}>Error: {error}</p>;
 
   return (
-    <div className={styles.container}>
-      <h1>Dashboard Ventas e Inventarios</h1>
+    <div className={styles['dhveinte-inlv-container']}>
+      <h1 className={styles['dhveinte-inlv-title']}>Dashboard Ventas e Inventarios</h1>
 
       {/* TIENDAS */}
-      <h2>Tiendas</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Empresa</th>
-            <th>Nombre</th>
-            <th>Dirección</th>
-            <th>Horario</th>
-            <th>Ciudad</th>
-            <th>Teléfono</th>
-            <th>Email</th>
-            <th>Canal</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tiendas.map((t) => (
-            <tr key={t.id_tienda}>
-              <td>{t.id_tienda}</td>
-              <td>{t.id_empresa}</td>
-              <td>{t.nombre_tienda}</td>
-              <td>{t.direccion_tienda}</td>
-              <td>{t.horario_tienda}</td>
-              <td>{t.ciudad}</td>
-              <td>{t.telefono}</td>
-              <td>{t.email}</td>
-              <td>{t.canal}</td>
-              <td>{t.estado ? "Activo" : "Inactivo"}</td>
+      <h2 className={styles['dhveinte-inlv-subtitle']}>Tiendas</h2>
+      <div className={styles['dhveinte-inlv-table-container']}>
+        <table className={styles['dhveinte-inlv-table']}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Empresa</th>
+              <th>Nombre</th>
+              <th>Dirección</th>
+              <th>Horario</th>
+              <th>Ciudad</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Canal</th>
+              <th>Estado</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tiendas.map((t) => (
+              <tr key={t.id_tienda}>
+                <td>{t.id_tienda}</td>
+                <td>{t.id_empresa}</td>
+                <td>{t.nombre_tienda}</td>
+                <td>{t.direccion_tienda}</td>
+                <td>{t.horario_tienda}</td>
+                <td>{t.ciudad}</td>
+                <td>{t.telefono}</td>
+                <td>{t.email}</td>
+                <td>{t.canal}</td>
+                <td>
+                  <span className={`${styles['dhveinte-inlv-status']} ${t.estado ? styles['dhveinte-inlv-status-active'] : styles['dhveinte-inlv-status-inactive']}`}>
+                    {t.estado ? "Activo" : "Inactivo"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* PRODUCTOS */}
-      <h2>Productos</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Empresa</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Marca</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productos.map((p) => (
-            <tr key={p.id_producto}>
-              <td>{p.id_producto}</td>
-              <td>{p.id_empresa}</td>
-              <td>{p.nombre_producto}</td>
-              <td>{p.categoria}</td>
-              <td>{p.marca}</td>
-              <td>{p.valor_producto}</td>
+      <h2 className={styles['dhveinte-inlv-subtitle']}>Productos</h2>
+      <div className={styles['dhveinte-inlv-table-container']}>
+        <table className={styles['dhveinte-inlv-table']}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Empresa</th>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Marca</th>
+              <th>Valor</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {productos.map((p) => (
+              <tr key={p.id_producto}>
+                <td>{p.id_producto}</td>
+                <td>{p.id_empresa}</td>
+                <td>{p.nombre_producto}</td>
+                <td>{p.categoria}</td>
+                <td>{p.marca}</td>
+                <td className={styles['dhveinte-inlv-currency']}>{p.valor_producto}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* INVENTARIOS */}
-      <h2>Inventarios</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Empresa</th>
-            <th>ID Tienda</th>
-            <th>Tienda</th>
-            <th>ID Producto</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventarios.map((i) => (
-            <tr key={i.id_registro}>
-              <td>{i.id_registro}</td>
-              <td>{i.id_empresa}</td>
-              <td>{i.id_tienda}</td>
-              <td>{i.tienda_nombre}</td>
-              <td>{i.id_producto}</td>
-              <td>{i.producto_nombre}</td>
-              <td>{i.inventario_cantidad}</td>
+      <h2 className={styles['dhveinte-inlv-subtitle']}>Inventarios</h2>
+      <div className={styles['dhveinte-inlv-table-container']}>
+        <table className={styles['dhveinte-inlv-table']}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Empresa</th>
+              <th>ID Tienda</th>
+              <th>Tienda</th>
+              <th>ID Producto</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {inventarios.map((i) => (
+              <tr key={i.id_registro}>
+                <td>{i.id_registro}</td>
+                <td>{i.id_empresa}</td>
+                <td>{i.id_tienda}</td>
+                <td>{i.tienda_nombre}</td>
+                <td>{i.id_producto}</td>
+                <td>{i.producto_nombre}</td>
+                <td className={styles['dhveinte-inlv-quantity']}>{i.inventario_cantidad}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* VENTAS */}
-      <h2>Ventas</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Empresa</th>
-            <th>ID Tienda</th>
-            <th>Tienda</th>
-            <th>ID Producto</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Dinero</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ventas.map((v) => (
-            <tr key={v.id_registro}>
-              <td>{v.id_registro}</td>
-              <td>{v.id_empresa}</td>
-              <td>{v.id_tienda}</td>
-              <td>{v.tienda_nombre}</td>
-              <td>{v.id_producto}</td>
-              <td>{v.producto_nombre}</td>
-              <td>{v.cantidad_vendida}</td>
-              <td>{v.dinero_vendido}</td>
-              <td>{v.fecha_venta}</td>
+      <h2 className={styles['dhveinte-inlv-subtitle']}>Ventas</h2>
+      <div className={styles['dhveinte-inlv-table-container']}>
+        <table className={styles['dhveinte-inlv-table']}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Empresa</th>
+              <th>ID Tienda</th>
+              <th>Tienda</th>
+              <th>ID Producto</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Dinero</th>
+              <th>Fecha</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {ventas.map((v) => (
+              <tr key={v.id_registro}>
+                <td>{v.id_registro}</td>
+                <td>{v.id_empresa}</td>
+                <td>{v.id_tienda}</td>
+                <td>{v.tienda_nombre}</td>
+                <td>{v.id_producto}</td>
+                <td>{v.producto_nombre}</td>
+                <td className={styles['dhveinte-inlv-quantity']}>{v.cantidad_vendida}</td>
+                <td className={styles['dhveinte-inlv-currency']}>{v.dinero_vendido}</td>
+                <td>{v.fecha_venta}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

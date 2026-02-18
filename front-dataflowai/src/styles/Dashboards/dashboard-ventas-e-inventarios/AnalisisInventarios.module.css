@@ -1,0 +1,305 @@
+/* =========================
+   Variables para Diseño Light - Dashboard General con prefijo dhveinte-inlv
+   ========================= */
+
+:root {
+  /* Paleta de colores principal */
+  --dhveinte-inlv-color-50: #f0f9ff;
+  --dhveinte-inlv-color-100: #e0f2fe;
+  --dhveinte-inlv-color-200: #bae6fd;
+  --dhveinte-inlv-color-300: #7dd3fc;
+  --dhveinte-inlv-color-400: #38bdf8;
+  --dhveinte-inlv-color-500: #0ea5e9;
+  --dhveinte-inlv-color-600: #0284c7;
+  --dhveinte-inlv-color-700: #0369a1;
+  --dhveinte-inlv-color-800: #075985;
+  --dhveinte-inlv-color-900: #0c4a6e;
+  
+  /* Colores de estado */
+  --dhveinte-inlv-success: #10b981;
+  --dhveinte-inlv-success-light: #d1fae5;
+  --dhveinte-inlv-warning: #f59e0b;
+  --dhveinte-inlv-warning-light: #fef3c7;
+  --dhveinte-inlv-danger: #ef4444;
+  --dhveinte-inlv-danger-light: #fee2e2;
+  --dhveinte-inlv-info: #3b82f6;
+  --dhveinte-inlv-info-light: #dbeafe;
+  
+  /* Colores neutrales */
+  --dhveinte-inlv-bg-primary: #ffffff;
+  --dhveinte-inlv-bg-secondary: #f8f9fa;
+  --dhveinte-inlv-bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --dhveinte-inlv-text-primary: #2d3748;
+  --dhveinte-inlv-text-secondary: #4a5568;
+  --dhveinte-inlv-text-muted: #718096;
+  
+  /* Colores de acento */
+  --dhveinte-inlv-accent-1: #0A66C2;
+  --dhveinte-inlv-accent-2: #0073b1;
+  --dhveinte-inlv-accent-gradient: linear-gradient(135deg, var(--dhveinte-inlv-accent-1), var(--dhveinte-inlv-accent-2));
+  
+  /* Cards */
+  --dhveinte-inlv-card-bg: rgba(255, 255, 255, 0.9);
+  --dhveinte-inlv-card-hover-bg: rgba(255, 255, 255, 1);
+  --dhveinte-inlv-card-border: rgba(0, 0, 0, 0.08);
+  --dhveinte-inlv-card-hover-border: rgba(10, 102, 194, 0.3);
+  --dhveinte-inlv-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --dhveinte-inlv-card-hover-shadow: 0 8px 30px rgba(10, 102, 194, 0.12);
+  
+  /* Efectos */
+  --dhveinte-inlv-backdrop-filter: blur(10px);
+  --dhveinte-inlv-modal-bg: rgba(255, 255, 255, 0.95);
+  --dhveinte-inlv-modal-border: rgba(0, 0, 0, 0.1);
+  
+  /* Botones */
+  --dhveinte-inlv-btn-bg: var(--dhveinte-inlv-accent-gradient);
+  --dhveinte-inlv-btn-text: #ffffff;
+  
+  /* Transiciones */
+  --dhveinte-inlv-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Tablas */
+  --dhveinte-inlv-table-header-bg: #f1f5f9;
+  --dhveinte-inlv-table-row-hover: #f8fafc;
+  --dhveinte-inlv-table-border: #e2e8f0;
+}
+
+/* =========================
+   Estilos Base - Diseño Sobrio con prefijo dhveinte-inlv
+   ========================= */
+
+.dhveinte-inlv-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--dhveinte-inlv-bg-gradient);
+  color: var(--dhveinte-inlv-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* Títulos */
+.dhveinte-inlv-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  color: var(--dhveinte-inlv-text-primary);
+  letter-spacing: -0.02em;
+  border-bottom: 2px solid var(--dhveinte-inlv-card-border);
+  padding-bottom: 1rem;
+}
+
+.dhveinte-inlv-subtitle {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+  color: var(--dhveinte-inlv-text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Estados de carga y error */
+.dhveinte-inlv-loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: var(--dhveinte-inlv-text-secondary);
+  background: var(--dhveinte-inlv-card-bg);
+  border-radius: 12px;
+  backdrop-filter: var(--dhveinte-inlv-backdrop-filter);
+  animation: dhveinte-inlv-pulse 1.5s ease-in-out infinite;
+}
+
+.dhveinte-inlv-error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: var(--dhveinte-inlv-danger);
+  background: var(--dhveinte-inlv-danger-light);
+  border-radius: 12px;
+  border: 1px solid var(--dhveinte-inlv-danger);
+}
+
+/* Contenedor de tabla */
+.dhveinte-inlv-table-container {
+  background: var(--dhveinte-inlv-card-bg);
+  border: 1px solid var(--dhveinte-inlv-card-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  backdrop-filter: var(--dhveinte-inlv-backdrop-filter);
+  box-shadow: var(--dhveinte-inlv-card-shadow);
+  overflow-x: auto;
+}
+
+/* Estilos de tabla */
+.dhveinte-inlv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.dhveinte-inlv-table th {
+  text-align: left;
+  padding: 1rem;
+  background: var(--dhveinte-inlv-table-header-bg);
+  color: var(--dhveinte-inlv-text-primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--dhveinte-inlv-table-border);
+  white-space: nowrap;
+}
+
+.dhveinte-inlv-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--dhveinte-inlv-table-border);
+  color: var(--dhveinte-inlv-text-secondary);
+}
+
+.dhveinte-inlv-table tbody tr:hover {
+  background: var(--dhveinte-inlv-table-row-hover);
+  transition: var(--dhveinte-inlv-transition);
+}
+
+.dhveinte-inlv-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Estados de filas */
+.dhveinte-inlv-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.dhveinte-inlv-status-active {
+  background: var(--dhveinte-inlv-success-light);
+  color: var(--dhveinte-inlv-success);
+  border: 1px solid var(--dhveinte-inlv-success);
+}
+
+.dhveinte-inlv-status-inactive {
+  background: var(--dhveinte-inlv-danger-light);
+  color: var(--dhveinte-inlv-danger);
+  border: 1px solid var(--dhveinte-inlv-danger);
+}
+
+/* Formato de números */
+.dhveinte-inlv-currency {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--dhveinte-inlv-accent-1);
+}
+
+.dhveinte-inlv-quantity {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dhveinte-inlv-container {
+    padding: 1.5rem;
+  }
+  
+  .dhveinte-inlv-title {
+    font-size: 2rem;
+  }
+  
+  .dhveinte-inlv-subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dhveinte-inlv-container {
+    padding: 1rem;
+  }
+  
+  .dhveinte-inlv-title {
+    font-size: 1.75rem;
+  }
+  
+  .dhveinte-inlv-subtitle {
+    font-size: 1.3rem;
+  }
+  
+  .dhveinte-inlv-table th,
+  .dhveinte-inlv-table td {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dhveinte-inlv-title {
+    font-size: 1.5rem;
+  }
+  
+  .dhveinte-inlv-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .dhveinte-inlv-table-container {
+    padding: 0.5rem;
+  }
+  
+  .dhveinte-inlv-table th,
+  .dhveinte-inlv-table td {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Animaciones */
+@keyframes dhveinte-inlv-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes dhveinte-inlv-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dhveinte-inlv-table-container {
+  animation: dhveinte-inlv-fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.dhveinte-inlv-table-container:nth-child(2) { animation-delay: 0.1s; }
+.dhveinte-inlv-table-container:nth-child(4) { animation-delay: 0.2s; }
+.dhveinte-inlv-table-container:nth-child(6) { animation-delay: 0.3s; }
+.dhveinte-inlv-table-container:nth-child(8) { animation-delay: 0.4s; }
+
+/* Scrollbar personalizada */
+.dhveinte-inlv-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.dhveinte-inlv-table-container::-webkit-scrollbar-track {
+  background: var(--dhveinte-inlv-bg-secondary);
+  border-radius: 4px;
+}
+
+.dhveinte-inlv-table-container::-webkit-scrollbar-thumb {
+  background: var(--dhveinte-inlv-text-muted);
+  border-radius: 4px;
+}
+
+.dhveinte-inlv-table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--dhveinte-inlv-accent-1);
+}

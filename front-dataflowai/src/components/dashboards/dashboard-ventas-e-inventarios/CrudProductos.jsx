@@ -129,21 +129,21 @@ const DashboardVentaseInventariosCrudProductos = () => {
   };
 
   return (
-    <main className={`${styles.container} ${styles.CrudProductosLight}`}>
+    <main className={`${styles['dhveinte-CrdPro-container']} ${styles['dhveinte-CrdPro-light']}`}>
       {/* Header Section */}
-      <section className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.title}>CRUD Productos</h1>
-          <p className={styles.subtitle}>Gestión del catálogo de productos</p>
+      <section className={styles['dhveinte-CrdPro-header']}>
+        <div className={styles['dhveinte-CrdPro-headerContent']}>
+          <h1 className={styles['dhveinte-CrdPro-title']}>CRUD Productos</h1>
+          <p className={styles['dhveinte-CrdPro-subtitle']}>Gestión del catálogo de productos</p>
         </div>
       </section>
 
       {/* Filtros Section */}
-      <section className={styles.filtersSection}>
-        <div className={styles.filtersContainer}>
-          <div className={styles.searchGroup}>
-            <div className={styles.searchInputWrapper}>
-              <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <section className={styles['dhveinte-CrdPro-filtersSection']}>
+        <div className={styles['dhveinte-CrdPro-filtersContainer']}>
+          <div className={styles['dhveinte-CrdPro-searchGroup']}>
+            <div className={styles['dhveinte-CrdPro-searchInputWrapper']}>
+              <svg className={styles['dhveinte-CrdPro-searchIcon']} width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M11.3333 11.3333L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 <path d="M7 12C9.76142 12 12 9.76142 12 7C12 4.23858 9.76142 2 7 2C4.23858 2 2 4.23858 2 7C2 9.76142 4.23858 12 7 12Z" stroke="currentColor" strokeWidth="1.5"/>
               </svg>
@@ -152,23 +152,23 @@ const DashboardVentaseInventariosCrudProductos = () => {
                 placeholder="Buscar por nombre, categoría o marca..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={styles.searchInput}
+                className={styles['dhveinte-CrdPro-searchInput']}
               />
             </div>
           </div>
 
-          <div className={styles.actionsGroup}>
+          <div className={styles['dhveinte-CrdPro-actionsGroup']}>
             <button 
               onClick={() => setRefreshFlag(f => f + 1)} 
-              className={styles.btnSecondary}
+              className={styles['dhveinte-CrdPro-btnSecondary']}
             >
-              <svg className={styles.btnIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <svg className={styles['dhveinte-CrdPro-btnIcon']} width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M13.5 8C13.5 11.0376 11.0376 13.5 8 13.5C4.96243 13.5 2.5 11.0376 2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C10.1579 2.5 12.0379 3.73188 13 5.5M13.5 2.5V5.5H10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Refrescar
             </button>
-            <button onClick={openCreate} className={styles.btnPrimary}>
-              <svg className={styles.btnIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <button onClick={openCreate} className={styles['dhveinte-CrdPro-btnPrimary']}>
+              <svg className={styles['dhveinte-CrdPro-btnIcon']} width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M8 3.5V12.5M12.5 8H3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               Nuevo Producto
@@ -178,24 +178,24 @@ const DashboardVentaseInventariosCrudProductos = () => {
       </section>
 
       {/* Main Content */}
-      <section className={styles.contentSection}>
-        <div className={styles.contentContainer}>
+      <section className={styles['dhveinte-CrdPro-contentSection']}>
+        <div className={styles['dhveinte-CrdPro-contentContainer']}>
           {/* Loading State */}
           {loading && (
-            <div className={styles.loadingState}>
-              <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>Cargando productos...</p>
+            <div className={styles['dhveinte-CrdPro-loadingState']}>
+              <div className={styles['dhveinte-CrdPro-loadingSpinner']}></div>
+              <p className={styles['dhveinte-CrdPro-loadingText']}>Cargando productos...</p>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className={styles.errorState}>
-              <div className={styles.errorIcon}>!</div>
-              <p className={styles.errorText}>{error}</p>
+            <div className={styles['dhveinte-CrdPro-errorState']}>
+              <div className={styles['dhveinte-CrdPro-errorIcon']}>!</div>
+              <p className={styles['dhveinte-CrdPro-errorText']}>{error}</p>
               <button 
                 onClick={() => setError(null)} 
-                className={styles.errorClose}
+                className={styles['dhveinte-CrdPro-errorClose']}
               >
                 ×
               </button>
@@ -203,80 +203,80 @@ const DashboardVentaseInventariosCrudProductos = () => {
           )}
 
           {/* Table Section */}
-          <div className={styles.tableContainer}>
+          <div className={styles['dhveinte-CrdPro-tableContainer']}>
             {productos.length === 0 && !loading ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
+              <div className={styles['dhveinte-CrdPro-emptyState']}>
+                <div className={styles['dhveinte-CrdPro-emptyIcon']}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                     <path d="M3 10H21M7 15H8M12 15H13M6 21H18C19.6569 21 21 19.6569 21 18V6C21 4.34315 19.6569 3 18 3H6C4.34315 3 3 4.34315 3 6V18C3 19.6569 4.34315 21 6 21Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <h3 className={styles.emptyTitle}>No hay productos registrados</h3>
-                <p className={styles.emptyDescription}>
+                <h3 className={styles['dhveinte-CrdPro-emptyTitle']}>No hay productos registrados</h3>
+                <p className={styles['dhveinte-CrdPro-emptyDescription']}>
                   {search 
                     ? "Intenta cambiar el término de búsqueda" 
                     : "Comienza creando un nuevo producto"}
                 </p>
                 {!search && (
-                  <button onClick={openCreate} className={styles.btnPrimary}>
+                  <button onClick={openCreate} className={styles['dhveinte-CrdPro-btnPrimary']}>
                     Crear primer producto
                   </button>
                 )}
               </div>
             ) : (
-              <table className={styles.table}>
-                <thead className={styles.tableHeader}>
+              <table className={styles['dhveinte-CrdPro-table']}>
+                <thead className={styles['dhveinte-CrdPro-tableHeader']}>
                   <tr>
-                    <th className={styles.tableHeaderCell}>ID</th>
-                    <th className={styles.tableHeaderCell}>Nombre</th>
-                    <th className={styles.tableHeaderCell}>Categoría</th>
-                    <th className={styles.tableHeaderCell}>Marca</th>
-                    <th className={styles.tableHeaderCell}>Valor</th>
-                    <th className={styles.tableHeaderCell}>Acciones</th>
+                    <th className={styles['dhveinte-CrdPro-tableHeaderCell']}>ID</th>
+                    <th className={styles['dhveinte-CrdPro-tableHeaderCell']}>Nombre</th>
+                    <th className={styles['dhveinte-CrdPro-tableHeaderCell']}>Categoría</th>
+                    <th className={styles['dhveinte-CrdPro-tableHeaderCell']}>Marca</th>
+                    <th className={styles['dhveinte-CrdPro-tableHeaderCell']}>Valor</th>
+                    <th className={styles['dhveinte-CrdPro-tableHeaderCell']}>Acciones</th>
                   </tr>
                 </thead>
-                <tbody className={styles.tableBody}>
+                <tbody className={styles['dhveinte-CrdPro-tableBody']}>
                   {productos.map(p => (
-                    <tr key={p.id_producto ?? p.id ?? p.pk} className={styles.tableRow}>
-                      <td className={styles.tableCell}>
-                        <span className={styles.idBadge}>{p.id_producto ?? p.id ?? p.pk}</span>
+                    <tr key={p.id_producto ?? p.id ?? p.pk} className={styles['dhveinte-CrdPro-tableRow']}>
+                      <td className={styles['dhveinte-CrdPro-tableCell']}>
+                        <span className={styles['dhveinte-CrdPro-idBadge']}>{p.id_producto ?? p.id ?? p.pk}</span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <div className={styles.productInfo}>
-                          <span className={styles.productName}>{p.nombre_producto}</span>
+                      <td className={styles['dhveinte-CrdPro-tableCell']}>
+                        <div className={styles['dhveinte-CrdPro-productInfo']}>
+                          <span className={styles['dhveinte-CrdPro-productName']}>{p.nombre_producto}</span>
                         </div>
                       </td>
-                      <td className={styles.tableCell}>
-                        <span className={`${styles.categoryBadge} ${
-                          p.categoria ? styles.categoryWithText : styles.categoryEmpty
+                      <td className={styles['dhveinte-CrdPro-tableCell']}>
+                        <span className={`${styles['dhveinte-CrdPro-categoryBadge']} ${
+                          p.categoria ? styles['dhveinte-CrdPro-categoryWithText'] : styles['dhveinte-CrdPro-categoryEmpty']
                         }`}>
                           {p.categoria || '—'}
                         </span>
                       </td>
-                      <td className={styles.tableCell}>
-                        <span className={`${styles.brandBadge} ${
-                          p.marca ? styles.brandWithText : styles.brandEmpty
+                      <td className={styles['dhveinte-CrdPro-tableCell']}>
+                        <span className={`${styles['dhveinte-CrdPro-brandBadge']} ${
+                          p.marca ? styles['dhveinte-CrdPro-brandWithText'] : styles['dhveinte-CrdPro-brandEmpty']
                         }`}>
                           {p.marca || '—'}
                         </span>
                       </td>
-                      <td className={styles.tableCell}>
+                      <td className={styles['dhveinte-CrdPro-tableCell']}>
                         {p.valor_producto ? (
-                          <span className={styles.priceBadge}>
+                          <span className={styles['dhveinte-CrdPro-priceBadge']}>
                             ${parseFloat(p.valor_producto).toLocaleString('es-MX', {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2
                             })}
                           </span>
                         ) : (
-                          <span className={styles.priceEmpty}>—</span>
+                          <span className={styles['dhveinte-CrdPro-priceEmpty']}>—</span>
                         )}
                       </td>
-                      <td className={styles.tableCell}>
-                        <div className={styles.actionButtons}>
+                      <td className={styles['dhveinte-CrdPro-tableCell']}>
+                        <div className={styles['dhveinte-CrdPro-actionButtons']}>
                           <button 
                             onClick={() => openEdit(p.id_producto ?? p.id ?? p.pk)} 
-                            className={styles.actionBtnEdit}
+                            className={styles['dhveinte-CrdPro-actionBtnEdit']}
                             title="Editar"
                           >
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -285,7 +285,7 @@ const DashboardVentaseInventariosCrudProductos = () => {
                           </button>
                           <button 
                             onClick={() => handleDelete(p.id_producto ?? p.id ?? p.pk)} 
-                            className={styles.actionBtnDelete}
+                            className={styles['dhveinte-CrdPro-actionBtnDelete']}
                             title="Eliminar"
                           >
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -303,18 +303,18 @@ const DashboardVentaseInventariosCrudProductos = () => {
 
           {/* Pagination */}
           {productos.length > 0 && (
-            <div className={styles.pagination}>
-              <div className={styles.paginationInfo}>
+            <div className={styles['dhveinte-CrdPro-pagination']}>
+              <div className={styles['dhveinte-CrdPro-paginationInfo']}>
                 Mostrando {productos.length} productos
               </div>
-              <div className={styles.paginationSummary}>
-                <span className={styles.summaryItem}>
-                  <span className={styles.summaryIcon}>📦</span>
+              <div className={styles['dhveinte-CrdPro-paginationSummary']}>
+                <span className={styles['dhveinte-CrdPro-summaryItem']}>
+                  <span className={styles['dhveinte-CrdPro-summaryIcon']}>📦</span>
                   Total: {productos.length}
                 </span>
                 {productos.some(p => p.valor_producto) && (
-                  <span className={styles.summaryItem}>
-                    <span className={styles.summaryIcon}>💰</span>
+                  <span className={styles['dhveinte-CrdPro-summaryItem']}>
+                    <span className={styles['dhveinte-CrdPro-summaryIcon']}>💰</span>
                     Valor promedio: ${(
                       productos
                         .filter(p => p.valor_producto)
@@ -332,51 +332,51 @@ const DashboardVentaseInventariosCrudProductos = () => {
       {/* Modal */}
       {showModal && (
         <div 
-          className={styles.modalOverlay}
+          className={styles['dhveinte-CrdPro-modalOverlay']}
           onClick={() => setShowModal(false)}
         >
           <div 
-            className={styles.modal}
+            className={styles['dhveinte-CrdPro-modal']}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>
+            <div className={styles['dhveinte-CrdPro-modalHeader']}>
+              <h2 className={styles['dhveinte-CrdPro-modalTitle']}>
                 {isEditing ? 'Editar Producto' : 'Crear Producto'}
               </h2>
               <button 
                 onClick={() => setShowModal(false)} 
-                className={styles.modalClose}
+                className={styles['dhveinte-CrdPro-modalClose']}
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className={styles.modalForm}>
-              <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+            <form onSubmit={handleSubmit} className={styles['dhveinte-CrdPro-modalForm']}>
+              <div className={styles['dhveinte-CrdPro-formGrid']}>
+                <div className={styles['dhveinte-CrdPro-formGroup']}>
+                  <label className={styles['dhveinte-CrdPro-formLabel']}>
                     Nombre del producto
-                    <span className={styles.required}>*</span>
+                    <span className={styles['dhveinte-CrdPro-required']}>*</span>
                   </label>
                   <input 
                     name="nombre_producto" 
                     value={form.nombre_producto} 
                     onChange={handleChange} 
                     required 
-                    className={styles.formInput}
+                    className={styles['dhveinte-CrdPro-formInput']}
                     placeholder="Ej: Laptop Gamer"
                   />
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles['dhveinte-CrdPro-formGroup']}>
+                  <label className={styles['dhveinte-CrdPro-formLabel']}>
                     Categoría
                   </label>
                   <select 
                     name="categoria" 
                     value={form.categoria} 
                     onChange={handleChange} 
-                    className={styles.formSelect}
+                    className={styles['dhveinte-CrdPro-formSelect']}
                   >
                     <option value="">-- Seleccionar categoría --</option>
                     <option value="Electrónica">Electrónica</option>
@@ -395,25 +395,25 @@ const DashboardVentaseInventariosCrudProductos = () => {
                   </select>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles['dhveinte-CrdPro-formGroup']}>
+                  <label className={styles['dhveinte-CrdPro-formLabel']}>
                     Marca
                   </label>
                   <input 
                     name="marca" 
                     value={form.marca} 
                     onChange={handleChange} 
-                    className={styles.formInput}
+                    className={styles['dhveinte-CrdPro-formInput']}
                     placeholder="Ej: Sony, Nike, etc."
                   />
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
+                <div className={styles['dhveinte-CrdPro-formGroup']}>
+                  <label className={styles['dhveinte-CrdPro-formLabel']}>
                     Valor ($)
                   </label>
-                  <div className={styles.priceInputWrapper}>
-                    <span className={styles.currencySymbol}>$</span>
+                  <div className={styles['dhveinte-CrdPro-priceInputWrapper']}>
+                    <span className={styles['dhveinte-CrdPro-currencySymbol']}>$</span>
                     <input 
                       name="valor_producto" 
                       type="number" 
@@ -421,32 +421,32 @@ const DashboardVentaseInventariosCrudProductos = () => {
                       min="0"
                       value={form.valor_producto} 
                       onChange={handleChange} 
-                      className={styles.formInputPrice}
+                      className={styles['dhveinte-CrdPro-formInputPrice']}
                       placeholder="0.00"
                     />
                   </div>
-                  <p className={styles.inputHelper}>
+                  <p className={styles['dhveinte-CrdPro-inputHelper']}>
                     Dejar vacío si el producto no tiene precio definido
                   </p>
                 </div>
               </div>
 
-              <div className={styles.modalActions}>
+              <div className={styles['dhveinte-CrdPro-modalActions']}>
                 <button 
                   type="button" 
                   onClick={() => setShowModal(false)} 
-                  className={styles.btnCancel}
+                  className={styles['dhveinte-CrdPro-btnCancel']}
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  className={styles.btnSubmit}
+                  className={styles['dhveinte-CrdPro-btnSubmit']}
                 >
                   {loading ? (
-                    <span className={styles.btnLoading}>
-                      <span className={styles.btnSpinner}></span>
+                    <span className={styles['dhveinte-CrdPro-btnLoading']}>
+                      <span className={styles['dhveinte-CrdPro-btnSpinner']}></span>
                       Procesando...
                     </span>
                   ) : (
