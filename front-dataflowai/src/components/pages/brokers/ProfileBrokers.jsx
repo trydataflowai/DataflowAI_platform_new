@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CreacionUsuario.module.css';
+import { useTheme } from '../../componentes/ThemeContext';
+import { useCompanyStyles } from '../../componentes/ThemeContextEmpresa';
 import { obtenerPerfilBroker, actualizarPerfilBroker } from '../../../api/Brokers/EditarPerfilBrokers';
 
 const ProfileBrokers = () => {
+  const { theme } = useTheme();
+  const styles = useCompanyStyles('PerfilBoker');
+  
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState(null);
@@ -96,12 +100,11 @@ const ProfileBrokers = () => {
 
     try {
       const resp = await actualizarPerfilBroker(payload);
-      // Si backend devuelve token actualizado, reemplazarlo
       if (resp.token) {
         localStorage.setItem('token', resp.token);
       }
       setProfileSuccess('Perfil actualizado correctamente.');
-      // Actualizar el formulario con lo devuelto si viene
+      
       if (resp.broker) {
         const b = resp.broker;
         setProfileForm(prev => ({
@@ -139,8 +142,8 @@ const ProfileBrokers = () => {
     setPasswordError(null);
     setPasswordSuccess(null);
 
-    // Validaciones cliente
     const { contrasena_actual, contrasena_nueva, contrasena_confirm } = passwordForm;
+    
     if (!contrasena_actual) {
       setPasswordError('Ingresa tu contraseña actual.');
       setSavingPassword(false);
@@ -162,7 +165,6 @@ const ProfileBrokers = () => {
       return;
     }
 
-    // Payload solo para contraseña
     const payload = {
       contrasena_actual: contrasena_actual,
       contrasena_nueva: contrasena_nueva,
@@ -174,7 +176,6 @@ const ProfileBrokers = () => {
         localStorage.setItem('token', resp.token);
       }
       setPasswordSuccess('Contraseña actualizada correctamente.');
-      // limpiar campos contraseña
       setPasswordForm({ contrasena_actual: '', contrasena_nueva: '', contrasena_confirm: '' });
     } catch (err) {
       console.error(err);
@@ -190,76 +191,160 @@ const ProfileBrokers = () => {
     }
   };
 
+  // Determinar la clase de tema
+  const themeClass = theme === 'dark' ? styles.BrkProfilePerfilgeneralDark : styles.BrkProfilePerfilgeneralLight;
+
   if (loadingProfile) {
-    return <div className={styles.container}><h2>Cargando perfil...</h2></div>;
+    return (
+      <div className={`${styles.BrkProfileContainer} ${themeClass}`}>
+        <h1>Cargando perfil...</h1>
+      </div>
+    );
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.BrkProfileContainer} ${themeClass}`}>
       <h1>Perfil Broker</h1>
 
       {/* Sección Perfil */}
       <section style={{ marginBottom: 28 }}>
-        {profileError && <div style={{ color: 'crimson', marginBottom: 10 }}>{profileError}</div>}
-        {profileSuccess && <div style={{ color: 'green', marginBottom: 10 }}>{profileSuccess}</div>}
+        {profileError && (
+          <div className={styles.BrkProfileErrorMessage} role="alert">
+            {profileError}
+          </div>
+        )}
+        {profileSuccess && (
+          <div className={styles.BrkProfileSuccessMessage} role="status">
+            {profileSuccess}
+          </div>
+        )}
 
-        <form onSubmit={handleProfileSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label>Nombres</label>
-            <input name="nombres" value={profileForm.nombres} onChange={handleProfileChange} required />
+        <form onSubmit={handleProfileSubmit} className={styles.BrkProfileForm}>
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="nombres">Nombres</label>
+            <input
+              id="nombres"
+              name="nombres"
+              value={profileForm.nombres}
+              onChange={handleProfileChange}
+              required
+              placeholder="Ingresa tus nombres"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Apellidos</label>
-            <input name="apellidos" value={profileForm.apellidos} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="apellidos">Apellidos</label>
+            <input
+              id="apellidos"
+              name="apellidos"
+              value={profileForm.apellidos}
+              onChange={handleProfileChange}
+              placeholder="Ingresa tus apellidos"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Correo</label>
-            <input name="correo" type="email" value={profileForm.correo} onChange={handleProfileChange} required />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="correo">Correo</label>
+            <input
+              id="correo"
+              name="correo"
+              type="email"
+              value={profileForm.correo}
+              onChange={handleProfileChange}
+              required
+              placeholder="correo@ejemplo.com"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Teléfono</label>
-            <input name="numero_telefono" value={profileForm.numero_telefono} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="numero_telefono">Teléfono</label>
+            <input
+              id="numero_telefono"
+              name="numero_telefono"
+              value={profileForm.numero_telefono}
+              onChange={handleProfileChange}
+              placeholder="+57 300 123 4567"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>País de residencia</label>
-            <input name="pais_residencia" value={profileForm.pais_residencia} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="pais_residencia">País de residencia</label>
+            <input
+              id="pais_residencia"
+              name="pais_residencia"
+              value={profileForm.pais_residencia}
+              onChange={handleProfileChange}
+              placeholder="Colombia"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Entidad financiera</label>
-            <input name="entidad_financiera" value={profileForm.entidad_financiera} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="entidad_financiera">Entidad financiera</label>
+            <input
+              id="entidad_financiera"
+              name="entidad_financiera"
+              value={profileForm.entidad_financiera}
+              onChange={handleProfileChange}
+              placeholder="Banco de Bogotá"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Número cuenta</label>
-            <input name="numero_cuenta" value={profileForm.numero_cuenta} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="numero_cuenta">Número cuenta</label>
+            <input
+              id="numero_cuenta"
+              name="numero_cuenta"
+              value={profileForm.numero_cuenta}
+              onChange={handleProfileChange}
+              placeholder="1234567890"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Tipo cuenta</label>
-            <input name="tipo_cuenta" value={profileForm.tipo_cuenta} onChange={handleProfileChange} placeholder="Cuenta de ahorros / Cuenta corriente (AH/CO)" />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="tipo_cuenta">Tipo cuenta</label>
+            <input
+              id="tipo_cuenta"
+              name="tipo_cuenta"
+              value={profileForm.tipo_cuenta}
+              onChange={handleProfileChange}
+              placeholder="AH / CO"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Código SWIFT</label>
-            <input name="codigo_swift" value={profileForm.codigo_swift} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="codigo_swift">Código SWIFT</label>
+            <input
+              id="codigo_swift"
+              name="codigo_swift"
+              value={profileForm.codigo_swift}
+              onChange={handleProfileChange}
+              placeholder="BBOGCOBB"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Tipo identificación</label>
-            <input name="tipo_identificacion" value={profileForm.tipo_identificacion} onChange={handleProfileChange} placeholder="CC / CE / TI / NIT" />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="tipo_identificacion">Tipo identificación</label>
+            <input
+              id="tipo_identificacion"
+              name="tipo_identificacion"
+              value={profileForm.tipo_identificacion}
+              onChange={handleProfileChange}
+              placeholder="CC / CE / TI / NIT"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Número identificación</label>
-            <input name="numero_identificacion" value={profileForm.numero_identificacion} onChange={handleProfileChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="numero_identificacion">Número identificación</label>
+            <input
+              id="numero_identificacion"
+              name="numero_identificacion"
+              value={profileForm.numero_identificacion}
+              onChange={handleProfileChange}
+              placeholder="123456789"
+            />
           </div>
 
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 12, gridColumn: '1 / -1' }}>
             <button type="submit" disabled={savingProfile}>
               {savingProfile ? 'Guardando...' : 'Guardar cambios'}
             </button>
@@ -267,35 +352,66 @@ const ProfileBrokers = () => {
         </form>
       </section>
 
-      <hr style={{ margin: '22px 0' }} />
+      <hr className={styles.BrkProfileHr} />
 
-      {/* Sección Contraseña independiente */}
-      <section>
+      {/* Sección Contraseña */}
+      <section className={styles.BrkProfilePasswordSection}>
         <h3>Cambiar contraseña</h3>
-        <p style={{ fontSize: 13, color: '#555' }}>Si no quieres cambiar la contraseña, deja estos campos vacíos.</p>
+        <p className={styles.BrkProfileHelpText}>
+          Si no quieres cambiar la contraseña, deja estos campos vacíos.
+        </p>
 
-        {passwordError && <div style={{ color: 'crimson', marginBottom: 10 }}>{passwordError}</div>}
-        {passwordSuccess && <div style={{ color: 'green', marginBottom: 10 }}>{passwordSuccess}</div>}
+        {passwordError && (
+          <div className={styles.BrkProfileErrorMessage} role="alert">
+            {passwordError}
+          </div>
+        )}
+        {passwordSuccess && (
+          <div className={styles.BrkProfileSuccessMessage} role="status">
+            {passwordSuccess}
+          </div>
+        )}
 
-        <form onSubmit={handlePasswordSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label>Contraseña actual</label>
-            <input name="contrasena_actual" type="password" value={passwordForm.contrasena_actual} onChange={handlePasswordChange} />
+        <form onSubmit={handlePasswordSubmit} className={styles.BrkProfileForm}>
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="contrasena_actual">Contraseña actual</label>
+            <input
+              id="contrasena_actual"
+              name="contrasena_actual"
+              type="password"
+              value={passwordForm.contrasena_actual}
+              onChange={handlePasswordChange}
+              placeholder="••••••••"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Nueva contraseña</label>
-            <input name="contrasena_nueva" type="password" value={passwordForm.contrasena_nueva} onChange={handlePasswordChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="contrasena_nueva">Nueva contraseña</label>
+            <input
+              id="contrasena_nueva"
+              name="contrasena_nueva"
+              type="password"
+              value={passwordForm.contrasena_nueva}
+              onChange={handlePasswordChange}
+              placeholder="••••••••"
+            />
           </div>
 
-          <div className={styles.field}>
-            <label>Confirmar nueva contraseña</label>
-            <input name="contrasena_confirm" type="password" value={passwordForm.contrasena_confirm} onChange={handlePasswordChange} />
+          <div className={styles.BrkProfileField}>
+            <label htmlFor="contrasena_confirm">Confirmar nueva contraseña</label>
+            <input
+              id="contrasena_confirm"
+              name="contrasena_confirm"
+              type="password"
+              value={passwordForm.contrasena_confirm}
+              onChange={handlePasswordChange}
+              placeholder="••••••••"
+            />
           </div>
 
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 12, gridColumn: '1 / -1' }}>
             <button type="submit" disabled={savingPassword}>
-              {savingPassword ? 'Guardando...' : 'Guardar cambios'}
+              {savingPassword ? 'Guardando...' : 'Cambiar contraseña'}
             </button>
           </div>
         </form>

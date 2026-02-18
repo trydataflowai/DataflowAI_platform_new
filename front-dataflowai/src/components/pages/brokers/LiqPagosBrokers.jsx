@@ -1,6 +1,6 @@
-// C:\...\front-dataflowai\src\components\pages\brokers\LiqPagosBrokers.jsx
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CreacionUsuario.module.css';
+import { useTheme } from '../../componentes/ThemeContext';
+import { useCompanyStyles } from '../../componentes/ThemeContextEmpresa';
 import { obtenerLiqPagosBroker } from '../../../api/Brokers/LiqPagosBrokers';
 
 const formatCurrency = (v) => {
@@ -62,6 +62,9 @@ const isPaid = (estado) => {
 const isPending = (estado) => !isPaid(estado);
 
 const LiqPagosBrokers = () => {
+  const { theme } = useTheme();
+  const styles = useCompanyStyles('PagLiqBrokers');
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [brokerData, setBrokerData] = useState({ facturas: [], pagos: [], broker_id: null });
@@ -85,8 +88,24 @@ const LiqPagosBrokers = () => {
     return () => { mounted = false; };
   }, []);
 
-  if (loading) return <div className={styles.container}><p>Cargando...</p></div>;
-  if (error) return <div className={styles.container}><p>Error: {error}</p></div>;
+  // Determinar la clase de tema
+  const themeClass = theme === 'dark' ? styles.BrkLiqPagPerfilgeneralDark : styles.BrkLiqPagPerfilgeneralLight;
+
+  if (loading) {
+    return (
+      <div className={`${styles.BrkLiqPagContainer} ${themeClass}`}>
+        <div className={styles.BrkLiqPagLoadingMessage}>Cargando información de pagos...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`${styles.BrkLiqPagContainer} ${themeClass}`}>
+        <div className={styles.BrkLiqPagErrorMessage}>Error: {error}</div>
+      </div>
+    );
+  }
 
   const { facturas = [], pagos = [], broker_id } = brokerData;
 
@@ -186,122 +205,130 @@ const LiqPagosBrokers = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.BrkLiqPagContainer} ${themeClass}`}>
       <h1>Liquidación y Pagos - Broker {broker_id ?? ''}</h1>
 
-      {/* Resumen superior */} 
-      <section style={{ marginTop: 10, marginBottom: 20 }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 12,
-          alignItems: 'stretch'
-        }}>
-          <div style={{ padding: 12, borderRadius: 8, background: '#fafafa', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Fecha hoy</div>
-            <div style={{ fontSize: 16, fontWeight: '600' }}>{fechaHoy}</div>
+      {/* Resumen superior */}
+      <section>
+        <div className={styles.BrkLiqPagSummaryGrid}>
+          <div className={styles.BrkLiqPagSummaryCardTotal}>
+            <div className={styles.BrkLiqPagSummaryLabel}>Fecha hoy</div>
+            <div className={styles.BrkLiqPagSummaryValue}>{fechaHoy}</div>
           </div>
 
-          <div style={{ padding: 12, borderRadius: 8, background: '#fafafa', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Valor total (comisiones)</div>
-            <div style={{ fontSize: 16, fontWeight: '600' }}>{formatCurrency(valorTotalComisiones)}</div>
+          <div className={styles.BrkLiqPagSummaryCardTotal}>
+            <div className={styles.BrkLiqPagSummaryLabel}>Valor total (comisiones)</div>
+            <div className={styles.BrkLiqPagSummaryValue}>{formatCurrency(valorTotalComisiones)}</div>
           </div>
 
-          <div style={{ padding: 12, borderRadius: 8, background: '#fff7e6', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Valor a pagar este mes</div>
-            <div style={{ fontSize: 16, fontWeight: '600' }}>{formatCurrency(valorAPagarEsteMes)}</div>
+          <div className={styles.BrkLiqPagSummaryCardMes}>
+            <div className={styles.BrkLiqPagSummaryLabel}>Valor a pagar este mes</div>
+            <div className={styles.BrkLiqPagSummaryValue}>{formatCurrency(valorAPagarEsteMes)}</div>
           </div>
 
-          <div style={{ padding: 12, borderRadius: 8, background: '#e8f7ff', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Valor pagado</div>
-            <div style={{ fontSize: 16, fontWeight: '600' }}>{formatCurrency(valorPagadoTotal)}</div>
+          <div className={styles.BrkLiqPagSummaryCardPagado}>
+            <div className={styles.BrkLiqPagSummaryLabel}>Valor pagado</div>
+            <div className={styles.BrkLiqPagSummaryValue}>{formatCurrency(valorPagadoTotal)}</div>
           </div>
 
-          <div style={{ padding: 12, borderRadius: 8, background: '#fff2f0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Valor pendiente a pagar</div>
-            <div style={{ fontSize: 16, fontWeight: '600' }}>{formatCurrency(valorPendiente)}</div>
+          <div className={styles.BrkLiqPagSummaryCardPendiente}>
+            <div className={styles.BrkLiqPagSummaryLabel}>Valor pendiente a pagar</div>
+            <div className={styles.BrkLiqPagSummaryValue}>{formatCurrency(valorPendiente)}</div>
           </div>
         </div>
       </section>
 
-      {/* Lista de facturas y, debajo de cada una, sus pagos asociados */}
-      <section style={{ marginTop: 20 }}>
+      {/* Lista de facturas y sus pagos asociados */}
+      <section>
         <h2>Facturas ({facturas.length})</h2>
-        {facturas.length === 0 && <div>No hay facturas</div>}
+        {facturas.length === 0 && (
+          <div className={styles.BrkLiqPagEmptyPagos}>No hay facturas disponibles</div>
+        )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className={styles.BrkLiqPagInvoiceList}>
           {facturas.map((f) => {
             const pagosAsociados = obtenerPagosDeFactura(f);
             return (
-              <div key={String(f.numero_factura ?? Math.random())} style={{
-                padding: 12,
-                borderRadius: 8,
-                background: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                border: '1px solid #eee'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 14, color: '#666' }}>N° Factura</div>
-                    <div style={{ fontSize: 18, fontWeight: 600 }}>{f.numero_factura ?? '-'}</div>
+              <div key={String(f.numero_factura ?? Math.random())} className={styles.BrkLiqPagInvoiceCard}>
+                <div className={styles.BrkLiqPagInvoiceHeader}>
+                  <div className={styles.BrkLiqPagInvoiceField}>
+                    <span className={styles.BrkLiqPagInvoiceFieldLabel}>N° Factura</span>
+                    <span className={styles.BrkLiqPagInvoiceFieldValueLarge}>{f.numero_factura ?? '-'}</span>
                   </div>
 
-                  <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Fecha</div>
-                    <div style={{ fontSize: 14 }}>{f.fecha_facturacion ?? '-'}</div>
+                  <div className={styles.BrkLiqPagInvoiceField}>
+                    <span className={styles.BrkLiqPagInvoiceFieldLabel}>Fecha</span>
+                    <span className={styles.BrkLiqPagInvoiceFieldValue}>{f.fecha_facturacion ?? '-'}</span>
                   </div>
 
-                  <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Lead</div>
-                    <div style={{ fontSize: 14 }}>{f.id_lead ? f.id_lead.nombre_lead : '-'}</div>
+                  <div className={styles.BrkLiqPagInvoiceField}>
+                    <span className={styles.BrkLiqPagInvoiceFieldLabel}>Lead</span>
+                    <span className={styles.BrkLiqPagInvoiceFieldValue}>
+                      {f.id_lead ? f.id_lead.nombre_lead : '-'}
+                    </span>
                   </div>
 
-                  <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Valor Facturado</div>
-                    <div style={{ fontSize: 14 }}>{formatCurrency(f.valor_facturado)}</div>
+                  <div className={styles.BrkLiqPagInvoiceField}>
+                    <span className={styles.BrkLiqPagInvoiceFieldLabel}>Valor Facturado</span>
+                    <span className={styles.BrkLiqPagInvoiceFieldValue}>{formatCurrency(f.valor_facturado)}</span>
                   </div>
 
-                  <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>% Comisión</div>
-                    <div style={{ fontSize: 14 }}>{f.comision_percent ? `${f.comision_percent}%` : '-'}</div>
+                  <div className={styles.BrkLiqPagInvoiceField}>
+                    <span className={styles.BrkLiqPagInvoiceFieldLabel}>% Comisión</span>
+                    <span className={styles.BrkLiqPagInvoiceFieldValue}>
+                      {f.comision_percent ? `${f.comision_percent}%` : '-'}
+                    </span>
                   </div>
 
-                  <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Valor Comisión</div>
-                    <div style={{ fontSize: 14 }}>{formatCurrency(f.valor_comision_amount)}</div>
+                  <div className={styles.BrkLiqPagInvoiceField}>
+                    <span className={styles.BrkLiqPagInvoiceFieldLabel}>Valor Comisión</span>
+                    <span className={styles.BrkLiqPagInvoiceFieldValue}>{formatCurrency(f.valor_comision_amount)}</span>
                   </div>
                 </div>
 
                 {/* Pagos asociados */}
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 13, color: '#333', marginBottom: 8 }}>Pagos ({pagosAsociados.length})</div>
+                <div className={styles.BrkLiqPagPagosSection}>
+                  <div className={styles.BrkLiqPagPagosTitle}>
+                    Pagos asociados
+                    <span className={styles.BrkLiqPagPagosCount}>{pagosAsociados.length}</span>
+                  </div>
+
                   {pagosAsociados.length === 0 && (
-                    <div style={{ color: '#777' }}>No hay pagos asociados a esta factura</div>
+                    <div className={styles.BrkLiqPagEmptyPagos}>
+                      No hay pagos asociados a esta factura
+                    </div>
                   )}
+
                   {pagosAsociados.length > 0 && (
-                    <table className={styles.table || ''} style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          <th>ID Pago</th>
-                          <th>Fecha Pago</th>
-                          <th>Valor Pagado</th>
-                          <th>Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pagosAsociados.map((p, i) => {
-                          const key = p && (p.id_pago ?? `p_${i}`);
-                          return (
-                            <tr key={key}>
-                              <td>{p.id_pago ?? '-'}</td>
-                              <td>{p.fecha_pago ?? '-'}</td>
-                              <td>{formatCurrency(p.valor_pagado)}</td>
-                              <td>{isPaid(p.estado) ? 'Pagado' : 'Pendiente'}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table className={styles.BrkLiqPagTable}>
+                        <thead>
+                          <tr>
+                            <th>ID Pago</th>
+                            <th>Fecha Pago</th>
+                            <th>Valor Pagado</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pagosAsociados.map((p, i) => {
+                            const key = p && (p.id_pago ?? `p_${i}`);
+                            return (
+                              <tr key={key}>
+                                <td>{p.id_pago ?? '-'}</td>
+                                <td>{p.fecha_pago ?? '-'}</td>
+                                <td>{formatCurrency(p.valor_pagado)}</td>
+                                <td>
+                                  <span className={isPaid(p.estado) ? styles.BrkLiqPagBadgePagado : styles.BrkLiqPagBadgePendiente}>
+                                    {isPaid(p.estado) ? 'Pagado' : 'Pendiente'}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               </div>
@@ -309,7 +336,6 @@ const LiqPagosBrokers = () => {
           })}
         </div>
       </section>
-
     </div>
   );
 };

@@ -16,7 +16,9 @@ import defaultSoporteUsuario from '../../styles/SoporteUsuario.module.css';
 import defaultConfiguracionesDashboard from '../../styles/ConfiguracionesDashboard.module.css';
 import defaultToolsHome from '../../styles/ToolsHome.module.css';
 import defaultFormList from '../../styles/Formlist.module.css';
-
+import defaultUserBroker from '../../styles//Brokers/profileBrokers.module.css';
+import defaultCrmBokers from '../../styles//Brokers/crmBrokers.module.css';
+import defaultPagLiqBrokers from '../../styles//Brokers/pagLiqBrokers.module.css';
 
 const MODULES = {
   Perfil: { file: 'Perfil.module.css', defaultStyles: defaultPerfil },
@@ -32,6 +34,9 @@ const MODULES = {
   ConfiguracionesDashboard: { file: 'ConfiguracionesDashboard.module.css', defaultStyles: defaultConfiguracionesDashboard },
   ToolsHome: { file: 'ToolsHome.module.css', defaultStyles: defaultToolsHome },
   FormList: { file: 'Formlist.module.css', defaultStyles: defaultFormList },
+  PerfilBoker: { file: 'profileBrokers.module.css', defaultStyles: defaultUserBroker },
+  CrmBokers: { file: 'crmBrokers.module.css', defaultStyles: defaultCrmBokers },
+  PagLiqBrokers: { file: 'pagLiqBrokers.module.css', defaultStyles: defaultPagLiqBrokers },
 };
 
 const CompanyStylesContext = createContext({

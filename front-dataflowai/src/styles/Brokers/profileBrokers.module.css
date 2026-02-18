@@ -1,0 +1,294 @@
+/* =========================
+   Variables por variante - Diseño Sobrio
+   ========================= */
+
+/* Dark Theme */
+.BrkProfilePerfilgeneralDark {
+  --brkprofile-bg-primary: #0a0a12;
+  --brkprofile-bg-secondary: #12121d;
+  --brkprofile-bg-gradient: linear-gradient(135deg, #0a0a12 0%, #12121d 100%);
+  --brkprofile-text-primary: #ffffff;
+  --brkprofile-text-secondary: #b8c2d9;
+  --brkprofile-text-muted: #94a3b8;
+  --brkprofile-accent-1: #00c7ff;
+  --brkprofile-accent-2: #0077b6;
+  --brkprofile-accent-gradient: linear-gradient(135deg, var(--brkprofile-accent-1), var(--brkprofile-accent-2));
+  --brkprofile-card-bg: rgba(30, 30, 30, 0.6);
+  --brkprofile-card-border: rgba(255, 255, 255, 0.1);
+  --brkprofile-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --brkprofile-backdrop-filter: blur(10px);
+  --brkprofile-input-bg: rgba(20, 20, 30, 0.8);
+  --brkprofile-input-border: rgba(255, 255, 255, 0.1);
+  --brkprofile-input-focus-border: var(--brkprofile-accent-1);
+  --brkprofile-input-text: #ffffff;
+  --brkprofile-input-placeholder: #666666;
+  --brkprofile-label-text: #b8c2d9;
+  --brkprofile-button-bg: var(--brkprofile-accent-gradient);
+  --brkprofile-button-text: #00121a;
+  --brkprofile-button-hover-shadow: 0 4px 12px rgba(0, 199, 255, 0.3);
+  --brkprofile-section-border: rgba(255, 255, 255, 0.1);
+  --brkprofile-error-color: #ff4d4d;
+  --brkprofile-success-color: #4caf50;
+  --brkprofile-hr-color: rgba(255, 255, 255, 0.1);
+  --brkprofile-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Light Theme */
+.BrkProfilePerfilgeneralLight {
+  --brkprofile-bg-primary: #ffffff;
+  --brkprofile-bg-secondary: #f8f9fa;
+  --brkprofile-bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --brkprofile-text-primary: #2d3748;
+  --brkprofile-text-secondary: #4a5568;
+  --brkprofile-text-muted: #718096;
+  --brkprofile-accent-1: #0A66C2;
+  --brkprofile-accent-2: #0073b1;
+  --brkprofile-accent-gradient: linear-gradient(135deg, var(--brkprofile-accent-1), var(--brkprofile-accent-2));
+  --brkprofile-card-bg: rgba(255, 255, 255, 0.9);
+  --brkprofile-card-border: rgba(0, 0, 0, 0.08);
+  --brkprofile-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --brkprofile-backdrop-filter: blur(10px);
+  --brkprofile-input-bg: #ffffff;
+  --brkprofile-input-border: #e2e8f0;
+  --brkprofile-input-focus-border: var(--brkprofile-accent-1);
+  --brkprofile-input-text: #2d3748;
+  --brkprofile-input-placeholder: #a0aec0;
+  --brkprofile-label-text: #4a5568;
+  --brkprofile-button-bg: var(--brkprofile-accent-gradient);
+  --brkprofile-button-text: #ffffff;
+  --brkprofile-button-hover-shadow: 0 4px 12px rgba(10, 102, 194, 0.2);
+  --brkprofile-section-border: #e2e8f0;
+  --brkprofile-error-color: #dc2626;
+  --brkprofile-success-color: #059669;
+  --brkprofile-hr-color: #e2e8f0;
+  --brkprofile-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* =========================
+   Estilos Base
+   ========================= */
+
+.BrkProfileContainer {
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px;
+  background: var(--brkprofile-bg-gradient);
+  color: var(--brkprofile-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  transition: var(--brkprofile-transition);
+}
+
+.BrkProfileContainer h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 32px 0;
+  color: var(--brkprofile-text-primary);
+  letter-spacing: -0.02em;
+  animation: BrkProfileFadeInUp 0.5s ease-out;
+}
+
+.BrkProfileContainer h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: var(--brkprofile-text-primary);
+}
+
+/* Formulario */
+.BrkProfileForm {
+  max-width: 800px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  animation: BrkProfileFadeInUp 0.5s ease-out 0.1s both;
+}
+
+.BrkProfileField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.BrkProfileField label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--brkprofile-label-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.BrkProfileField input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--brkprofile-input-bg);
+  border: 1px solid var(--brkprofile-input-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--brkprofile-input-text);
+  transition: var(--brkprofile-transition);
+  outline: none;
+}
+
+.BrkProfileField input::placeholder {
+  color: var(--brkprofile-input-placeholder);
+  opacity: 0.7;
+}
+
+.BrkProfileField input:focus {
+  border-color: var(--brkprofile-input-focus-border);
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.BrkProfileField input:hover:not(:focus) {
+  border-color: var(--brkprofile-text-secondary);
+}
+
+/* Botones */
+.BrkProfileContainer button {
+  background: var(--brkprofile-button-bg);
+  color: var(--brkprofile-button-text);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--brkprofile-transition);
+  min-width: 160px;
+  position: relative;
+  overflow: hidden;
+}
+
+.BrkProfileContainer button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--brkprofile-button-hover-shadow);
+}
+
+.BrkProfileContainer button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.BrkProfileContainer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mensajes de estado */
+.BrkProfileErrorMessage {
+  padding: 12px 16px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid var(--brkprofile-error-color);
+  border-radius: 8px;
+  color: var(--brkprofile-error-color);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  animation: BrkProfileSlideIn 0.3s ease-out;
+}
+
+.BrkProfileSuccessMessage {
+  padding: 12px 16px;
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid var(--brkprofile-success-color);
+  border-radius: 8px;
+  color: var(--brkprofile-success-color);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  animation: BrkProfileSlideIn 0.3s ease-out;
+}
+
+/* Línea divisora */
+.BrkProfileHr {
+  border: none;
+  height: 1px;
+  background: var(--brkprofile-hr-color);
+  margin: 32px 0;
+}
+
+/* Texto de ayuda */
+.BrkProfileHelpText {
+  font-size: 0.9rem;
+  color: var(--brkprofile-text-secondary);
+  margin: -8px 0 16px 0;
+}
+
+/* Sección de contraseña */
+.BrkProfilePasswordSection {
+  max-width: 800px;
+}
+
+.BrkProfilePasswordSection p {
+  font-size: 0.9rem;
+  color: var(--brkprofile-text-secondary);
+  margin-bottom: 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .BrkProfileContainer {
+    padding: 24px;
+  }
+
+  .BrkProfileContainer h1 {
+    font-size: 2rem;
+  }
+
+  .BrkProfileForm {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .BrkProfileContainer button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .BrkProfileContainer {
+    padding: 20px;
+  }
+
+  .BrkProfileContainer h1 {
+    font-size: 1.75rem;
+  }
+
+  .BrkProfileField input {
+    padding: 10px 14px;
+  }
+}
+
+/* Animaciones */
+@keyframes BrkProfileFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes BrkProfileSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Focus states para accesibilidad */
+.BrkProfileField input:focus-visible {
+  outline: 2px solid var(--brkprofile-accent-1);
+  outline-offset: 2px;
+}
+
+.BrkProfileContainer button:focus-visible {
+  outline: 2px solid var(--brkprofile-accent-1);
+  outline-offset: 2px;
+}

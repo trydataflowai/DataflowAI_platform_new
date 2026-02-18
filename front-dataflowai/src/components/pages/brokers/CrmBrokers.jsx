@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/CreacionUsuario.module.css';
+import { useTheme } from '../../componentes/ThemeContext';
+import { useCompanyStyles } from '../../componentes/ThemeContextEmpresa';
 import {
   obtenerLeadsBroker,
   crearLead,
@@ -35,6 +36,9 @@ const ETAPAS = [
 ];
 
 const CrmBrokers = () => {
+  const { theme } = useTheme();
+  const styles = useCompanyStyles('CrmBokers');
+
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState([]);
   const [error, setError] = useState(null);
@@ -201,11 +205,9 @@ const CrmBrokers = () => {
   };
 
   const getBrokerName = (r) => {
-    // r.id_broker puede ser objeto con 'usuario' o 'id_usuario' o simplemente un string/ID
     const broker = r?.id_broker;
     if (!broker) return '—';
 
-    // si viene con objeto usuario
     const usuario = broker?.usuario || broker?.id_usuario || broker?.user;
     if (usuario) {
       const nombres = usuario?.nombres || usuario?.nombre || '';
@@ -214,7 +216,6 @@ const CrmBrokers = () => {
       if (full) return full;
     }
 
-    // fallback nombre broker / telefono / id
     return broker?.nombre || broker?.nombre_broker || broker?.numero_telefono || broker?.telefono || String(broker?.id_broker || broker?.pk || broker) || '—';
   };
 
@@ -260,39 +261,45 @@ const CrmBrokers = () => {
     return acc;
   }, {});
 
+  // Determinar la clase de tema
+  const themeClass = theme === 'dark' ? styles.BrokCrmPerfilgeneralDark : styles.BrokCrmPerfilgeneralLight;
+
   return (
-    <div className={styles.container}>
+    <div className={`${styles.BrokCrmContainer} ${themeClass}`}>
       <h1>CRM - Leads</h1>
 
-      <div className={styles.toolbar}>
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      {/* Toolbar */}
+      <div className={styles.BrokCrmToolbar}>
+        <form onSubmit={handleSearch} className={styles.BrokCrmFlexRow}>
           <input
             placeholder="Buscar por nombre, contacto o correo..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            style={{ padding: '6px 8px', width: 320 }}
+            style={{ width: 320 }}
           />
           <button type="submit">Buscar</button>
           <button type="button" onClick={() => { setQ(''); loadLeads(''); }}>Limpiar</button>
         </form>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className={styles.BrokCrmFlexRow}>
           <button onClick={openCreate}>Crear lead</button>
           <button onClick={handleExportPlantilla}>Exportar plantilla</button>
 
           <input id="csv-file-input" type="file" accept=".csv,text/csv" onChange={handleImportFile} />
-          <button onClick={submitImport} disabled={importing}>{importing ? 'Importando...' : 'Importar CSV'}</button>
+          <button onClick={submitImport} disabled={importing}>
+            {importing ? 'Importando...' : 'Importar CSV'}
+          </button>
           <button onClick={() => setRefreshToggle(s => !s)}>Refrescar</button>
 
-          <div className={styles.viewToggle}>
+          <div className={styles.BrokCrmViewToggle}>
             <button
-              className={view === 'table' ? styles.active : ''}
+              className={view === 'table' ? styles.BrokCrmActive : ''}
               onClick={() => setView('table')}
             >
               TABLA
             </button>
             <button
-              className={view === 'kanban' ? styles.active : ''}
+              className={view === 'kanban' ? styles.BrokCrmActive : ''}
               onClick={() => setView('kanban')}
             >
               KANBAN
@@ -301,7 +308,8 @@ const CrmBrokers = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
+      {/* Export Section */}
+      <div className={styles.BrokCrmFlexRow} style={{ marginTop: 10 }}>
         <label style={{ fontSize: 13 }}>Exportar:</label>
         <select value={exportFormat} onChange={(e) => setExportFormat(e.target.value)}>
           <option value="csv">CSV</option>
@@ -311,56 +319,65 @@ const CrmBrokers = () => {
           {exporting ? 'Exportando...' : `Exportar ${exportFormat === 'xlsx' ? 'Excel' : 'CSV'}`}
         </button>
 
-        {exportSuccessMsg && <div style={{ color: 'green' }}>{exportSuccessMsg}</div>}
-        {exportError && <div style={{ color: 'crimson' }}>{exportError}</div>}
+        {exportSuccessMsg && (
+          <div className={styles.BrokCrmSuccessMessage}>{exportSuccessMsg}</div>
+        )}
+        {exportError && (
+          <div className={styles.BrokCrmErrorMessage}>{exportError}</div>
+        )}
       </div>
 
+      {/* Import Result */}
       {importResult && (
-        <div style={{ marginBottom: 12 }}>
+        <div className={styles.BrokCrmInfoMessage}>
           <strong>Import result:</strong> {JSON.stringify(importResult)}
         </div>
       )}
 
-      {loading && <div>Cargando leads...</div>}
-      {error && <div style={{ color: 'crimson' }}>{error}</div>}
+      {/* Loading & Error */}
+      {loading && <div className={styles.BrokCrmInfoMessage}>Cargando leads...</div>}
+      {error && <div className={styles.BrokCrmErrorMessage}>{error}</div>}
 
+      {/* Table View */}
       {view === 'table' && !loading && !error && (
         <div style={{ overflowX: 'auto' }}>
-          <table className={styles.table || ''} style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className={styles.BrokCrmTable}>
             <thead>
               <tr>
                 <th>#</th>
                 <th>Nombre lead</th>
                 <th>Broker</th>
                 <th>Campo de Etiqueta</th>
-                <th>%Probabilidad de Cierre</th>
+                <th>% Probabilidad</th>
                 <th>Ticket Estimado</th>
                 <th>Teléfono</th>
                 <th>Correo</th>
                 <th>Persona de Contacto</th>
                 <th>Etapa</th>
-                <th></th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {leads.length === 0 && (
                 <tr>
-                  <td colSpan={11} style={{ textAlign: 'center', padding: 12 }}>No hay leads</td>
+                  <td colSpan={11} style={{ textAlign: 'center', padding: 24 }}>
+                    No hay leads disponibles
+                  </td>
                 </tr>
               )}
               {leads.map((r) => (
                 <tr key={r.id_lead}>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.id_lead}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.nombre_lead}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{getBrokerName(r)}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.campo_etiqueta}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.probabilidad_cierre ?? '-'}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.ticket_estimado ? `${r.moneda_ticket || ''} ${r.ticket_estimado}` : '-'}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.telefono}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.correo}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.persona_de_contacto}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.etapa}</td>
-                  <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>
+                  <td>{r.id_lead}</td>
+                  <td>{r.nombre_lead}</td>
+                  <td>{getBrokerName(r)}</td>
+                  <td>{r.campo_etiqueta}</td>
+                  <td>{r.probabilidad_cierre ?? '-'}</td>
+                  <td>{r.ticket_estimado ? `${r.moneda_ticket || ''} ${r.ticket_estimado}` : '-'}</td>
+                  <td>{r.telefono}</td>
+                  <td>{r.correo}</td>
+                  <td>{r.persona_de_contacto}</td>
+                  <td>{r.etapa}</td>
+                  <td>
                     <button onClick={() => openEdit(r)}>Editar</button>
                   </td>
                 </tr>
@@ -370,39 +387,40 @@ const CrmBrokers = () => {
         </div>
       )}
 
+      {/* Kanban View */}
       {view === 'kanban' && !loading && !error && (
-        <div className={styles.kanbanWrapper}>
-          <div className={styles.kanbanBoard}>
+        <div className={styles.BrokCrmKanbanWrapper}>
+          <div className={styles.BrokCrmKanbanBoard}>
             {ETAPAS.map((et) => (
               <div
                 key={et.key}
-                className={`${styles.kanbanColumn} ${dragOverCol === et.key ? styles.dragOver : ''}`}
+                className={`${styles.BrokCrmKanbanColumn} ${dragOverCol === et.key ? styles.BrokCrmDragOver : ''}`}
                 onDragOver={(e) => onDragOver(e, et.key)}
                 onDragLeave={onDragLeave}
                 onDrop={(e) => onDrop(e, et.key)}
                 role="list"
               >
-                <div className={styles.columnHeader}>{et.label}</div>
-                <div className={styles.columnBody}>
+                <div className={styles.BrokCrmColumnHeader}>{et.label}</div>
+                <div className={styles.BrokCrmColumnBody}>
                   {leadsByEtapa[et.key] && leadsByEtapa[et.key].length === 0 && (
-                    <div className={styles.emptyColumn}>—</div>
+                    <div className={styles.BrokCrmEmptyColumn}>Sin leads</div>
                   )}
                   {leadsByEtapa[et.key] && leadsByEtapa[et.key].map((l) => (
                     <div
                       key={l.id_lead}
-                      className={styles.card}
+                      className={styles.BrokCrmCard}
                       draggable
                       onDragStart={(e) => onDragStart(e, l.id_lead)}
                       onDoubleClick={() => openEdit(l)}
                     >
-                      <div className={styles.cardTitle}>{l.nombre_lead}</div>
-                      <div className={styles.cardMeta}>
+                      <div className={styles.BrokCrmCardTitle}>{l.nombre_lead}</div>
+                      <div className={styles.BrokCrmCardMeta}>
                         <small>{getBrokerName(l)}</small>
                       </div>
-                      <div className={styles.cardMeta}>
+                      <div className={styles.BrokCrmCardMeta}>
                         <small>{l.campo_etiqueta || '-'}</small>
                       </div>
-                      <div className={styles.cardMeta}>
+                      <div className={styles.BrokCrmCardMeta}>
                         <small>% {l.probabilidad_cierre ?? '-'}</small>
                       </div>
                     </div>
@@ -411,48 +429,67 @@ const CrmBrokers = () => {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 8, fontSize: 13, color: '#666' }}>
+          <div className={styles.BrokCrmInfoMessage}>
             * Arrastra una tarjeta a otra columna para cambiar su etapa. Doble-click en una tarjeta para editar.
           </div>
         </div>
       )}
 
+      {/* Create Modal */}
       {showCreate && (
-        <div className={styles.modal || ''} style={{ padding: 12 }}>
+        <div className={styles.BrokCrmModal}>
           <h3>Crear lead</h3>
           <form onSubmit={submitCreate}>
             {Object.keys(emptyLead).map((k) => (
-              <div key={k} style={{ marginBottom: 8 }}>
-                <label style={{ display: 'block', fontSize: 13 }}>{k.replace('_', ' ')}</label>
-                <input name={k} value={form[k] ?? ''} onChange={(e) => handleFormChange(e)} />
+              <div key={k}>
+                <label>{k.replace(/_/g, ' ')}</label>
+                <input
+                  name={k}
+                  value={form[k] ?? ''}
+                  onChange={handleFormChange}
+                  placeholder={`Ingresa ${k.replace(/_/g, ' ')}`}
+                />
               </div>
             ))}
-            <div style={{ marginTop: 10 }}>
-              <button type="submit" disabled={saving}>{saving ? 'Creando...' : 'Crear'}</button>
-              <button type="button" onClick={() => setShowCreate(false)} style={{ marginLeft: 8 }}>Cancelar</button>
+            <div className={styles.BrokCrmFlexRow} style={{ marginTop: 20 }}>
+              <button type="submit" disabled={saving}>
+                {saving ? 'Creando...' : 'Crear'}
+              </button>
+              <button type="button" onClick={() => setShowCreate(false)}>
+                Cancelar
+              </button>
             </div>
           </form>
         </div>
       )}
 
+      {/* Edit Modal */}
       {showEdit && editingLead && (
-        <div className={styles.modal || ''} style={{ padding: 12 }}>
+        <div className={styles.BrokCrmModal}>
           <h3>Editar lead #{editingLead.id_lead}</h3>
           <form onSubmit={submitEdit}>
             {Object.keys(emptyLead).map((k) => (
-              <div key={k} style={{ marginBottom: 8 }}>
-                <label style={{ display: 'block', fontSize: 13 }}>{k.replace('_', ' ')}</label>
-                <input name={k} value={form[k] ?? ''} onChange={(e) => handleFormChange(e)} />
+              <div key={k}>
+                <label>{k.replace(/_/g, ' ')}</label>
+                <input
+                  name={k}
+                  value={form[k] ?? ''}
+                  onChange={handleFormChange}
+                  placeholder={`Ingresa ${k.replace(/_/g, ' ')}`}
+                />
               </div>
             ))}
-            <div style={{ marginTop: 10 }}>
-              <button type="submit" disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</button>
-              <button type="button" onClick={() => { setShowEdit(false); setEditingLead(null); }} style={{ marginLeft: 8 }}>Cancelar</button>
+            <div className={styles.BrokCrmFlexRow} style={{ marginTop: 20 }}>
+              <button type="submit" disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+              <button type="button" onClick={() => { setShowEdit(false); setEditingLead(null); }}>
+                Cancelar
+              </button>
             </div>
           </form>
         </div>
       )}
-
     </div>
   );
 };
