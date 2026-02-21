@@ -1,4 +1,4 @@
-//nueva base de datos
+//nuevo chat
 import { Rutas } from './routes/Rutas.jsx'
 
 function App() {
