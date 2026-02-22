@@ -87,15 +87,10 @@ import DashboardVentaseInventariosCrudMetas from "../components/dashboards/dashb
 import DashboardVentaseInventariosAnalisisVenta from "../components/dashboards/dashboard-ventas-e-inventarios/AnalisisVentas";
 import DashboardVentaseInventariosAnalisisInventarios from "../components/dashboards/dashboard-ventas-e-inventarios/AnalisisInventarios";
 
-
-
 //Rutas para modulo de CRM
 import PerfilBrokers from "../components/pages/brokers/ProfileBrokers";
 import CrmBrokers from "../components/pages/brokers/CrmBrokers";
 import LiqPagosBrokers from "../components/pages/brokers/LiqPagosBrokers";
-
-
-
 
 /* ---------------------------
    Configuración de layouts
@@ -163,11 +158,26 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
       '/forms' // cualquier ruta que contenga '/forms' la consideramos pública (p. ej. '/forms/abc' o '/Coltrade/forms/abc')
     ];
 
-    // Determinar si la ruta actual es pública (ten en cuenta paths con companySegment)
     const pathname = location.pathname || "";
-    const esExacta = rutasPublicasExactas.includes(pathname);
-    const esPrefijo = rutasPublicasPrefijos.some(pref => pathname === pref || pathname.startsWith(pref) || pathname.includes(`${pref}/`));
-    const esRutaPublica = esExacta || esPrefijo;
+
+    // Helper: detecta rutas públicas incluyendo /{company}/login
+    const isPublicRoute = (path) => {
+      if (!path) return false;
+
+      // coincidencias exactas
+      if (rutasPublicasExactas.includes(path)) return true;
+
+      // prefijos (forms, etc.)
+      if (rutasPublicasPrefijos.some(pref => path === pref || path.startsWith(pref) || path.includes(`${pref}/`))) return true;
+
+      // Permitir cualquier /<company>/login (ej: /Latam/login, /Coltrade/login, /miEmpresa/login)
+      const companyLoginRegex = /^\/[^\/]+\/login$/;
+      if (companyLoginRegex.test(path)) return true;
+
+      return false;
+    };
+
+    const esRutaPublica = isPublicRoute(pathname);
 
     console.log('Ruta actual:', pathname, 'Es pública:', esRutaPublica);
 
@@ -258,7 +268,7 @@ export const Rutas = () => {
             {/* RUTAS PÚBLICAS - SIN PROTECCIÓN */}
             <Route path="/" element={<DefaultLayout><Index /></DefaultLayout>} />
             <Route path="/login" element={<Login />} />
-            <Route path="/Servitel/login" element={<LoginServitel />} />
+            <Route path="/Latam/login" element={<LoginServitel />} />
             <Route path="/Coltrade/login" element={<LoginColtrade />} />
             <Route path="/EspacioMercado/login" element={<LoginMercado />} />
             <Route path="/crear-empresa" element={<CreacionEmpresa />} />
@@ -604,7 +614,6 @@ export const Rutas = () => {
               }
             />
 
-
             <Route
               path={p("/FormPrevisualizado")}
               element={
@@ -626,8 +635,6 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
-
-
 
             <Route
               path={"/ventas-en-punto-de-venta"}
@@ -727,9 +734,7 @@ export const Rutas = () => {
               }
             />
 
-
-
-              <Route
+            <Route
               path={p("/brk/perfil")}
               element={
                 <RutaProtegida>
@@ -751,7 +756,6 @@ export const Rutas = () => {
               }
             />
 
-
             <Route
               path={p("/brk/LiquidacionPagosBrokers")}
               element={
@@ -762,13 +766,6 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
-
-
-
-
-
-
-
 
           </Routes>
         </VerificadorAutenticacionGlobal>
