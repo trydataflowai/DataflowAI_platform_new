@@ -1,92 +1,169 @@
 import React, { useEffect, useRef, useState } from "react";
-import styles from "../../styles/dashboard_chat/ChatModal.module.css";
-import { sendChatMessage } from "../../api/ChatPg";
+import { useTheme } from "../componentes/ThemeContext";
+import { useCompanyStyles } from "../componentes/ThemeContextEmpresa";
+import defaultStyles from '../../styles/Chxtbut.module.css';
+import { sendChatMessage, fetchDashboardContexts } from "../../api/ChatPg";
+import { obtenerInfoUsuario } from "../../api/Usuario";
 
-export default function ChatModal() {
+const normalizeSegment = (nombreCorto) => nombreCorto ? String(nombreCorto).trim().replace(/\s+/g, "") : "";
+
+export default function ChatModal({
+  initialContextId = null,
+  initialDashboardName = null,
+  autoConnect = true
+}) {
+  const { theme } = useTheme();
+  const styles = useCompanyStyles('Chxtbut', defaultStyles);
+
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    { id: 0, role: "system", text: "Selecciona un dashboard para comenzar." },
+  ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [contexts, setContexts] = useState([]);
+  const [showContexts, setShowContexts] = useState(false);
+  const [selectedContext, setSelectedContext] = useState(null);
+  const [companySegment, setCompanySegment] = useState("");
+  const [planId, setPlanId] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
 
   const messagesEndRef = useRef(null);
-  
+  const messagesContainerRef = useRef(null);
+
+  // helper: leer params de query string (fallback si el padre no pasa props)
+  const getUrlParams = () => {
+    if (typeof window === 'undefined') return {};
+    const params = new URLSearchParams(window.location.search);
+    return {
+      default_id: params.get('default_id') || params.get('id_registro') || params.get('tabla'),
+      default_name: params.get('default_name') || params.get('dashboard_name'),
+    };
+  };
+
+  // autoscroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Función para obtener parámetros de la URL
-  const getUrlParams = () => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return {
-        tabla: params.get('tabla')
-      };
-    }
-    return {};
-  };
-
-  // Efecto para conectar automáticamente al cargar el componente
+  // Obtener info usuario (igual que antes)
   useEffect(() => {
-    const connectAutomatically = () => {
-      const params = getUrlParams();
-      const tableName = params.tabla || "dashboard_arpu"; // Valor por defecto
-      
-      // Crear un producto temporal con la tabla del dashboard
-      const tempProduct = {
-        producto: `Dashboard`,
-        db_name: tableName,
-        id_producto: `auto-${tableName}`
-      };
-      
-      setSelectedProduct(tempProduct);
-      
-      // Guardar en localStorage para persistencia
+    let mounted = true;
+    const fetchUser = async () => {
       try {
-        localStorage.setItem("selectedProduct", JSON.stringify(tempProduct));
-      } catch (error) {
-        console.error("Error saving to localStorage:", error);
-      }
-      
-      // Mostrar mensaje de bienvenida y botones de inicio
-      setMessages([
-        { 
-          id: 1, 
-          role: "system", 
-          text: "¡Hola! Soy tu asistente de análisis. Estoy aquí para ayudarte a analizar y entender los datos de tu negocio." 
+        const data = await obtenerInfoUsuario();
+        if (!mounted || !data) return;
+        const nombreCorto = data?.empresa?.nombre_corto ?? "";
+        const pid = data?.empresa?.plan?.id ?? null;
+        const cid = data?.empresa?.id ?? null;
+        setCompanySegment(normalizeSegment(nombreCorto));
+        setPlanId(pid);
+        setCompanyId(cid);
+      } catch (err) {
+        console.error("No se pudo obtener info de usuario:", err);
+        if (mounted) {
+          setCompanySegment("");
+          setPlanId(null);
+          setCompanyId(null);
         }
-      ]);
+      }
     };
-
-    connectAutomatically();
+    fetchUser();
+    return () => { mounted = false; };
   }, []);
 
-  // Función para manejar clicks en los botones de inicio
-  const handleQuickQuestion = async (question) => {
-    setInput(question);
-    await sendPromptToBackend(question);
+  // Conexión automática si el padre pasa initialContextId o si existe en la query string
+  useEffect(() => {
+    if (!autoConnect) return;
+
+    const params = getUrlParams();
+    const idFromQuery = params.default_id;
+    const idToUse = initialContextId ?? idFromQuery;
+
+    if (idToUse) {
+      const ctx = {
+        id_registro: isNaN(Number(idToUse)) ? idToUse : Number(idToUse),
+        dashboard_name: initialDashboardName || params.default_name || `Dashboard ${idToUse}`
+      };
+      // setear contexto conectado
+      setSelectedContext(ctx);
+      try { localStorage.setItem("selectedContext", JSON.stringify(ctx)); } catch (e) { /* ignore */ }
+
+      // agregar mensaje de sistema (no sobreescribir otros mensajes)
+      setMessages((m) => {
+        // evitar duplicados: si ya existe un sistema con el mismo texto, no lo añadimos
+        const sysText = `Conectado al dashboard "${ctx.dashboard_name}". Ahora puedes hacer preguntas.`;
+        const exists = m.some(mm => mm.role === 'system' && mm.text === sysText);
+        if (exists) return m;
+        return [...m, { id: Date.now(), role: "system", text: sysText }];
+      });
+    } else {
+      // si no hay nada en props ni query, intentar restaurar desde localStorage (si existe)
+      try {
+        const saved = localStorage.getItem("selectedContext");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.id_registro) {
+            setSelectedContext(parsed);
+            setMessages((m) => {
+              const sysText = `Conectado al dashboard "${parsed.dashboard_name || parsed.id_registro}". Ahora puedes hacer preguntas.`;
+              const exists = m.some(mm => mm.role === 'system' && mm.text === sysText);
+              if (exists) return m;
+              return [...m, { id: Date.now(), role: "system", text: sysText }];
+            });
+          }
+        }
+      } catch (e) {
+        // no pasa nada, no hay localStorage disponible o parse falla
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialContextId, initialDashboardName, autoConnect]);
+
+  const handleOpenContexts = async () => {
+    if (contexts.length === 0 && !showContexts) {
+      try {
+        const list = await fetchDashboardContexts();
+        setContexts(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error(err);
+        setError("No se pudieron cargar los dashboards.");
+      }
+    }
+    setShowContexts(!showContexts);
   };
 
-  // Helper to send any prompt to backend and append messages
+  const handleSelectContext = (ctx) => {
+    setSelectedContext(ctx);
+    try { localStorage.setItem("selectedContext", JSON.stringify(ctx)); } catch {}
+    setShowContexts(false);
+    const infoMsg = {
+      id: Date.now(),
+      role: "system",
+      text: `Conectado al dashboard "${ctx.dashboard_name}". Ahora puedes hacer preguntas.`,
+    };
+    setMessages((m) => [...m, infoMsg]);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedContext(null);
+    try { localStorage.removeItem("selectedContext"); } catch {}
+    setMessages([{ id: Date.now(), role: "system", text: "Dashboard desconectado. Selecciona uno para comenzar." }]);
+  };
+
   const sendPromptToBackend = async (promptText) => {
-    if (!selectedProduct) {
-      setError("No hay dashboard conectado.");
+    if (!selectedContext) {
+      setError("Selecciona un dashboard primero.");
       return;
     }
     setError(null);
-    const userMsg = { 
-      id: Date.now(), 
-      role: "user", 
-      text: promptText, 
-      time: new Date().toISOString() 
-    };
+    const userMsg = { id: Date.now(), role: "user", text: promptText };
     setMessages((m) => [...m, userMsg]);
     setLoading(true);
 
     try {
-      const reply = await sendChatMessage(promptText, selectedProduct.db_name);
-
-      // determine if reply contains useful info
+      // sendChatMessage(id_registro, prompt)
+      const reply = await sendChatMessage(selectedContext.id_registro, promptText);
       let isEmpty = false;
       if (!reply) isEmpty = true;
       else if (typeof reply === "object") {
@@ -101,29 +178,24 @@ export default function ChatModal() {
         const botEmpty = {
           id: Date.now() + 1,
           role: "bot",
-          text: "Lo siento, no puedo ayudarte con eso.",
+          text: "No encontré información relevante para tu pregunta.",
           emptyAction: true,
-          actionLabel: "da click acá",
+          actionLabel: "click aquí",
         };
         setMessages((m) => [...m, botEmpty]);
       } else {
         const replyText = typeof reply === "string" ? reply : JSON.stringify(reply, null, 2);
-        const botMsg = { 
-          id: Date.now() + 1, 
-          role: "bot", 
-          text: replyText, 
-          time: new Date().toISOString() 
-        };
+        const botMsg = { id: Date.now() + 1, role: "bot", text: replyText };
         await new Promise((r) => setTimeout(r, 180));
         setMessages((m) => [...m, botMsg]);
       }
     } catch (err) {
       console.error(err);
-      setError(err?.message || "Error conectando con el servidor");
-      const errMsg = { 
-        id: Date.now() + 2, 
-        role: "bot", 
-        text: "Error: " + (err?.message || "Error al solicitar respuesta") 
+      setError(err?.message || "Error de conexión");
+      const errMsg = {
+        id: Date.now() + 2,
+        role: "bot",
+        text: "Error: " + (err?.message || "No se pudo procesar la solicitud")
       };
       setMessages((m) => [...m, errMsg]);
     } finally {
@@ -139,7 +211,7 @@ export default function ChatModal() {
   };
 
   const handleEmptyActionClick = async () => {
-    const followUp = "Indicame en que puedes ayudarme basado en los datos disponibles";
+    const followUp = "¿En qué puedo ayudarte con los datos disponibles?";
     await sendPromptToBackend(followUp);
   };
 
@@ -150,130 +222,185 @@ export default function ChatModal() {
     }
   };
 
+  const variantClass = theme === "dark"
+    ? (styles?.ChatpostgreDark || defaultStyles.ChatpostgreDark)
+    : (styles?.ChatpostgreLight || defaultStyles.ChatpostgreLight);
+
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.card} role="region" aria-label="Chat con base de datos">
-        <header className={styles.header}>
-          <div className={styles.titleWrap}>
-            <h1 className={styles.title}>Flow Data Chat</h1>
-            <p className={styles.subtitle}>
-              Asistente AI - Análisis de Datos
-            </p>
+    <main className={`${styles.Chatpostgrecontainer || defaultStyles.Chatpostgrecontainer} ${variantClass}`}>
+      <header className={styles.Chatpostgreheader || defaultStyles.Chatpostgreheader}>
+        <div className={styles.ChatpostgreheaderMain || defaultStyles.ChatpostgreheaderMain}>
+          <div className={styles.ChatpostgreheaderTitle || defaultStyles.ChatpostgreheaderTitle}>
+            <h1 className={styles.Chatpostgretitle || defaultStyles.Chatpostgretitle}>Data Chat</h1>
+            <p className={styles.Chatpostgresubtitle || defaultStyles.Chatpostgresubtitle}>Consulta inteligente de datos</p>
           </div>
-        </header>
-
-        <main className={styles.chatWindow} aria-live="polite">
-          <div className={styles.messages}>
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`${styles.messageRow} ${
-                  m.role === "user" ? styles.rowUser : 
-                  m.role === "bot" ? styles.rowBot : 
-                  styles.rowSystem
-                }`}
-              >
-                {m.role === "system" ? (
-                  <div className={styles.systemBubble}>
-                    <div className={styles.welcomeMessage}>
-                      {m.text}
-                      <div className={styles.quickActions}>
-                        <h3 className={styles.quickActionsTitle}>¿Cómo podemos empezar?</h3>
-                        <div className={styles.quickActionsGrid}>
-                          <button 
-                            className={styles.quickActionBtn}
-                            onClick={() => handleQuickQuestion("¿En qué me puedes ayudar con el análisis?")}
-                          >
-                            <span className={styles.quickActionIcon}>💡</span>
-                            <span className={styles.quickActionText}>En qué me puedes ayudar</span>
-                          </button>
-                          <button 
-                            className={styles.quickActionBtn}
-                            onClick={() => handleQuickQuestion("¿Qué informes puedes generar?")}
-                          >
-                            <span className={styles.quickActionIcon}>📊</span>
-                            <span className={styles.quickActionText}>Qué informes puedes generar</span>
-                          </button>
-                          <button 
-                            className={styles.quickActionBtn}
-                            onClick={() => handleQuickQuestion("Analiza las tendencias en los últimos meses")}
-                          >
-                            <span className={styles.quickActionIcon}>📈</span>
-                            <span className={styles.quickActionText}>Analizar tendencias</span>
-                          </button>
-                          <button 
-                            className={styles.quickActionBtn}
-                            onClick={() => handleQuickQuestion("Identifica los factores principales que afectan los resultados")}
-                          >
-                            <span className={styles.quickActionIcon}>🔍</span>
-                            <span className={styles.quickActionText}>Identificar factores clave</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : m.role === "bot" && m.emptyAction ? (
-                  <div className={styles.bubbleWrap}>
-                    <div className={`${styles.bubble} ${styles.botBubble}`}>
-                      <div className={styles.botTextInline}>
-                        <span>{m.text} , si quieres </span>
-                        <button
-                          className={styles.actionBtn}
-                          onClick={handleEmptyActionClick}
-                          aria-label="Solicitar ayuda basada en los datos disponibles"
-                        >
-                          {m.actionLabel}
-                        </button>
-                        <span> para indicarte en qué puedo ayudarte.</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.bubbleWrap}>
-                    <div className={`${styles.bubble} ${
-                      m.role === "user" ? styles.userBubble : styles.botBubble
-                    }`}>
-                      <pre className={styles.preText}>{m.text}</pre>
-                    </div>
-                  </div>
-                )}
+          <div className={styles.ChatpostgreheaderActions || defaultStyles.ChatpostgreheaderActions}>
+            {selectedContext ? (
+              <div className={styles.ChatpostgreproductBadge || defaultStyles.ChatpostgreproductBadge}>
+                <span className={styles.ChatpostgreproductName || defaultStyles.ChatpostgreproductName}>
+                  {selectedContext.dashboard_name || `ID ${selectedContext.id_registro}`}
+                </span>
+                <button
+                  className={styles.ChatpostgreclearButton || defaultStyles.ChatpostgreclearButton}
+                  onClick={handleClearSelection}
+                  aria-label="Desconectar dashboard"
+                >
+                  ×
+                </button>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            ) : null}
+            <button
+              className={styles.ChatpostgreproductsToggle || defaultStyles.ChatpostgreproductsToggle}
+              onClick={handleOpenContexts}
+              aria-expanded={showContexts}
+            >
+              {showContexts ? '▲' : '▼'} Dashboards
+            </button>
           </div>
-        </main>
+        </div>
 
-        <footer className={styles.footer}>
-          <div className={styles.inputWrap}>
+        {showContexts && (
+          <div className={styles.ChatpostgreproductsCompact || defaultStyles.ChatpostgreproductsCompact}>
+            <div className={styles.ChatpostgreproductsList || defaultStyles.ChatpostgreproductsList}>
+              {contexts.length === 0 ? (
+                <div className={styles.ChatpostgreproductsEmpty || defaultStyles.ChatpostgreproductsEmpty}>Cargando dashboards...</div>
+              ) : (
+                contexts.map((ctx) => {
+                  const isActive = selectedContext && selectedContext.id_registro === ctx.id_registro;
+                  return (
+                    <button
+                      key={ctx.id_registro}
+                      className={`${styles.ChatpostgreproductItem || defaultStyles.ChatpostgreproductItem} ${
+                        isActive ? (styles.ChatpostgreproductItemActive || defaultStyles.ChatpostgreproductItemActive) : ''
+                      }`}
+                      onClick={() => handleSelectContext(ctx)}
+                    >
+                      <span className={styles.ChatpostgreproductItemName || defaultStyles.ChatpostgreproductItemName}>
+                        {ctx.dashboard_name}
+                      </span>
+                      <span className={styles.ChatpostgreproductItemDb || defaultStyles.ChatpostgreproductItemDb}>
+                        ID {ctx.id_registro}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </header>
+
+      <section
+        className={styles.ChatpostgrechatSection || defaultStyles.ChatpostgrechatSection}
+        ref={messagesContainerRef}
+      >
+        <div className={styles.Chatpostgremessages || defaultStyles.Chatpostgremessages}>
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${
+                message.role === 'user'
+                  ? (styles.ChatpostgremessageUser || defaultStyles.ChatpostgremessageUser)
+                  : message.role === 'bot'
+                    ? (styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot)
+                    : (styles.ChatpostgremessageSystem || defaultStyles.ChatpostgremessageSystem)
+              }`}
+            >
+              {message.role === 'system' ? (
+                <div className={styles.ChatpostgresystemMessage || defaultStyles.ChatpostgresystemMessage}>
+                  <div className={styles.ChatpostgresystemIcon || defaultStyles.ChatpostgresystemIcon}>💡</div>
+                  <p className={styles.ChatpostgresystemText || defaultStyles.ChatpostgresystemText}>{message.text}</p>
+                </div>
+              ) : message.role === 'bot' && message.emptyAction ? (
+                <div className={styles.ChatpostgreactionMessage || defaultStyles.ChatpostgreactionMessage}>
+                  <div className={styles.ChatpostgremessageContent || defaultStyles.ChatpostgremessageContent}>
+                    <div className={styles.ChatpostgremessageHeader || defaultStyles.ChatpostgremessageHeader}>
+                      <span className={styles.ChatpostgremessageRole || defaultStyles.ChatpostgremessageRole}>Asistente</span>
+                    </div>
+                    <p className={styles.ChatpostgremessageText || defaultStyles.ChatpostgremessageText}>
+                      {message.text}, {' '}
+                      <button
+                        className={styles.ChatpostgreactionButton || defaultStyles.ChatpostgreactionButton}
+                        onClick={handleEmptyActionClick}
+                      >
+                        {message.actionLabel}
+                      </button>{' '}
+                      para más ayuda.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.ChatpostgremessageContent || defaultStyles.ChatpostgremessageContent}>
+                  <div className={styles.ChatpostgremessageHeader || defaultStyles.ChatpostgremessageHeader}>
+                    <span className={styles.ChatpostgremessageRole || defaultStyles.ChatpostgremessageRole}>
+                      {message.role === 'user' ? 'Tú' : 'Asistente'}
+                    </span>
+                  </div>
+                  <pre className={styles.ChatpostgremessagePre || defaultStyles.ChatpostgremessagePre}>
+                    {message.text}
+                  </pre>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {loading && (
+            <div className={`${styles.Chatpostgremessage || defaultStyles.Chatpostgremessage} ${styles.ChatpostgremessageBot || defaultStyles.ChatpostgremessageBot}`}>
+              <div className={styles.ChatpostgremessageContent || defaultStyles.ChatpostgremessageContent}>
+                <div className={styles.ChatpostgremessageHeader || defaultStyles.ChatpostgremessageHeader}>
+                  <span className={styles.ChatpostgremessageRole || defaultStyles.ChatpostgremessageRole}>Asistente</span>
+                </div>
+                <div className={styles.ChatpostgretypingIndicator || defaultStyles.ChatpostgretypingIndicator}>
+                  <div className={styles.Chatpostgredot || defaultStyles.Chatpostgredot}></div>
+                  <div className={styles.Chatpostgredot || defaultStyles.Chatpostgredot}></div>
+                  <div className={styles.Chatpostgredot || defaultStyles.Chatpostgredot}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </section>
+
+      <footer className={styles.ChatpostgreinputSection || defaultStyles.ChatpostgreinputSection}>
+        <div className={styles.ChatpostgreinputContainer || defaultStyles.ChatpostgreinputContainer}>
+          <div className={styles.ChatpostgreinputWrapper || defaultStyles.ChatpostgreinputWrapper}>
             <textarea
-              className={styles.textarea}
+              className={styles.Chatpostgretextarea || defaultStyles.Chatpostgretextarea}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="Escribe tu consulta sobre el análisis de datos..."
+              placeholder={
+                selectedContext
+                  ? "Escribe tu pregunta sobre los datos..."
+                  : "Selecciona un dashboard para comenzar"
+              }
               rows={2}
-              disabled={loading}
-              aria-label="Escribir mensaje"
+              disabled={loading || !selectedContext}
             />
-            <div className={styles.footerRight}>
-              <button
-                className={`${styles.sendBtn} ${loading ? styles.disabled : ""}`}
-                onClick={handleSend}
-                disabled={loading}
-                aria-label="Enviar mensaje"
-              >
-                {loading ? "Enviando..." : "Enviar"}
-              </button>
+            <button
+              className={`${styles.ChatpostgresendButton || defaultStyles.ChatpostgresendButton} ${
+                loading || !selectedContext
+                  ? (styles.ChatpostgresendButtonDisabled || defaultStyles.ChatpostgresendButtonDisabled)
+                  : ''
+              }`}
+              onClick={handleSend}
+              disabled={loading || !selectedContext}
+            >
+              {loading
+                ? (<span className={styles.Chatpostgrespinner || defaultStyles.Chatpostgrespinner}></span>)
+                : (<span className={styles.ChatpostgresendIcon || defaultStyles.ChatpostgresendIcon}>↑</span>)
+              }
+            </button>
+          </div>
+          {error && (
+            <div className={styles.Chatpostgreerror || defaultStyles.Chatpostgreerror}>
+              <div className={styles.ChatpostgreerrorIcon || defaultStyles.ChatpostgreerrorIcon}>⚠️</div>
+              <div className={styles.ChatpostgreerrorText || defaultStyles.ChatpostgreerrorText}>{error}</div>
             </div>
-          </div>
-
-          {error && <div className={styles.error}>{error}</div>}
-
-          <div className={styles.footerNote}>
-            <span>Conectado al dashboard • Conexión segura</span>
-          </div>
-        </footer>
-      </div>
-    </div>
+          )}
+        </div>
+      </footer>
+    </main>
   );
 }

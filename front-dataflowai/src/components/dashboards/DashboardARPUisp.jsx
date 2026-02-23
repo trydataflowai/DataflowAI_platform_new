@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -130,15 +130,6 @@ const DashboardARPUisp = () => {
     };
     setFilters(cleaned);
     loadData(sanitizeFilters(cleaned), true);
-  };
-
-  // Funciones para el modal AI
-  const abrirModalAI = () => {
-    setShowAIModal(true);
-  };
-
-  const cerrarModalAI = () => {
-    setShowAIModal(false);
   };
 
   // -------- FILTRADO LOCAL PARA VISUALIZACIONES
@@ -286,7 +277,7 @@ const DashboardARPUisp = () => {
       { name: 'Voz', value: 15 },
       { name: 'Paquetes', value: 10 },
       { name: 'Extras', value: 5 }
-    ];;
+    ];
   };
 
   const prepareChannelData = () => {
@@ -361,6 +352,26 @@ const DashboardARPUisp = () => {
       <p className={styles.DashboardARPU__cardValue}>{value}</p>
     </div>
   );
+
+  // -----------------------
+  // MODAL AI: abrir con contexto por defecto (Dashboard ISP ARPU, ID 6)
+  // -----------------------
+  const DEFAULT_DASH_CTX = { id_registro: 6, dashboard_name: 'Dashboard ISP ARPU' };
+  const chatIframeSrc = `/chatModal?default_id=${encodeURIComponent(DEFAULT_DASH_CTX.id_registro)}&default_name=${encodeURIComponent(DEFAULT_DASH_CTX.dashboard_name)}`;
+
+  const abrirModalAI = () => {
+    // Guardar en localStorage para que el modal/iframe (si lo lee) encuentre el contexto por defecto
+    try {
+      localStorage.setItem('selectedContext', JSON.stringify(DEFAULT_DASH_CTX));
+    } catch (e) {
+      console.warn('No se pudo guardar selectedContext en localStorage', e);
+    }
+    setShowAIModal(true);
+  };
+
+  const cerrarModalAI = () => {
+    setShowAIModal(false);
+  };
 
   if (loading) {
     return (
@@ -578,7 +589,7 @@ const DashboardARPUisp = () => {
                 <h2 className={styles['churn-dash-ai-modal-title']}>
                   Análisis de Datos con Inteligencia Artificial
                 </h2>
-                <button 
+                <button
                   className={styles['churn-dash-ai-modal-close']}
                   onClick={cerrarModalAI}
                 >
@@ -587,7 +598,7 @@ const DashboardARPUisp = () => {
               </div>
               <div className={styles['churn-dash-ai-modal-body']}>
                 <iframe
-                  src="/chatModal?tabla=dashboard_arpu"
+                  src={chatIframeSrc}
                   className={styles['churn-dash-ai-iframe']}
                   title="Chat AI para análisis de datos"
                 />

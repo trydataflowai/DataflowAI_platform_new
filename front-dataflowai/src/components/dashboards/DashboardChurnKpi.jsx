@@ -726,7 +726,19 @@ const DashboardChurnKpi = () => {
     ]
   };
 
+  // -----------------------
+  // DEFAULT DASH CONTEXT (cuando se abre el modal)
+  // -----------------------
+  const DEFAULT_DASH_CTX = { id_registro: 8, dashboard_name: 'Dashboard Kpi Churn' };
+  const chatIframeSrc = `/chatModal?tabla=dashboard_churn_rate&default_id=${encodeURIComponent(DEFAULT_DASH_CTX.id_registro)}&default_name=${encodeURIComponent(DEFAULT_DASH_CTX.dashboard_name)}`;
+
   const abrirModalAI = () => {
+    // Guardar en localStorage como fallback (el ChatModal también leerá default_id/default_name desde la query)
+    try {
+      localStorage.setItem('selectedContext', JSON.stringify(DEFAULT_DASH_CTX));
+    } catch (e) {
+      console.warn('No se pudo guardar selectedContext en localStorage', e);
+    }
     setShowAIModal(true);
   };
 
@@ -1000,33 +1012,30 @@ const DashboardChurnKpi = () => {
       </div>
 
       {/* MODAL AI */}
-      {/* MODAL AI */}
-{showAIModal && (
-  <div className={styles['churn-dash-ai-modal']}>
-    <div className={styles['churn-dash-ai-modal-content']}>
-      <div className={styles['churn-dash-ai-modal-header']}>
-        <h2 className={styles['churn-dash-ai-modal-title']}>
-          Análisis de Datos con Inteligencia Artificial
-        </h2>
-        <button 
-          className={styles['churn-dash-ai-modal-close']}
-          onClick={cerrarModalAI}
-        >
-          ×
-        </button>
-      </div>
-      <div className={styles['churn-dash-ai-modal-body']}>
-        <iframe
-          src="/chatModal?tabla=dashboard_churn_rate"
-          className={styles['churn-dash-ai-iframe']}
-          title="Chat AI para análisis de datos"
-        />
-      </div>
-    </div>
-  </div>
-)}
-
-      
+      {showAIModal && (
+        <div className={styles['churn-dash-ai-modal']}>
+          <div className={styles['churn-dash-ai-modal-content']}>
+            <div className={styles['churn-dash-ai-modal-header']}>
+              <h2 className={styles['churn-dash-ai-modal-title']}>
+                Análisis de Datos con Inteligencia Artificial
+              </h2>
+              <button
+                className={styles['churn-dash-ai-modal-close']}
+                onClick={cerrarModalAI}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles['churn-dash-ai-modal-body']}>
+              <iframe
+                src={chatIframeSrc}
+                className={styles['churn-dash-ai-iframe']}
+                title="Chat AI para análisis de datos"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
