@@ -177,8 +177,7 @@ export const SideBar = () => {
     { to: "/brk/perfil", icon: "🧩", label: "Perfil" },
     { to: "/brk/CrmBrokers", icon: "🧩", label: "Crm" },
     { to: "/brk/LiquidacionPagosBrokers", icon: "🧩", label: "Pagos" },
-
-
+    { to: "/TutorialesCapacitaciones", icon: "🧩", label: "Capacitación" },
 
   ];
 

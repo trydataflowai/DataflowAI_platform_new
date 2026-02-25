@@ -6783,3 +6783,66 @@ class BrokerLiqPagosView(APIView):
             'facturas': serializer_facturas.data,
             'pagos': serializer_pagos.data,
         }, status=status.HTTP_200_OK)
+
+
+
+# app/tutoriales/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
+from rest_framework.authentication import get_authorization_header
+
+from django.conf import settings
+
+import jwt
+
+from .models import TutorialesDataflow
+from .serializers import TutorialesDataflowSerializer
+
+
+def _validate_jwt_from_request(request):
+    """
+    Valida el token JWT enviado en Authorization: Bearer <token>
+    Retorna el payload si es válido, o lanza ValueError con mensaje para respuestas.
+    """
+    auth_header = get_authorization_header(request).split()
+    if not auth_header or auth_header[0].lower() != b'bearer':
+        raise ValueError('Token no enviado')
+
+    try:
+        token = auth_header[1].decode('utf-8')
+    except Exception:
+        raise ValueError('Formato de token inválido')
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise ValueError('Token expirado')
+    except jwt.DecodeError:
+        raise ValueError('Token inválido')
+    except Exception:
+        raise ValueError('Error validando token')
+
+    return payload
+
+
+class TutorialesListView(APIView):
+    """
+    GET: lista tutoriales (protegido por JWT).
+    """
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request, format=None):
+        # Validación del JWT
+        try:
+            _validate_jwt_from_request(request)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Query: todos los tutoriales ordenados por fecha_publicacion y creado_en
+        tutoriales = TutorialesDataflow.objects.all().order_by('-fecha_publicacion', '-creado_en')
+        serializer = TutorialesDataflowSerializer(tutoriales, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

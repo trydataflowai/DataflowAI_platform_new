@@ -91,6 +91,7 @@ import DashboardVentaseInventariosAnalisisInventarios from "../components/dashbo
 import PerfilBrokers from "../components/pages/brokers/ProfileBrokers";
 import CrmBrokers from "../components/pages/brokers/CrmBrokers";
 import LiqPagosBrokers from "../components/pages/brokers/LiqPagosBrokers";
+import TutorialesCapacitacion from "../components/pages/brokers/CapacitacionBroker";
 
 /* ---------------------------
    Configuración de layouts
@@ -766,6 +767,19 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
+             <Route
+              path={p("/TutorialesCapacitaciones")}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <TutorialesCapacitacion />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+
 
           </Routes>
         </VerificadorAutenticacionGlobal>

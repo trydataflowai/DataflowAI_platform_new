@@ -4,10 +4,10 @@
 // "Dashboards", "Tools", "Profile", "Marketplace", "Support", "AI Insights", "FormBuilder"
 
 const permissions = {
-  "1": ["Perfil", "Crm", "Pagos"],
-  "2": ["FormBuilder", "Tools", "Perfil", "Crm", "Pagos"],
-  "3": ["Perfil", "Crm", "Pagos"],
-  "4": ["Tools", "Perfil", "Crm"],
+  "1": ["Perfil", "Crm", "Pagos", "Capacitación"],
+  "2": ["FormBuilder", "Tools", "Perfil", "Crm", "Pagos", "Capacitación"],
+  "3": ["Perfil", "Crm", "Pagos", "Capacitación"],
+  "4": ["Tools", "Perfil", "Crm", "Capacitación"],
 
   // Empresa 5 NO ve nada del menú principal
   "5": [

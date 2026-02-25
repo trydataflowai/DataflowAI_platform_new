@@ -19,6 +19,7 @@ import defaultFormList from '../../styles/Formlist.module.css';
 import defaultUserBroker from '../../styles//Brokers/profileBrokers.module.css';
 import defaultCrmBokers from '../../styles//Brokers/crmBrokers.module.css';
 import defaultPagLiqBrokers from '../../styles//Brokers/pagLiqBrokers.module.css';
+import defaultCapacitacioneBrokers from '../../styles/Brokers/capacitaciones.module.css';
 
 const MODULES = {
   Perfil: { file: 'Perfil.module.css', defaultStyles: defaultPerfil },
@@ -37,6 +38,7 @@ const MODULES = {
   PerfilBoker: { file: 'profileBrokers.module.css', defaultStyles: defaultUserBroker },
   CrmBokers: { file: 'crmBrokers.module.css', defaultStyles: defaultCrmBokers },
   PagLiqBrokers: { file: 'pagLiqBrokers.module.css', defaultStyles: defaultPagLiqBrokers },
+  CapacitacionesBrokers: { file: 'capacitaciones.module.css', defaultStyles: defaultCapacitacioneBrokers },
 };
 
 const CompanyStylesContext = createContext({

@@ -1415,3 +1415,42 @@ class PagosBrokersLeadsAdmin(admin.ModelAdmin):
     )
 
     ordering = ('-fecha_pago',)
+
+
+
+from django.contrib import admin
+from .models import TutorialesDataflow
+
+
+@admin.register(TutorialesDataflow)
+class TutorialesDataflowAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_tutorial',
+        'titulo',
+        'enlace',
+        'fecha_publicacion',
+        'creado_en',
+    )
+
+    search_fields = (
+        'titulo',
+        'descripcion',
+    )
+
+    list_filter = (
+        'fecha_publicacion',
+        'creado_en',
+    )
+
+    ordering = ('-fecha_publicacion',)
+
+    readonly_fields = ('creado_en',)
+
+    fieldsets = (
+        ('Información principal', {
+            'fields': ('titulo', 'enlace', 'descripcion')
+        }),
+        ('Fechas', {
+            'fields': ('fecha_publicacion', 'creado_en')
+        }),
+    )

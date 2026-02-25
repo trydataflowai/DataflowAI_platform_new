@@ -1836,3 +1836,24 @@ class PagosBrokersLeads(models.Model):
 
     def __str__(self):
         return f'Pago {self.id_pago} - Factura {self.numero_factura.numero_factura}'
+
+
+
+
+from django.db import models
+
+class TutorialesDataflow(models.Model):
+    id_tutorial = models.AutoField(primary_key=True, db_column='id_tutorial')
+    titulo = models.CharField(max_length=255)
+    enlace = models.URLField()
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_publicacion = models.DateField()
+
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tutoriales_data_flow'
+        verbose_name_plural = 'Tutoriales DataFlow'
+
+    def __str__(self):
+        return self.titulo

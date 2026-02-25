@@ -163,7 +163,8 @@ from .views import (
     LeadsBrokersDetailView,
     LeadsBrokersImportView,
     LeadsBrokersExportView,
-    BrokerLiqPagosView
+    BrokerLiqPagosView,
+    TutorialesListView
 
 
 
@@ -356,6 +357,8 @@ urlpatterns = [
     path('brokers/leads/import/', LeadsBrokersImportView.as_view(), name='brokers-leads-import'),
     path('brokers/leads/export/', LeadsBrokersExportView.as_view(), name='brokers-leads-export'),
     path('usuario/broker/liquidacion/', BrokerLiqPagosView.as_view(), name='broker_liq_pagos'),
+    path('tutoriales/', TutorialesListView.as_view(), name='tutoriales-list'),
+
 
 ]
 

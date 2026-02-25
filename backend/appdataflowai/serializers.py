@@ -1856,3 +1856,25 @@ class FacturaBrokerSerializer(serializers.ModelSerializer):
             if obj.valor_facturado is None or obj.comision_percent is None:
                 return None
             return (obj.valor_facturado * (obj.comision_percent / 100)).quantize(obj.valor_facturado.as_tuple()) if hasattr(obj.valor_facturado, 'as_tuple') else float(obj.valor_facturado * (obj.comision_percent / 100))
+
+
+
+
+
+
+# app/tutoriales/serializers.py
+from rest_framework import serializers
+from .models import TutorialesDataflow
+
+class TutorialesDataflowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TutorialesDataflow
+        fields = [
+            'id_tutorial',
+            'titulo',
+            'enlace',
+            'descripcion',
+            'fecha_publicacion',
+            'creado_en',
+        ]
+        read_only_fields = ('id_tutorial', 'creado_en')
