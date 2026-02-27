@@ -1705,13 +1705,16 @@ TAMANIO_EMPRESA_CHOICES = [
 ]
 
 ETAPA_LEAD_CHOICES = [
-    ('lead_prospecto', 'lead prospecto'),
-    ('lead_prospecto_calificado', 'lead prospecto calificado'),  # opcional
-    ('lead_calificado', 'lead calificado'),
-    ('lead_demo', 'lead demo'),
-    ('propuesta_enviada', 'propuesta enviada'),
-    ('lead_ganado', 'lead ganado'),
-    ('lead_perdido', 'lead perdido'),
+    ('prospecting', 'Prospecting'),
+    ('qualifications_sql', 'Qualifications (SQL)'),
+    ('discovery_estrategico', 'Discovery Estrategico'),
+    ('demo_personalizada', 'Demo Personalizada'),
+    ('business_case_roi', 'Business Case / ROI'),
+    ('propuesta_enviada', 'Propuesta Enviada'),
+    ('negociacion', 'Negociacion'),
+    ('aprobacion_legal_agree', 'Aprobacion / Legal Agree'),
+    ('closed_won', 'Closed Won'),
+    ('closed_lost', 'Closed Lost'),
 ]
 
 class UsuariosBrokers(models.Model):
@@ -1768,7 +1771,7 @@ class LeadsBrokers(models.Model):
     campo_etiqueta = models.CharField(max_length=100, db_column='campo_etiqueta', blank=True)
     fuente_lead = models.CharField(max_length=150, db_column='fuente_lead', blank=True)
     comentarios = models.TextField(db_column='comentarios', blank=True)
-    etapa = models.CharField(max_length=30, choices=ETAPA_LEAD_CHOICES, db_column='etapa', default='lead_prospecto')
+    etapa = models.CharField(max_length=30, choices=ETAPA_LEAD_CHOICES, db_column='etapa', default='prospecting')
 
     class Meta:
         db_table = 'leads_brokers'

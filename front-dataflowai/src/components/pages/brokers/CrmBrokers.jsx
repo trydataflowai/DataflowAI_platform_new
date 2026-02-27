@@ -23,16 +23,60 @@ const emptyLead = {
   campo_etiqueta: '',
   fuente_lead: '',
   comentarios: '',
-  etapa: 'lead_prospecto',
+  etapa: 'prospecting',
 };
 
 const ETAPAS = [
-  { key: 'lead_prospecto', label: 'lead prospecto' },
-  { key: 'lead_calificado', label: 'lead calificado' },
-  { key: 'lead_demo', label: 'lead demo' },
-  { key: 'propuesta_enviada', label: 'propuesta enviada' },
-  { key: 'lead_ganado', label: 'lead ganado' },
-  { key: 'lead_perdido', label: 'lead perdido' },
+  {
+    key: 'prospecting',
+    label: 'Prospecting',
+    tooltip: '"Prospecting" tiene una probabilidad de cierre del "5%" y su objetivo "Contacto inicial".',
+  },
+  {
+    key: 'qualifications_sql',
+    label: 'Qualifications (SQL)',
+    tooltip: '"Qualifications (SQL)" tiene una probabilidad de cierre del "15%" y su objetivo "Tiene presupuesto + necesidad + autoridad".',
+  },
+  {
+    key: 'discovery_estrategico',
+    label: 'Discovery Estrategico',
+    tooltip: '"Discovery Estrategico" tiene una probabilidad de cierre del "25%" y su objetivo "Problema y necesidad entendida y validada".',
+  },
+  {
+    key: 'demo_personalizada',
+    label: 'Demo Personalizada',
+    tooltip: '"Demo Personalizada" tiene una probabilidad de cierre del "40%" y su objetivo "Producto alineado al dolor".',
+  },
+  {
+    key: 'business_case_roi',
+    label: 'Business Case / ROI',
+    tooltip: '"Business Case / ROI" tiene una probabilidad de cierre del "55%" y su objetivo "Valor economico claro".',
+  },
+  {
+    key: 'propuesta_enviada',
+    label: 'Propuesta Enviada',
+    tooltip: '"Propuesta Enviada" tiene una probabilidad de cierre del "65%" y su objetivo "Precio formal entregado".',
+  },
+  {
+    key: 'negociacion',
+    label: 'Negociacion',
+    tooltip: '"Negociacion" tiene una probabilidad de cierre del "80%" y su objetivo "Ajustes finales".',
+  },
+  {
+    key: 'aprobacion_legal_agree',
+    label: 'Aprobacion / Legal Agree',
+    tooltip: '"Aprobacion / Legal Agree" tiene una probabilidad de cierre del "90%" y su objetivo "Revision contractual".',
+  },
+  {
+    key: 'closed_won',
+    label: 'Closed Won',
+    tooltip: '"Closed Won" tiene una probabilidad de cierre del "100%" y su objetivo "Contrato firmado".',
+  },
+  {
+    key: 'closed_lost',
+    label: 'Closed Lost',
+    tooltip: '"Closed Lost" tiene una probabilidad de cierre del "0%" y su objetivo "Perdido".',
+  },
 ];
 
 const CrmBrokers = () => {
@@ -400,7 +444,13 @@ const CrmBrokers = () => {
                 onDrop={(e) => onDrop(e, et.key)}
                 role="list"
               >
-                <div className={styles.BrokCrmColumnHeader}>{et.label}</div>
+                <div
+                  className={styles.BrokCrmColumnHeader}
+                  data-tooltip={et.tooltip}
+                  aria-label={et.tooltip}
+                >
+                  {et.label}
+                </div>
                 <div className={styles.BrokCrmColumnBody}>
                   {leadsByEtapa[et.key] && leadsByEtapa[et.key].length === 0 && (
                     <div className={styles.BrokCrmEmptyColumn}>Sin leads</div>
