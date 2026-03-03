@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 function getAuthHeaders(extra = {}) {
   const token = localStorage.getItem("token") || "";
@@ -14,7 +14,7 @@ function toList(payload) {
 }
 
 export async function getVentasBelkin() {
-  const response = await fetch(`${BASE_URL}/ventas-belkin/`, {
+  const response = await fetch(`${BASE_URL}ventas-belkin/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });
@@ -24,7 +24,7 @@ export async function getVentasBelkin() {
 }
 
 export async function createVentasBelkin(data) {
-  const response = await fetch(`${BASE_URL}/ventas-belkin/`, {
+  const response = await fetch(`${BASE_URL}ventas-belkin/`, {
     method: "POST",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -35,7 +35,7 @@ export async function createVentasBelkin(data) {
 }
 
 export async function updateVentasBelkin(id, data) {
-  const response = await fetch(`${BASE_URL}/ventas-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}ventas-belkin/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -46,7 +46,7 @@ export async function updateVentasBelkin(id, data) {
 }
 
 export async function deleteVentasBelkin(id) {
-  const response = await fetch(`${BASE_URL}/ventas-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}ventas-belkin/${id}/`, {
     method: "DELETE",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -59,7 +59,7 @@ export async function bulkImportVentasBelkin(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/ventas-belkin/bulk-import/`, {
+  const res = await fetch(`${BASE_URL}ventas-belkin/bulk-import/`, {
     method: "POST",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -74,7 +74,7 @@ export async function bulkUpdateVentasBelkinExcel(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/ventas-belkin/bulk-update-excel/`, {
+  const res = await fetch(`${BASE_URL}ventas-belkin/bulk-update-excel/`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -89,7 +89,7 @@ export async function bulkUpdateVentasBelkinExcel(file) {
 }
 
 export async function bulkDeleteVentasBelkin(ids) {
-  const response = await fetch(`${BASE_URL}/ventas-belkin/bulk-delete/`, {
+  const response = await fetch(`${BASE_URL}ventas-belkin/bulk-delete/`, {
     method: "DELETE",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -100,7 +100,7 @@ export async function bulkDeleteVentasBelkin(ids) {
 }
 
 export async function exportVentasBelkin() {
-  const response = await fetch(`${BASE_URL}/ventas-belkin/export/`, {
+  const response = await fetch(`${BASE_URL}ventas-belkin/export/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });

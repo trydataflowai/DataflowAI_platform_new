@@ -1,13 +1,13 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 export async function getVentasBluetti() {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/`);
+  const response = await fetch(`${BASE_URL}ventas-bluetti/`);
   if (!response.ok) throw new Error("Error fetching ventas bluetti");
   return response.json();
 }
 
 export async function createVentaBluetti(data) {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/`, {
+  const response = await fetch(`${BASE_URL}ventas-bluetti/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -26,7 +26,7 @@ export async function createVentaBluetti(data) {
 }
 
 export async function updateVentaBluetti(id, data) {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/${id}/`, {
+  const response = await fetch(`${BASE_URL}ventas-bluetti/${id}/`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -36,7 +36,7 @@ export async function updateVentaBluetti(id, data) {
 }
 
 export async function deleteVentaBluetti(id) {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/${id}/`, {
+  const response = await fetch(`${BASE_URL}ventas-bluetti/${id}/`, {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Error deleting venta bluetti");
@@ -48,7 +48,7 @@ export async function bulkImportVentasBluetti(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/ventas-bluetti/bulk-import/`, {
+  const res = await fetch(`${BASE_URL}ventas-bluetti/bulk-import/`, {
     method: "POST",
     body: formData,
   });
@@ -65,7 +65,7 @@ export async function bulkUpdateVentasBluettiExcel(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/ventas-bluetti/bulk-update-excel/`, {
+  const res = await fetch(`${BASE_URL}ventas-bluetti/bulk-update-excel/`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -80,7 +80,7 @@ export async function bulkUpdateVentasBluettiExcel(file) {
 }
 
 export async function bulkDeleteVentasBluetti(ids) {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/bulk-delete/`, {
+  const response = await fetch(`${BASE_URL}ventas-bluetti/bulk-delete/`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids }),
@@ -90,26 +90,26 @@ export async function bulkDeleteVentasBluetti(ids) {
 }
 
 export async function exportVentasBluetti() {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/export/`);
+  const response = await fetch(`${BASE_URL}ventas-bluetti/export/`);
   if (!response.ok) throw new Error("Error exporting ventas bluetti");
   return response;
 }
 
 export async function exportTemplateVentasBluetti() {
-  const response = await fetch(`${BASE_URL}/ventas-bluetti/export-template/`);
+  const response = await fetch(`${BASE_URL}ventas-bluetti/export-template/`);
   if (!response.ok) throw new Error("Error exporting template ventas bluetti");
   return response;
 }
 
 export async function getCuentasClientesBluetti() {
-  const response = await fetch(`${BASE_URL}/cuentas-clientes-bluetti/`);
+  const response = await fetch(`${BASE_URL}cuentas-clientes-bluetti/`);
   if (!response.ok) throw new Error("Error fetching cuentas clientes bluetti");
   return response.json(); // espera [{ id_registro, id, nombre_cliente, ... }, ...]
 }
 
 // obtiene lista de canales (para mostrar nombres y enviar id)
 export async function getCanalesBluetti() {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/`);
+  const response = await fetch(`${BASE_URL}canales-bluetti/`);
   if (!response.ok) throw new Error("Error fetching canales bluetti");
   return response.json(); // espera [{ id_registro, id, nombre_canal, ... }, ...]
 }

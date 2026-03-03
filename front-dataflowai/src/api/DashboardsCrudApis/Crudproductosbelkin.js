@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 function getAuthHeaders(extra = {}) {
   const token = localStorage.getItem("token") || "";
@@ -14,7 +14,7 @@ function toList(payload) {
 }
 
 export async function getProductosBelkin() {
-  const response = await fetch(`${BASE_URL}/productos-belkin/`, {
+  const response = await fetch(`${BASE_URL}productos-belkin/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });
@@ -24,7 +24,7 @@ export async function getProductosBelkin() {
 }
 
 export async function createProductoBelkin(data) {
-  const response = await fetch(`${BASE_URL}/productos-belkin/`, {
+  const response = await fetch(`${BASE_URL}productos-belkin/`, {
     method: "POST",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -35,7 +35,7 @@ export async function createProductoBelkin(data) {
 }
 
 export async function updateProductoBelkin(id, data) {
-  const response = await fetch(`${BASE_URL}/productos-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}productos-belkin/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -46,7 +46,7 @@ export async function updateProductoBelkin(id, data) {
 }
 
 export async function deleteProductoBelkin(id) {
-  const response = await fetch(`${BASE_URL}/productos-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}productos-belkin/${id}/`, {
     method: "DELETE",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -59,7 +59,7 @@ export async function bulkImportProductosBelkin(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/productos-belkin/bulk-import/`, {
+  const res = await fetch(`${BASE_URL}productos-belkin/bulk-import/`, {
     method: "POST",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -73,7 +73,7 @@ export async function bulkUpdateProductosBelkinExcel(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/productos-belkin/bulk-update-excel/`, {
+  const res = await fetch(`${BASE_URL}productos-belkin/bulk-update-excel/`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -88,7 +88,7 @@ export async function bulkUpdateProductosBelkinExcel(file) {
 }
 
 export async function bulkDeleteProductosBelkin(ids) {
-  const response = await fetch(`${BASE_URL}/productos-belkin/bulk-delete/`, {
+  const response = await fetch(`${BASE_URL}productos-belkin/bulk-delete/`, {
     method: "DELETE",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -99,7 +99,7 @@ export async function bulkDeleteProductosBelkin(ids) {
 }
 
 export async function exportProductosBelkin() {
-  const response = await fetch(`${BASE_URL}/productos-belkin/export/`, {
+  const response = await fetch(`${BASE_URL}productos-belkin/export/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });

@@ -1,13 +1,13 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 export async function getCanalesBluetti() {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/`);
+  const response = await fetch(`${BASE_URL}canales-bluetti/`);
   if (!response.ok) throw new Error("Error fetching canales bluetti");
   return response.json();
 }
 
 export async function createCanalBluetti(data) {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/`, {
+  const response = await fetch(`${BASE_URL}canales-bluetti/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -17,7 +17,7 @@ export async function createCanalBluetti(data) {
 }
 
 export async function updateCanalBluetti(id, data) {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/${id}/`, {
+  const response = await fetch(`${BASE_URL}canales-bluetti/${id}/`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -27,7 +27,7 @@ export async function updateCanalBluetti(id, data) {
 }
 
 export async function deleteCanalBluetti(id) {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/${id}/`, {
+  const response = await fetch(`${BASE_URL}canales-bluetti/${id}/`, {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Error deleting canal bluetti");
@@ -39,7 +39,7 @@ export async function bulkImportCanalesBluetti(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/canales-bluetti/bulk-import/`, {
+  const res = await fetch(`${BASE_URL}canales-bluetti/bulk-import/`, {
     method: "POST",
     body: formData,
   });
@@ -56,7 +56,7 @@ export async function bulkUpdateCanalesBluettiExcel(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/canales-bluetti/bulk-update-excel/`, {
+  const res = await fetch(`${BASE_URL}canales-bluetti/bulk-update-excel/`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -71,7 +71,7 @@ export async function bulkUpdateCanalesBluettiExcel(file) {
 }
 
 export async function bulkDeleteCanalesBluetti(ids) {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/bulk-delete/`, {
+  const response = await fetch(`${BASE_URL}canales-bluetti/bulk-delete/`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ids }),
@@ -81,13 +81,13 @@ export async function bulkDeleteCanalesBluetti(ids) {
 }
 
 export async function exportCanalesBluetti() {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/export/`);
+  const response = await fetch(`${BASE_URL}canales-bluetti/export/`);
   if (!response.ok) throw new Error("Error exporting canales bluetti");
   return response;
 }
 
 export async function exportTemplateCanalesBluetti() {
-  const response = await fetch(`${BASE_URL}/canales-bluetti/export-template/`);
+  const response = await fetch(`${BASE_URL}canales-bluetti/export-template/`);
   if (!response.ok) throw new Error("Error exporting template canales bluetti");
   return response;
 }

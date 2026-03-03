@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 function getAuthHeaders(extra = {}) {
   const token = localStorage.getItem("token") || "";
@@ -14,7 +14,7 @@ function toList(payload) {
 }
 
 export async function getInventariosBelkin() {
-  const response = await fetch(`${BASE_URL}/inventarios-belkin/`, {
+  const response = await fetch(`${BASE_URL}inventarios-belkin/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });
@@ -24,7 +24,7 @@ export async function getInventariosBelkin() {
 }
 
 export async function createInventarioBelkin(data) {
-  const response = await fetch(`${BASE_URL}/inventarios-belkin/`, {
+  const response = await fetch(`${BASE_URL}inventarios-belkin/`, {
     method: "POST",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -35,7 +35,7 @@ export async function createInventarioBelkin(data) {
 }
 
 export async function updateInventarioBelkin(id, data) {
-  const response = await fetch(`${BASE_URL}/inventarios-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}inventarios-belkin/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -46,7 +46,7 @@ export async function updateInventarioBelkin(id, data) {
 }
 
 export async function deleteInventarioBelkin(id) {
-  const response = await fetch(`${BASE_URL}/inventarios-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}inventarios-belkin/${id}/`, {
     method: "DELETE",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -59,7 +59,7 @@ export async function bulkImportInventariosBelkin(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/inventarios-belkin/bulk-import/`, {
+  const res = await fetch(`${BASE_URL}inventarios-belkin/bulk-import/`, {
     method: "POST",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -73,7 +73,7 @@ export async function bulkUpdateInventariosBelkinExcel(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/inventarios-belkin/bulk-update-excel/`, {
+  const res = await fetch(`${BASE_URL}inventarios-belkin/bulk-update-excel/`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -88,7 +88,7 @@ export async function bulkUpdateInventariosBelkinExcel(file) {
 }
 
 export async function bulkDeleteInventariosBelkin(ids) {
-  const response = await fetch(`${BASE_URL}/inventarios-belkin/bulk-delete/`, {
+  const response = await fetch(`${BASE_URL}inventarios-belkin/bulk-delete/`, {
     method: "DELETE",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -99,7 +99,7 @@ export async function bulkDeleteInventariosBelkin(ids) {
 }
 
 export async function exportInventariosBelkin() {
-  const response = await fetch(`${BASE_URL}/inventarios-belkin/export/`, {
+  const response = await fetch(`${BASE_URL}inventarios-belkin/export/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });

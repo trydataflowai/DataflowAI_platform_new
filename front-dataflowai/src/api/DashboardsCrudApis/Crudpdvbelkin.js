@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 function getAuthHeaders(extra = {}) {
   const token = localStorage.getItem("token") || "";
@@ -14,7 +14,7 @@ function toList(payload) {
 }
 
 export async function getPdvBelkin() {
-  const response = await fetch(`${BASE_URL}/pdv-belkin/`, {
+  const response = await fetch(`${BASE_URL}pdv-belkin/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });
@@ -24,7 +24,7 @@ export async function getPdvBelkin() {
 }
 
 export async function createPdvBelkin(data) {
-  const response = await fetch(`${BASE_URL}/pdv-belkin/`, {
+  const response = await fetch(`${BASE_URL}pdv-belkin/`, {
     method: "POST",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -35,7 +35,7 @@ export async function createPdvBelkin(data) {
 }
 
 export async function updatePdvBelkin(id, data) {
-  const response = await fetch(`${BASE_URL}/pdv-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}pdv-belkin/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -46,7 +46,7 @@ export async function updatePdvBelkin(id, data) {
 }
 
 export async function deletePdvBelkin(id) {
-  const response = await fetch(`${BASE_URL}/pdv-belkin/${id}/`, {
+  const response = await fetch(`${BASE_URL}pdv-belkin/${id}/`, {
     method: "DELETE",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -59,7 +59,7 @@ export async function bulkImportPdvBelkin(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/pdv-belkin/bulk-import/`, {
+  const res = await fetch(`${BASE_URL}pdv-belkin/bulk-import/`, {
     method: "POST",
     credentials: "include",
     headers: getAuthHeaders(),
@@ -74,7 +74,7 @@ export async function bulkUpdatePdvBelkinExcel(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/pdv-belkin/bulk-update-excel/`, {
+  const res = await fetch(`${BASE_URL}pdv-belkin/bulk-update-excel/`, {
     method: "POST",
     body: formData,
     credentials: "include",
@@ -89,7 +89,7 @@ export async function bulkUpdatePdvBelkinExcel(file) {
 }
 
 export async function bulkDeletePdvBelkin(ids) {
-  const response = await fetch(`${BASE_URL}/pdv-belkin/bulk-delete/`, {
+  const response = await fetch(`${BASE_URL}pdv-belkin/bulk-delete/`, {
     method: "DELETE",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
@@ -100,7 +100,7 @@ export async function bulkDeletePdvBelkin(ids) {
 }
 
 export async function exportPdvBelkin() {
-  const response = await fetch(`${BASE_URL}/pdv-belkin/export/`, {
+  const response = await fetch(`${BASE_URL}pdv-belkin/export/`, {
     credentials: "include",
     headers: getAuthHeaders(),
   });
