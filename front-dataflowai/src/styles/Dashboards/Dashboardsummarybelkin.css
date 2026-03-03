@@ -1,0 +1,401 @@
+/* ============================================
+   DASHBOARD SUMMARY BELKIN - MODERN LIGHT MODE
+   Match Visual CRUD Belkin
+   ============================================ */
+
+.Dashboardsummarybelkin {
+  color-scheme: light;
+  --primary-blue: #2563eb;
+  --primary-purple: #7c3aed;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+
+  --border-light: #e2e8f0;
+  --border-medium: #cbd5e1;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-soft: var(--shadow-md);
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   CONTAINER PRINCIPAL
+   ============================================ */
+
+/* ============================================
+   CONTAINER PRINCIPAL - ALTURA CONTROLADA
+   ============================================ */
+
+.Dashboardsummarybelkin {
+  padding: 32px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%), var(--bg-main);
+  color: var(--text-primary);
+
+  width: 100%;
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+/* Contenedor interno scrollable */
+.Dashboardsummarybelkin-content {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-right: 6px;
+}
+
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.Dashboardsummarybelkin-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.Dashboardsummarybelkin-header h2::before {
+  content: "📊";
+  margin-right: 8px;
+  -webkit-text-fill-color: initial;
+}
+
+
+/* ============================================
+   FILTROS
+   ============================================ */
+
+.Dashboardsummarybelkin-filtros {
+  background: var(--bg-card);
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.filtro-col label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.filtro-col input[type="date"] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-main);
+  transition: var(--transition-base);
+  font-size: 14px;
+}
+
+.filtro-col input[type="date"]:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background: white;
+}
+
+/* ============================================
+   KPI GLOBALES
+   ============================================ */
+
+.Dashboardsummarybelkin-kpis-globales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.Dashboardsummarybelkin-kpi-card {
+  flex: 1;
+  min-width: 220px;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.Dashboardsummarybelkin-kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.Dashboardsummarybelkin-kpi-card::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  opacity: 0.05;
+  border-radius: 50%;
+}
+
+.Dashboardsummarybelkin-kpi-card.unidades {
+  border-left: 6px solid var(--primary-blue);
+}
+
+.Dashboardsummarybelkin-kpi-card.ventas {
+  border-left: 6px solid var(--accent-green);
+}
+
+.kpi-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.kpi-valor {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0;
+}
+
+
+/* ============================================
+   TABLA
+   ============================================ */
+
+.Dashboardsummarybelkin-table {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  padding: 20px;
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 420px;
+}
+
+.Dashboardsummarybelkin-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.Dashboardsummarybelkin-table thead th {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  padding: 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-medium);
+}
+
+.Dashboardsummarybelkin-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: var(--transition-fast);
+}
+
+.Dashboardsummarybelkin-table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
+}
+
+.Dashboardsummarybelkin-table tbody td {
+  padding: 16px;
+  color: var(--text-primary);
+}
+
+/* ============================================
+   VALIDACION
+   ============================================ */
+
+.Dashboardsummarybelkin-validacion {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.validation-result {
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.validation-result.ok {
+  background: #ecfdf5;
+  color: var(--accent-green);
+}
+
+.validation-result.fail {
+  background: #fff1f2;
+  color: var(--accent-red);
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+
+.table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  border-radius: 8px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .Dashboardsummarybelkin {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .Dashboardsummarybelkin-kpis-globales {
+    flex-direction: column;
+  }
+
+  .Dashboardsummarybelkin-tarjetas {
+    flex-direction: column;
+  }
+
+  .Dashboardsummarybelkin-filtros {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================
+   BOTON LIMPIAR FILTROS
+========================= */
+
+.filtro-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.btn-clear-filters {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-base);
+
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-clear-filters:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-clear-filters:active {
+  transform: scale(0.98);
+}
+
+
+
+/* ============================
+   CONTENEDOR GRAFICOS
+============================ */
+
+.Dashboardsummarybelkin-graficos {
+  display: flex;
+  gap: 24px;
+  margin-top: 30px;
+}
+
+/* Cada grafico ocupa mitad */
+.Dashboardsummarybelkin-grafico-card {
+  flex: 1;
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.Dashboardsummarybelkin-grafico-card h3 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+
+.recharts-legend-wrapper {
+  scrollbar-width: thin;
+}
+
+
+.Dashboardsummarybelkin-btn-clear-selection {
+  margin-top: 16px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #5947f7, #818cf8);
+  color: white;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+}
+
+.Dashboardsummarybelkin-btn-clear-selection:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(129, 140, 248, 0.4);
+}
+
+.Dashboardsummarybelkin-btn-clear-selection:active {
+  transform: translateY(0px);
+  box-shadow: 0 3px 10px rgba(129, 140, 248, 0.3);
+}
+
+.Dashboardsummarybelkin-bar-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}

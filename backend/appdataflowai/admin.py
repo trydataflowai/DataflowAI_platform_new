@@ -1454,3 +1454,461 @@ class TutorialesDataflowAdmin(admin.ModelAdmin):
             'fields': ('fecha_publicacion', 'creado_en')
         }),
     )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+from django.contrib import admin
+from .models import (
+    ProductosBelkin,
+    PdvBelkin,
+    VentasBelkin,
+    InventariosBelkin,
+)
+
+
+@admin.register(ProductosBelkin)
+class ProductosBelkinAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'ean',
+        'part_number',
+        'nombre_producto',
+        'marca',
+        'categoria',
+        'sku_suplidor',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'marca',
+        'categoria',
+    )
+
+    search_fields = (
+        'ean',
+        'part_number',
+        'nombre_producto',
+        'sku_suplidor',
+    )
+
+    ordering = ('marca', 'nombre_producto')
+
+@admin.register(PdvBelkin)
+class PdvBelkinAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'ean_pdv',
+        'punto_venta',
+        'cliente_canal',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'cliente_canal',
+    )
+
+    search_fields = (
+        'ean_pdv',
+        'punto_venta',
+        'cliente_canal',
+    )
+
+    ordering = ('cliente_canal', 'punto_venta')
+
+
+@admin.register(VentasBelkin)
+class VentasBelkinAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'fecha_venta',
+        'ano',
+        'mes',
+        'id_empresa',
+        'id_producto',
+        'canal_cliente',
+        'punto_venta',
+        'marca',
+        'categoria',
+        'producto',
+        'precio_unitario_venta',
+        'cantidad',
+        'total_ventas',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'canal_cliente',
+        'marca',
+        'categoria',
+    )
+
+    search_fields = (
+        'producto',
+        'marca',
+        'punto_venta',
+        'canal_cliente',
+    )
+
+    ordering = ('-fecha_venta',)
+
+
+@admin.register(InventariosBelkin)
+class InventariosBelkinAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'fecha_inventario',
+        'ano',
+        'mes',
+        'id_empresa',
+        'id_producto',
+        'canal_cliente',
+        'punto_venta',
+        'marca',
+        'categoria',
+        'producto',
+        'cantidad_inventario',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'canal_cliente',
+        'marca',
+        'categoria',
+    )
+
+    search_fields = (
+        'producto',
+        'marca',
+        'punto_venta',
+        'canal_cliente',
+    )
+
+    ordering = ('-fecha_inventario',)
+
+
+
+
+
+
+from django.contrib import admin
+from .models import (
+    ProductosBluetti,
+    CanalesBluetti,
+    CuentasClientesBluetti,
+    VentasBluetti,
+    InventariosBluetti,
+    VentasSelloutBluetti,
+    InventariosSelloutBluetti,
+    MetasComercialesBluetti,
+)
+
+@admin.register(ProductosBluetti)
+class ProductosBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'sku',
+        'ean',
+        'nombre_producto',
+        'marca',
+        'categoria',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'marca',
+        'categoria',
+    )
+
+    search_fields = (
+        'sku',
+        'ean',
+        'nombre_producto',
+    )
+
+    ordering = ('marca', 'nombre_producto')
+
+@admin.register(CanalesBluetti)
+class CanalesBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'codigo_canal',
+        'nombre_canal',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'nombre_canal',
+    )
+
+    search_fields = (
+        'codigo_canal',
+        'nombre_canal',
+    )
+
+    ordering = ('nombre_canal',)
+
+
+@admin.register(CuentasClientesBluetti)
+class CuentasClientesBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'id_empresa',
+        'id_producto',
+        'nombre_cliente',
+        'canal',
+        'pais',
+        'region',
+        'ciudad',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'canal',
+        'pais',
+    )
+
+    search_fields = (
+        'nombre_cliente',
+        'ciudad',
+        'region',
+    )
+
+    ordering = ('pais', 'nombre_cliente')
+
+    list_select_related = (
+        'canal',
+        'id_empresa',
+        'id_producto',
+    )
+
+@admin.register(VentasBluetti)
+class VentasBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'fecha_venta',
+        'ano',
+        'mes',
+        'id_empresa',
+        'id_producto',
+        'canal',
+        'cliente',
+        'tipo_venta',
+        'cantidad',
+        'precio_unitario',
+        'total_venta',
+        'costo_total',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'canal',
+        'tipo_venta',
+    )
+
+    search_fields = (
+        'cliente__nombre_cliente',
+        'id_producto__id',  # ajusta si Producto tiene campo nombre
+    )
+
+    ordering = ('-fecha_venta',)
+
+    list_select_related = (
+        'canal',
+        'cliente',
+        'id_empresa',
+        'id_producto',
+    )
+
+    date_hierarchy = 'fecha_venta'
+
+
+@admin.register(InventariosBluetti)
+class InventariosBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'fecha_inventario',
+        'ano',
+        'mes',
+        'id_empresa',
+        'id_producto',
+        'canal',
+        'cliente',
+        'pais',
+        'cantidad_disponible',
+        'cantidad_reservada',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'canal',
+        'pais',
+    )
+
+    search_fields = (
+        'cliente__nombre_cliente',
+        'pais',
+    )
+
+    ordering = ('-fecha_inventario',)
+
+    list_select_related = (
+        'canal',
+        'cliente',
+        'id_empresa',
+        'id_producto',
+    )
+
+    date_hierarchy = 'fecha_inventario'
+
+
+@admin.register(VentasSelloutBluetti)
+class VentasSelloutBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'fecha_venta',
+        'id_empresa',
+        'id_producto',
+        'canal',
+        'cliente',
+        'punto_venta',
+        'sku',
+        'producto',
+        'cantidad',
+        'precio_ventas',
+        'total_ventas',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'canal',
+    )
+
+    search_fields = (
+        'cliente__nombre_cliente',
+        'punto_venta',
+        'sku',
+        'producto',
+    )
+
+    ordering = ('-fecha_venta',)
+
+    list_select_related = (
+        'canal',
+        'cliente',
+        'id_empresa',
+        'id_producto',
+    )
+
+    date_hierarchy = 'fecha_venta'
+
+
+@admin.register(InventariosSelloutBluetti)
+class InventariosSelloutBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'fecha_inventario',
+        'id_empresa',
+        'id_producto',
+        'canal',
+        'cliente',
+        'punto_venta',
+        'sku',
+        'producto',
+        'unidades_inventario',
+    )
+
+    list_filter = (
+        'id_empresa',
+        'canal',
+    )
+
+    search_fields = (
+        'cliente__nombre_cliente',
+        'punto_venta',
+        'sku',
+        'producto',
+    )
+
+    ordering = ('-fecha_inventario',)
+
+    list_select_related = (
+        'canal',
+        'cliente',
+        'id_empresa',
+        'id_producto',
+    )
+
+    date_hierarchy = 'fecha_inventario'
+
+
+@admin.register(MetasComercialesBluetti)
+class MetasComercialesBluettiAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id_registro',
+        'ano',
+        'mes',
+        'id_empresa',
+        'id_producto',
+        'canal',
+        'pais',
+        'meta_monetaria',
+        'meta_unidades',
+    )
+
+    list_filter = (
+        'ano',
+        'mes',
+        'id_empresa',
+        'canal',
+        'pais',
+    )
+
+    search_fields = (
+        'pais',
+    )
+
+    ordering = ('-ano', 'mes')
+
+    list_select_related = (
+        'canal',
+        'id_empresa',
+        'id_producto',
+    )

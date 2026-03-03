@@ -1860,3 +1860,319 @@ class TutorialesDataflow(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+
+
+
+#------------------------Modelos para Dashboard Belkin Supli---------------------------------
+
+
+from django.db import models
+
+class ProductosBelkin(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Datos del producto
+    ean = models.CharField(max_length=50, db_column='ean', null=True, blank=True)
+    part_number = models.CharField(max_length=100, db_column='part_number', null=True, blank=True)
+    nombre_producto = models.CharField(max_length=200, db_column='producto', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+    categoria = models.CharField(max_length=100, db_column='categoria', null=True, blank=True)
+    sku_suplidor = models.CharField(max_length=100, db_column='sku_suplidor', null=True, blank=True)
+
+    class Meta:
+        db_table = 'productos_belkin'
+        verbose_name_plural = 'Productos Belkin'
+    
+
+
+class PdvBelkin(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Datos PDV
+    ean_pdv = models.CharField(max_length=50, db_column='ean_pdv', null=True, blank=True)
+    punto_venta = models.CharField(max_length=200, db_column='punto_venta', null=True, blank=True)
+    cliente_canal = models.CharField(max_length=150, db_column='cliente_canal', null=True, blank=True)
+
+    class Meta:
+        db_table = 'pdv_belkin'
+        verbose_name_plural = 'PDV Belkin'
+
+
+class VentasBelkin(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Periodo
+    fecha_venta = models.DateField(db_column='fecha_venta', null=True, blank=True)
+    ano = models.IntegerField(db_column='ano', null=True, blank=True)
+    mes = models.CharField(max_length=15, db_column='mes', null=True, blank=True)
+
+    # Dimensiones comerciales
+    canal_cliente = models.CharField(max_length=150, db_column='canal_cliente', null=True, blank=True)
+    punto_venta = models.CharField(max_length=200, db_column='punto_venta', null=True, blank=True)
+    categoria = models.CharField(max_length=100, db_column='categoria', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+    producto = models.CharField(max_length=200, db_column='producto', null=True, blank=True)
+
+    # Metricas
+    precio_unitario_venta = models.DecimalField(
+        max_digits=14, decimal_places=2, db_column='precio_unitario_venta', null=True, blank=True
+    )
+    cantidad = models.IntegerField(db_column='cantidad', null=True, blank=True)
+    total_ventas = models.DecimalField(
+        max_digits=16, decimal_places=2, db_column='total_ventas', null=True, blank=True
+    )
+
+    class Meta:
+        db_table = 'ventas_belkin'
+        verbose_name_plural = 'Ventas Belkin'
+        ordering = ['-fecha_venta']
+
+
+class InventariosBelkin(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Identificadores obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Periodo
+    fecha_inventario = models.DateField(db_column='fecha_inventario', null=True, blank=True)
+    ano = models.IntegerField(db_column='ano', null=True, blank=True)
+    mes = models.CharField(max_length=15, db_column='mes', null=True, blank=True)
+
+    # Dimensiones
+    canal_cliente = models.CharField(max_length=150, db_column='canal_cliente', null=True, blank=True)
+    punto_venta = models.CharField(max_length=200, db_column='punto_venta', null=True, blank=True)
+    categoria = models.CharField(max_length=100, db_column='categoria', null=True, blank=True)
+    marca = models.CharField(max_length=100, db_column='marca', null=True, blank=True)
+    producto = models.CharField(max_length=200, db_column='producto', null=True, blank=True)
+
+    # Metricas
+    cantidad_inventario = models.IntegerField(db_column='cantidad_inventario', null=True, blank=True)
+
+    class Meta:
+        db_table = 'inventarios_belkin'
+        verbose_name_plural = 'Inventarios Belkin'
+        ordering = ['-fecha_inventario']
+
+
+#-------------------------Modelos para Dashboard Belkin Supli---------------------------------
+
+
+#-------------------------Modelos para Dashboard Bluetti Supli---------------------------------
+
+
+# models.py - imports recomendados
+from django.db import models
+from django.utils import timezone
+from django_countries.fields import CountryField
+
+# Si prefieres usar GeoDjango (mapas/consultas espaciales) en vez de lat/long simples:
+# from django.contrib.gis.db import models as geomodels
+
+# Constantes/choices reutilizables
+CHANNEL_CHOICES = [
+    ('retail', 'Retail - Grandes superficies'),
+    ('reseller_wh', 'Reseller - Mayorista'),
+    ('reseller_hw', 'Reseller - Ferreterías'),
+    ('ecommerce', 'E-commerce'),
+    ('other', 'Otro'),
+]
+
+class ProductosBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Datos del producto
+    sku = models.CharField(max_length=100, db_column='sku', unique=True)
+    ean = models.CharField(max_length=50, db_column='ean', null=True, blank=True)
+    nombre_producto = models.CharField(max_length=250, db_column='nombre_producto', null=True, blank=True)
+    marca = models.CharField(max_length=150, db_column='marca', default='Bluetti')
+    categoria = models.CharField(max_length=150, db_column='categoria', null=True, blank=True)
+
+    class Meta:
+        db_table = 'productos_bluetti'
+        verbose_name_plural = 'Productos Bluetti'
+
+
+class CanalesBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    codigo_canal = models.CharField(max_length=50, db_column='codigo_canal')
+    nombre_canal = models.CharField(max_length=150, db_column='nombre_canal')
+
+    class Meta:
+        db_table = 'canales_bluetti'
+        verbose_name_plural = 'Canales Bluetti'
+
+
+
+class CuentasClientesBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
+
+    nombre_cliente = models.CharField(max_length=250, db_column='nombre_cliente')
+    pais = models.CharField(max_length=100, db_column='pais')
+    region = models.CharField(max_length=150, db_column='region', null=True, blank=True)
+    ciudad = models.CharField(max_length=150, db_column='ciudad', null=True, blank=True)
+
+    latitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    class Meta:
+        db_table = 'cuentas_clientes_bluetti'
+        verbose_name_plural = 'Cuentas Clientes Bluetti'
+
+
+class VentasBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    fecha_venta = models.DateField(db_column='fecha_venta')
+    ano = models.IntegerField(db_column='ano')
+    mes = models.IntegerField(db_column='mes')
+
+    canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
+    cliente = models.ForeignKey('CuentasClientesBluetti', on_delete=models.PROTECT, db_column='cliente_id')
+
+    tipo_venta = models.CharField(
+        max_length=20,
+        db_column='tipo_venta',
+        choices=[('sell_in', 'Sell In'), ('sell_out', 'Sell Out')]
+    )
+
+    cantidad = models.IntegerField(db_column='cantidad')
+    precio_unitario = models.DecimalField(max_digits=14, decimal_places=2, db_column='precio_unitario')
+    total_venta = models.DecimalField(max_digits=18, decimal_places=2, db_column='total_venta')
+
+    costo_unitario = models.DecimalField(max_digits=14, decimal_places=2, db_column='costo_unitario')
+    costo_total = models.DecimalField(max_digits=18, decimal_places=2, db_column='costo_total')
+
+    class Meta:
+        db_table = 'ventas_bluetti'
+        verbose_name_plural = 'Ventas Bluetti'
+        ordering = ['-fecha_venta']
+
+
+class InventariosBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    fecha_inventario = models.DateField(db_column='fecha_inventario')
+    ano = models.IntegerField(db_column='ano')
+    mes = models.IntegerField(db_column='mes')
+
+    canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
+    cliente = models.ForeignKey('CuentasClientesBluetti', on_delete=models.PROTECT, db_column='cliente_id')
+
+    pais = models.CharField(max_length=100, db_column='pais')
+
+    cantidad_disponible = models.IntegerField(db_column='cantidad_disponible')
+    cantidad_reservada = models.IntegerField(db_column='cantidad_reservada', default=0)
+
+    class Meta:
+        db_table = 'inventarios_bluetti'
+        verbose_name_plural = 'Inventarios Bluetti'
+        ordering = ['-fecha_inventario']
+
+
+class VentasSelloutBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    fecha_venta = models.DateField(db_column='fecha_venta')
+    canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
+    cliente = models.ForeignKey('CuentasClientesBluetti', on_delete=models.PROTECT, db_column='cliente_id')
+
+    punto_venta = models.CharField(max_length=250, db_column='punto_venta')
+    sku = models.CharField(max_length=100, db_column='sku')
+    ean = models.CharField(max_length=50, db_column='ean', null=True, blank=True)
+    producto = models.CharField(max_length=250, db_column='producto')
+
+    cantidad = models.IntegerField(db_column='cantidad')
+    precio_ventas = models.DecimalField(max_digits=14, decimal_places=2, db_column='precio_ventas')
+    total_ventas = models.DecimalField(max_digits=18, decimal_places=2, db_column='total_ventas')
+
+    class Meta:
+        db_table = 'ventas_sellout_bluetti'
+        verbose_name_plural = 'Ventas Sellout Bluetti'
+        ordering = ['-fecha_venta']
+
+
+class InventariosSelloutBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    fecha_inventario = models.DateField(db_column='fecha_inventario')
+    canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
+    cliente = models.ForeignKey('CuentasClientesBluetti', on_delete=models.PROTECT, db_column='cliente_id')
+
+    punto_venta = models.CharField(max_length=250, db_column='punto_venta')
+    sku = models.CharField(max_length=100, db_column='sku')
+    ean = models.CharField(max_length=50, db_column='ean', null=True, blank=True)
+    producto = models.CharField(max_length=250, db_column='producto')
+
+    unidades_inventario = models.IntegerField(db_column='unidades_inventario')
+
+    class Meta:
+        db_table = 'inventarios_sellout_bluetti'
+        verbose_name_plural = 'Inventarios Sellout Bluetti'
+        ordering = ['-fecha_inventario']
+
+class MetasComercialesBluetti(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    ano = models.IntegerField(db_column='ano')
+    mes = models.IntegerField(db_column='mes', null=True, blank=True)
+
+    canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
+    pais = models.CharField(max_length=100, db_column='pais')
+
+    meta_monetaria = models.DecimalField(max_digits=18, decimal_places=2, db_column='meta_monetaria')
+    meta_unidades = models.IntegerField(db_column='meta_unidades', null=True, blank=True)
+
+    class Meta:
+        db_table = 'metas_comerciales_bluetti'
+        verbose_name_plural = 'Metas Comerciales Bluetti'

@@ -1878,3 +1878,840 @@ class TutorialesDataflowSerializer(serializers.ModelSerializer):
             'creado_en',
         ]
         read_only_fields = ('id_tutorial', 'creado_en')
+
+
+
+
+
+
+#----------------------------Dashboard Belkin Supli-------------------------
+
+
+from rest_framework import serializers
+from .models import ProductosBelkin
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+
+
+class ProductosBelkinSerializer(serializers.ModelSerializer):
+    """
+    CRUD para ProductosBelkin
+    Fuerza id_empresa=1 e id_producto=22
+    """
+
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProductosBelkin
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'ean',
+            'part_number',
+            'nombre_producto',
+            'marca',
+            'categoria',
+            'sku_suplidor',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # impedir cambios de FK
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+
+class ProductosBelkinBulkSerializer(serializers.ListSerializer):
+    """
+    Serializer para cargas masivas
+    """
+
+    def create(self, validated_data):
+        objs = [
+            ProductosBelkin(
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return ProductosBelkin.objects.bulk_create(objs, batch_size=1000)
+
+
+class ProductosBelkinBulkItemSerializer(ProductosBelkinSerializer):
+    class Meta(ProductosBelkinSerializer.Meta):
+        list_serializer_class = ProductosBelkinBulkSerializer
+
+
+#--- Serializadores para pdv_belkin
+
+
+from rest_framework import serializers
+from .models import PdvBelkin
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+
+
+class PdvBelkinSerializer(serializers.ModelSerializer):
+    """
+    CRUD para PDV Belkin
+    Fuerza id_empresa=1 e id_producto=22
+    """
+
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = PdvBelkin
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'ean_pdv',
+            'punto_venta',
+            'cliente_canal',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # impedir cambios de FK
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class PdvBelkinBulkSerializer(serializers.ListSerializer):
+    """
+    Serializer para cargas masivas
+    """
+
+    def create(self, validated_data):
+        objs = [
+            PdvBelkin(
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return PdvBelkin.objects.bulk_create(objs, batch_size=1000)
+
+
+class PdvBelkinBulkItemSerializer(PdvBelkinSerializer):
+    class Meta(PdvBelkinSerializer.Meta):
+        list_serializer_class = PdvBelkinBulkSerializer
+
+
+
+
+#-----------Serializer para ventas_belkin
+
+
+from rest_framework import serializers
+from .models import VentasBelkin
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+
+
+class VentasBelkinSerializer(serializers.ModelSerializer):
+    """
+    CRUD para VentasBelkin
+    Fuerza id_empresa=1 e id_producto=22
+    """
+
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = VentasBelkin
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'fecha_venta',
+            'ano',
+            'mes',
+
+            'canal_cliente',
+            'punto_venta',
+            'categoria',
+            'marca',
+            'producto',
+
+            'precio_unitario_venta',
+            'cantidad',
+            'total_ventas',
+        ]
+
+        read_only_fields = (
+            'id_registro',
+            'id',
+            'id_empresa',
+            'id_producto',
+        )
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Blindar FKs
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class VentasBelkinBulkSerializer(serializers.ListSerializer):
+    """
+    Serializer para importaciones masivas
+    """
+
+    def create(self, validated_data):
+        objs = [
+            VentasBelkin(
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return VentasBelkin.objects.bulk_create(objs, batch_size=1000)
+
+
+class VentasBelkinBulkItemSerializer(VentasBelkinSerializer):
+    class Meta(VentasBelkinSerializer.Meta):
+        list_serializer_class = VentasBelkinBulkSerializer
+
+
+#----------------Serializadores de inventarios_belkin
+
+from rest_framework import serializers
+from .models import InventariosBelkin
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+
+
+class InventariosBelkinSerializer(serializers.ModelSerializer):
+    """
+    CRUD para InventariosBelkin
+    Fuerza id_empresa=1 e id_producto=22
+    """
+
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = InventariosBelkin
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'fecha_inventario',
+            'ano',
+            'mes',
+
+            'canal_cliente',
+            'punto_venta',
+            'categoria',
+            'marca',
+            'producto',
+
+            'cantidad_inventario',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Bloquear cambios de FK
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = BELKIN_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = BELKIN_DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class InventariosBelkinBulkSerializer(serializers.ListSerializer):
+    """
+    Serializer para cargas masivas
+    """
+
+    def create(self, validated_data):
+        objs = [
+            InventariosBelkin(
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return InventariosBelkin.objects.bulk_create(objs, batch_size=1000)
+
+
+class InventariosBelkinBulkItemSerializer(InventariosBelkinSerializer):
+    class Meta(InventariosBelkinSerializer.Meta):
+        list_serializer_class = InventariosBelkinBulkSerializer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------Dashboard Bluetti Supli-------------------------
+
+
+
+from rest_framework import serializers
+from .models import (
+    ProductosBluetti,
+    CanalesBluetti,
+    CuentasClientesBluetti,
+    VentasBluetti,
+    InventariosBluetti,
+    VentasSelloutBluetti,
+    InventariosSelloutBluetti,
+    MetasComercialesBluetti,
+)
+
+# Defaults indicados (tal cual pediste)
+DEFAULT_EMPRESA_ID = 1
+DEFAULT_PRODUCTO_ID = 23
+
+
+# -------------------- ProductosBluetti --------------------
+class ProductosBluettiSerializer(serializers.ModelSerializer):
+    """
+    CRUD para ProductosBluetti
+    Fuerza id_empresa=1 e id_producto=23
+    """
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProductosBluetti
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'sku',
+            'ean',
+            'nombre_producto',
+            'marca',
+            'categoria',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # impedir cambios de FK y forzar defaults
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class ProductosBluettiBulkSerializer(serializers.ListSerializer):
+    """
+    Serializer para cargas masivas ProductosBluetti
+    """
+    def create(self, validated_data):
+        objs = [
+            ProductosBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return ProductosBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class ProductosBluettiBulkItemSerializer(ProductosBluettiSerializer):
+    class Meta(ProductosBluettiSerializer.Meta):
+        list_serializer_class = ProductosBluettiBulkSerializer
+
+
+# -------------------- CanalesBluetti --------------------
+# Serializer simple para canales
+class CanalesBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = CanalesBluetti
+        fields = [
+            "id_registro",
+            "id",
+            "id_empresa",
+            "id_producto",
+            "codigo_canal",
+            "nombre_canal",
+        ]
+        read_only_fields = ("id_registro", "id", "id_empresa", "id_producto")
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data["id_empresa_id"] = DEFAULT_EMPRESA_ID
+        validated_data["id_producto_id"] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop("id_empresa", None)
+        validated_data.pop("id_producto", None)
+        validated_data["id_empresa_id"] = DEFAULT_EMPRESA_ID
+        validated_data["id_producto_id"] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+# ListSerializer para cargas masivas
+class CanalesBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            CanalesBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return CanalesBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+# Item serializer que usa el ListSerializer anterior
+class CanalesBluettiBulkItemSerializer(CanalesBluettiSerializer):
+    class Meta(CanalesBluettiSerializer.Meta):
+        list_serializer_class = CanalesBluettiBulkSerializer
+
+
+# -------------------- CuentasClientesBluetti --------------------
+class CuentasClientesBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = CuentasClientesBluetti
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'canal',
+            'nombre_cliente',
+            'pais',
+            'region',
+            'ciudad',
+            'latitud',
+            'longitud',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class CuentasClientesBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            CuentasClientesBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return CuentasClientesBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class CuentasClientesBluettiBulkItemSerializer(CuentasClientesBluettiSerializer):
+    class Meta(CuentasClientesBluettiSerializer.Meta):
+        list_serializer_class = CuentasClientesBluettiBulkSerializer
+
+
+# -------------------- VentasBluetti --------------------
+class VentasBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = VentasBluetti
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'fecha_venta',
+            'ano',
+            'mes',
+            'canal',
+            'cliente',
+            'tipo_venta',
+            'cantidad',
+            'precio_unitario',
+            'total_venta',
+            'costo_unitario',
+            'costo_total',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        # Forzar FK obligatorias
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class VentasBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            VentasBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return VentasBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class VentasBluettiBulkItemSerializer(VentasBluettiSerializer):
+    class Meta(VentasBluettiSerializer.Meta):
+        list_serializer_class = VentasBluettiBulkSerializer
+
+
+# -------------------- InventariosBluetti --------------------
+class InventariosBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = InventariosBluetti
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'fecha_inventario',
+            'ano',
+            'mes',
+            'canal',
+            'cliente',
+            'pais',
+            'cantidad_disponible',
+            'cantidad_reservada',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class InventariosBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            InventariosBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return InventariosBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class InventariosBluettiBulkItemSerializer(InventariosBluettiSerializer):
+    class Meta(InventariosBluettiSerializer.Meta):
+        list_serializer_class = InventariosBluettiBulkSerializer
+
+
+# -------------------- VentasSelloutBluetti --------------------
+class VentasSelloutBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = VentasSelloutBluetti
+        fields = [
+            'id_registro',
+            'id',
+            'id_empresa',
+            'id_producto',
+            'fecha_venta',
+            'canal',
+            'cliente',
+            'punto_venta',
+            'sku',
+            'ean',
+            'producto',
+            'cantidad',
+            'precio_ventas',
+            'total_ventas',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class VentasSelloutBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            VentasSelloutBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return VentasSelloutBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class VentasSelloutBluettiBulkItemSerializer(VentasSelloutBluettiSerializer):
+    class Meta(VentasSelloutBluettiSerializer.Meta):
+        list_serializer_class = VentasSelloutBluettiBulkSerializer
+
+
+# -------------------- InventariosSelloutBluetti --------------------
+class InventariosSelloutBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = InventariosSelloutBluetti
+        fields = [
+            'id_registro',
+            'id',
+            'id_empresa',
+            'id_producto',
+            'fecha_inventario',
+            'canal',
+            'cliente',
+            'punto_venta',
+            'sku',
+            'ean',
+            'producto',
+            'unidades_inventario',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class InventariosSelloutBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            InventariosSelloutBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return InventariosSelloutBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class InventariosSelloutBluettiBulkItemSerializer(InventariosSelloutBluettiSerializer):
+    class Meta(InventariosSelloutBluettiSerializer.Meta):
+        list_serializer_class = InventariosSelloutBluettiBulkSerializer
+
+
+# -------------------- MetasComercialesBluetti --------------------
+class MetasComercialesBluettiSerializer(serializers.ModelSerializer):
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = MetasComercialesBluetti
+        fields = [
+            'id_registro',
+            'id',
+
+            'id_empresa',
+            'id_producto',
+
+            'ano',
+            'mes',
+            'canal',
+            'pais',
+            'meta_monetaria',
+            'meta_unidades',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class MetasComercialesBluettiBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            MetasComercialesBluetti(
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return MetasComercialesBluetti.objects.bulk_create(objs, batch_size=1000)
+
+
+class MetasComercialesBluettiBulkItemSerializer(MetasComercialesBluettiSerializer):
+    class Meta(MetasComercialesBluettiSerializer.Meta):
+        list_serializer_class = MetasComercialesBluettiBulkSerializer

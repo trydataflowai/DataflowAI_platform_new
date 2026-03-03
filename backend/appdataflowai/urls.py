@@ -164,7 +164,112 @@ from .views import (
     LeadsBrokersImportView,
     LeadsBrokersExportView,
     BrokerLiqPagosView,
-    TutorialesListView
+    TutorialesListView,
+
+
+
+    #URL de Dashboard Belkin
+    ProductosBelkinListCreateView,
+    ProductosBelkinDetailView,
+    ProductosBelkinBulkImportView,
+    ProductosBelkinBulkUpdateExcelView,
+    ProductosBelkinBulkDeleteView,
+    ProductosBelkinExportView,
+    PdvBelkinListCreateView,
+    PdvBelkinDetailView,
+    PdvBelkinBulkImportView,
+    PdvBelkinBulkUpdateExcelView,
+    PdvBelkinBulkDeleteView,
+    PdvBelkinExportView,
+    VentasBelkinListCreateView,
+    VentasBelkinDetailView,
+    VentasBelkinBulkImportView,
+    VentasBelkinBulkUpdateExcelView,
+    VentasBelkinBulkDeleteView,
+    VentasBelkinExportView,
+    InventariosBelkinListCreateView,
+    InventariosBelkinDetailView,
+    InventariosBelkinBulkImportView,
+    InventariosBelkinBulkUpdateExcelView,
+    InventariosBelkinBulkDeleteView,
+    InventariosBelkinExportView,
+
+
+
+
+#URLs de Dashboard Bluetti
+    # Productos
+    ProductosBluettiListCreateView,
+    ProductosBluettiDetailView,
+    ProductosBluettiBulkImportView,
+    ProductosBluettiBulkUpdateExcelView,
+    ProductosBluettiBulkDeleteView,
+    ProductosBluettiExportView,
+    ProductosBluettiTemplateView,
+
+    # Canales
+    CanalesBluettiListCreateView,
+    CanalesBluettiDetailView,
+    CanalesBluettiBulkImportView,
+    CanalesBluettiBulkUpdateExcelView,
+    CanalesBluettiBulkDeleteView,
+    CanalesBluettiExportView,
+    CanalesBluettiTemplateView,
+
+    # Cuentas / Clientes
+    CuentasClientesBluettiListCreateView,
+    CuentasClientesBluettiDetailView,
+    CuentasClientesBluettiBulkImportView,
+    CuentasClientesBluettiBulkUpdateExcelView,
+    CuentasClientesBluettiBulkDeleteView,
+    CuentasClientesBluettiExportView,
+    CuentasClientesBluettiTemplateView,
+
+    # Ventas
+    VentasBluettiListCreateView,
+    VentasBluettiDetailView,
+    VentasBluettiBulkImportView,
+    VentasBluettiBulkUpdateExcelView,
+    VentasBluettiBulkDeleteView,
+    VentasBluettiExportView,
+    VentasBluettiTemplateView,
+
+    # Inventarios
+    InventariosBluettiListCreateView,
+    InventariosBluettiDetailView,
+    InventariosBluettiBulkImportView,
+    InventariosBluettiBulkUpdateExcelView,
+    InventariosBluettiBulkDeleteView,
+    InventariosBluettiExportView,
+    InventariosBluettiTemplateView,
+
+    # Ventas Sellout
+    VentasSelloutBluettiListCreateView,
+    VentasSelloutBluettiDetailView,
+    VentasSelloutBluettiBulkImportView,
+    VentasSelloutBluettiBulkUpdateExcelView,
+    VentasSelloutBluettiBulkDeleteView,
+    VentasSelloutBluettiExportView,
+    VentasSelloutBluettiTemplateView,
+
+    # Inventarios Sellout
+    InventariosSelloutBluettiListCreateView,
+    InventariosSelloutBluettiDetailView,
+    InventariosSelloutBluettiBulkImportView,
+    InventariosSelloutBluettiBulkUpdateExcelView,
+    InventariosSelloutBluettiBulkDeleteView,
+    InventariosSelloutBluettiExportView,
+    InventariosSelloutBluettiTemplateView,
+
+    # Metas Comerciales
+    MetasComercialesBluettiListCreateView,
+    MetasComercialesBluettiDetailView,
+    MetasComercialesBluettiBulkImportView,
+    MetasComercialesBluettiBulkUpdateExcelView,
+    MetasComercialesBluettiBulkDeleteView,
+    MetasComercialesBluettiExportView,
+    MetasComercialesBluettiTemplateView,
+
 
 
 
@@ -358,6 +463,134 @@ urlpatterns = [
     path('brokers/leads/export/', LeadsBrokersExportView.as_view(), name='brokers-leads-export'),
     path('usuario/broker/liquidacion/', BrokerLiqPagosView.as_view(), name='broker_liq_pagos'),
     path('tutoriales/', TutorialesListView.as_view(), name='tutoriales-list'),
+
+
+
+
+        path('productos-belkin/', ProductosBelkinListCreateView.as_view(), name='productos_belkin_list_create'),  # GET, POST
+    path('productos-belkin/<int:pk>/', ProductosBelkinDetailView.as_view(), name='productos_belkin_detail'),  # PUT, PATCH, DELETE
+
+    # Operaciones masivas / import / export
+    path('productos-belkin/bulk-import/', ProductosBelkinBulkImportView.as_view(), name='productos_belkin_bulk_import'),  # POST
+    path('productos-belkin/bulk-update-excel/',ProductosBelkinBulkUpdateExcelView.as_view(),name='productos_belkin_bulk_update_excel'),  # PUT
+    path('productos-belkin/bulk-delete/', ProductosBelkinBulkDeleteView.as_view(), name='productos_belkin_bulk_delete'),  # DELETE
+    path('productos-belkin/export/', ProductosBelkinExportView.as_view(), name='productos_belkin_export'),  # GET
+
+
+     # CRUD basico
+    path('pdv-belkin/', PdvBelkinListCreateView.as_view(), name='pdv_belkin_list_create'),
+    path('pdv-belkin/<int:pk>/', PdvBelkinDetailView.as_view(), name='pdv_belkin_detail'),
+
+    # Operaciones masivas / import / export
+    path('pdv-belkin/bulk-import/', PdvBelkinBulkImportView.as_view(), name='pdv_belkin_bulk_import'),
+    path('pdv-belkin/bulk-update-excel/', PdvBelkinBulkUpdateExcelView.as_view(), name='pdv_belkin_bulk_update_excel'),
+    path('pdv-belkin/bulk-delete/', PdvBelkinBulkDeleteView.as_view(), name='pdv_belkin_bulk_delete'),
+    path('pdv-belkin/export/', PdvBelkinExportView.as_view(), name='pdv_belkin_export'),
+
+
+    # CRUD basico
+    path('ventas-belkin/', VentasBelkinListCreateView.as_view(), name='ventas_belkin_list_create'),
+    path('ventas-belkin/<int:pk>/', VentasBelkinDetailView.as_view(), name='ventas_belkin_detail'),
+
+    # Operaciones masivas / import / export
+    path('ventas-belkin/bulk-import/', VentasBelkinBulkImportView.as_view(), name='ventas_belkin_bulk_import'),
+    path('ventas-belkin/bulk-update-excel/', VentasBelkinBulkUpdateExcelView.as_view(), name='ventas_belkin_bulk_update_excel'),
+    path('ventas-belkin/bulk-delete/', VentasBelkinBulkDeleteView.as_view(), name='ventas_belkin_bulk_delete'),
+    path('ventas-belkin/export/', VentasBelkinExportView.as_view(), name='ventas_belkin_export'),
+
+
+    # ======================
+    # CRUD basico Inventarios Belkin
+    # ======================
+    path('inventarios-belkin/', InventariosBelkinListCreateView.as_view(), name='inventarios_belkin_list_create'),
+    path('inventarios-belkin/<int:pk>/', InventariosBelkinDetailView.as_view(), name='inventarios_belkin_detail'),
+
+
+    # ======================
+    # Operaciones masivas / import / export
+    # ======================
+
+    path('inventarios-belkin/bulk-import/', InventariosBelkinBulkImportView.as_view(), name='inventarios_belkin_bulk_import'),
+    path('inventarios-belkin/bulk-update-excel/', InventariosBelkinBulkUpdateExcelView.as_view(), name='inventarios_belkin_bulk_update_excel'),
+    path('inventarios-belkin/bulk-delete/', InventariosBelkinBulkDeleteView.as_view(), name='inventarios_belkin_bulk_delete'),
+    path('inventarios-belkin/export/', InventariosBelkinExportView.as_view(), name='inventarios_belkin_export'),
+
+
+
+# Cruds Modelos Bluetti
+
+# ---------------- Productos ----------------
+    path('productos-bluetti/', ProductosBluettiListCreateView.as_view(), name='productos_bluetti_list_create'),
+    path('productos-bluetti/<int:pk>/', ProductosBluettiDetailView.as_view(), name='productos_bluetti_detail'),
+    path('productos-bluetti/bulk-import/', ProductosBluettiBulkImportView.as_view(), name='productos_bluetti_bulk_import'),
+    path('productos-bluetti/bulk-update-excel/', ProductosBluettiBulkUpdateExcelView.as_view(), name='productos_bluetti_bulk_update_excel'),
+    path('productos-bluetti/bulk-delete/', ProductosBluettiBulkDeleteView.as_view(), name='productos_bluetti_bulk_delete'),
+    path('productos-bluetti/export/', ProductosBluettiExportView.as_view(), name='productos_bluetti_export'),
+    path('productos-bluetti/export-template/', ProductosBluettiTemplateView.as_view(), name='productos_bluetti_export_template'),
+
+    # ---------------- Canales ----------------
+    path('canales-bluetti/', CanalesBluettiListCreateView.as_view(), name='canales_bluetti_list_create'),
+    path('canales-bluetti/<int:pk>/', CanalesBluettiDetailView.as_view(), name='canales_bluetti_detail'),
+    path('canales-bluetti/bulk-import/', CanalesBluettiBulkImportView.as_view(), name='canales_bluetti_bulk_import'),
+    path('canales-bluetti/bulk-update-excel/', CanalesBluettiBulkUpdateExcelView.as_view(), name='canales_bluetti_bulk_update_excel'),
+    path('canales-bluetti/bulk-delete/', CanalesBluettiBulkDeleteView.as_view(), name='canales_bluetti_bulk_delete'),
+    path('canales-bluetti/export/', CanalesBluettiExportView.as_view(), name='canales_bluetti_export'),
+    path('canales-bluetti/export-template/', CanalesBluettiTemplateView.as_view(), name='canales_bluetti_export_template'),
+
+    # --------------- Cuentas / Clientes ---------------
+    path('cuentas-clientes-bluetti/', CuentasClientesBluettiListCreateView.as_view(), name='cuentas_clientes_bluetti_list_create'),
+    path('cuentas-clientes-bluetti/<int:pk>/', CuentasClientesBluettiDetailView.as_view(), name='cuentas_clientes_bluetti_detail'),
+    path('cuentas-clientes-bluetti/bulk-import/', CuentasClientesBluettiBulkImportView.as_view(), name='cuentas_clientes_bluetti_bulk_import'),
+    path('cuentas-clientes-bluetti/bulk-update-excel/', CuentasClientesBluettiBulkUpdateExcelView.as_view(), name='cuentas_clientes_bluetti_bulk_update_excel'),
+    path('cuentas-clientes-bluetti/bulk-delete/', CuentasClientesBluettiBulkDeleteView.as_view(), name='cuentas_clientes_bluetti_bulk_delete'),
+    path('cuentas-clientes-bluetti/export/', CuentasClientesBluettiExportView.as_view(), name='cuentas_clientes_bluetti_export'),
+    path('cuentas-clientes-bluetti/export-template/', CuentasClientesBluettiTemplateView.as_view(), name='cuentas_clientes_bluetti_export_template'),
+
+    # ---------------- Ventas ----------------
+    path('ventas-bluetti/', VentasBluettiListCreateView.as_view(), name='ventas_bluetti_list_create'),
+    path('ventas-bluetti/<int:pk>/', VentasBluettiDetailView.as_view(), name='ventas_bluetti_detail'),
+    path('ventas-bluetti/bulk-import/', VentasBluettiBulkImportView.as_view(), name='ventas_bluetti_bulk_import'),
+    path('ventas-bluetti/bulk-update-excel/', VentasBluettiBulkUpdateExcelView.as_view(), name='ventas_bluetti_bulk_update_excel'),
+    path('ventas-bluetti/bulk-delete/', VentasBluettiBulkDeleteView.as_view(), name='ventas_bluetti_bulk_delete'),
+    path('ventas-bluetti/export/', VentasBluettiExportView.as_view(), name='ventas_bluetti_export'),
+    path('ventas-bluetti/export-template/', VentasBluettiTemplateView.as_view(), name='ventas_bluetti_export_template'),
+
+    # ---------------- Inventarios ----------------
+    path('inventarios-bluetti/', InventariosBluettiListCreateView.as_view(), name='inventarios_bluetti_list_create'),
+    path('inventarios-bluetti/<int:pk>/', InventariosBluettiDetailView.as_view(), name='inventarios_bluetti_detail'),
+    path('inventarios-bluetti/bulk-import/', InventariosBluettiBulkImportView.as_view(), name='inventarios_bluetti_bulk_import'),
+    path('inventarios-bluetti/bulk-update-excel/', InventariosBluettiBulkUpdateExcelView.as_view(), name='inventarios_bluetti_bulk_update_excel'),
+    path('inventarios-bluetti/bulk-delete/', InventariosBluettiBulkDeleteView.as_view(), name='inventarios_bluetti_bulk_delete'),
+    path('inventarios-bluetti/export/', InventariosBluettiExportView.as_view(), name='inventarios_bluetti_export'),
+    path('inventarios-bluetti/export-template/', InventariosBluettiTemplateView.as_view(), name='inventarios_bluetti_export_template'),
+
+    # ---------------- Ventas Sellout ----------------
+    path('ventas-sellout-bluetti/', VentasSelloutBluettiListCreateView.as_view(), name='ventas_sellout_bluetti_list_create'),
+    path('ventas-sellout-bluetti/<int:pk>/', VentasSelloutBluettiDetailView.as_view(), name='ventas_sellout_bluetti_detail'),
+    path('ventas-sellout-bluetti/bulk-import/', VentasSelloutBluettiBulkImportView.as_view(), name='ventas_sellout_bluetti_bulk_import'),
+    path('ventas-sellout-bluetti/bulk-update-excel/', VentasSelloutBluettiBulkUpdateExcelView.as_view(), name='ventas_sellout_bluetti_bulk_update_excel'),
+    path('ventas-sellout-bluetti/bulk-delete/', VentasSelloutBluettiBulkDeleteView.as_view(), name='ventas_sellout_bluetti_bulk_delete'),
+    path('ventas-sellout-bluetti/export/', VentasSelloutBluettiExportView.as_view(), name='ventas_sellout_bluetti_export'),
+    path('ventas-sellout-bluetti/export-template/', VentasSelloutBluettiTemplateView.as_view(), name='ventas_sellout_bluetti_export_template'),
+
+    # ---------------- Inventarios Sellout ----------------
+    path('inventarios-sellout-bluetti/', InventariosSelloutBluettiListCreateView.as_view(), name='inventarios_sellout_bluetti_list_create'),
+    path('inventarios-sellout-bluetti/<int:pk>/', InventariosSelloutBluettiDetailView.as_view(), name='inventarios_sellout_bluetti_detail'),
+    path('inventarios-sellout-bluetti/bulk-import/', InventariosSelloutBluettiBulkImportView.as_view(), name='inventarios_sellout_bluetti_bulk_import'),
+    path('inventarios-sellout-bluetti/bulk-update-excel/', InventariosSelloutBluettiBulkUpdateExcelView.as_view(), name='inventarios_sellout_bluetti_bulk_update_excel'),
+    path('inventarios-sellout-bluetti/bulk-delete/', InventariosSelloutBluettiBulkDeleteView.as_view(), name='inventarios_sellout_bluetti_bulk_delete'),
+    path('inventarios-sellout-bluetti/export/', InventariosSelloutBluettiExportView.as_view(), name='inventarios_sellout_bluetti_export'),
+    path('inventarios-sellout-bluetti/export-template/', InventariosSelloutBluettiTemplateView.as_view(), name='inventarios_sellout_bluetti_export_template'),
+
+    # --------------- Metas Comerciales ---------------
+    path('metas-comerciales-bluetti/', MetasComercialesBluettiListCreateView.as_view(), name='metas_comerciales_bluetti_list_create'),
+    path('metas-comerciales-bluetti/<int:pk>/', MetasComercialesBluettiDetailView.as_view(), name='metas_comerciales_bluetti_detail'),
+    path('metas-comerciales-bluetti/bulk-import/', MetasComercialesBluettiBulkImportView.as_view(), name='metas_comerciales_bluetti_bulk_import'),
+    path('metas-comerciales-bluetti/bulk-update-excel/', MetasComercialesBluettiBulkUpdateExcelView.as_view(), name='metas_comerciales_bluetti_bulk_update_excel'),
+    path('metas-comerciales-bluetti/bulk-delete/', MetasComercialesBluettiBulkDeleteView.as_view(), name='metas_comerciales_bluetti_bulk_delete'),
+    path('metas-comerciales-bluetti/export/', MetasComercialesBluettiExportView.as_view(), name='metas_comerciales_bluetti_export'),
+    path('metas-comerciales-bluetti/export-template/', MetasComercialesBluettiTemplateView.as_view(), name='metas_comerciales_bluetti_export_template'),
+
 
 
 ]

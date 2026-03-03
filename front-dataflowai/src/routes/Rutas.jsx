@@ -93,6 +93,79 @@ import CrmBrokers from "../components/pages/brokers/CrmBrokers";
 import LiqPagosBrokers from "../components/pages/brokers/LiqPagosBrokers";
 import TutorialesCapacitacion from "../components/pages/brokers/CapacitacionBroker";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// CRUD Productos Belkin
+import Crudproductosbelkin from "../components/pages/dashboardcrud/Crudproductosbelkin";
+
+// CRUD PDV Belkin
+import Crudpdvbelkin from "../components/pages/dashboardcrud/Crudpdvbelkin";
+
+// CRUD Ventas Belkin
+import Crudventasbelkin from "../components/pages/dashboardcrud/Crudventasbelkin";
+
+
+// CRUD Inventarios Belkin
+import Crudinventariosbelkin from "../components/pages/dashboardcrud/Crudinventariosbelkin";
+
+
+// Dashboard Summary Belkin
+import Dashboardsummarybelkin from "../components/dashboards/Dashboardsummarybelkin";
+import DashboardSummaryBluetti from "../components/dashboards/DashboardSummaryBluetti";
+import DashboardSummarySelloutBluetti from "../components/dashboards/DashboardSummarySelloutBluetti";
+
+
+
+
+// ==============================
+// CRUD BLUETTI
+// ==============================
+
+// CRUD Productos Bluetti
+import Crudproductosbluetti from "../components/pages/dashboardcrud/Crudproductosbluetti";
+
+// CRUD Canales Bluetti
+import Crudcanalesbluetti from "../components/pages/dashboardcrud/Crudcanalesbluetti";
+
+// CRUD Cuentas Clientes Bluetti
+import Crudcuentasclientesbluetti from "../components/pages/dashboardcrud/Crudcuentas-clientesbluetti";
+
+// CRUD Ventas Bluetti
+import Crudventasbluetti from "../components/pages/dashboardcrud/Crudventasbluetti";
+
+// CRUD Inventarios Bluetti
+import Crudinventariosbluetti from "../components/pages/dashboardcrud/Crudinventariosbluetti";
+
+// CRUD Ventas Sell Out Bluetti
+import Crudventasselloutbluetti from "../components/pages/dashboardcrud/Crudventasselloutbluetti";
+
+// CRUD Inventarios Sell Out Bluetti
+import Crudinventariosselloutbluetti from "../components/pages/dashboardcrud/Crudinventariosselloutbluetti";
+
+// CRUD Metas Bluetti
+import Crudmetasbluetti from "../components/pages/dashboardcrud/Crudmetasbluetti";
+
+
+
+
+
 /* ---------------------------
    Configuración de layouts
    --------------------------- */
@@ -773,6 +846,237 @@ export const Rutas = () => {
                 <RutaProtegida>
                   <SideBarLayout>
                     <TutorialesCapacitacion />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
+            
+                    //Rutas correspondientes al CRUD Productos Belkin
+            <Route
+              path={"/ProductosBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudproductosbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            // Rutas correspondientes al CRUD PDV Belkin
+            <Route
+              path={"/PdvBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudpdvbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            // Rutas correspondientes al CRUD Ventas Belkin
+            <Route
+              path={"/VentasBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudventasbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            // Rutas correspondientes al CRUD Inventarios Belkin
+            <Route
+              path={"/InventariosBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudinventariosbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+                //Rutas correspondientes al CRUD Productos Belkin
+            <Route
+              path={"/ProductosBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudproductosbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            // Rutas correspondientes al CRUD PDV Belkin
+            <Route
+              path={"/PdvBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudpdvbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            // Rutas correspondientes al CRUD Ventas Belkin
+            <Route
+              path={"/VentasBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudventasbelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            // Rutas correspondientes al CRUD Inventarios Belkin
+            <Route
+              path={"/DashboardsummaryBelkin"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Dashboardsummarybelkin />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            
+            
+            // ==============================
+            // RUTAS CRUD BLUETTI
+            // ==============================
+            
+            // Dashboard Summary Bluetti
+            <Route
+              path={"/DashboardSummaryBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardSummaryBluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Dashboard Summary Sell Out Bluetti
+            <Route
+              path={"/DashboardSummarySelloutBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardSummarySelloutBluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Productos Bluetti
+            <Route
+              path={"/ProductosBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudproductosbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Canales Bluetti
+            <Route
+              path={"/CanalesBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudcanalesbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Cuentas Clientes Bluetti
+            <Route
+              path={"/CuentasClientesBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudcuentasclientesbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Ventas Bluetti
+            <Route
+              path={"/VentasBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudventasbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Inventarios Bluetti
+            <Route
+              path={"/InventariosBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudinventariosbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Ventas Sell Out Bluetti
+            <Route
+              path={"/VentasSelloutBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudventasselloutbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Inventarios Sell Out Bluetti
+            <Route
+              path={"/InventariosSelloutBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudinventariosselloutbluetti />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+            
+            // Metas Bluetti
+            <Route
+              path={"/MetasBluetti"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <Crudmetasbluetti />
                   </SideBarLayout>
                 </RutaProtegida>
               }

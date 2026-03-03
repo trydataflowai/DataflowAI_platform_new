@@ -1,0 +1,760 @@
+/* ============================================
+   CRUD PRODUCTOS BELKIN - MODERN LIGHT MODE
+   Versión con altura fija y modal independiente
+   ============================================ */
+
+.crudproductos_belkin_container {
+  color-scheme: light;
+  /* Colores principales */
+  --primary-blue: #2563eb;
+  --primary-purple: #7c3aed;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  
+  /* Backgrounds */
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+  --bg-modal-overlay: rgba(15, 23, 42, 0.75);
+  
+  /* Textos */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  
+  /* Bordes */
+  --border-light: #e2e8f0;
+  --border-medium: #cbd5e1;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Transiciones */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   CONTAINER PRINCIPAL - ALTURA FIJA
+   ============================================ */
+.crudproductos_belkin_container {
+  padding: 40px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%), var(--bg-main);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(20px);
+ 
+  
+  
+  /* ALTURA FIJA - NO SE AJUSTA */
+  height: 100vh;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.crudproductos_belkin_title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.crudproductos_belkin_title::before {
+  content: "📦";
+  font-size: 36px;
+  -webkit-text-fill-color: initial;
+}
+
+/* ============================================
+   BARRA DE ACCIONES - NO CRECE
+   ============================================ */
+.crudproductos_belkin_actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+/* Input de búsqueda */
+.crudproductos_belkin_search {
+  flex: 1;
+  min-width: 280px;
+  padding: 14px 20px;
+  padding-left: 48px;
+  border-radius: 12px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: all var(--transition-base);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='m21 21-4.35-4.35'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 16px center;
+  font-family: inherit;
+}
+
+.crudproductos_belkin_search::placeholder {
+  color: var(--text-tertiary);
+}
+
+.crudproductos_belkin_search:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background-color: white;
+  transform: translateY(-1px);
+}
+
+/* Botones principales */
+.crudproductos_belkin_btn {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  color: white;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.crudproductos_belkin_btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.5);
+}
+
+.crudproductos_belkin_btn:active {
+  transform: translateY(0);
+}
+
+.crudproductos_belkin_btn.btn-nuevo::before {
+  content: "➕";
+  font-size: 14px;
+}
+
+.crudproductos_belkin_btn.btn-exportar {
+  background: linear-gradient(135deg, var(--accent-green), #059669);
+}
+
+.crudproductos_belkin_btn.btn-exportar::before {
+  content: "📊";
+}
+
+.crudproductos_belkin_btn.btn-exportar:hover {
+  box-shadow: 0 12px 24px -10px rgba(16, 185, 129, 0.5);
+}
+
+/* ============================================
+   TABLA - OCUPA TODO EL ESPACIO DISPONIBLE
+   ============================================ */
+.crudproductos_belkin_table_wrapper {
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  
+  /* OCUPA TODO EL ESPACIO DISPONIBLE */
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.crudproductos_belkin_table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1000px;
+}
+
+.crudproductos_belkin_table thead {
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.crudproductos_belkin_table th {
+  padding: 18px 20px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-medium);
+  white-space: nowrap;
+}
+
+.crudproductos_belkin_table tbody tr {
+  transition: all var(--transition-fast);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.crudproductos_belkin_table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05));
+  transform: scale(1.002);
+  box-shadow: var(--shadow-sm);
+}
+
+.crudproductos_belkin_table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.crudproductos_belkin_table td {
+  padding: 18px 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* Columna de acciones */
+.crudproductos_belkin_table td:last-child {
+  white-space: nowrap;
+}
+
+/* Botones de acción en tabla */
+.crudproductos_belkin_table button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  margin-right: 8px;
+  font-family: inherit;
+}
+
+.crudproductos_belkin_table button:first-of-type {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+}
+
+.crudproductos_belkin_table button:first-of-type:hover {
+  background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.crudproductos_belkin_table button:first-of-type::before {
+  content: "✏️ ";
+}
+
+.crudproductos_belkin_table button:last-of-type {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+}
+
+.crudproductos_belkin_table button:last-of-type:hover {
+  background: linear-gradient(135deg, #fecaca, #fca5a5);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.crudproductos_belkin_table button:last-of-type::before {
+  content: "🗑️ ";
+}
+
+/* Estado vacío */
+.crudproductos_belkin_empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+  font-size: 16px;
+}
+
+.crudproductos_belkin_empty::before {
+  content: "📦";
+  display: block;
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+/* ============================================
+   MODAL - COMPLETAMENTE INDEPENDIENTE
+   ============================================ */
+.crudproductos_belkin_modal {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-modal-overlay);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.crudproductos_belkin_modal_content {
+  background: var(--bg-card);
+  padding: 40px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-light);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header del modal */
+.crudproductos_belkin_modal_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.crudproductos_belkin_modal h3 {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.crudproductos_belkin_modal_close {
+  background: var(--bg-hover);
+  border: none;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 24px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.crudproductos_belkin_modal_close:hover {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: var(--accent-red);
+  transform: rotate(90deg);
+}
+
+/* Form groups */
+.crudproductos_belkin_form_group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crudproductos_belkin_form_label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.crudproductos_belkin_modal_content input {
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: all var(--transition-base);
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.crudproductos_belkin_modal_content input::placeholder {
+  color: var(--text-tertiary);
+  text-transform: capitalize;
+}
+
+.crudproductos_belkin_modal_content input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background: white;
+}
+
+/* Modal actions */
+.crudproductos_belkin_modal_actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 2px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.crudproductos_belkin_modal_actions button {
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.crudproductos_belkin_modal_actions button:first-child {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.crudproductos_belkin_modal_actions button:first-child::before {
+  content: "💾";
+}
+
+.crudproductos_belkin_modal_actions button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.5);
+}
+
+.crudproductos_belkin_modal_actions button:last-child {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 2px solid var(--border-medium);
+}
+
+.crudproductos_belkin_modal_actions button:last-child:hover {
+  background: var(--border-light);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   LOADING SPINNER
+   ============================================ */
+.crudproductos_belkin_loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.crudproductos_belkin_spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-light);
+  border-top-color: var(--primary-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+.crudproductos_belkin_toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideInRight 0.3s ease-out;
+  z-index: 10000;
+  border-left: 4px solid var(--primary-blue);
+  max-width: 400px;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.crudproductos_belkin_toast.success {
+  border-left-color: var(--accent-green);
+}
+
+.crudproductos_belkin_toast.error {
+  border-left-color: var(--accent-red);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .crudproductos_belkin_container {
+    height: calc(100vh - 60px);
+  }
+}
+
+@media (max-width: 768px) {
+  .crudproductos_belkin_container {
+    padding: 20px;
+    height: calc(100vh - 40px);
+    min-height: 500px;
+  }
+
+  .crudproductos_belkin_title {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .crudproductos_belkin_actions {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .crudproductos_belkin_search {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .crudproductos_belkin_btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .crudproductos_belkin_modal_content {
+    padding: 24px;
+    max-width: 95%;
+  }
+
+  .crudproductos_belkin_table {
+    font-size: 12px;
+  }
+
+  .crudproductos_belkin_table th,
+  .crudproductos_belkin_table td {
+    padding: 12px 10px;
+  }
+
+  .crudproductos_belkin_table button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+.crudproductos_belkin_modal_content::-webkit-scrollbar,
+.crudproductos_belkin_table_wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.crudproductos_belkin_modal_content::-webkit-scrollbar-track,
+.crudproductos_belkin_table_wrapper::-webkit-scrollbar-track {
+  background: var(--bg-main);
+  border-radius: 4px;
+}
+
+.crudproductos_belkin_modal_content::-webkit-scrollbar-thumb,
+.crudproductos_belkin_table_wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+  border-radius: 4px;
+}
+
+.crudproductos_belkin_modal_content::-webkit-scrollbar-thumb:hover,
+.crudproductos_belkin_table_wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+}
+
+.crudproductos_belkin_btn.btn-danger {
+  background: #c0392b;
+  color: white;
+}
+
+.crudproductos_belkin_btn.btn-danger:hover {
+  background: #a93226;
+}
+
+
+/* ============================================
+   PAGINACION MODERNA - MATCH CRUD BELKIN
+   ============================================ */
+.crudproductos_belkin_pagination {
+  margin-top: 20px;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* LEFT */
+.crudproductos_belkin_pagination .pagination_left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.crudproductos_belkin_pagination select {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.crudproductos_belkin_pagination select:hover {
+  border-color: var(--primary-blue);
+}
+
+.crudproductos_belkin_pagination select:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background: white;
+}
+
+/* RIGHT */
+.crudproductos_belkin_pagination .pagination_right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crudproductos_belkin_pagination button {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--primary-purple)
+  );
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.crudproductos_belkin_pagination button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.5);
+}
+
+.crudproductos_belkin_pagination button:disabled {
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Page info */
+.crudproductos_belkin_pagination .pagination_page {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 0 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .crudproductos_belkin_pagination {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .crudproductos_belkin_pagination .pagination_right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+

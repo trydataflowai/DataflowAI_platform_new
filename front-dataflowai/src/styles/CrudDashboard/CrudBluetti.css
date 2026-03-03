@@ -1,0 +1,441 @@
+/* ===============================
+   BLUETTI CRUD DESIGN SYSTEM
+   React - Sin Tailwind
+================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ===============================
+   VARIABLES
+================================= */
+
+:root {
+  --bg-main: #0b1220;
+  --bg-card: #111a2e;
+  --bg-muted: #16213a;
+
+  --primary: #1d7afc;
+  --secondary: #00c2ff;
+  --accent: #22c55e;
+  --danger: #ef4444;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  --border: #1e293b;
+
+  --radius: 12px;
+
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 40px rgba(29,122,252,0.35);
+
+  --gradient-primary: linear-gradient(135deg, #1d7afc 0%, #00c2ff 100%);
+  --gradient-card: linear-gradient(145deg, #111a2e 0%, #0e1626 100%);
+}
+
+/* ===============================
+   BASE
+================================= */
+
+.CrudBluetti_container {
+  position: relative;
+  padding: 40px;
+  background: radial-gradient(circle at top, rgba(29,122,252,0.08), transparent 60%), var(--bg-main);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
+}
+
+.CrudBluetti_title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  padding-right: 220px;
+  min-height: 44px;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===============================
+   NAV MENU
+================================= */
+
+.CrudBluetti_nav_wrapper {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  margin-bottom: 0;
+  z-index: 9000;
+}
+
+.CrudBluetti_nav_btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #2563eb;
+  background: linear-gradient(135deg, #0ea5e9 0%, #1d4ed8 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.CrudBluetti_nav_btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.35);
+}
+
+.CrudBluetti_nav_menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 210px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--gradient-card);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 9999;
+}
+
+.CrudBluetti_nav_menu button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #cbd5e1;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.CrudBluetti_nav_menu button:hover {
+  color: #fff;
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(29, 122, 252, 0.18);
+}
+
+/* ===============================
+   ACTION BAR
+================================= */
+
+.CrudBluetti_actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.CrudBluetti_search {
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-main);
+  min-width: 250px;
+}
+
+.CrudBluetti_search:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(29,122,252,0.3);
+}
+
+.CrudBluetti_search[type="date"] {
+  min-width: 170px;
+  color-scheme: dark;
+}
+
+/* ===============================
+   BUTTONS
+================================= */
+
+.CrudBluetti_btn {
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+
+.CrudBluetti_btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.CrudBluetti_btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+}
+
+.CrudBluetti_btn-danger {
+  background: var(--danger);
+  color: white;
+  border: none;
+}
+
+/* ===============================
+   TABLE
+================================= */
+
+.CrudBluetti_table_wrapper {
+  background: var(--gradient-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.CrudBluetti_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.CrudBluetti_table th,
+.CrudBluetti_table td {
+  padding: 14px;
+  text-align: left;
+}
+
+.CrudBluetti_table th {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.CrudBluetti_th_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.CrudBluetti_th_btn:hover {
+  color: var(--primary);
+}
+
+.CrudBluetti_table tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s ease;
+}
+
+.CrudBluetti_table tr:hover {
+  background: rgba(29,122,252,0.08);
+}
+
+.CrudBluetti_table td button,
+.CrudBluetti_modal_actions button,
+.CrudBluetti_pagination_controls button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #1b2846;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.CrudBluetti_table td button:hover,
+.CrudBluetti_modal_actions button:hover,
+.CrudBluetti_pagination_controls button:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+}
+
+.CrudBluetti_table td button + button {
+  margin-left: 8px;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.CrudBluetti_table td button + button:hover {
+  background: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 0 2px rgba(239,68,68,0.25);
+}
+
+/* ===============================
+   PAGINATION
+================================= */
+
+.CrudBluetti_pagination {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  align-items: center;
+}
+
+.CrudBluetti_pagination_controls button {
+  margin: 0 5px;
+}
+
+.CrudBluetti_pagination select {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+/* ===============================
+   MODAL
+================================= */
+
+.CrudBluetti_modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+}
+
+.CrudBluetti_modal_content {
+  background: var(--gradient-card);
+  border-radius: var(--radius);
+  padding: 30px;
+  width: 450px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.CrudBluetti_modal_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.CrudBluetti_modal_close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.CrudBluetti_form_group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.CrudBluetti_form_group input {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.CrudBluetti_form_group select,
+.CrudBluetti_form_group textarea {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.CrudBluetti_table input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+@media (max-width: 900px) {
+  .CrudBluetti_container {
+    padding: 22px;
+  }
+
+  .CrudBluetti_title {
+    padding-right: 0;
+    margin-bottom: 14px;
+  }
+
+  .CrudBluetti_nav_wrapper {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+}
+
+.CrudBluetti_modal_actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ===============================
+   TOAST
+================================= */
+
+.CrudBluetti_toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  color: white;
+  font-weight: 500;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  animation: slideUp 0.3s ease;
+}
+
+.CrudBluetti_toast.success {
+  background: var(--accent);
+}
+
+.CrudBluetti_toast.error {
+  background: var(--danger);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===============================
+   LOADING
+================================= */
+
+.CrudBluetti_loading {
+  text-align: center;
+  padding: 50px;
+}
+
+.CrudBluetti_spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  margin: auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}

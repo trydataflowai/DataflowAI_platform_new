@@ -6846,3 +6846,3041 @@ class TutorialesListView(APIView):
         tutoriales = TutorialesDataflow.objects.all().order_by('-fecha_publicacion', '-creado_en')
         serializer = TutorialesDataflowSerializer(tutoriales, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------Dashboard Belkin Supli---------------------------------
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+
+from .models import ProductosBelkin
+from .serializers import (
+    ProductosBelkinSerializer,
+    ProductosBelkinBulkItemSerializer
+)
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+BELKIN_COMPAT_PRODUCTO_IDS = [BELKIN_DEFAULT_PRODUCTO_ID, 23]
+
+
+
+class ProductosBelkinListCreateView(APIView):
+    """
+    GET: listar productos
+    POST: crear producto individual
+    """
+
+    def get(self, request):
+        qs = ProductosBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id__in=BELKIN_COMPAT_PRODUCTO_IDS
+        )
+
+        serializer = ProductosBelkinSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProductosBelkinSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(ProductosBelkinSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class ProductosBelkinDetailView(APIView):
+    """
+    PUT/PATCH: editar producto
+    DELETE: eliminar producto
+    """
+
+    def get_object(self, pk):
+        return ProductosBelkin.objects.filter(
+            id_registro=pk,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductosBelkinSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(ProductosBelkinSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductosBelkinSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(ProductosBelkinSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProductosBelkinBulkImportView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No se envio ningun archivo"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Leer Excel o CSV
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Archivo invalido: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Columnas esperadas
+        columnas_requeridas = {
+            "ean",
+            "part_number",
+            "nombre_producto",
+            "marca",
+            "categoria",
+            "sku_suplidor",
+        }
+
+        if not columnas_requeridas.issubset(df.columns):
+            return Response(
+                {
+                    "error": "Columnas invalidas",
+                    "faltantes": list(columnas_requeridas - set(df.columns)),
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        productos = []
+
+        for _, row in df.iterrows():
+            productos.append(
+                ProductosBelkin(
+                    ean=row["ean"],
+                    part_number=row["part_number"],
+                    nombre_producto=row["nombre_producto"],
+                    marca=row.get("marca", ""),
+                    categoria=row.get("categoria", ""),
+                    sku_suplidor=row.get("sku_suplidor", ""),
+                    id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                    id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID,
+                )
+            )
+
+        ProductosBelkin.objects.bulk_create(productos)
+
+        return Response(
+            {
+                "importados": len(productos),
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+class ProductosBelkinBulkUpdateExcelView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No se envio ningun archivo"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response(
+                {"error": f"Archivo invalido: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # columnas obligatorias
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response(
+                {
+                    "error": "Falta columna obligatoria",
+                    "faltantes": list(required - set(df.columns))
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        updated = 0
+
+        for _, row in df.iterrows():
+            instance = ProductosBelkin.objects.filter(
+                id_registro=row["id_registro"],
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+            ).first()
+
+            if not instance:
+                continue
+
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+
+            serializer = ProductosBelkinSerializer(
+                instance,
+                data=data,
+                partial=True
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+
+        return Response(
+            {"updated": updated},
+            status=status.HTTP_200_OK
+        )
+
+
+
+class ProductosBelkinBulkDeleteView(APIView):
+    """
+    DELETE: eliminacion masiva
+    body: { "ids": [1,2,3] }
+    """
+
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+
+        deleted, _ = ProductosBelkin.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).delete()
+
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+
+from django.http import HttpResponse
+import pandas as pd
+
+class ProductosBelkinExportView(APIView):
+
+    def get(self, request):
+        qs = ProductosBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).values(
+            "ean",
+            "part_number",
+            "nombre_producto",
+            "marca",
+            "categoria",
+            "sku_suplidor"
+        )
+
+        df = pd.DataFrame(list(qs))
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="productos_belkin.xlsx"'
+
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Productos")
+
+        return response
+
+
+
+#--------Vistas para  pdv_belkin
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from django.db import transaction
+from django.http import HttpResponse
+
+import pandas as pd
+
+from .models import PdvBelkin
+from .serializers import (
+    PdvBelkinSerializer,
+)
+
+
+class PdvBelkinListCreateView(APIView):
+
+    def get(self, request):
+        qs = PdvBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id__in=BELKIN_COMPAT_PRODUCTO_IDS
+        )
+
+        serializer = PdvBelkinSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = PdvBelkinSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(PdvBelkinSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class PdvBelkinDetailView(APIView):
+
+    def get_object(self, pk):
+        return PdvBelkin.objects.filter(
+            id_registro=pk,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'PDV no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PdvBelkinSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'PDV no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PdvBelkinSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'PDV no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+class PdvBelkinBulkImportView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {
+            "ean_pdv",
+            "punto_venta",
+            "cliente_canal"
+        }
+
+        if not columnas_requeridas.issubset(df.columns):
+            return Response(
+                {
+                    "error": "Columnas invalidas",
+                    "faltantes": list(columnas_requeridas - set(df.columns)),
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pdvs = []
+
+        for _, row in df.iterrows():
+            pdvs.append(
+                PdvBelkin(
+                    ean_pdv=row["ean_pdv"],
+                    punto_venta=row["punto_venta"],
+                    cliente_canal=row["cliente_canal"],
+                    id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                    id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID,
+                )
+            )
+
+        PdvBelkin.objects.bulk_create(pdvs)
+
+        return Response({"importados": len(pdvs)}, status=status.HTTP_201_CREATED)
+
+
+
+class PdvBelkinBulkUpdateExcelView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if "id_registro" not in df.columns:
+            return Response(
+                {"error": "Falta columna obligatoria id_registro"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        updated = 0
+
+        for _, row in df.iterrows():
+            instance = PdvBelkin.objects.filter(
+                id_registro=row["id_registro"],
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+            ).first()
+
+            if not instance:
+                continue
+
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+
+            serializer = PdvBelkinSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+
+class PdvBelkinBulkDeleteView(APIView):
+
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get("ids")
+
+        if not isinstance(ids, list):
+            return Response({"error": "ids debe ser una lista"}, status=status.HTTP_400_BAD_REQUEST)
+
+        deleted, _ = PdvBelkin.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).delete()
+
+        return Response({"deleted": deleted}, status=status.HTTP_200_OK)
+
+
+
+class PdvBelkinExportView(APIView):
+
+    def get(self, request):
+        qs = PdvBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).values(
+            "ean_pdv",
+            "punto_venta",
+            "cliente_canal"
+        )
+
+        df = pd.DataFrame(list(qs))
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="pdv_belkin.xlsx"'
+
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="PDV")
+
+        return response
+
+
+
+
+#--------Vistas para  ventas_belkin
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from django.http import HttpResponse
+
+import pandas as pd
+
+from .models import VentasBelkin
+from .serializers import (
+    VentasBelkinSerializer,
+    VentasBelkinBulkItemSerializer
+)
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+BELKIN_COMPAT_PRODUCTO_IDS = [BELKIN_DEFAULT_PRODUCTO_ID, 23]
+
+
+class VentasBelkinListCreateView(APIView):
+    """
+    GET: listar ventas
+    POST: crear venta individual
+    """
+
+    def get(self, request):
+        qs = VentasBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id__in=BELKIN_COMPAT_PRODUCTO_IDS
+        )
+
+        serializer = VentasBelkinSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = VentasBelkinSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        )
+        return Response(
+            VentasBelkinSerializer(obj).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+class VentasBelkinDetailView(APIView):
+
+    def get_object(self, pk):
+        return VentasBelkin.objects.filter(
+            id_registro=pk,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({"error": "Registro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = VentasBelkinSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(VentasBelkinSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({"error": "Registro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = VentasBelkinSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save()
+        return Response(VentasBelkinSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({"error": "Registro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VentasBelkinBulkImportView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No se envio ningun archivo"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response(
+                {"error": f"Archivo invalido: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        columnas_requeridas = {
+            "fecha_venta",
+            "canal_cliente",
+            "punto_venta",
+            "categoria",
+            "marca",
+            "producto",
+            "precio_unitario_venta",
+            "cantidad",
+            "total_ventas"
+        }
+
+        if not columnas_requeridas.issubset(df.columns):
+            return Response(
+                {
+                    "error": "Columnas invalidas",
+                    "faltantes": list(columnas_requeridas - set(df.columns))
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ventas = []
+
+        for _, row in df.iterrows():
+            ventas.append(
+                VentasBelkin(
+                    fecha_venta=row["fecha_venta"],
+                    canal_cliente=row["canal_cliente"],
+                    punto_venta=row["punto_venta"],
+                    categoria=row["categoria"],
+                    marca=row["marca"],
+                    producto=row["producto"],
+                    precio_unitario_venta=row["precio_unitario_venta"],
+                    cantidad=row["cantidad"],
+                    total_ventas=row["total_ventas"],
+                    id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                    id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+                )
+            )
+
+        VentasBelkin.objects.bulk_create(ventas)
+
+        return Response(
+            {"importados": len(ventas)},
+            status=status.HTTP_201_CREATED
+        )
+
+
+class VentasBelkinBulkUpdateExcelView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No se envio ningun archivo"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response(
+                {"error": f"Archivo invalido: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if "id_registro" not in df.columns:
+            return Response(
+                {"error": "Falta columna obligatoria id_registro"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        updated = 0
+
+        for _, row in df.iterrows():
+            instance = VentasBelkin.objects.filter(
+                id_registro=row["id_registro"],
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+            ).first()
+
+            if not instance:
+                continue
+
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+
+            serializer = VentasBelkinSerializer(
+                instance,
+                data=data,
+                partial=True
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+
+        return Response(
+            {"updated": updated},
+            status=status.HTTP_200_OK
+        )
+
+
+class VentasBelkinBulkDeleteView(APIView):
+
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get("ids")
+
+        if not isinstance(ids, list):
+            return Response(
+                {"error": "ids debe ser una lista"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        deleted, _ = VentasBelkin.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).delete()
+
+        return Response(
+            {"deleted": deleted},
+            status=status.HTTP_200_OK
+        )
+
+
+class VentasBelkinExportView(APIView):
+
+    def get(self, request):
+        qs = VentasBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).values(
+            "fecha_venta",
+            "canal_cliente",
+            "punto_venta",
+            "categoria",
+            "marca",
+            "producto",
+            "precio_unitario_venta",
+            "cantidad",
+            "total_ventas"
+        )
+
+        df = pd.DataFrame(list(qs))
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="ventas_belkin.xlsx"'
+
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Ventas")
+
+        return response
+
+
+
+
+
+
+#-------------Vistas para  inventarios_belkin
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from django.http import HttpResponse
+
+import pandas as pd
+
+from .models import InventariosBelkin
+from .serializers import (
+    InventariosBelkinSerializer,
+    InventariosBelkinBulkItemSerializer
+)
+
+BELKIN_DEFAULT_EMPRESA_ID = 1
+BELKIN_DEFAULT_PRODUCTO_ID = 22
+BELKIN_COMPAT_PRODUCTO_IDS = [BELKIN_DEFAULT_PRODUCTO_ID, 23]
+
+
+class InventariosBelkinListCreateView(APIView):
+    """
+    GET: listar inventarios
+    POST: crear inventario individual
+    """
+
+    def get(self, request):
+        qs = InventariosBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id__in=BELKIN_COMPAT_PRODUCTO_IDS
+        )
+
+        serializer = InventariosBelkinSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = InventariosBelkinSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = serializer.save(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        )
+
+        return Response(
+            InventariosBelkinSerializer(obj).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+class InventariosBelkinDetailView(APIView):
+    """
+    PUT/PATCH: editar inventario
+    DELETE: eliminar inventario
+    """
+
+    def get_object(self, pk):
+        return InventariosBelkin.objects.filter(
+            id_registro=pk,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({"error": "Inventario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = InventariosBelkinSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({"error": "Inventario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = InventariosBelkinSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({"error": "Inventario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InventariosBelkinBulkImportView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No se envio ningun archivo"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response(
+                {"error": f"Archivo invalido: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        columnas_requeridas = {
+            "fecha_inventario",
+            "ano",
+            "mes",
+            "canal_cliente",
+            "punto_venta",
+            "categoria",
+            "marca",
+            "producto",
+            "cantidad_inventario"
+        }
+
+        if not columnas_requeridas.issubset(df.columns):
+            return Response(
+                {
+                    "error": "Columnas invalidas",
+                    "faltantes": list(columnas_requeridas - set(df.columns))
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        inventarios = []
+
+        for _, row in df.iterrows():
+            inventarios.append(
+                InventariosBelkin(
+                    fecha_inventario=row["fecha_inventario"],
+                    ano=row["ano"],
+                    mes=row["mes"],
+                    canal_cliente=row["canal_cliente"],
+                    punto_venta=row["punto_venta"],
+                    categoria=row["categoria"],
+                    marca=row["marca"],
+                    producto=row["producto"],
+                    cantidad_inventario=row["cantidad_inventario"],
+                    id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                    id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+                )
+            )
+
+        InventariosBelkin.objects.bulk_create(inventarios)
+
+        return Response(
+            {"importados": len(inventarios)},
+            status=status.HTTP_201_CREATED
+        )
+
+
+class InventariosBelkinBulkUpdateExcelView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No se envio ningun archivo"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response(
+                {"error": f"Archivo invalido: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if "id_registro" not in df.columns:
+            return Response(
+                {"error": "Falta columna obligatoria", "faltantes": ["id_registro"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        updated = 0
+
+        for _, row in df.iterrows():
+            instance = InventariosBelkin.objects.filter(
+                id_registro=row["id_registro"],
+                id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+                id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+            ).first()
+
+            if not instance:
+                continue
+
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+
+            serializer = InventariosBelkinSerializer(
+                instance,
+                data=data,
+                partial=True
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+
+        return Response(
+            {"updated": updated},
+            status=status.HTTP_200_OK
+        )
+
+
+class InventariosBelkinBulkDeleteView(APIView):
+    """
+    DELETE: eliminacion masiva
+    body: { "ids": [1,2,3] }
+    """
+
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get("ids")
+
+        if not isinstance(ids, list):
+            return Response(
+                {"error": "ids debe ser una lista"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        deleted, _ = InventariosBelkin.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).delete()
+
+        return Response({"deleted": deleted}, status=status.HTTP_200_OK)
+
+
+
+class InventariosBelkinExportView(APIView):
+
+    def get(self, request):
+        qs = InventariosBelkin.objects.filter(
+            id_empresa_id=BELKIN_DEFAULT_EMPRESA_ID,
+            id_producto_id=BELKIN_DEFAULT_PRODUCTO_ID
+        ).values(
+            "fecha_inventario",
+            "ano",
+            "mes",
+            "canal_cliente",
+            "punto_venta",
+            "categoria",
+            "marca",
+            "producto",
+            "cantidad_inventario"
+        )
+
+        df = pd.DataFrame(list(qs))
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="inventarios_belkin.xlsx"'
+
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Inventarios")
+
+        return response
+
+
+
+
+#-----------------------------------Dashboard Belkin Supli---------------------------------
+
+
+
+
+
+
+
+#-----------------------------------Dashboard Bluetti Supli---------------------------------
+
+
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from django.http import HttpResponse
+import pandas as pd
+
+from .models import (
+    ProductosBluetti,
+    CanalesBluetti,
+    CuentasClientesBluetti,
+    VentasBluetti,
+    InventariosBluetti,
+    VentasSelloutBluetti,
+    InventariosSelloutBluetti,
+    MetasComercialesBluetti,
+)
+
+from .serializers import (
+    ProductosBluettiSerializer,
+    ProductosBluettiBulkItemSerializer,
+    CanalesBluettiSerializer,
+    CanalesBluettiBulkItemSerializer,
+    CuentasClientesBluettiSerializer,
+    CuentasClientesBluettiBulkItemSerializer,
+    VentasBluettiSerializer,
+    VentasBluettiBulkItemSerializer,
+    InventariosBluettiSerializer,
+    InventariosBluettiBulkItemSerializer,
+    VentasSelloutBluettiSerializer,
+    VentasSelloutBluettiBulkItemSerializer,
+    InventariosSelloutBluettiSerializer,
+    InventariosSelloutBluettiBulkItemSerializer,
+    MetasComercialesBluettiSerializer,
+    MetasComercialesBluettiBulkItemSerializer,
+)
+
+# Defaults globales
+DEFAULT_EMPRESA_ID = 1
+DEFAULT_PRODUCTO_ID = 23
+
+
+def _clean_cell(value):
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    return str(value).strip()
+
+
+def _cell_key(value):
+    return _clean_cell(value).lower()
+
+
+def _to_int_or_none(value, default=None):
+    txt = _clean_cell(value)
+    if txt == "":
+        return default
+    try:
+        return int(float(txt))
+    except Exception:
+        return default
+
+
+def _to_float_or_none(value, default=None):
+    txt = _clean_cell(value)
+    if txt == "":
+        return default
+    try:
+        return float(txt)
+    except Exception:
+        return default
+
+
+def _parse_date_or_none(value):
+    txt = _clean_cell(value)
+    if txt == "":
+        return None
+    dt = pd.to_datetime(txt, errors="coerce")
+    if pd.isna(dt):
+        return None
+    return dt.date()
+
+
+def _read_bulk_file(file, date_columns=None):
+    if file.name.endswith(".csv"):
+        df = pd.read_csv(file)
+    else:
+        df = pd.read_excel(file)
+
+    df.columns = [str(c).strip() for c in df.columns]
+
+    if date_columns:
+        for col in date_columns:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+    return df
+
+
+def _build_canal_lookup():
+    lookup = {}
+    qs = CanalesBluetti.objects.filter(
+        id_empresa_id=DEFAULT_EMPRESA_ID,
+        id_producto_id=DEFAULT_PRODUCTO_ID
+    ).values("id_registro", "codigo_canal", "nombre_canal")
+
+    for row in qs:
+        canal_id = row["id_registro"]
+        lookup[_cell_key(canal_id)] = canal_id
+        lookup[_cell_key(row.get("codigo_canal"))] = canal_id
+        lookup[_cell_key(row.get("nombre_canal"))] = canal_id
+    return lookup
+
+
+def _build_cliente_lookup():
+    lookup = {}
+    qs = CuentasClientesBluetti.objects.filter(
+        id_empresa_id=DEFAULT_EMPRESA_ID,
+        id_producto_id=DEFAULT_PRODUCTO_ID
+    ).values("id_registro", "nombre_cliente", "canal_id", "pais")
+
+    for row in qs:
+        payload = {
+            "cliente_id": row["id_registro"],
+            "canal_id": row["canal_id"],
+            "pais": row.get("pais"),
+        }
+        lookup[_cell_key(row["id_registro"])] = payload
+        lookup[_cell_key(row.get("nombre_cliente"))] = payload
+    return lookup
+
+
+def _build_template_response(filename, sheet_name, columns, sample_rows=None, notes=None):
+    df = pd.DataFrame(sample_rows or [], columns=columns)
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    with pd.ExcelWriter(response, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name=sheet_name)
+        if notes:
+            notes_df = pd.DataFrame({"nota": notes})
+            notes_df.to_excel(writer, index=False, sheet_name="Instrucciones")
+    return response
+
+
+# ---------------------------
+# PRODUCTOS
+# ---------------------------
+class ProductosBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = ProductosBluetti.objects.filter(
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        )
+        serializer = ProductosBluettiSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ProductosBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(ProductosBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class ProductosBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return ProductosBluetti.objects.filter(
+            id_registro=pk,
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ProductosBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(ProductosBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ProductosBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(ProductosBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProductosBluettiBulkImportView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            df = _read_bulk_file(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"sku", "ean", "nombre_producto"}
+        if not columnas_requeridas.issubset(df.columns):
+            return Response(
+                {"error": "Columnas invalidas", "faltantes": list(columnas_requeridas - set(df.columns))},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        productos = []
+        errores = []
+        for idx, row in df.iterrows():
+            sku = _clean_cell(row.get("sku"))
+            ean = _clean_cell(row.get("ean"))
+            nombre = _clean_cell(row.get("nombre_producto"))
+            if not sku or not ean or not nombre:
+                errores.append(f"Fila {idx + 2}: sku, ean y nombre_producto son obligatorios")
+                continue
+
+            productos.append(
+                ProductosBluetti(
+                    sku=sku,
+                    ean=ean,
+                    nombre_producto=nombre,
+                    marca=_clean_cell(row.get("marca", "")),
+                    categoria=_clean_cell(row.get("categoria", "")),
+                    id_empresa_id=DEFAULT_EMPRESA_ID,
+                    id_producto_id=DEFAULT_PRODUCTO_ID,
+                )
+            )
+
+        if errores:
+            return Response(
+                {"error": "Errores de validacion en plantilla", "detalles": errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ProductosBluetti.objects.bulk_create(productos, batch_size=1000)
+        return Response({"importados": len(productos)}, status=status.HTTP_201_CREATED)
+
+
+class ProductosBluettiBulkUpdateExcelView(APIView):
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = ProductosBluetti.objects.filter(
+                id_registro=row["id_registro"],
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID
+            ).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            serializer = ProductosBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class ProductosBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+
+        deleted, _ = ProductosBluetti.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class ProductosBluettiExportView(APIView):
+    def get(self, request):
+        qs = ProductosBluetti.objects.filter(
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).values("sku", "ean", "nombre_producto", "marca", "categoria")
+
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="productos_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Productos")
+        return response
+
+
+# ---------------------------
+# CANALES
+# ---------------------------
+class CanalesBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = CanalesBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = CanalesBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CanalesBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(CanalesBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class CanalesBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return CanalesBluetti.objects.filter(
+            id_registro=pk,
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Canal no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CanalesBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(CanalesBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Canal no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CanalesBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(CanalesBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Canal no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CanalesBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"codigo_canal", "nombre_canal"}
+        if not columnas_requeridas.issubset(df.columns):
+            return Response({"error": "Columnas invalidas", "faltantes": list(columnas_requeridas - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            codigo = _clean_cell(row.get("codigo_canal"))
+            nombre = _clean_cell(row.get("nombre_canal"))
+            if not codigo or not nombre:
+                errores.append(f"Fila {idx + 2}: codigo_canal y nombre_canal son obligatorios")
+                continue
+
+            objs.append(CanalesBluetti(
+                codigo_canal=codigo,
+                nombre_canal=nombre,
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID
+            ))
+
+        if errores:
+            return Response(
+                {"error": "Errores de validacion en plantilla", "detalles": errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        CanalesBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class CanalesBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = CanalesBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            serializer = CanalesBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class CanalesBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = CanalesBluetti.objects.filter(id_registro__in=ids, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class CanalesBluettiExportView(APIView):
+    def get(self, request):
+        qs = CanalesBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).values("codigo_canal", "nombre_canal")
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="canales_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Canales")
+        return response
+
+
+# ---------------------------
+# CUENTAS / CLIENTES
+# ---------------------------
+class CuentasClientesBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = CuentasClientesBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = CuentasClientesBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CuentasClientesBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(CuentasClientesBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class CuentasClientesBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return CuentasClientesBluetti.objects.filter(id_registro=pk, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Cuenta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CuentasClientesBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(CuentasClientesBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Cuenta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CuentasClientesBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(CuentasClientesBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Cuenta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CuentasClientesBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_obligatorias = {"nombre_cliente", "pais"}
+        faltantes = list(columnas_obligatorias - set(df.columns))
+        if faltantes:
+            return Response(
+                {"error": "Columnas invalidas", "faltantes": faltantes},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        columnas_canal = {"canal", "canal_id", "nombre_canal", "codigo_canal"}
+        if not any(col in df.columns for col in columnas_canal):
+            return Response(
+                {
+                    "error": "Debes incluir columna de canal",
+                    "faltantes": ["canal (nombre o codigo) o canal_id"]
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        canal_lookup = _build_canal_lookup()
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            nombre_cliente = _clean_cell(row.get("nombre_cliente"))
+            pais = _clean_cell(row.get("pais"))
+
+            raw_canal = (
+                row.get("canal")
+                if "canal" in df.columns else None
+            )
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("nombre_canal") if "nombre_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("codigo_canal") if "codigo_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_id") if "canal_id" in df.columns else None
+
+            canal_id = canal_lookup.get(_cell_key(raw_canal))
+
+            if not nombre_cliente:
+                errores.append(f"Fila {idx + 2}: nombre_cliente es obligatorio")
+                continue
+            if not pais:
+                errores.append(f"Fila {idx + 2}: pais es obligatorio")
+                continue
+            if not canal_id:
+                errores.append(f"Fila {idx + 2}: canal no existe o viene vacio")
+                continue
+
+            objs.append(CuentasClientesBluetti(
+                canal_id=canal_id,
+                nombre_cliente=nombre_cliente,
+                pais=pais,
+                region=_clean_cell(row.get("region", "")),
+                ciudad=_clean_cell(row.get("ciudad", "")),
+                latitud=_to_float_or_none(row.get("latitud")),
+                longitud=_to_float_or_none(row.get("longitud")),
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID
+            ))
+
+        if errores:
+            return Response(
+                {"error": "Errores de validacion en plantilla", "detalles": errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        CuentasClientesBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class CuentasClientesBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = CuentasClientesBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            serializer = CuentasClientesBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class CuentasClientesBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = CuentasClientesBluetti.objects.filter(id_registro__in=ids, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class CuentasClientesBluettiExportView(APIView):
+    def get(self, request):
+        qs = CuentasClientesBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).values("nombre_cliente", "canal_id", "pais", "region", "ciudad", "latitud", "longitud")
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="cuentas_clientes_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Cuentas")
+        return response
+
+
+# ---------------------------
+# VENTAS
+# ---------------------------
+class VentasBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = VentasBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = VentasBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = VentasBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(VentasBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class VentasBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return VentasBluetti.objects.filter(id_registro=pk, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Venta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = VentasBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(VentasBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Venta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = VentasBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(VentasBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Venta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VentasBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file, date_columns=["fecha_venta"])
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"fecha_venta", "cantidad", "precio_unitario"}
+        faltantes = list(columnas_requeridas - set(df.columns))
+        if faltantes:
+            return Response(
+                {"error": "Columnas invalidas", "faltantes": faltantes},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        columnas_cliente = {"cliente", "cliente_nombre", "cliente_id"}
+        if not any(col in df.columns for col in columnas_cliente):
+            return Response(
+                {"error": "Debes incluir cliente", "faltantes": ["cliente (nombre) o cliente_id"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        cliente_lookup = _build_cliente_lookup()
+        canal_lookup = _build_canal_lookup()
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            fecha = _parse_date_or_none(row.get("fecha_venta"))
+            cantidad = _to_int_or_none(row.get("cantidad"))
+            precio_unitario = _to_float_or_none(row.get("precio_unitario"))
+            costo_unitario = _to_float_or_none(row.get("costo_unitario"), default=0)
+            total_venta = _to_float_or_none(row.get("total_venta"))
+            costo_total = _to_float_or_none(row.get("costo_total"))
+
+            raw_cliente = row.get("cliente") if "cliente" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_nombre") if "cliente_nombre" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_id") if "cliente_id" in df.columns else None
+
+            cliente_info = cliente_lookup.get(_cell_key(raw_cliente))
+
+            if not fecha:
+                errores.append(f"Fila {idx + 2}: fecha_venta invalida")
+                continue
+            if not cliente_info:
+                errores.append(f"Fila {idx + 2}: cliente no existe")
+                continue
+            if cantidad is None:
+                errores.append(f"Fila {idx + 2}: cantidad invalida")
+                continue
+            if precio_unitario is None:
+                errores.append(f"Fila {idx + 2}: precio_unitario invalido")
+                continue
+
+            cliente_id = cliente_info["cliente_id"]
+            canal_id_cliente = cliente_info["canal_id"]
+            if not canal_id_cliente:
+                errores.append(f"Fila {idx + 2}: el cliente no tiene canal asociado")
+                continue
+
+            raw_canal = row.get("canal") if "canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_nombre") if "canal_nombre" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("codigo_canal") if "codigo_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_id") if "canal_id" in df.columns else None
+
+            canal_id_archivo = canal_lookup.get(_cell_key(raw_canal)) if _clean_cell(raw_canal) else None
+            if canal_id_archivo and canal_id_archivo != canal_id_cliente:
+                errores.append(
+                    f"Fila {idx + 2}: el canal del archivo no coincide con el canal asociado al cliente"
+                )
+                continue
+
+            tipo_venta = _clean_cell(row.get("tipo_venta")) or "sell_in"
+            if tipo_venta not in ("sell_in", "sell_out"):
+                errores.append(f"Fila {idx + 2}: tipo_venta debe ser sell_in o sell_out")
+                continue
+
+            total_venta_final = total_venta if total_venta is not None else round(cantidad * precio_unitario, 2)
+            costo_total_final = costo_total if costo_total is not None else round(cantidad * costo_unitario, 2)
+
+            objs.append(VentasBluetti(
+                fecha_venta=fecha,
+                ano=fecha.year,
+                mes=fecha.month,
+                canal_id=canal_id_cliente,
+                cliente_id=cliente_id,
+                cantidad=cantidad,
+                precio_unitario=precio_unitario,
+                total_venta=total_venta_final,
+                tipo_venta=tipo_venta,
+                costo_unitario=costo_unitario,
+                costo_total=costo_total_final,
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+            ))
+
+        if errores:
+            return Response(
+                {"error": "Errores de validacion en plantilla", "detalles": errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        VentasBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class VentasBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file, parse_dates=["fecha_venta"])
+            else:
+                df = pd.read_excel(file, parse_dates=["fecha_venta"])
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = VentasBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            # convertir fechas si vienen como Timestamp
+            if "fecha_venta" in data and not pd.isnull(data["fecha_venta"]):
+                data["fecha_venta"] = pd.to_datetime(data["fecha_venta"]).date()
+                data["ano"] = pd.to_datetime(data["fecha_venta"]).year
+                data["mes"] = pd.to_datetime(data["fecha_venta"]).month
+            serializer = VentasBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class VentasBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = VentasBluetti.objects.filter(id_registro__in=ids, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class VentasBluettiExportView(APIView):
+    def get(self, request):
+        # filtrar por empresa/producto si aplica como en otras vistas
+        qs = VentasBluetti.objects.filter(
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).select_related("cliente", "canal")  # evita N+1 (si las FK se llaman 'cliente' y 'canal')
+
+        # pedimos campos including related fields: cliente__nombre_cliente y canal__nombre_canal
+        qs_values = qs.values(
+            "id_registro",
+            "fecha_venta",
+            "ano",
+            "mes",
+            "tipo_venta",
+            "cliente",                 # id numÃ©rico (opcional)
+            "cliente__nombre_cliente", # <-- nombre del cliente (lo que queremos)
+            "canal",                   # id canal (opcional)
+            "canal__nombre_canal",  
+            "cantidad",
+            "precio_unitario",
+            "total_venta",
+            "costo_unitario",
+            "costo_total",
+               # <-- nombre del canal (opcional)
+        )
+
+        # convertir a DataFrame y renombrar columnas para que queden amigables en el Excel
+        df = pd.DataFrame(list(qs_values)).rename(columns={
+            "cliente__nombre_cliente": "cliente_nombre",
+            "canal__nombre_canal": "canal_nombre"
+        })
+
+        # Opcional: formatear nÃºmeros/decimales como texto con 2 decimales (si quieres)
+        for col in ("precio_unitario", "total_venta", "costo_unitario", "costo_total"):
+            if col in df.columns:
+                # si vienen como Decimal/float -> formatear; si vienen como string, este paso es seguro
+                df[col] = df[col].apply(lambda v: ("{:.2f}".format(v)) if pd.notna(v) else "")
+
+        # preparar respuesta Excel
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="ventas_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Ventas")
+        return response
+
+# ---------------------------
+# INVENTARIOS
+# ---------------------------
+class InventariosBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = InventariosBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = InventariosBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = InventariosBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(InventariosBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class InventariosBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return InventariosBluetti.objects.filter(id_registro=pk, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Inventario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = InventariosBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(InventariosBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Inventario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = InventariosBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(InventariosBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Inventario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InventariosBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file, date_columns=["fecha_inventario"])
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"fecha_inventario", "cantidad_disponible"}
+        if not columnas_requeridas.issubset(df.columns):
+            return Response({"error": "Columnas invalidas", "faltantes": list(columnas_requeridas - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_cliente = {"cliente", "cliente_nombre", "cliente_id"}
+        if not any(col in df.columns for col in columnas_cliente):
+            return Response(
+                {"error": "Debes incluir cliente", "faltantes": ["cliente (nombre) o cliente_id"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        cliente_lookup = _build_cliente_lookup()
+        canal_lookup = _build_canal_lookup()
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            fecha = _parse_date_or_none(row.get("fecha_inventario"))
+            cantidad_disponible = _to_int_or_none(row.get("cantidad_disponible"))
+            cantidad_reservada = _to_int_or_none(row.get("cantidad_reservada"), default=0)
+
+            raw_cliente = row.get("cliente") if "cliente" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_nombre") if "cliente_nombre" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_id") if "cliente_id" in df.columns else None
+
+            cliente_info = cliente_lookup.get(_cell_key(raw_cliente))
+
+            if not fecha:
+                errores.append(f"Fila {idx + 2}: fecha_inventario invalida")
+                continue
+            if cantidad_disponible is None:
+                errores.append(f"Fila {idx + 2}: cantidad_disponible invalida")
+                continue
+            if not cliente_info:
+                errores.append(f"Fila {idx + 2}: cliente no existe")
+                continue
+
+            cliente_id = cliente_info["cliente_id"]
+            canal_id_cliente = cliente_info["canal_id"]
+            pais_cliente = _clean_cell(cliente_info.get("pais"))
+
+            if not canal_id_cliente:
+                errores.append(f"Fila {idx + 2}: el cliente no tiene canal asociado")
+                continue
+            if not pais_cliente:
+                errores.append(f"Fila {idx + 2}: el cliente no tiene pais asociado")
+                continue
+
+            raw_canal = row.get("canal") if "canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_nombre") if "canal_nombre" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("codigo_canal") if "codigo_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_id") if "canal_id" in df.columns else None
+            canal_id_archivo = canal_lookup.get(_cell_key(raw_canal)) if _clean_cell(raw_canal) else None
+            if canal_id_archivo and canal_id_archivo != canal_id_cliente:
+                errores.append(
+                    f"Fila {idx + 2}: el canal del archivo no coincide con el canal asociado al cliente"
+                )
+                continue
+
+            pais_archivo = _clean_cell(row.get("pais")) if "pais" in df.columns else ""
+            if pais_archivo and pais_archivo.lower() != pais_cliente.lower():
+                errores.append(
+                    f"Fila {idx + 2}: el pais del archivo no coincide con el pais asociado al cliente"
+                )
+                continue
+
+            objs.append(InventariosBluetti(
+                fecha_inventario=fecha,
+                ano=fecha.year,
+                mes=fecha.month,
+                canal_id=canal_id_cliente,
+                cliente_id=cliente_id,
+                pais=pais_cliente,
+                cantidad_disponible=cantidad_disponible,
+                cantidad_reservada=cantidad_reservada or 0,
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+            ))
+
+        if errores:
+            return Response(
+                {"error": "Errores de validacion en plantilla", "detalles": errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        InventariosBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class InventariosBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file, parse_dates=["fecha_inventario"])
+            else:
+                df = pd.read_excel(file, parse_dates=["fecha_inventario"])
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = InventariosBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            if "fecha_inventario" in data and not pd.isnull(data["fecha_inventario"]):
+                data["fecha_inventario"] = pd.to_datetime(data["fecha_inventario"]).date()
+                data["ano"] = pd.to_datetime(data["fecha_inventario"]).year
+                data["mes"] = pd.to_datetime(data["fecha_inventario"]).month
+            serializer = InventariosBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class InventariosBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = InventariosBluetti.objects.filter(id_registro__in=ids, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class InventariosBluettiExportView(APIView):
+    def get(self, request):
+        qs = InventariosBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).values("fecha_inventario", "ano", "mes", "canal_id", "cliente_id", "pais", "cantidad_disponible", "cantidad_reservada")
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="inventarios_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Inventarios")
+        return response
+
+
+# ---------------------------
+# VENTAS SELLOUT
+# ---------------------------
+class VentasSelloutBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = VentasSelloutBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = VentasSelloutBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = VentasSelloutBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(VentasSelloutBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class VentasSelloutBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return VentasSelloutBluetti.objects.filter(id_registro=pk, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Venta sellout no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = VentasSelloutBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(VentasSelloutBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Venta sellout no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = VentasSelloutBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(VentasSelloutBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Venta sellout no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VentasSelloutBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file, date_columns=["fecha_venta"])
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"fecha_venta", "canal", "cliente", "punto_venta", "sku", "producto", "cantidad", "precio_ventas", "total_ventas"}
+        faltantes = list(columnas_requeridas - set(df.columns))
+        if faltantes:
+            return Response({"error": "Columnas invalidas", "faltantes": faltantes}, status=status.HTTP_400_BAD_REQUEST)
+
+        canal_lookup = _build_canal_lookup()
+        cliente_lookup = _build_cliente_lookup()
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            fecha = _parse_date_or_none(row.get("fecha_venta"))
+            punto_venta = _clean_cell(row.get("punto_venta"))
+            sku = _clean_cell(row.get("sku"))
+            ean = _clean_cell(row.get("ean"))
+            producto = _clean_cell(row.get("producto"))
+            cantidad = _to_int_or_none(row.get("cantidad"))
+            precio_ventas = _to_float_or_none(row.get("precio_ventas"))
+            total_ventas = _to_float_or_none(row.get("total_ventas"))
+
+            raw_canal = row.get("canal") if "canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_nombre") if "canal_nombre" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("codigo_canal") if "codigo_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_id") if "canal_id" in df.columns else None
+            canal_id = canal_lookup.get(_cell_key(raw_canal)) if _clean_cell(raw_canal) else None
+
+            raw_cliente = row.get("cliente") if "cliente" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_nombre") if "cliente_nombre" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_id") if "cliente_id" in df.columns else None
+            cliente_info = cliente_lookup.get(_cell_key(raw_cliente))
+
+            if not fecha:
+                errores.append(f"Fila {idx + 2}: fecha_venta invalida")
+                continue
+            if not punto_venta:
+                errores.append(f"Fila {idx + 2}: punto_venta es obligatorio")
+                continue
+            if not sku:
+                errores.append(f"Fila {idx + 2}: sku es obligatorio")
+                continue
+            if not producto:
+                errores.append(f"Fila {idx + 2}: producto es obligatorio")
+                continue
+            if cantidad is None:
+                errores.append(f"Fila {idx + 2}: cantidad invalida")
+                continue
+            if precio_ventas is None:
+                errores.append(f"Fila {idx + 2}: precio_ventas invalido")
+                continue
+            if total_ventas is None:
+                errores.append(f"Fila {idx + 2}: total_ventas invalido")
+                continue
+            if not cliente_info:
+                errores.append(f"Fila {idx + 2}: cliente no existe")
+                continue
+
+            cliente_id = cliente_info.get("cliente_id")
+            canal_cliente = cliente_info.get("canal_id")
+            if canal_id and canal_cliente and canal_id != canal_cliente:
+                errores.append(f"Fila {idx + 2}: canal no coincide con el cliente")
+                continue
+            if not canal_id:
+                canal_id = canal_cliente
+            if not canal_id:
+                errores.append(f"Fila {idx + 2}: canal no existe")
+                continue
+
+            objs.append(VentasSelloutBluetti(
+                fecha_venta=fecha,
+                canal_id=canal_id,
+                cliente_id=cliente_id,
+                punto_venta=punto_venta,
+                sku=sku,
+                ean=ean or None,
+                producto=producto,
+                cantidad=cantidad,
+                precio_ventas=precio_ventas,
+                total_ventas=total_ventas,
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+            ))
+
+        if errores:
+            return Response({"error": "Errores de validacion en plantilla", "detalles": errores[:50]}, status=status.HTTP_400_BAD_REQUEST)
+
+        VentasSelloutBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class VentasSelloutBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = VentasSelloutBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            if "fecha_venta" in data:
+                parsed = _parse_date_or_none(data.get("fecha_venta"))
+                if parsed:
+                    data["fecha_venta"] = parsed
+            serializer = VentasSelloutBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class VentasSelloutBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = VentasSelloutBluetti.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class VentasSelloutBluettiExportView(APIView):
+    def get(self, request):
+        qs = VentasSelloutBluetti.objects.filter(
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).values("fecha_venta", "canal_id", "cliente_id", "punto_venta", "sku", "ean", "producto", "cantidad", "precio_ventas", "total_ventas")
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="ventas_sellout_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="VentasSellout")
+        return response
+
+
+class VentasSelloutBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_ventas_sellout_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=["fecha_venta", "canal", "cliente", "punto_venta", "sku", "ean", "producto", "cantidad", "precio_ventas", "total_ventas"],
+            sample_rows=[{
+                "fecha_venta": "2026-02-01",
+                "canal": "Retail",
+                "cliente": "Homecenter Colombia",
+                "punto_venta": "Homecenter Calle 80",
+                "sku": "BLU-EB55",
+                "ean": "1234567890123",
+                "producto": "Bluetti EB55",
+                "cantidad": 4,
+                "precio_ventas": 3200,
+                "total_ventas": 12800,
+            }],
+            notes=[
+                "canal puede ser nombre_canal, codigo_canal o canal_id.",
+                "cliente puede ser nombre_cliente o cliente_id.",
+            ],
+        )
+
+
+# ---------------------------
+# INVENTARIOS SELLOUT
+# ---------------------------
+class InventariosSelloutBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = InventariosSelloutBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = InventariosSelloutBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = InventariosSelloutBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(InventariosSelloutBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class InventariosSelloutBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return InventariosSelloutBluetti.objects.filter(id_registro=pk, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Inventario sellout no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = InventariosSelloutBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(InventariosSelloutBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Inventario sellout no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = InventariosSelloutBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(InventariosSelloutBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Inventario sellout no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class InventariosSelloutBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file, date_columns=["fecha_inventario"])
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"fecha_inventario", "canal", "cliente", "punto_venta", "sku", "producto", "unidades_inventario"}
+        faltantes = list(columnas_requeridas - set(df.columns))
+        if faltantes:
+            return Response({"error": "Columnas invalidas", "faltantes": faltantes}, status=status.HTTP_400_BAD_REQUEST)
+
+        canal_lookup = _build_canal_lookup()
+        cliente_lookup = _build_cliente_lookup()
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            fecha = _parse_date_or_none(row.get("fecha_inventario"))
+            punto_venta = _clean_cell(row.get("punto_venta"))
+            sku = _clean_cell(row.get("sku"))
+            ean = _clean_cell(row.get("ean"))
+            producto = _clean_cell(row.get("producto"))
+            unidades_inventario = _to_int_or_none(row.get("unidades_inventario"))
+
+            raw_canal = row.get("canal") if "canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_nombre") if "canal_nombre" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("codigo_canal") if "codigo_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_id") if "canal_id" in df.columns else None
+            canal_id = canal_lookup.get(_cell_key(raw_canal)) if _clean_cell(raw_canal) else None
+
+            raw_cliente = row.get("cliente") if "cliente" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_nombre") if "cliente_nombre" in df.columns else None
+            if _clean_cell(raw_cliente) == "":
+                raw_cliente = row.get("cliente_id") if "cliente_id" in df.columns else None
+            cliente_info = cliente_lookup.get(_cell_key(raw_cliente))
+
+            if not fecha:
+                errores.append(f"Fila {idx + 2}: fecha_inventario invalida")
+                continue
+            if not punto_venta:
+                errores.append(f"Fila {idx + 2}: punto_venta es obligatorio")
+                continue
+            if not sku:
+                errores.append(f"Fila {idx + 2}: sku es obligatorio")
+                continue
+            if not producto:
+                errores.append(f"Fila {idx + 2}: producto es obligatorio")
+                continue
+            if unidades_inventario is None:
+                errores.append(f"Fila {idx + 2}: unidades_inventario invalida")
+                continue
+            if not cliente_info:
+                errores.append(f"Fila {idx + 2}: cliente no existe")
+                continue
+
+            cliente_id = cliente_info.get("cliente_id")
+            canal_cliente = cliente_info.get("canal_id")
+            if canal_id and canal_cliente and canal_id != canal_cliente:
+                errores.append(f"Fila {idx + 2}: canal no coincide con el cliente")
+                continue
+            if not canal_id:
+                canal_id = canal_cliente
+            if not canal_id:
+                errores.append(f"Fila {idx + 2}: canal no existe")
+                continue
+
+            objs.append(InventariosSelloutBluetti(
+                fecha_inventario=fecha,
+                canal_id=canal_id,
+                cliente_id=cliente_id,
+                punto_venta=punto_venta,
+                sku=sku,
+                ean=ean or None,
+                producto=producto,
+                unidades_inventario=unidades_inventario,
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID,
+            ))
+
+        if errores:
+            return Response({"error": "Errores de validacion en plantilla", "detalles": errores[:50]}, status=status.HTTP_400_BAD_REQUEST)
+
+        InventariosSelloutBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class InventariosSelloutBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = InventariosSelloutBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            if "fecha_inventario" in data:
+                parsed = _parse_date_or_none(data.get("fecha_inventario"))
+                if parsed:
+                    data["fecha_inventario"] = parsed
+            serializer = InventariosSelloutBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class InventariosSelloutBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = InventariosSelloutBluetti.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class InventariosSelloutBluettiExportView(APIView):
+    def get(self, request):
+        qs = InventariosSelloutBluetti.objects.filter(
+            id_empresa_id=DEFAULT_EMPRESA_ID,
+            id_producto_id=DEFAULT_PRODUCTO_ID
+        ).values("fecha_inventario", "canal_id", "cliente_id", "punto_venta", "sku", "ean", "producto", "unidades_inventario")
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="inventarios_sellout_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="InventariosSellout")
+        return response
+
+
+class InventariosSelloutBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_inventarios_sellout_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=["fecha_inventario", "canal", "cliente", "punto_venta", "sku", "ean", "producto", "unidades_inventario"],
+            sample_rows=[{
+                "fecha_inventario": "2026-02-01",
+                "canal": "Retail",
+                "cliente": "Homecenter Colombia",
+                "punto_venta": "Homecenter Calle 80",
+                "sku": "BLU-EB55",
+                "ean": "1234567890123",
+                "producto": "Bluetti EB55",
+                "unidades_inventario": 12,
+            }],
+            notes=[
+                "canal puede ser nombre_canal, codigo_canal o canal_id.",
+                "cliente puede ser nombre_cliente o cliente_id.",
+            ],
+        )
+
+
+# ---------------------------
+# METAS COMERCIALES
+# ---------------------------
+class MetasComercialesBluettiListCreateView(APIView):
+    def get(self, request):
+        qs = MetasComercialesBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID)
+        serializer = MetasComercialesBluettiSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = MetasComercialesBluettiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(MetasComercialesBluettiSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class MetasComercialesBluettiDetailView(APIView):
+    def get_object(self, pk):
+        return MetasComercialesBluetti.objects.filter(id_registro=pk, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Meta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MetasComercialesBluettiSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(MetasComercialesBluettiSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Meta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MetasComercialesBluettiSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(MetasComercialesBluettiSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Meta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MetasComercialesBluettiBulkImportView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {"ano", "meta_monetaria", "pais"}
+        faltantes = list(columnas_requeridas - set(df.columns))
+        if faltantes:
+            return Response(
+                {"error": "Columnas invalidas", "faltantes": faltantes},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        columnas_canal = {"canal", "canal_id", "nombre_canal", "codigo_canal"}
+        if not any(col in df.columns for col in columnas_canal):
+            return Response(
+                {"error": "Debes incluir canal", "faltantes": ["canal (nombre/codigo) o canal_id"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        canal_lookup = _build_canal_lookup()
+
+        objs = []
+        errores = []
+        for idx, row in df.iterrows():
+            ano = _to_int_or_none(row.get("ano"))
+            mes = _to_int_or_none(row.get("mes"))
+            pais = _clean_cell(row.get("pais"))
+            meta_monetaria = _to_float_or_none(row.get("meta_monetaria"))
+            meta_unidades = _to_int_or_none(row.get("meta_unidades"))
+
+            raw_canal = row.get("canal") if "canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("nombre_canal") if "nombre_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("codigo_canal") if "codigo_canal" in df.columns else None
+            if _clean_cell(raw_canal) == "":
+                raw_canal = row.get("canal_id") if "canal_id" in df.columns else None
+            canal_id = canal_lookup.get(_cell_key(raw_canal))
+
+            if ano is None:
+                errores.append(f"Fila {idx + 2}: ano invalido")
+                continue
+            if meta_monetaria is None:
+                errores.append(f"Fila {idx + 2}: meta_monetaria invalida")
+                continue
+            if not pais:
+                errores.append(f"Fila {idx + 2}: pais es obligatorio")
+                continue
+            if not canal_id:
+                errores.append(f"Fila {idx + 2}: canal no existe o viene vacio")
+                continue
+
+            objs.append(MetasComercialesBluetti(
+                ano=ano,
+                mes=mes,
+                canal_id=canal_id,
+                pais=pais,
+                meta_monetaria=meta_monetaria,
+                meta_unidades=meta_unidades,
+                id_empresa_id=DEFAULT_EMPRESA_ID,
+                id_producto_id=DEFAULT_PRODUCTO_ID
+            ))
+
+        if errores:
+            return Response(
+                {"error": "Errores de validacion en plantilla", "detalles": errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        MetasComercialesBluetti.objects.bulk_create(objs, batch_size=1000)
+        return Response({"importados": len(objs)}, status=status.HTTP_201_CREATED)
+
+
+class MetasComercialesBluettiBulkUpdateExcelView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No se envio ningun archivo"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({"error": f"Archivo invalido: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        required = {"id_registro"}
+        if not required.issubset(df.columns):
+            return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = MetasComercialesBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop("id_registro", None)
+            serializer = MetasComercialesBluettiSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+        return Response({"updated": updated}, status=status.HTTP_200_OK)
+
+
+class MetasComercialesBluettiBulkDeleteView(APIView):
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = MetasComercialesBluetti.objects.filter(id_registro__in=ids, id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+class MetasComercialesBluettiExportView(APIView):
+    def get(self, request):
+        qs = MetasComercialesBluetti.objects.filter(id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).values("ano", "mes", "canal_id", "pais", "meta_monetaria", "meta_unidades")
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="metas_comerciales_bluetti.xlsx"'
+        with pd.ExcelWriter(response, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Metas")
+        return response
+
+
+# ---------------------------
+# PLANTILLAS (IMPORT MASIVO)
+# ---------------------------
+class ProductosBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_productos_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=["sku", "ean", "nombre_producto", "marca", "categoria"],
+            sample_rows=[{
+                "sku": "BLU-EB55",
+                "ean": "1234567890123",
+                "nombre_producto": "Bluetti EB55",
+                "marca": "Bluetti",
+                "categoria": "Power Station",
+            }],
+            notes=[
+                "Usa exactamente los nombres de columnas de la plantilla.",
+                "No incluyas id_empresa, id_producto ni id_registro.",
+            ],
+        )
+
+
+class CanalesBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_canales_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=["codigo_canal", "nombre_canal"],
+            sample_rows=[{"codigo_canal": "ECOM", "nombre_canal": "Ecommerce"}],
+            notes=[
+                "codigo_canal y nombre_canal son obligatorios.",
+                "No incluyas IDs.",
+            ],
+        )
+
+
+class CuentasClientesBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_cuentas_clientes_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=["nombre_cliente", "canal", "pais", "region", "ciudad", "latitud", "longitud"],
+            sample_rows=[{
+                "nombre_cliente": "Homecenter Colombia",
+                "canal": "Retail",
+                "pais": "Colombia",
+                "region": "Andina",
+                "ciudad": "Bogota",
+                "latitud": 4.7110,
+                "longitud": -74.0721,
+            }],
+            notes=[
+                "En canal puedes usar nombre_canal o codigo_canal (sin canal_id).",
+                "nombre_cliente y pais son obligatorios.",
+            ],
+        )
+
+
+class VentasBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_ventas_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=[
+                "fecha_venta",
+                "cliente",
+                "tipo_venta",
+                "cantidad",
+                "precio_unitario",
+                "total_venta",
+                "costo_unitario",
+                "costo_total",
+                "canal",
+            ],
+            sample_rows=[{
+                "fecha_venta": "2026-02-01",
+                "cliente": "Homecenter Colombia",
+                "tipo_venta": "sell_in",
+                "cantidad": 10,
+                "precio_unitario": 1200.50,
+                "total_venta": 12005.00,
+                "costo_unitario": 850.00,
+                "costo_total": 8500.00,
+                "canal": "Retail",
+            }],
+            notes=[
+                "cliente puede ser nombre_cliente (recomendado) o cliente_id.",
+                "canal es opcional; si se envÃ­a, debe coincidir con el canal del cliente.",
+            ],
+        )
+
+
+class InventariosBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_inventarios_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=[
+                "fecha_inventario",
+                "cliente",
+                "cantidad_disponible",
+                "cantidad_reservada",
+                "canal",
+                "pais",
+            ],
+            sample_rows=[{
+                "fecha_inventario": "2026-02-01",
+                "cliente": "Homecenter Colombia",
+                "cantidad_disponible": 25,
+                "cantidad_reservada": 2,
+                "canal": "Retail",
+                "pais": "Colombia",
+            }],
+            notes=[
+                "cliente puede ser nombre_cliente (recomendado) o cliente_id.",
+                "canal y pais son opcionales; se validan contra el cliente.",
+            ],
+        )
+
+
+class MetasComercialesBluettiTemplateView(APIView):
+    def get(self, request):
+        return _build_template_response(
+            filename="plantilla_metas_comerciales_bluetti.xlsx",
+            sheet_name="Plantilla",
+            columns=["ano", "mes", "canal", "pais", "meta_monetaria", "meta_unidades"],
+            sample_rows=[{
+                "ano": 2026,
+                "mes": 2,
+                "canal": "Retail",
+                "pais": "Colombia",
+                "meta_monetaria": 25000000.00,
+                "meta_unidades": 120,
+            }],
+            notes=[
+                "canal puede ser nombre_canal o codigo_canal (sin canal_id).",
+                "ano, canal, pais y meta_monetaria son obligatorios.",
+            ],
+        )
+
