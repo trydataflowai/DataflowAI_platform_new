@@ -2063,6 +2063,8 @@ class VentasBluetti(models.Model):
 
     canal = models.ForeignKey('CanalesBluetti', on_delete=models.PROTECT, db_column='canal_id')
     cliente = models.ForeignKey('CuentasClientesBluetti', on_delete=models.PROTECT, db_column='cliente_id')
+    sku = models.CharField(max_length=100, db_column='sku', null=True, blank=True)
+    producto = models.CharField(max_length=250, db_column='producto', null=True, blank=True)
 
     tipo_venta = models.CharField(
         max_length=20,

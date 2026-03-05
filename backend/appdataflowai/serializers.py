@@ -2441,6 +2441,8 @@ class VentasBluettiSerializer(serializers.ModelSerializer):
             'mes',
             'canal',
             'cliente',
+            'sku',
+            'producto',
             'tipo_venta',
             'cantidad',
             'precio_unitario',

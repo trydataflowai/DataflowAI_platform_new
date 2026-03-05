@@ -3,7 +3,6 @@ import ReactECharts from "echarts-for-react";
 import * as echarts from "echarts";
 import { useNavigate } from "react-router-dom";
 import {
-  classifyChannel,
   getDashboardSummaryBluettiData,
   normalizeDate,
   normalizeId,
@@ -21,6 +20,79 @@ function diffDaysInclusive(from, to) {
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return null;
   const diff = Math.floor((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
   return diff >= 0 ? diff + 1 : null;
+}
+
+const MONTH_NAME_TO_INT = {
+  enero: 1,
+  febrero: 2,
+  marzo: 3,
+  abril: 4,
+  mayo: 5,
+  junio: 6,
+  julio: 7,
+  agosto: 8,
+  septiembre: 9,
+  setiembre: 9,
+  octubre: 10,
+  noviembre: 11,
+  diciembre: 12,
+  january: 1,
+  february: 2,
+  march: 3,
+  april: 4,
+  may: 5,
+  june: 6,
+  july: 7,
+  august: 8,
+  september: 9,
+  october: 10,
+  november: 11,
+  december: 12,
+};
+
+function parseMonthToInt(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const asNumber = Number(value);
+  if (!Number.isNaN(asNumber) && asNumber >= 1 && asNumber <= 12) return asNumber;
+  const key = String(value).trim().toLowerCase();
+  return MONTH_NAME_TO_INT[key] ?? null;
+}
+
+function parseDateFlexible(value) {
+  const txt = String(value || "").trim();
+  if (!txt) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(txt)) {
+    const [y, m, d] = txt.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(txt)) {
+    const [d, m, y] = txt.split("/").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  const parsed = new Date(txt);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function monthKey(value) {
+  if (!value) return "";
+  const d = parseDateFlexible(value);
+  if (!d || Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatMonthLabel(month) {
+  if (!month || month.length !== 7) return month || "-";
+  const [year, m] = month.split("-");
+  return `${m}/${year}`;
+}
+
+function formatVariationPct(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(1)}%`;
 }
 
 function extendBoundsFromCoords(coords, bounds) {
@@ -298,6 +370,34 @@ export default function DashboardSummaryBluetti() {
     return new Date().getFullYear();
   }, [filtros.fechaDesde, ventasFiltradas]);
 
+  const selectedPeriodKeys = useMemo(() => {
+    if (!filtros.fechaDesde && !filtros.fechaHasta) return null;
+
+    const startRaw = filtros.fechaDesde || filtros.fechaHasta;
+    const endRaw = filtros.fechaHasta || filtros.fechaDesde;
+    if (!startRaw || !endRaw) return null;
+
+    const start = parseDateFlexible(startRaw);
+    const end = parseDateFlexible(endRaw);
+    if (!start || !end) return null;
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+
+    const from = start <= end ? start : end;
+    const to = start <= end ? end : start;
+    const cursor = new Date(from.getFullYear(), from.getMonth(), 1);
+    const limit = new Date(to.getFullYear(), to.getMonth(), 1);
+    const keys = new Set();
+
+    while (cursor <= limit) {
+      const y = cursor.getFullYear();
+      const m = String(cursor.getMonth() + 1).padStart(2, "0");
+      keys.add(`${y}-${m}`);
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    return keys;
+  }, [filtros.fechaDesde, filtros.fechaHasta]);
+
   const totalVentasCOP = useMemo(() => ventasFiltradas.reduce((acc, v) => acc + toNumber(v.total_venta), 0), [ventasFiltradas]);
   const sellInUnidades = useMemo(
     () => ventasFiltradas.filter((v) => v.tipo_venta === "sell_in").reduce((acc, v) => acc + toNumber(v.cantidad), 0),
@@ -337,14 +437,25 @@ export default function DashboardSummaryBluetti() {
   const annualGoalFromMetas = useMemo(() => {
     return metasEnriched
       .filter((m) => {
-        if (Number(m.ano) !== Number(selectedYear)) return false;
         if (filtros.canalId && String(m.canal_id) !== String(filtros.canalId)) return false;
+        if (filtros.pais && String(m.pais || "") !== String(filtros.pais)) return false;
+
+        const year = Number(m.ano);
+        const month = parseMonthToInt(m.mes);
+        if (!year || !month) return false;
+
+        if (selectedPeriodKeys) {
+          const key = `${year}-${String(month).padStart(2, "0")}`;
+          return selectedPeriodKeys.has(key);
+        }
+
+        if (year !== Number(selectedYear)) return false;
         return true;
       })
       .reduce((acc, m) => acc + toNumber(m.meta_monetaria), 0);
-  }, [metasEnriched, selectedYear, filtros.canalId]);
+  }, [metasEnriched, selectedYear, selectedPeriodKeys, filtros.canalId, filtros.pais]);
 
-  const annualGoalCOP = annualGoalFromMetas > 0 ? annualGoalFromMetas : RETAIL_ANNUAL_GOAL_COP;
+  const annualGoalCOP = annualGoalFromMetas > 0 ? annualGoalFromMetas : (selectedPeriodKeys ? 0 : RETAIL_ANNUAL_GOAL_COP);
   const annualGoalProgress = annualGoalCOP > 0 ? (sellInCOP / annualGoalCOP) * 100 : 0;
   const annualGoalProgressForUI = Math.max(0, Math.min(annualGoalProgress, 100));
   const annualGoalPointerPct = Math.max(2, Math.min(annualGoalProgressForUI, 98));
@@ -362,15 +473,23 @@ export default function DashboardSummaryBluetti() {
     return Object.values(acc).sort((a, b) => b.total - a.total);
   }, [ventasFiltradas]);
 
-  const ventasPorSegmento = useMemo(() => {
+  const historicoMes = useMemo(() => {
     const acc = {};
     ventasFiltradas.forEach((v) => {
-      const segment = classifyChannel(v.canal_nombre);
-      if (!acc[segment]) acc[segment] = { segmento: segment, total: 0, sellIn: 0 };
-      acc[segment].total += toNumber(v.total_venta);
-      if (v.tipo_venta === "sell_in") acc[segment].sellIn += toNumber(v.total_venta);
+      const month = monthKey(v.fecha_venta_norm || v.fecha_venta);
+      if (!month) return;
+      if (!acc[month]) acc[month] = { month, ventas: 0, unidades: 0 };
+      acc[month].ventas += toNumber(v.total_venta);
+      acc[month].unidades += toNumber(v.cantidad);
     });
-    return Object.values(acc).sort((a, b) => b.total - a.total);
+
+    const rows = Object.values(acc).sort((a, b) => a.month.localeCompare(b.month));
+    return rows.map((row, index) => {
+      if (index === 0) return { ...row, variacion_pct: null };
+      const prev = rows[index - 1].ventas;
+      if (prev === 0) return { ...row, variacion_pct: null };
+      return { ...row, variacion_pct: ((row.ventas - prev) / prev) * 100 };
+    });
   }, [ventasFiltradas]);
 
   const topClientes = useMemo(() => {
@@ -383,10 +502,6 @@ export default function DashboardSummaryBluetti() {
     });
     return Object.values(acc).sort((a, b) => b.ventas - a.ventas).slice(0, 12);
   }, [ventasFiltradas]);
-  const segmentSellInTotal = useMemo(
-    () => ventasPorSegmento.reduce((acc, x) => acc + toNumber(x.sellIn), 0),
-    [ventasPorSegmento]
-  );
   const topClientsVentasTotal = useMemo(
     () => topClientes.reduce((acc, x) => acc + toNumber(x.ventas), 0),
     [topClientes]
@@ -719,7 +834,7 @@ export default function DashboardSummaryBluetti() {
     [chartTooltip, ventasPorCanal]
   );
 
-  const segmentOption = useMemo(
+  const historicoOption = useMemo(
     () => ({
       tooltip: {
         ...chartTooltip,
@@ -727,41 +842,91 @@ export default function DashboardSummaryBluetti() {
         formatter: (params) => {
           const rows = Array.isArray(params) ? params : [params];
           if (!rows.length) return "";
-          const axisLabel = rows[0]?.axisValueLabel || rows[0]?.name || "";
+          const axisLabel = rows[0]?.axisValueLabel || "";
           const lines = [`<strong>${axisLabel}</strong>`];
-          rows.forEach((p) => {
-            const valor = toNumber(p.value);
-            const pct = segmentSellInTotal > 0 ? (valor / segmentSellInTotal) * 100 : 0;
-            lines.push(
-              `${p.marker}${p.seriesName}: ${valor.toLocaleString("es-CO", {
-                style: "currency",
-                currency: "COP",
-                maximumFractionDigits: 0,
-              })} (${pct.toFixed(2)}%)`
-            );
+          rows.forEach((row) => {
+            const value = toNumber(row.value);
+            if (row.seriesName === "Variacion %") {
+              lines.push(`${row.marker}${row.seriesName}: ${formatVariationPct(value)}`);
+              return;
+            }
+            lines.push(`${row.marker}${row.seriesName}: ${value.toLocaleString("es-CO", {
+              style: "currency",
+              currency: "COP",
+              maximumFractionDigits: 0,
+            })}`);
           });
           return lines.join("<br/>");
         },
       },
-      legend: { top: 0, textStyle: { color: "#cbd5e1" } },
+      legend: { top: 0, textStyle: { color: "#cbd5e1", fontSize: 12 } },
       xAxis: {
         type: "category",
-        data: ventasPorSegmento.map((x) => x.segmento),
-        axisLabel: { ...axisLabelStyle, rotate: 15 },
-        axisLine: axisLineStyle,
-      },
-      yAxis: {
-        type: "value",
+        data: historicoMes.map((m) => formatMonthLabel(m.month)),
         axisLabel: axisLabelStyle,
         axisLine: axisLineStyle,
-        splitLine: splitLineStyle,
       },
-      series: [
-        { name: "Sell-In", type: "bar", data: ventasPorSegmento.map((x) => Number(x.sellIn.toFixed(2))), itemStyle: { color: "#1d7afc" }, barMaxWidth: 44 },
+      yAxis: [
+        {
+          type: "value",
+          name: "Ventas",
+          axisLabel: {
+            ...axisLabelStyle,
+            formatter: (value) => `${Math.round(value / 1000000)}M`,
+          },
+          axisLine: axisLineStyle,
+          splitLine: splitLineStyle,
+        },
+        {
+          type: "value",
+          name: "Variacion %",
+          axisLabel: {
+            ...axisLabelStyle,
+            formatter: (value) => `${value}%`,
+          },
+          axisLine: axisLineStyle,
+          splitLine: { show: false },
+        },
       ],
-      grid: { left: 40, right: 20, top: 40, bottom: 70 },
+      series: [
+        {
+          name: "Ventas",
+          type: "line",
+          smooth: true,
+          data: historicoMes.map((m) => Number(m.ventas.toFixed(2))),
+          lineStyle: { color: "#3b82f6", width: 3 },
+          itemStyle: { color: "#60a5fa" },
+          areaStyle: { color: "rgba(59,130,246,.2)" },
+        },
+        {
+          name: "Variacion %",
+          type: "bar",
+          yAxisIndex: 1,
+          data: historicoMes.map((m) => (m.variacion_pct === null ? null : Number(m.variacion_pct.toFixed(2)))),
+          itemStyle: {
+            color: (params) => (toNumber(params.value) >= 0 ? "#22c55e" : "#ef4444"),
+          },
+          barMaxWidth: 18,
+        },
+      ],
+      grid: { left: 55, right: 55, top: 40, bottom: 50 },
+      graphic: historicoMes.length
+        ? []
+        : [
+            {
+              type: "text",
+              left: "center",
+              top: "middle",
+              style: {
+                text: "Sin datos para el periodo",
+                fill: "#94a3b8",
+                fontSize: 13,
+                fontWeight: 600,
+              },
+            },
+          ],
     }),
-    [axisLabelStyle, axisLineStyle, chartTooltip, segmentSellInTotal, splitLineStyle, ventasPorSegmento]
+    [axisLabelStyle, axisLineStyle, chartTooltip, splitLineStyle, historicoMes]
   );
 
   const topClientsOption = useMemo(
@@ -916,7 +1081,7 @@ export default function DashboardSummaryBluetti() {
           <p>{activeClients}</p>
         </article>
         <article className="card">
-          <h4>Meta Anual</h4>
+          <h4>{selectedPeriodKeys ? "Meta del Periodo" : "Meta Anual"}</h4>
           <p>{annualGoalCOP.toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}</p>
           <small>Objetivo de ventas Sell-In del periodo</small>
         </article>
@@ -1007,8 +1172,8 @@ export default function DashboardSummaryBluetti() {
 
       <section className="DashboardSummaryBluetti_grid">
         <article className="panel">
-          <h3>Segmentacion de Canales (Sell-In)</h3>
-          <ReactECharts option={segmentOption} style={{ height: 360 }} />
+          <h3>Historico de Ventas (Variacion mes a mes)</h3>
+          <ReactECharts option={historicoOption} style={{ height: 360 }} />
         </article>
         <article className="panel">
           <h3>Top Cuentas / Clientes</h3>

@@ -15,6 +15,7 @@ import {
   getCuentasClientesBluetti,
   getCanalesBluetti,
 } from "../../../api/DashboardsCrudApis/Crudventasbluetti";
+import { getProductosBluetti } from "../../../api/DashboardsCrudApis/Crudproductosbluetti";
 
 import "../../../styles/CrudDashboard/CrudBluetti.css";
 
@@ -28,6 +29,8 @@ const VENTA_INICIAL = {
   tipo_venta: "sell_in",
   canal: null,
   cliente: null, // almacenará el id (id_registro/id)
+  sku: "",
+  producto: "",
 };
 
 export default function Crudventasbluetti() {
@@ -56,42 +59,70 @@ export default function Crudventasbluetti() {
 
   const [canales, setCanales] = useState([]);
   const [canalesMap, setCanalesMap] = useState({});
+  const [productos, setProductos] = useState([]);
+  const [productosMap, setProductosMap] = useState({});
 
   const navigate = useNavigate();
 
- useEffect(() => {
-  const loadClientes = async () => {
-    try {
-      const data = await getCuentasClientesBluetti();
-      const list = Array.isArray(data) ? data : [];
-      setClientes(list);
+  useEffect(() => {
+    const loadCatalogos = async () => {
+      try {
+        const [clientesData, canalesData, productosData] = await Promise.all([
+          getCuentasClientesBluetti(),
+          getCanalesBluetti(),
+          getProductosBluetti(),
+        ]);
 
-      const map = {};
-      const clienteCanal = {};
-      list.forEach((c) => {
-        const key = c.id_registro ?? c.id;
-        map[key] = c.nombre_cliente ?? c.nombre;
+        const clientesList = Array.isArray(clientesData) ? clientesData : [];
+        setClientes(clientesList);
 
-        // obtener canal asociado al cliente (puede venir como id o como objeto)
-        let canalVal = null;
-        if (c.canal !== undefined && c.canal !== null) {
-          if (typeof c.canal === "object") {
-            canalVal = c.canal.id_registro ?? c.canal.id ?? null;
-          } else {
-            canalVal = Number(c.canal) || null;
+        const clienteMap = {};
+        const clienteCanal = {};
+        clientesList.forEach((c) => {
+          const key = c.id_registro ?? c.id;
+          clienteMap[key] = c.nombre_cliente ?? c.nombre;
+
+          let canalVal = null;
+          if (c.canal !== undefined && c.canal !== null) {
+            if (typeof c.canal === "object") {
+              canalVal = c.canal.id_registro ?? c.canal.id ?? null;
+            } else {
+              canalVal = Number(c.canal) || null;
+            }
           }
-        }
-        clienteCanal[key] = canalVal;
-      });
+          clienteCanal[key] = canalVal;
+        });
+        setClientesMap(clienteMap);
+        setClientesCanalMap(clienteCanal);
 
-      setClientesMap(map);
-      setClientesCanalMap(clienteCanal);
-    } catch (err) {
-      console.error("Error cargando clientes:", err);
-    }
-  };
-  loadClientes();
-}, []);
+        const canalesList = Array.isArray(canalesData) ? canalesData : [];
+        setCanales(canalesList);
+        const canalMap = {};
+        canalesList.forEach((c) => {
+          const key = c.id_registro ?? c.id;
+          canalMap[key] = c.nombre_canal ?? c.nombre ?? key;
+        });
+        setCanalesMap(canalMap);
+
+        const productosList = Array.isArray(productosData) ? productosData : [];
+        setProductos(productosList);
+        const productosLookup = {};
+        productosList.forEach((p) => {
+          const nombre = (p.nombre_producto ?? "").trim();
+          const sku = (p.sku ?? "").trim();
+          if (!nombre && !sku) return;
+          const payload = { producto: nombre, sku };
+          if (nombre) productosLookup[nombre.toLowerCase()] = payload;
+          if (sku) productosLookup[sku.toLowerCase()] = payload;
+        });
+        setProductosMap(productosLookup);
+      } catch (err) {
+        console.error("Error cargando catalogos Bluetti:", err);
+      }
+    };
+
+    loadCatalogos();
+  }, []);
 
 
   // Cargar ventas (se ejecuta cuando rowsPerPage cambia o cuando quieras recargar)
@@ -122,6 +153,8 @@ export default function Crudventasbluetti() {
         total_venta: item.total_venta !== null && item.total_venta !== undefined ? Number(item.total_venta) : null,
         costo_unitario: item.costo_unitario !== null && item.costo_unitario !== undefined ? Number(item.costo_unitario) : null,
         costo_total: item.costo_total !== null && item.costo_total !== undefined ? Number(item.costo_total) : null,
+        producto: item.producto || "",
+        sku: item.sku || "",
         cliente_nombre: clientesMap[item.cliente] ?? item.cliente_nombre ?? item.cliente,
       }));
       setItems(normal);
@@ -154,6 +187,8 @@ export default function Crudventasbluetti() {
     costo_total: Number(item.costo_total) || 0,
     cliente: clienteId ?? null,
     canal: canalId ?? null,
+    producto: item.producto || "",
+    sku: item.sku || "",
   };
   setActive(normalized);
   setModalOpen(true);
@@ -167,6 +202,10 @@ export default function Crudventasbluetti() {
     if (!active?.fecha_venta) { showToast("La fecha de venta es requerida", "error"); return; }
     if (!(Number(active?.cantidad) > 0)) { showToast("La cantidad debe ser mayor a 0", "error"); return; }
     if (!active?.canal) { showToast("Selecciona un canal", "error"); return; } // evita canal null
+    if (!String(active?.producto || "").trim() && !String(active?.sku || "").trim()) {
+      showToast("Selecciona un producto Bluetti", "error");
+      return;
+    }
 
     setLoading(true);
 
@@ -191,6 +230,15 @@ export default function Crudventasbluetti() {
     const costo_unitario = Number(active.costo_unitario) || 0;
     const total_venta_calc = Number((cantidad * precio_unitario).toFixed(2));
     const costo_total_calc = Number((cantidad * costo_unitario).toFixed(2));
+    const productoKey = String(active.producto || "").trim().toLowerCase();
+    const skuKey = String(active.sku || "").trim().toLowerCase();
+    const productoResolvido = productosMap[productoKey] || productosMap[skuKey] || null;
+    const producto = productoResolvido?.producto || String(active.producto || "").trim();
+    const sku = productoResolvido?.sku || String(active.sku || "").trim();
+    if (!producto || !sku) {
+      showToast("El producto seleccionado debe tener nombre y SKU", "error");
+      return;
+    }
 
     const payload = {
       ...active,
@@ -203,6 +251,8 @@ export default function Crudventasbluetti() {
       cliente: active.cliente ? Number(active.cliente) : null,
       ano: Number(active.ano),
       mes: Number(active.mes),
+      producto,
+      sku,
     };
 
     console.log("Payload POST /VentasBluetti/ :", payload);
@@ -333,6 +383,21 @@ export default function Crudventasbluetti() {
   const handleInput = (field, value) => setActive((p) => {
   const next = { ...p, [field]: value };
 
+  if (field === "producto" || field === "sku") {
+    const key = String(value || "").trim().toLowerCase();
+    const info = productosMap[key];
+    if (info) {
+      next.producto = info.producto || "";
+      next.sku = info.sku || "";
+    } else if (field === "producto") {
+      next.producto = String(value || "").trim();
+      next.sku = "";
+    } else {
+      next.sku = String(value || "").trim();
+      next.producto = "";
+    }
+  }
+
   // si cambiaron cantidad/precios -> recalcular totales
   const cantidad = Number(next.cantidad) || 0;
   const precio_unitario = Number(next.precio_unitario) || 0;
@@ -412,6 +477,8 @@ export default function Crudventasbluetti() {
                 <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("fecha_venta")}>Fecha <span>{sortIndicator("fecha_venta")}</span></button></th>
                 <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("tipo_venta")}>Tipo <span>{sortIndicator("tipo_venta")}</span></button></th>
                 <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("cliente")}>Cliente <span>{sortIndicator("cliente")}</span></button></th>
+                <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("producto")}>Producto <span>{sortIndicator("producto")}</span></button></th>
+                <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("sku")}>SKU <span>{sortIndicator("sku")}</span></button></th>
                 <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("cantidad")}>Cantidad <span>{sortIndicator("cantidad")}</span></button></th>
                 <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("precio_unitario")}>Precio Unit. <span>{sortIndicator("precio_unitario")}</span></button></th>
                 <th><button type="button" className="CrudBluetti_th_btn" onClick={() => toggleSort("total_venta")}>Total Venta <span>{sortIndicator("total_venta")}</span></button></th>
@@ -427,6 +494,8 @@ export default function Crudventasbluetti() {
                   <td>{p.fecha_venta || "-"}</td>
                   <td>{p.tipo_venta || "-"}</td>
                   <td>{p.cliente_nombre ?? (clientesMap[p.cliente] ?? (typeof p.cliente === "object" ? p.cliente.nombre_cliente : p.cliente))}</td>
+                  <td>{p.producto || "-"}</td>
+                  <td>{p.sku || "-"}</td>
                   <td>{(p.cantidad !== null && p.cantidad !== undefined) ? p.cantidad : "-"}</td>
                   <td>{(p.precio_unitario !== null && p.precio_unitario !== undefined) ? Number(p.precio_unitario).toFixed(2) : "-"}</td>
                   <td>{(p.total_venta !== null && p.total_venta !== undefined) ? Number(p.total_venta).toFixed(2) : "-"}</td>
@@ -437,7 +506,7 @@ export default function Crudventasbluetti() {
                     <button onClick={() => eliminar(p.id)}>Eliminar</button>
                   </td>
                 </tr>
-              )) : <tr><td colSpan="10"><div className="CrudBluetti_empty"><p>No se encontraron ventas</p></div></td></tr>}
+              )) : <tr><td colSpan="12"><div className="CrudBluetti_empty"><p>No se encontraron ventas</p></div></td></tr>}
             </tbody>
           </table>
 
@@ -495,6 +564,31 @@ export default function Crudventasbluetti() {
     })}
   </select>
 </div>
+
+            <div className="CrudBluetti_form_group">
+              <label className="CrudBluetti_form_label">Producto Bluetti</label>
+              <select
+                value={active?.producto || ""}
+                onChange={(e) => handleInput("producto", e.target.value)}
+              >
+                <option value="">(Seleccionar producto)</option>
+                {productos.map((p) => {
+                  const nombre = p.nombre_producto ?? "";
+                  const sku = p.sku ?? "";
+                  const key = p.id_registro ?? p.id ?? `${nombre}-${sku}`;
+                  return (
+                    <option key={key} value={nombre}>
+                      {nombre}{sku ? ` (${sku})` : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="CrudBluetti_form_group">
+              <label className="CrudBluetti_form_label">SKU</label>
+              <input type="text" value={active?.sku || ""} readOnly />
+            </div>
 
             <div className="CrudBluetti_form_group">
   <label className="CrudBluetti_form_label">Cantidad</label>

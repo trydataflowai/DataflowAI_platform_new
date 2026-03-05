@@ -8098,6 +8098,60 @@ def _build_cliente_lookup():
     return lookup
 
 
+def _build_producto_bluetti_lookup():
+    lookup = {}
+    qs = ProductosBluetti.objects.filter(
+        id_empresa_id=DEFAULT_EMPRESA_ID,
+        id_producto_id=DEFAULT_PRODUCTO_ID
+    ).values("id_registro", "sku", "nombre_producto")
+
+    for row in qs:
+        sku = _clean_cell(row.get("sku"))
+        nombre = _clean_cell(row.get("nombre_producto"))
+        payload = {
+            "sku": sku,
+            "producto": nombre,
+        }
+        if row.get("id_registro") is not None:
+            lookup[_cell_key(row.get("id_registro"))] = payload
+        if sku:
+            lookup[_cell_key(sku)] = payload
+        if nombre:
+            lookup[_cell_key(nombre)] = payload
+    return lookup
+
+
+def _resolve_venta_bluetti_producto(data, producto_lookup, existing=None):
+    raw_producto = _clean_cell(data.get("producto"))
+    if raw_producto == "":
+        raw_producto = _clean_cell(data.get("nombre_producto"))
+
+    raw_sku = _clean_cell(data.get("sku"))
+
+    if not raw_producto and not raw_sku:
+        if existing and _clean_cell(existing.producto) and _clean_cell(existing.sku):
+            return existing.producto, existing.sku, None
+        return None, None, "Debes enviar producto o sku"
+
+    by_producto = producto_lookup.get(_cell_key(raw_producto)) if raw_producto else None
+    by_sku = producto_lookup.get(_cell_key(raw_sku)) if raw_sku else None
+
+    if raw_producto and not by_producto:
+        return None, None, f"Producto no existe en catalogo Bluetti: {raw_producto}"
+    if raw_sku and not by_sku:
+        return None, None, f"SKU no existe en catalogo Bluetti: {raw_sku}"
+    if by_producto and by_sku and by_producto.get("sku") != by_sku.get("sku"):
+        return None, None, "Producto y SKU no pertenecen al mismo item del catalogo Bluetti"
+
+    resolved = by_producto or by_sku
+    producto = _clean_cell(resolved.get("producto")) if resolved else ""
+    sku = _clean_cell(resolved.get("sku")) if resolved else ""
+    if not producto or not sku:
+        return None, None, "El producto Bluetti seleccionado debe tener nombre y SKU"
+
+    return producto, sku, None
+
+
 def _build_template_response(filename, sheet_name, columns, sample_rows=None, notes=None):
     df = pd.DataFrame(sample_rows or [], columns=columns)
     response = HttpResponse(
@@ -8629,7 +8683,16 @@ class VentasBluettiListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = VentasBluettiSerializer(data=request.data)
+        data = request.data.copy()
+        producto_lookup = _build_producto_bluetti_lookup()
+        producto, sku, error = _resolve_venta_bluetti_producto(data, producto_lookup)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+
+        data["producto"] = producto
+        data["sku"] = sku
+
+        serializer = VentasBluettiSerializer(data=data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         obj = serializer.save()
@@ -8644,7 +8707,16 @@ class VentasBluettiDetailView(APIView):
         instance = self.get_object(pk)
         if not instance:
             return Response({'error': 'Venta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = VentasBluettiSerializer(instance, data=request.data)
+        data = request.data.copy()
+        producto_lookup = _build_producto_bluetti_lookup()
+        producto, sku, error = _resolve_venta_bluetti_producto(data, producto_lookup, existing=instance)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+
+        data["producto"] = producto
+        data["sku"] = sku
+
+        serializer = VentasBluettiSerializer(instance, data=data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         obj = serializer.save()
@@ -8654,7 +8726,16 @@ class VentasBluettiDetailView(APIView):
         instance = self.get_object(pk)
         if not instance:
             return Response({'error': 'Venta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = VentasBluettiSerializer(instance, data=request.data, partial=True)
+        data = request.data.copy()
+        producto_lookup = _build_producto_bluetti_lookup()
+        producto, sku, error = _resolve_venta_bluetti_producto(data, producto_lookup, existing=instance)
+        if error:
+            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+
+        data["producto"] = producto
+        data["sku"] = sku
+
+        serializer = VentasBluettiSerializer(instance, data=data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         obj = serializer.save()
@@ -8694,8 +8775,16 @@ class VentasBluettiBulkImportView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        columnas_producto = {"producto", "nombre_producto", "sku"}
+        if not any(col in df.columns for col in columnas_producto):
+            return Response(
+                {"error": "Debes incluir producto", "faltantes": ["producto (nombre) o sku"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         cliente_lookup = _build_cliente_lookup()
         canal_lookup = _build_canal_lookup()
+        producto_lookup = _build_producto_bluetti_lookup()
 
         objs = []
         errores = []
@@ -8714,12 +8803,16 @@ class VentasBluettiBulkImportView(APIView):
                 raw_cliente = row.get("cliente_id") if "cliente_id" in df.columns else None
 
             cliente_info = cliente_lookup.get(_cell_key(raw_cliente))
+            producto, sku, error_producto = _resolve_venta_bluetti_producto(row, producto_lookup)
 
             if not fecha:
                 errores.append(f"Fila {idx + 2}: fecha_venta invalida")
                 continue
             if not cliente_info:
                 errores.append(f"Fila {idx + 2}: cliente no existe")
+                continue
+            if error_producto:
+                errores.append(f"Fila {idx + 2}: {error_producto}")
                 continue
             if cantidad is None:
                 errores.append(f"Fila {idx + 2}: cantidad invalida")
@@ -8763,6 +8856,8 @@ class VentasBluettiBulkImportView(APIView):
                 mes=fecha.month,
                 canal_id=canal_id_cliente,
                 cliente_id=cliente_id,
+                sku=sku,
+                producto=producto,
                 cantidad=cantidad,
                 precio_unitario=precio_unitario,
                 total_venta=total_venta_final,
@@ -8801,6 +8896,7 @@ class VentasBluettiBulkUpdateExcelView(APIView):
         if not required.issubset(df.columns):
             return Response({"error": "Falta columna obligatoria", "faltantes": list(required - set(df.columns))}, status=status.HTTP_400_BAD_REQUEST)
 
+        producto_lookup = _build_producto_bluetti_lookup()
         updated = 0
         for _, row in df.iterrows():
             instance = VentasBluetti.objects.filter(id_registro=row["id_registro"], id_empresa_id=DEFAULT_EMPRESA_ID, id_producto_id=DEFAULT_PRODUCTO_ID).first()
@@ -8813,6 +8909,14 @@ class VentasBluettiBulkUpdateExcelView(APIView):
                 data["fecha_venta"] = pd.to_datetime(data["fecha_venta"]).date()
                 data["ano"] = pd.to_datetime(data["fecha_venta"]).year
                 data["mes"] = pd.to_datetime(data["fecha_venta"]).month
+
+            if "producto" in data or "nombre_producto" in data or "sku" in data:
+                producto, sku, error_producto = _resolve_venta_bluetti_producto(data, producto_lookup, existing=instance)
+                if error_producto:
+                    continue
+                data["producto"] = producto
+                data["sku"] = sku
+
             serializer = VentasBluettiSerializer(instance, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -8849,6 +8953,8 @@ class VentasBluettiExportView(APIView):
             "cliente__nombre_cliente", # <-- nombre del cliente (lo que queremos)
             "canal",                   # id canal (opcional)
             "canal__nombre_canal",  
+            "sku",
+            "producto",
             "cantidad",
             "precio_unitario",
             "total_venta",
@@ -9810,6 +9916,8 @@ class VentasBluettiTemplateView(APIView):
             columns=[
                 "fecha_venta",
                 "cliente",
+                "producto",
+                "sku",
                 "tipo_venta",
                 "cantidad",
                 "precio_unitario",
@@ -9821,6 +9929,8 @@ class VentasBluettiTemplateView(APIView):
             sample_rows=[{
                 "fecha_venta": "2026-02-01",
                 "cliente": "Homecenter Colombia",
+                "producto": "Bluetti EB55",
+                "sku": "BLU-EB55",
                 "tipo_venta": "sell_in",
                 "cantidad": 10,
                 "precio_unitario": 1200.50,
@@ -9831,6 +9941,7 @@ class VentasBluettiTemplateView(APIView):
             }],
             notes=[
                 "cliente puede ser nombre_cliente (recomendado) o cliente_id.",
+                "producto o sku son obligatorios y deben existir en el catalogo de productos Bluetti.",
                 "canal es opcional; si se envÃ­a, debe coincidir con el canal del cliente.",
             ],
         )
