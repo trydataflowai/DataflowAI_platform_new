@@ -2178,3 +2178,318 @@ class MetasComercialesBluetti(models.Model):
     class Meta:
         db_table = 'metas_comerciales_bluetti'
         verbose_name_plural = 'Metas Comerciales Bluetti'
+
+
+
+
+
+
+
+
+
+#DEMO CONECTCOM
+
+from django.db import models
+
+# =========================
+# CHOICES
+# =========================
+
+# Las CHANNEL_CHOICES que pediste antes (retail/reseller/etc.)
+CHANNEL_CHOICES = [
+    ('retail', 'Retail - Grandes superficies'),
+    ('reseller_wh', 'Reseller - Mayorista'),
+    ('reseller_hw', 'Reseller - Ferreterías'),
+    ('ecommerce', 'E-commerce'),
+    ('other', 'Otro'),
+]
+
+# Canal de adquisición (de los paréntesis originales: Venta directa / Web / Aliado / Call center)
+ACQUISITION_CHANNEL_CHOICES = [
+    ('venta_directa', 'Venta directa'),
+    ('web', 'Web'),
+    ('aliado', 'Aliado'),
+    ('call_center', 'Call center'),
+]
+
+# Estado del cliente (Activo / Suspendido / Cancelado)
+STATE_CHOICES = [
+    ('activo', 'Activo'),
+    ('suspendido', 'Suspendido'),
+    ('cancelado', 'Cancelado'),
+]
+
+# Tipo de cliente (Residencial / Empresarial / Mayorista)
+TYPE_CLIENT_CHOICES = [
+    ('residencial', 'Residencial'),
+    ('empresarial', 'Empresarial'),
+    ('mayorista', 'Mayorista'),
+]
+
+# Estado de factura (Pagada / Pendiente / Parcial / Vencida)
+INVOICE_STATUS_CHOICES = [
+    ('pagada', 'Pagada'),
+    ('pendiente', 'Pendiente'),
+    ('parcial', 'Parcial'),
+    ('vencida', 'Vencida'),
+]
+
+# Estado de pago (usaré opciones similares a facturas; puedes ajustar)
+PAYMENT_STATUS_CHOICES = [
+    ('pagado', 'Pagado'),
+    ('pendiente', 'Pendiente'),
+    ('parcial', 'Parcial'),
+    ('fallido', 'Fallido'),
+]
+
+# Categoría de ticket (Instalación / Interrupción / Facturación / Otros)
+TICKET_CATEGORY_CHOICES = [
+    ('instalacion', 'Instalación'),
+    ('interrupcion', 'Interrupción'),
+    ('facturacion', 'Facturación'),
+    ('otros', 'Otros'),
+]
+
+# Prioridad (opcional: Alta / Media / Baja)
+PRIORITY_CHOICES = [
+    ('alta', 'Alta'),
+    ('media', 'Media'),
+    ('baja', 'Baja'),
+]
+
+
+
+
+# =========================
+# MODELOS PRINCIPALES
+# =========================
+
+class conetcom_clientes(models.Model):
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_cliente = models.CharField(max_length=100, primary_key=True)  # ID del cliente (identificador único)
+    fecha_alta_cliente = models.DateField()  # Fecha de alta del cliente
+
+    estado_cliente = models.CharField(
+        max_length=20,
+        choices=STATE_CHOICES,
+    )  # Estado del cliente (Activo / Suspendido / Cancelado)
+
+    tipo_cliente = models.CharField(
+        max_length=20,
+        choices=TYPE_CLIENT_CHOICES,
+    )  # Tipo de cliente (Residencial / Empresarial / Mayorista)
+
+    ciudad = models.CharField(max_length=100)  # Ciudad
+    region_departamento = models.CharField(max_length=100)  # Región / Departamento
+
+    canal_adquisicion = models.CharField(
+        max_length=30,
+        choices=ACQUISITION_CHANNEL_CHOICES,
+    )  # Canal de adquisición (Venta directa / Web / Aliado / Call center)
+
+    id_plan_contratado = models.CharField(max_length=100, null=True, blank=True)  # ID del plan contratado
+    nombre_plan_contratado = models.CharField(max_length=150, null=True, blank=True)  # Nombre de Plan Contratado
+
+    fecha_inicio_contrato = models.DateField(null=True, blank=True)  # Fecha de inicio de contrato
+    fecha_finalizacion_contrato = models.DateField(null=True, blank=True)  # Fecha de finalización de contrato (si aplica)
+
+    indicador_vip = models.BooleanField(default=False)  # Indicador VIP (Sí/No, opcional)
+
+    class Meta:
+        db_table = 'conetcom_clientes'
+
+    def __str__(self):
+        return f"{self.id_cliente}"
+
+
+class conetcom_planes(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_plan = models.CharField(max_length=100, primary_key=True)  # ID del plan
+    nombre_plan = models.CharField(max_length=150)  # Nombre del plan
+
+    velocidad_descarga_mbps = models.FloatField()  # Velocidad de descarga (Mbps)
+    velocidad_subida_mbps = models.FloatField()  # Velocidad de subida (Mbps)
+
+    precio_mensual = models.DecimalField(max_digits=12, decimal_places=2)  # Precio mensual
+    duracion_minima_contrato_meses = models.IntegerField()  # Duración mínima del contrato (meses)
+
+    tipo_tecnologia = models.CharField(max_length=100)  # Tipo de tecnología
+
+    class Meta:
+        db_table = 'conetcom_planes'
+
+    def __str__(self):
+        return f"{self.nombre_plan}"
+
+
+class conetcom_facturacion(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_factura = models.CharField(max_length=100, primary_key=True)  # ID de factura
+    id_cliente = models.ForeignKey(conetcom_clientes, on_delete=models.CASCADE, db_column='id_cliente')
+
+    fecha_emision = models.DateField()  # Fecha de emisión
+    fecha_vencimiento = models.DateField()  # Fecha de vencimiento
+
+    valor_total_facturado = models.DecimalField(max_digits=14, decimal_places=2)  # Valor total facturado
+
+    estado_factura = models.CharField(
+        max_length=20,
+        choices=INVOICE_STATUS_CHOICES,
+    )  # Estado de la factura (Pagada / Pendiente / Parcial / Vencida)
+
+    valor_pagado = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)  # Valor pagado
+    fecha_pago = models.DateField(null=True, blank=True)  # Fecha de pago (si aplica)
+    metodo_pago = models.CharField(max_length=100, null=True, blank=True)  # Método de pago
+
+    class Meta:
+        db_table = 'conetcom_facturacion'
+
+    def __str__(self):
+        return f"{self.id_factura}"
+
+
+class conetcom_pagos(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_pago = models.CharField(max_length=100, primary_key=True)  # ID del pago
+    id_cliente = models.ForeignKey(conetcom_clientes, on_delete=models.CASCADE, db_column='id_cliente')
+    id_factura_asociada = models.ForeignKey(
+        conetcom_facturacion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_factura_asociada'
+    )
+
+    fecha_pago = models.DateField(null=True, blank=True)  # Fecha de pago
+    valor_pagado = models.DecimalField(max_digits=14, decimal_places=2)  # Valor pagado
+
+    medio_de_pago = models.CharField(max_length=100, null=True, blank=True)  # Medio de pago
+
+    estado_pago = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        null=True,
+        blank=True
+    )  # Estado del pago
+
+    metodo_de_pago = models.CharField(max_length=100, null=True, blank=True)  # Método de pago (redundante si se desea)
+
+    class Meta:
+        db_table = 'conetcom_pagos'
+
+    def __str__(self):
+        return f"{self.id_pago}"
+
+
+class conetcom_tickets_soporte(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_ticket = models.CharField(max_length=100, primary_key=True)  # ID del ticket
+    id_cliente = models.ForeignKey(conetcom_clientes, on_delete=models.CASCADE, db_column='id_cliente')
+
+    fecha_creacion = models.DateTimeField()  # Fecha de creación
+    fecha_cierre = models.DateTimeField(null=True, blank=True)  # Fecha de cierre
+
+    area_agente_asignado = models.CharField(max_length=150, null=True, blank=True)  # Área o agente asignado
+
+    categoria_ticket = models.CharField(
+        max_length=30,
+        choices=TICKET_CATEGORY_CHOICES,
+    )  # Categoría del ticket (Instalación / Interrupción / Facturación / Otros)
+
+    prioridad = models.CharField(
+        max_length=10,
+        choices=PRIORITY_CHOICES,
+        null=True,
+        blank=True
+    )  # Prioridad (Alta / Media / Baja)
+
+    indicador_incumplimiento_sla = models.BooleanField(default=False)  # Indicador de incumplimiento de SLA (Sí/No)
+    tiempo_resolucion = models.DurationField(null=True, blank=True)  # Tiempo de resolución (si ya lo calculan)
+
+    class Meta:
+        db_table = 'conetcom_tickets_soporte'
+
+    def __str__(self):
+        return f"{self.id_ticket}"
+
+
+class conetcom_trafico_consumo(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_registro = models.CharField(max_length=100, primary_key=True)  # ID de registro
+    id_cliente = models.ForeignKey(conetcom_clientes, on_delete=models.CASCADE, db_column='id_cliente')
+
+    fecha = models.DateField()  # Fecha
+    consumo_descarga_gb = models.FloatField(null=True, blank=True)  # Consumo descarga (GB)
+    consumo_subida_gb = models.FloatField(null=True, blank=True)  # Consumo subida (GB)
+    velocidad_pico_mbps = models.FloatField(null=True, blank=True)  # Velocidad pico alcanzada (Mbps)
+    velocidad_promedio_mbps = models.FloatField(null=True, blank=True)  # Velocidad promedio (Mbps)
+    numero_sesiones = models.IntegerField(null=True, blank=True)  # Número de sesiones (si aplica)
+
+    class Meta:
+        db_table = 'conetcom_trafico_consumo'
+
+    def __str__(self):
+        return f"{self.id_registro}"
+
+
+class conetcom_campanas(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_campana = models.CharField(max_length=100, primary_key=True)  # ID de campaña
+    nombre_campana = models.CharField(max_length=200)  # Nombre de campaña
+    fecha_inicio = models.DateField(null=True, blank=True)  # Fecha inicio
+    fecha_fin = models.DateField(null=True, blank=True)  # Fecha fin
+
+    # Canal de la campaña (puede usar CHANNEL_CHOICES u otro)
+    canal = models.CharField(max_length=30, choices=CHANNEL_CHOICES, null=True, blank=True)
+
+    segmento_objetivo = models.CharField(max_length=200, null=True, blank=True)  # Segmento objetivo
+
+    class Meta:
+        db_table = 'conetcom_campanas'
+
+    def __str__(self):
+        return f"{self.nombre_campana}"
+
+
+class conetcom_interacciones_campanas(models.Model):
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_interaccion = models.CharField(max_length=100, primary_key=True)  # ID de interacción
+    id_campana = models.ForeignKey(conetcom_campanas, on_delete=models.CASCADE, db_column='id_campana')
+    id_cliente = models.ForeignKey(conetcom_clientes, on_delete=models.CASCADE, db_column='id_cliente')
+
+    fecha_envio = models.DateTimeField(null=True, blank=True)  # Fecha de envío
+    abrio_mensaje = models.BooleanField(default=False)  # Abrió mensaje (Sí/No)
+    hizo_clic = models.BooleanField(default=False)  # Hizo clic (Sí/No)
+    genero_conversion = models.BooleanField(default=False)  # Generó conversión (Sí/No)
+    ingresos_generados = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)  # Ingresos generados (si aplica)
+
+    class Meta:
+        db_table = 'conetcom_interacciones_campanas'
+
+    def __str__(self):
+        return f"{self.id_interaccion}"

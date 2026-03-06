@@ -1912,3 +1912,184 @@ class MetasComercialesBluettiAdmin(admin.ModelAdmin):
         'id_empresa',
         'id_producto',
     )
+
+
+from .models import (
+    conetcom_clientes,
+    conetcom_planes,
+    conetcom_facturacion,
+    conetcom_pagos,
+    conetcom_tickets_soporte,
+    conetcom_trafico_consumo,
+    conetcom_campanas,
+    conetcom_interacciones_campanas,
+)
+
+
+@admin.register(conetcom_clientes)
+class ConetcomClientesAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_cliente',
+        'id_empresa',
+        'id_producto',
+        'estado_cliente',
+        'tipo_cliente',
+        'ciudad',
+        'canal_adquisicion',
+        'fecha_alta_cliente',
+    )
+    search_fields = (
+        'id_cliente',
+        'ciudad',
+        'region_departamento',
+        'nombre_plan_contratado',
+    )
+    list_filter = (
+        'estado_cliente',
+        'tipo_cliente',
+        'canal_adquisicion',
+        'indicador_vip',
+        'id_empresa',
+    )
+    ordering = ('id_cliente',)
+
+
+@admin.register(conetcom_planes)
+class ConetcomPlanesAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_plan',
+        'nombre_plan',
+        'id_empresa',
+        'id_producto',
+        'tipo_tecnologia',
+        'velocidad_descarga_mbps',
+        'velocidad_subida_mbps',
+        'precio_mensual',
+    )
+    search_fields = ('id_plan', 'nombre_plan', 'tipo_tecnologia')
+    list_filter = ('tipo_tecnologia', 'id_empresa', 'id_producto')
+    ordering = ('nombre_plan',)
+
+
+@admin.register(conetcom_facturacion)
+class ConetcomFacturacionAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_factura',
+        'id_cliente',
+        'id_empresa',
+        'id_producto',
+        'fecha_emision',
+        'fecha_vencimiento',
+        'estado_factura',
+        'valor_total_facturado',
+        'valor_pagado',
+    )
+    search_fields = ('id_factura', 'id_cliente__id_cliente', 'metodo_pago')
+    list_filter = ('estado_factura', 'fecha_emision', 'fecha_vencimiento', 'id_empresa')
+    ordering = ('-fecha_emision',)
+    date_hierarchy = 'fecha_emision'
+
+
+@admin.register(conetcom_pagos)
+class ConetcomPagosAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_pago',
+        'id_cliente',
+        'id_factura_asociada',
+        'id_empresa',
+        'id_producto',
+        'fecha_pago',
+        'valor_pagado',
+        'estado_pago',
+        'medio_de_pago',
+    )
+    search_fields = ('id_pago', 'id_cliente__id_cliente', 'medio_de_pago', 'metodo_de_pago')
+    list_filter = ('estado_pago', 'fecha_pago', 'id_empresa', 'id_producto')
+    ordering = ('-fecha_pago',)
+    date_hierarchy = 'fecha_pago'
+
+
+@admin.register(conetcom_tickets_soporte)
+class ConetcomTicketsSoporteAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_ticket',
+        'id_cliente',
+        'id_empresa',
+        'id_producto',
+        'fecha_creacion',
+        'fecha_cierre',
+        'categoria_ticket',
+        'prioridad',
+        'indicador_incumplimiento_sla',
+    )
+    search_fields = ('id_ticket', 'id_cliente__id_cliente', 'area_agente_asignado')
+    list_filter = ('categoria_ticket', 'prioridad', 'indicador_incumplimiento_sla', 'id_empresa')
+    ordering = ('-fecha_creacion',)
+    date_hierarchy = 'fecha_creacion'
+
+
+@admin.register(conetcom_trafico_consumo)
+class ConetcomTraficoConsumoAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_registro',
+        'id_cliente',
+        'id_empresa',
+        'id_producto',
+        'fecha',
+        'consumo_descarga_gb',
+        'consumo_subida_gb',
+        'velocidad_promedio_mbps',
+        'numero_sesiones',
+    )
+    search_fields = ('id_registro', 'id_cliente__id_cliente')
+    list_filter = ('fecha', 'id_empresa', 'id_producto')
+    ordering = ('-fecha',)
+    date_hierarchy = 'fecha'
+
+
+@admin.register(conetcom_campanas)
+class ConetcomCampanasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_campana',
+        'nombre_campana',
+        'id_empresa',
+        'id_producto',
+        'canal',
+        'segmento_objetivo',
+        'fecha_inicio',
+        'fecha_fin',
+    )
+    search_fields = ('id_campana', 'nombre_campana', 'segmento_objetivo')
+    list_filter = ('canal', 'fecha_inicio', 'fecha_fin', 'id_empresa')
+    ordering = ('-fecha_inicio',)
+    date_hierarchy = 'fecha_inicio'
+
+
+@admin.register(conetcom_interacciones_campanas)
+class ConetcomInteraccionesCampanasAdmin(admin.ModelAdmin):
+    list_display = (
+        'id_interaccion',
+        'id_campana',
+        'id_cliente',
+        'id_empresa',
+        'id_producto',
+        'fecha_envio',
+        'abrio_mensaje',
+        'hizo_clic',
+        'genero_conversion',
+        'ingresos_generados',
+    )
+    search_fields = (
+        'id_interaccion',
+        'id_campana__id_campana',
+        'id_cliente__id_cliente',
+    )
+    list_filter = (
+        'abrio_mensaje',
+        'hizo_clic',
+        'genero_conversion',
+        'fecha_envio',
+        'id_empresa',
+    )
+    ordering = ('-fecha_envio',)
+    date_hierarchy = 'fecha_envio'
