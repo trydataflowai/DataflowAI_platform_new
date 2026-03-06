@@ -342,7 +342,7 @@ const LoginMercado = () => {
                 </form>
 
                 <div className={styles.EspMercadoLogLoginFooter}>
-                  
+                  <p><Link to="/recuperar-contrasena">Recuperar contraseña</Link></p>
                 </div>
               </div>
             </div>

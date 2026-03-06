@@ -20,6 +20,8 @@ from django.urls import path
 from .views import (
     LoginView,
     RefreshTokenView,
+    PasswordRecoveryRequestView,
+    PasswordRecoveryConfirmView,
     ProductosUsuarioView,
     
     UsuarioInfoView,
@@ -282,6 +284,8 @@ urlpatterns = [
     # --- Autenticación y usuario ---
     path('login/', LoginView.as_view(), name='login'),
     path('refresh-token/', RefreshTokenView.as_view(), name='refresh-token'),
+    path('password-recovery/request-code/', PasswordRecoveryRequestView.as_view(), name='password-recovery-request-code'),
+    path('password-recovery/confirm/', PasswordRecoveryConfirmView.as_view(), name='password-recovery-confirm'),
     path('usuario/productos/', ProductosUsuarioView.as_view(), name='usuario-productos'),
     path('usuario/info/', UsuarioInfoView.as_view(), name='usuario-info'),
 

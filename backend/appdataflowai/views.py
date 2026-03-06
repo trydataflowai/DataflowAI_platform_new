@@ -1,8 +1,19 @@
 import logging
+import base64
+import hashlib
+import hmac
+import json
+import os
+import secrets
+import time
+from urllib import error as urllib_error
+from urllib import parse as urllib_parse
+from urllib import request as urllib_request
 from datetime import timedelta
 
 import jwt
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
@@ -10,8 +21,204 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Usuario, RegistrosSesion
+from .serializers import PasswordRecoveryRequestSerializer, PasswordRecoveryConfirmSerializer
 
 logger = logging.getLogger(__name__)
+
+PASSWORD_RECOVERY_TTL_SECONDS = 10 * 60
+PASSWORD_RECOVERY_MAX_ATTEMPTS = 5
+PASSWORD_RECOVERY_CACHE_PREFIX = "pwd_recovery"
+
+
+def _normalize_email(value):
+    return (value or "").strip().lower()
+
+
+def _setting_or_env(name, default=""):
+    value = getattr(settings, name, None)
+    if value is None or value == "":
+        value = os.getenv(name, default)
+    return value
+
+
+def _code_hash(code):
+    return hashlib.sha256(str(code).encode("utf-8")).hexdigest()
+
+
+def _make_cache_key(correo):
+    return f"{PASSWORD_RECOVERY_CACHE_PREFIX}:{_normalize_email(correo)}"
+
+
+def _build_plain_email(sender, recipient, subject, body):
+    return (
+        f"From: {sender}\r\n"
+        f"To: {recipient}\r\n"
+        f"Subject: {subject}\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: text/plain; charset=UTF-8\r\n"
+        "\r\n"
+        f"{body}"
+    )
+
+
+def _gmail_access_token():
+    client_id = _setting_or_env("GMAIL_CLIENT_ID", "")
+    client_secret = _setting_or_env("GMAIL_CLIENT_SECRET", "")
+    refresh_token = _setting_or_env("GMAIL_REFRESH_TOKEN", "")
+    if not client_id or not client_secret or not refresh_token:
+        faltantes = []
+        if not client_id:
+            faltantes.append("GMAIL_CLIENT_ID")
+        if not client_secret:
+            faltantes.append("GMAIL_CLIENT_SECRET")
+        if not refresh_token:
+            faltantes.append("GMAIL_REFRESH_TOKEN")
+        raise RuntimeError(f"Faltan variables: {', '.join(faltantes)}")
+
+    payload = urllib_parse.urlencode(
+        {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        }
+    ).encode("utf-8")
+
+    req = urllib_request.Request(
+        "https://oauth2.googleapis.com/token",
+        data=payload,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+
+    with urllib_request.urlopen(req, timeout=20) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    token = data.get("access_token")
+    if not token:
+        raise RuntimeError("No se pudo obtener access token de Gmail API")
+    return token
+
+
+def _send_recovery_email_via_gmail_api(recipient, code):
+    sender = _setting_or_env("GMAIL_FROM", "") or "no-reply@example.com"
+    subject = "Codigo de recuperacion de contraseña"
+    body = (
+        "Recibimos una solicitud para restablecer tu contraseña.\n\n"
+        f"Tu codigo de verificacion es: {code}\n"
+        f"Este codigo vence en {PASSWORD_RECOVERY_TTL_SECONDS // 60} minutos.\n\n"
+        "Si no solicitaste este cambio, ignora este mensaje."
+    )
+    raw_message = _build_plain_email(sender, recipient, subject, body)
+    raw_encoded = base64.urlsafe_b64encode(raw_message.encode("utf-8")).decode("utf-8")
+
+    access_token = _gmail_access_token()
+    req = urllib_request.Request(
+        "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        data=json.dumps({"raw": raw_encoded}).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib_request.urlopen(req, timeout=20):
+        return True
+
+
+class PasswordRecoveryRequestView(APIView):
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = PasswordRecoveryRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        correo = _normalize_email(serializer.validated_data["correo"])
+
+        usuario = Usuario.objects.filter(correo__iexact=correo).first()
+        # Respuesta genérica para no exponer si el correo existe.
+        generic_ok = {
+            "ok": True,
+            "message": "Si el correo existe, enviaremos un codigo de recuperacion.",
+        }
+        if not usuario:
+            return Response(generic_ok, status=status.HTTP_200_OK)
+
+        code = f"{secrets.randbelow(1000000):06d}"
+        cache.set(
+            _make_cache_key(correo),
+            {
+                "code_hash": _code_hash(code),
+                "expires_at": int(time.time()) + PASSWORD_RECOVERY_TTL_SECONDS,
+                "attempts": 0,
+            },
+            timeout=PASSWORD_RECOVERY_TTL_SECONDS,
+        )
+
+        try:
+            _send_recovery_email_via_gmail_api(correo, code)
+        except urllib_error.HTTPError as exc:
+            logger.exception("Error HTTP enviando correo de recuperacion")
+            return Response(
+                {"error": f"No se pudo enviar el correo (HTTP {exc.code})."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        except Exception:
+            logger.exception("Error enviando correo de recuperacion")
+            return Response(
+                {"error": "No se pudo enviar el correo de recuperacion."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(generic_ok, status=status.HTTP_200_OK)
+
+
+class PasswordRecoveryConfirmView(APIView):
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = PasswordRecoveryConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        correo = _normalize_email(serializer.validated_data["correo"])
+        codigo = str(serializer.validated_data["codigo"]).strip()
+        nueva_contrasena = serializer.validated_data["contrasena_nueva"]
+
+        usuario = Usuario.objects.filter(correo__iexact=correo).first()
+        if not usuario:
+            return Response({"error": "Codigo invalido o expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        key = _make_cache_key(correo)
+        data = cache.get(key)
+        if not data:
+            return Response({"error": "Codigo invalido o expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        now_ts = int(time.time())
+        expires_at = int(data.get("expires_at", 0))
+        attempts = int(data.get("attempts", 0))
+        if now_ts >= expires_at:
+            cache.delete(key)
+            return Response({"error": "El codigo ya expiro."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if attempts >= PASSWORD_RECOVERY_MAX_ATTEMPTS:
+            cache.delete(key)
+            return Response(
+                {"error": "Superaste el maximo de intentos. Solicita un nuevo codigo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        stored_hash = data.get("code_hash", "")
+        valid_code = hmac.compare_digest(stored_hash, _code_hash(codigo))
+        if not valid_code:
+            data["attempts"] = attempts + 1
+            remaining_ttl = max(1, expires_at - now_ts)
+            cache.set(key, data, timeout=remaining_ttl)
+            return Response({"error": "Codigo invalido o expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario.contrasena = nueva_contrasena
+        usuario.save(update_fields=["contrasena"])
+        cache.delete(key)
+        return Response({"ok": True, "message": "Contrasena actualizada correctamente."}, status=status.HTTP_200_OK)
 
 
 class LoginView(APIView):

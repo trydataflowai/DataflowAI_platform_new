@@ -342,7 +342,7 @@ const LoginColtrade = () => {
                 </form>
 
                 <div className={styles.coltradeLoginFooter}>
-                  
+                  <p><Link to="/recuperar-contrasena">Recuperar contraseña</Link></p>
                 </div>
               </div>
             </div>

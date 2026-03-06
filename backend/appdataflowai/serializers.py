@@ -309,6 +309,21 @@ class PasswordChangeSerializer(serializers.Serializer):
         return usuario
 
 
+class PasswordRecoveryRequestSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+
+
+class PasswordRecoveryConfirmSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+    codigo = serializers.CharField(min_length=6, max_length=6)
+    contrasena_nueva = serializers.CharField(min_length=6, write_only=True)
+    contrasena_nueva_confirmacion = serializers.CharField(min_length=6, write_only=True)
+
+    def validate(self, attrs):
+        if attrs.get('contrasena_nueva') != attrs.get('contrasena_nueva_confirmacion'):
+            raise serializers.ValidationError({'contrasena_nueva_confirmacion': 'Las contraseñas no coinciden'})
+        return attrs
+
 
 
 

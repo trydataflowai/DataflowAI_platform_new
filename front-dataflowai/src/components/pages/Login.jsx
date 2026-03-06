@@ -231,6 +231,7 @@ const Login = () => {
 
                 <div className={styles.loginFooter}>
                   <p>¿Primera vez en Dataflow? <Link to="/crear-usuario">Crea una cuenta</Link></p>
+                  <p><Link to="/recuperar-contrasena">Recuperar contraseña</Link></p>
                 </div>
               </div>
             </div>

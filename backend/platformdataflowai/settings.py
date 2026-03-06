@@ -154,3 +154,11 @@ WEBHOOK_JWT_EXP_SECONDS = config("WEBHOOK_JWT_EXP_SECONDS", cast=int, default=36
 
 # Si quieres que, cuando el cliente mande Authorization, el proxy lo reenvíe tal cual:
 WEBHOOK_FORWARD_INCOMING_AUTH = config("WEBHOOK_FORWARD_INCOMING_AUTH", default="false").lower() in ("1","true","yes")
+
+
+# Mail / Gmail API
+MAIL_PROVIDER = config("MAIL_PROVIDER", default="gmail_api")
+GMAIL_FROM = config("GMAIL_FROM", default="")
+GMAIL_CLIENT_ID = config("GMAIL_CLIENT_ID", default="")
+GMAIL_CLIENT_SECRET = config("GMAIL_CLIENT_SECRET", default="")
+GMAIL_REFRESH_TOKEN = config("GMAIL_REFRESH_TOKEN", default="")

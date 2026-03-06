@@ -24,6 +24,7 @@ import { HomeDashboard } from "../components/pages/HomeDashboard";
 import HomeTools from "../components/pages/HomeTools";
 import { Marketplace } from "../components/pages/Marketplace";
 import CreacionUsuario from "../components/pages/CreacionUsuario";
+import RecuperarContrasena from "../components/pages/RecuperarContrasena";
 import SoporteUsuario from "../components/pages/SoporteUsuario";
 import SoporteDetalleUsuario from "../components/pages/SoporteDetalleUsuario";
 import ChatPostgre from "../components/pages/Chxtbut";
@@ -183,7 +184,7 @@ import DashboardGeneralConectcom from "../components/dashboards/dashboards-conet
    --------------------------- */
 
 // Rutas que no deben mostrar Navbar/Footer (coincidencias exactas)
-const NO_LAYOUT_PATHS = ["/login", "/crear-usuario", "/crear-empresa"];
+const NO_LAYOUT_PATHS = ["/login", "/crear-usuario", "/crear-empresa", "/recuperar-contrasena"];
 
 // Prefijos de ruta que tampoco deben mostrar layout (ej: /forms/:slug)
 const NO_LAYOUT_PATH_PREFIXES = ["/forms"];
@@ -234,6 +235,7 @@ const VerificadorAutenticacionGlobal = ({ children }) => {
       '/Coltrade/login',
       '/crear-empresa',
       '/crear-usuario',
+      '/recuperar-contrasena',
       '/pagos',
       '/homeLogin',
       '/EspacioMercado/login'
@@ -359,6 +361,7 @@ export const Rutas = () => {
             <Route path="/EspacioMercado/login" element={<LoginMercado />} />
             <Route path="/crear-empresa" element={<CreacionEmpresa />} />
             <Route path="/crear-usuario" element={<CreacionUsuario />} />
+            <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
             <Route path="/pagos" element={<PagosStripe />} />
             <Route path="/homeLogin" element={<DefaultLayout><HomeLogin /></DefaultLayout>} />
 
