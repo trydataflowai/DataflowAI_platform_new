@@ -18,6 +18,7 @@ class conetcom_clientes_serializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "id_empresa": {"required": False},
+            "nombre_cliente": {"required": False, "allow_null": True, "allow_blank": True},
         }
 
 

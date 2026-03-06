@@ -2,6 +2,7 @@ import importlib.util
 import os
 
 from django.utils.dateparse import parse_date
+from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
@@ -97,6 +98,17 @@ class conetcom_clientes_views(_conetcom_base_views):
     serializer_class = conetcom_clientes_serializer
     date_field = "fecha_alta_cliente"
     ordering = ("fecha_alta_cliente",)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        q = self.request.query_params.get("q")
+        if q:
+            qs = qs.filter(
+                Q(nombre_cliente__icontains=q)
+                | Q(id_cliente__icontains=q)
+                | Q(ciudad__icontains=q)
+            )
+        return qs
 
 
 class conetcom_planes_views(_conetcom_base_views):

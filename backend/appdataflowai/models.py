@@ -2264,48 +2264,6 @@ PRIORITY_CHOICES = [
 # MODELOS PRINCIPALES
 # =========================
 
-class conetcom_clientes(models.Model):
-    # Obligatorios
-    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
-    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
-
-
-    id_cliente = models.CharField(max_length=100, primary_key=True)  # ID del cliente (identificador único)
-    fecha_alta_cliente = models.DateField()  # Fecha de alta del cliente
-
-    estado_cliente = models.CharField(
-        max_length=20,
-        choices=STATE_CHOICES,
-    )  # Estado del cliente (Activo / Suspendido / Cancelado)
-
-    tipo_cliente = models.CharField(
-        max_length=20,
-        choices=TYPE_CLIENT_CHOICES,
-    )  # Tipo de cliente (Residencial / Empresarial / Mayorista)
-
-    ciudad = models.CharField(max_length=100)  # Ciudad
-    region_departamento = models.CharField(max_length=100)  # Región / Departamento
-
-    canal_adquisicion = models.CharField(
-        max_length=30,
-        choices=ACQUISITION_CHANNEL_CHOICES,
-    )  # Canal de adquisición (Venta directa / Web / Aliado / Call center)
-
-    id_plan_contratado = models.CharField(max_length=100, null=True, blank=True)  # ID del plan contratado
-    nombre_plan_contratado = models.CharField(max_length=150, null=True, blank=True)  # Nombre de Plan Contratado
-
-    fecha_inicio_contrato = models.DateField(null=True, blank=True)  # Fecha de inicio de contrato
-    fecha_finalizacion_contrato = models.DateField(null=True, blank=True)  # Fecha de finalización de contrato (si aplica)
-
-    indicador_vip = models.BooleanField(default=False)  # Indicador VIP (Sí/No, opcional)
-
-    class Meta:
-        db_table = 'conetcom_clientes'
-
-    def __str__(self):
-        return f"{self.id_cliente}"
-
-
 class conetcom_planes(models.Model):
     id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
     id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
@@ -2327,6 +2285,62 @@ class conetcom_planes(models.Model):
 
     def __str__(self):
         return f"{self.nombre_plan}"
+
+
+
+class conetcom_clientes(models.Model):
+    # Obligatorios
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+
+    id_cliente = models.CharField(max_length=100, primary_key=True)  # ID del cliente (identificador único)
+    nombre_cliente = models.CharField(
+    max_length=150,
+    db_column='nombre_cliente',
+    null=True,
+    blank=True
+    )
+    fecha_alta_cliente = models.DateField()  # Fecha de alta del cliente
+
+    estado_cliente = models.CharField(
+        max_length=20,
+        choices=STATE_CHOICES,
+    )  # Estado del cliente (Activo / Suspendido / Cancelado)
+
+    tipo_cliente = models.CharField(
+        max_length=20,
+        choices=TYPE_CLIENT_CHOICES,
+    )  # Tipo de cliente (Residencial / Empresarial / Mayorista)
+
+    ciudad = models.CharField(max_length=100)  # Ciudad
+    region_departamento = models.CharField(max_length=100)  # Región / Departamento
+
+    canal_adquisicion = models.CharField(
+        max_length=30,
+        choices=ACQUISITION_CHANNEL_CHOICES,
+    )  # Canal de adquisición (Venta directa / Web / Aliado / Call center)
+
+    id_plan_contratado = models.ForeignKey(
+        'conetcom_planes',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_plan_contratado'
+    )  # ID del plan contratado (FK a conetcom_planes.id_plan)
+    nombre_plan_contratado = models.CharField(max_length=150, null=True, blank=True)  # Nombre de Plan Contratado
+
+    fecha_inicio_contrato = models.DateField(null=True, blank=True)  # Fecha de inicio de contrato
+    fecha_finalizacion_contrato = models.DateField(null=True, blank=True)  # Fecha de finalización de contrato (si aplica)
+
+    indicador_vip = models.BooleanField(default=False)  # Indicador VIP (Sí/No, opcional)
+
+    class Meta:
+        db_table = 'conetcom_clientes'
+
+    def __str__(self):
+        return f"{self.id_cliente}"
+
 
 
 class conetcom_facturacion(models.Model):

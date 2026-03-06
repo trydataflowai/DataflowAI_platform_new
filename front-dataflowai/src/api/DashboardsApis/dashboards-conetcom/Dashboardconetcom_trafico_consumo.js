@@ -1,0 +1,83 @@
+const API_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const RESOURCE = 'obtener/conetcom_trafico_consumo/';
+
+const getAuthToken = () => {
+  const raw =
+    localStorage.getItem('token') ||
+    localStorage.getItem('access_token') ||
+    localStorage.getItem('access') ||
+    '';
+  const token = String(raw).replace(/^Bearer\s*/i, '').trim();
+  if (!token || token === 'undefined' || token === 'null') return '';
+  return token;
+};
+
+const defaultOptions = () => {
+  const token = getAuthToken();
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+};
+
+const buildQuery = (params = {}) => {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') qs.append(k, v);
+  });
+  return qs.toString();
+};
+
+export const obtenerConetcomTraficoConsumo = async (params = {}) => {
+  if (!getAuthToken()) throw new Error('No hay sesion activa. Inicia sesion nuevamente.');
+  const query = buildQuery(params);
+  const res = await fetch(`${API_URL}/${RESOURCE}${query ? `?${query}` : ''}`, {
+    ...defaultOptions(),
+    method: 'GET',
+  });
+  if (res.status === 401) throw new Error('Sesion invalida o expirada. Vuelve a iniciar sesion.');
+  if (!res.ok) throw new Error('Error al obtener conetcom_trafico_consumo');
+  return await res.json();
+};
+
+export const obtenerConetcomRegistroTraficoConsumo = async (id) => {
+  const res = await fetch(`${API_URL}/${RESOURCE}${id}/`, {
+    ...defaultOptions(),
+    method: 'GET',
+  });
+  if (!res.ok) throw new Error('Error al obtener detalle de conetcom_trafico_consumo');
+  return await res.json();
+};
+
+export const crearConetcomRegistroTraficoConsumo = async (datos) => {
+  const res = await fetch(`${API_URL}/${RESOURCE}`, {
+    ...defaultOptions(),
+    method: 'POST',
+    body: JSON.stringify(datos),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(JSON.stringify(body));
+  return body;
+};
+
+export const actualizarConetcomRegistroTraficoConsumo = async (id, datos, usarPut = false) => {
+  const res = await fetch(`${API_URL}/${RESOURCE}${id}/`, {
+    ...defaultOptions(),
+    method: usarPut ? 'PUT' : 'PATCH',
+    body: JSON.stringify(datos),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(JSON.stringify(body));
+  return body;
+};
+
+export const eliminarConetcomRegistroTraficoConsumo = async (id) => {
+  const res = await fetch(`${API_URL}/${RESOURCE}${id}/`, {
+    ...defaultOptions(),
+    method: 'DELETE',
+  });
+  if (!res.ok && res.status !== 204) throw new Error('Error al eliminar conetcom_trafico_consumo');
+  return true;
+};

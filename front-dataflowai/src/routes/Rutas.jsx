@@ -163,6 +163,18 @@ import Crudinventariosselloutbluetti from "../components/pages/dashboardcrud/Cru
 import Crudmetasbluetti from "../components/pages/dashboardcrud/Crudmetasbluetti";
 
 
+//Demo CONETCOM
+import DashboardConectmosClientes from "../components/dashboards/dashboards-conetcom/DashboardConectmosClientes";
+import DashboardConectmosCampana from "../components/dashboards/dashboards-conetcom/DashboardConectmosCampana";
+import DashboardConectmosFacturacion from "../components/dashboards/dashboards-conetcom/DashboardConectmosFacturacion";
+import DashboardConectmosInteraccionesCampanas from "../components/dashboards/dashboards-conetcom/DashboardConectmosInteraccionesCampanas";
+import DashboardConectmosPagos from "../components/dashboards/dashboards-conetcom/DashboardConectmosPagos";
+import DashboardConectmosPlanes from "../components/dashboards/dashboards-conetcom/DashboardConectmosPlanes";
+import DashboardConectmosTicketsSoporte from "../components/dashboards/dashboards-conetcom/DashboardConectmosTicketsSoporte";
+import DashboardConectmosTraficoConsumo from "../components/dashboards/dashboards-conetcom/DashboardConectmosTraficoConsumo";
+
+import DashboardGeneralConectcom from "../components/dashboards/dashboards-conetcom/DashboardGeneralConectcom";
+
 
 
 
@@ -1082,6 +1094,107 @@ export const Rutas = () => {
               }
             />
 
+
+
+              // Metas Bluetti
+            <Route
+              path={"/Crud/Dashboard/ConetcomClientes"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosClientes />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomCampana"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosCampana />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomFacturacion"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosFacturacion />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomInteraccionesCampanas"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosInteraccionesCampanas />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomPagos"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosPagos />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomPlanes"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosPlanes />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomTicketsSoporte"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosTicketsSoporte />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+            <Route
+              path={"/Crud/Dashboard/ConetcomTraficoConsumo"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardConectmosTraficoConsumo />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+             <Route
+              path={"/Dashboard/DashboardGeneralConectcom"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardGeneralConectcom />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
 
 
