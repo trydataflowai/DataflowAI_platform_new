@@ -1,5 +1,6 @@
 const API_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const RESOURCE = 'obtener/conetcom_planes/';
+const IMPORT_RESOURCE = 'importar/conetcom_planes';
 
 const getAuthToken = () => {
   const raw =
@@ -80,4 +81,25 @@ export const eliminarConetcomPlan = async (id) => {
   });
   if (!res.ok && res.status !== 204) throw new Error('Error al eliminar conetcom_planes');
   return true;
+};
+
+export const importarConetcomPlanes = async (file, idProducto) => {
+  if (!getAuthToken()) throw new Error('No hay sesion activa. Inicia sesion nuevamente.');
+  const formData = new FormData();
+  formData.append('file', file);
+  if (idProducto !== undefined && idProducto !== null && idProducto !== '') {
+    formData.append('id_producto', idProducto);
+  }
+
+  const token = getAuthToken();
+  const res = await fetch(`${API_URL}/${IMPORT_RESOURCE}`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(JSON.stringify(body));
+  return body;
 };

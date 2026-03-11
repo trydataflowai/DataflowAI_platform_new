@@ -1189,7 +1189,7 @@ export const Rutas = () => {
             />
 
              <Route
-              path={"/Dashboard/DashboardGeneralConectcom"}
+              path={"/DashboardGeneralConectcom"}
               element={
                 <RutaProtegida>
                   <SideBarLayout>

@@ -1,6 +1,7 @@
 import importlib.util
 import os
 
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 
@@ -41,3 +42,45 @@ router.register(
 )
 
 urlpatterns = router.urls
+urlpatterns += [
+    path(
+        "importar/conetcom_planes",
+        views_module.conetcom_planes_import_views.as_view(),
+        name="conetcom_planes_import_url",
+    ),
+    path(
+        "importar/conetcom_clientes",
+        views_module.conetcom_clientes_import_views.as_view(),
+        name="conetcom_clientes_import_url",
+    ),
+    path(
+        "importar/conetcom_facturacion",
+        views_module.conetcom_facturacion_import_views.as_view(),
+        name="conetcom_facturacion_import_url",
+    ),
+    path(
+        "importar/conetcom_pagos",
+        views_module.conetcom_pagos_import_views.as_view(),
+        name="conetcom_pagos_import_url",
+    ),
+    path(
+        "importar/conetcom_tickets_soporte",
+        views_module.conetcom_tickets_soporte_import_views.as_view(),
+        name="conetcom_tickets_soporte_import_url",
+    ),
+    path(
+        "importar/conetcom_trafico_consumo",
+        views_module.conetcom_trafico_consumo_import_views.as_view(),
+        name="conetcom_trafico_consumo_import_url",
+    ),
+    path(
+        "importar/conetcom_campanas",
+        views_module.conetcom_campanas_import_views.as_view(),
+        name="conetcom_campanas_import_url",
+    ),
+    path(
+        "importar/conetcom_interacciones_campanas",
+        views_module.conetcom_interacciones_campanas_import_views.as_view(),
+        name="conetcom_interacciones_campanas_import_url",
+    ),
+]

@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import styles from '../../../styles/Dashboards/dashboard-ventas-e-inventarios/AnalisisInventarios.module.css';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import styles from '../../../styles/Dashboards/dashboards-conetcom/DashboardCrudConetcom.module.css';
 import {
   actualizarConetcomCliente,
   buscarConetcomClientesPorNombre,
   crearConetcomCliente,
   eliminarConetcomCliente,
+  importarConetcomClientes,
   obtenerConetcomClientes,
 } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcomclientes';
 
 const DashboardConectmosClientes = () => {
+  const navigate = useNavigate();
   const initialForm = {
     id_cliente: '',
     nombre_cliente: '',
@@ -31,9 +34,25 @@ const DashboardConectmosClientes = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importFile, setImportFile] = useState(null);
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const initialFilters = {
+    id_cliente: '',
+    nombre_cliente: '',
+    id_producto: '',
+    fecha_alta_cliente: '',
+    estado_cliente: '',
+    tipo_cliente: '',
+    ciudad: '',
+    canal_adquisicion: '',
+    indicador_vip: '',
+  };
+  const [filters, setFilters] = useState(initialFilters);
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
 
   const cargarClientes = async () => {
     try {
@@ -44,7 +63,7 @@ const DashboardConectmosClientes = () => {
         localStorage.getItem('access_token') ||
         localStorage.getItem('access');
       if (!token) {
-        setError('No hay sesión activa. Inicia sesión para consultar clientes.');
+        setError('No hay sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n activa. Inicia sesiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n para consultar clientes.');
         setClientes([]);
         return;
       }
@@ -68,6 +87,15 @@ const DashboardConectmosClientes = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters, pageSize]);
 
   const resetForm = () => {
     setForm(initialForm);
@@ -143,7 +171,7 @@ const DashboardConectmosClientes = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('¿Seguro que deseas eliminar este cliente?')) return;
+    if (!window.confirm('ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿Seguro que deseas eliminar este cliente?')) return;
     try {
       setError('');
       setSuccess('');
@@ -156,24 +184,82 @@ const DashboardConectmosClientes = () => {
     }
   };
 
+  const handleImport = async () => {
+    if (!importFile) {
+      setError('Selecciona un archivo para importar.');
+      return;
+    }
+    setError('');
+    setSuccess('');
+    try {
+      setImporting(true);
+      const result = await importarConetcomClientes(importFile);
+      setSuccess(`Importacion completada. ${result.importados || 0} nuevos, ${result.actualizados || 0} actualizados.`);
+      setImportFile(null);
+      await cargarClientes();
+    } catch (err) {
+      setError(err.message || 'No se pudo importar el archivo.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const filteredClientes = useMemo(() => {
+    const entries = Object.entries(filters);
+    if (entries.every(([, value]) => !value)) return clientes;
+    return clientes.filter((cliente) =>
+      entries.every(([key, value]) => {
+        if (!value) return true;
+        const raw = cliente?.[key];
+        return String(raw ?? '')
+          .toLowerCase()
+          .includes(String(value).toLowerCase());
+      }),
+    );
+  }, [clientes, filters]);
+
+  const totalRows = filteredClientes.length;
+  const totalPages = pageSize === 'all' ? 1 : Math.max(1, Math.ceil(totalRows / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = pageSize === 'all' ? 0 : (safePage - 1) * pageSize;
+  const end = pageSize === 'all' ? totalRows : start + pageSize;
+  const visibleClientes = filteredClientes.slice(start, end);
+
   return (
     <div className={styles.container}>
-      <h1>CRUD Conetcom Clientes</h1>
+              <div className={styles.headerRow}>
+      <h1 className={styles.title}>CRUD Conetcom Clientes</h1>
+      <button type="button" className={styles.secondaryButton} onClick={() => navigate('/DashboardGeneralConectcom')}>Ir a dashboard general</button>
+    </div>
 
-      {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
-      {success ? <p style={{ color: '#0a7f35' }}>{success}</p> : null}
+      {error ? <p className={`${styles.alert} ${styles.alertError}`}>{error}</p> : null}
+      {success ? <p className={`${styles.alert} ${styles.alertSuccess}`}>{success}</p> : null}
 
-      <form onSubmit={handleBuscar} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+      <div className={styles.section}>
+        <strong className={styles.sectionTitle}>Importar desde Excel</strong>
+        <div className={styles.sectionRow}>
+          <input
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+          />
+          <button type="button" className={styles.primaryButton} onClick={handleImport} disabled={importing}>
+            {importing ? 'Importando...' : 'Importar'}
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={handleBuscar} className={styles.searchForm}>
         <input
           placeholder="Buscar por nombre, ID o ciudad"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <button type="submit">Buscar</button>
-        <button type="button" onClick={cargarClientes}>Reset</button>
+        <button type="submit" className={styles.primaryButton}>Buscar</button>
+        <button type="button" className={styles.secondaryButton} onClick={cargarClientes}>Reset</button>
       </form>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem', display: 'grid', gap: '0.5rem' }}>
+      <form onSubmit={handleSubmit} className={styles.form}>
         <input name="id_cliente" placeholder="id_cliente" value={form.id_cliente} onChange={handleChange} disabled={Boolean(editingId)} required />
         <input name="nombre_cliente" placeholder="nombre_cliente" value={form.nombre_cliente} onChange={handleChange} />
         <input name="id_producto" placeholder="id_producto (numerico)" value={form.id_producto} onChange={handleChange} required />
@@ -206,21 +292,115 @@ const DashboardConectmosClientes = () => {
         <input name="fecha_inicio_contrato" type="date" value={form.fecha_inicio_contrato} onChange={handleChange} />
         <input name="fecha_finalizacion_contrato" type="date" value={form.fecha_finalizacion_contrato} onChange={handleChange} />
 
-        <label>
+        <label className={styles.checkboxLabel}>
           <input name="indicador_vip" type="checkbox" checked={form.indicador_vip} onChange={handleChange} />
           Cliente VIP
         </label>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button type="submit" disabled={saving}>{editingId ? 'Actualizar' : 'Crear'}</button>
-          <button type="button" onClick={resetForm}>Limpiar</button>
+        <div className={styles.formActions}>
+          <button type="submit" className={styles.primaryButton} disabled={saving}>{editingId ? 'Actualizar' : 'Crear'}</button>
+          <button type="button" className={styles.secondaryButton} onClick={resetForm}>Limpiar</button>
         </div>
       </form>
 
-      {loading ? <p>Cargando clientes...</p> : null}
+      <div className={styles.searchForm}>
+        <input
+          name="id_cliente"
+          placeholder="Filtrar id_cliente"
+          value={filters.id_cliente}
+          onChange={handleFilterChange}
+        />
+        <input
+          name="nombre_cliente"
+          placeholder="Filtrar nombre_cliente"
+          value={filters.nombre_cliente}
+          onChange={handleFilterChange}
+        />
+        <input
+          name="id_producto"
+          placeholder="Filtrar id_producto"
+          value={filters.id_producto}
+          onChange={handleFilterChange}
+        />
+        <input
+          name="fecha_alta_cliente"
+          placeholder="Filtrar fecha_alta"
+          value={filters.fecha_alta_cliente}
+          onChange={handleFilterChange}
+        />
+        <input
+          name="estado_cliente"
+          placeholder="Filtrar estado"
+          value={filters.estado_cliente}
+          onChange={handleFilterChange}
+        />
+        <input
+          name="tipo_cliente"
+          placeholder="Filtrar tipo"
+          value={filters.tipo_cliente}
+          onChange={handleFilterChange}
+        />
+        <input name="ciudad" placeholder="Filtrar ciudad" value={filters.ciudad} onChange={handleFilterChange} />
+        <input
+          name="canal_adquisicion"
+          placeholder="Filtrar canal"
+          value={filters.canal_adquisicion}
+          onChange={handleFilterChange}
+        />
+        <input
+          name="indicador_vip"
+          placeholder="Filtrar vip"
+          value={filters.indicador_vip}
+          onChange={handleFilterChange}
+        />
+        <button type="button" className={styles.ghostButton} onClick={() => setFilters(initialFilters)}>
+          Limpiar filtros
+        </button>
+      </div>
+      <div className={styles.paginationRow}>
+        <div className={styles.pageSizeGroup}>
+          <span className={styles.pageLabel}>Mostrar</span>
+          {[10, 50, 100, 'all'].map((size) => (
+            <button
+              key={size}
+              type="button"
+              className={`${styles.pageSizeButton} ${pageSize === size ? styles.pageSizeActive : ''}`}
+              onClick={() => setPageSize(size)}
+            >
+              {size === 'all' ? 'Todos' : size}
+            </button>
+          ))}
+        </div>
+        <div className={styles.pageControls}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={safePage === 1 || totalPages === 1}
+          >
+            Anterior
+          </button>
+          <span className={styles.pageStatus}>
+            Pagina {safePage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={safePage === totalPages || totalPages === 1}
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+      <p className={styles.sectionNote}>
+        Mostrando {visibleClientes.length} de {filteredClientes.length} registros
+      </p>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {loading ? <p className={styles.loading}>Cargando clientes...</p> : null}
+
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
           <thead>
             <tr>
               <th>ID</th>
@@ -236,7 +416,7 @@ const DashboardConectmosClientes = () => {
             </tr>
           </thead>
           <tbody>
-            {clientes.map((cliente) => (
+            {visibleClientes.map((cliente) => (
               <tr key={cliente.id_cliente}>
                 <td>{cliente.id_cliente}</td>
                 <td>{cliente.nombre_cliente || '-'}</td>
@@ -247,9 +427,9 @@ const DashboardConectmosClientes = () => {
                 <td>{cliente.ciudad}</td>
                 <td>{cliente.canal_adquisicion}</td>
                 <td>{cliente.indicador_vip ? 'Si' : 'No'}</td>
-                <td style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button type="button" onClick={() => handleEdit(cliente)}>Editar</button>
-                  <button type="button" onClick={() => handleDelete(cliente.id_cliente)}>Eliminar</button>
+                <td className={styles.actionsCell}>
+                  <button type="button" className={styles.secondaryButton} onClick={() => handleEdit(cliente)}>Editar</button>
+                  <button type="button" className={styles.dangerButton} onClick={() => handleDelete(cliente.id_cliente)}>Eliminar</button>
                 </td>
               </tr>
             ))}

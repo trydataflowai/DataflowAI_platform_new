@@ -1,5 +1,6 @@
 const API_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const RESOURCE = 'obtener/conetcom_pagos/';
+const IMPORT_RESOURCE = 'importar/conetcom_pagos';
 
 const getAuthToken = () => {
   const raw =
@@ -80,4 +81,21 @@ export const eliminarConetcomPago = async (id) => {
   });
   if (!res.ok && res.status !== 204) throw new Error('Error al eliminar conetcom_pagos');
   return true;
+};
+
+export const importarConetcomPagos = async (file) => {
+  if (!getAuthToken()) throw new Error('No hay sesion activa. Inicia sesion nuevamente.');
+  const formData = new FormData();
+  formData.append('file', file);
+  const token = getAuthToken();
+  const res = await fetch(`${API_URL}/${IMPORT_RESOURCE}`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(JSON.stringify(body));
+  return body;
 };

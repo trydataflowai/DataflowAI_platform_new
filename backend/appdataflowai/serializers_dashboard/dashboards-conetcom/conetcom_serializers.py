@@ -83,3 +83,36 @@ class conetcom_interacciones_campanas_serializer(serializers.ModelSerializer):
         extra_kwargs = {
             "id_empresa": {"required": False},
         }
+
+
+class conetcom_planes_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+    id_producto = serializers.IntegerField(required=False)
+
+
+class conetcom_clientes_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class conetcom_facturacion_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class conetcom_pagos_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class conetcom_tickets_soporte_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class conetcom_trafico_consumo_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class conetcom_campanas_import_serializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class conetcom_interacciones_campanas_import_serializer(serializers.Serializer):
+    file = serializers.FileField()

@@ -7,6 +7,29 @@ const Index = () => {
     const [activeSection, setActiveSection] = useState(null);
 
     useEffect(() => {
+        const html = document.documentElement;
+        const body = document.body;
+        const main = document.querySelector('main');
+        const previousHtmlOverflowY = html.style.overflowY;
+        const previousHtmlHeight = html.style.height;
+        const previousBodyOverflowY = body.style.overflowY;
+        const previousBodyHeight = body.style.height;
+        const previousMainOverflowY = main?.style.overflowY;
+        const previousMainHeight = main?.style.height;
+        const previousMainMinHeight = main?.style.minHeight;
+
+        // Fuerza un único scroll vertical del documento en esta vista.
+        // Evita doble scrollbar: desactiva scroll en html y lo deja solo en body.
+        html.style.overflowY = 'hidden';
+        html.style.height = '100%';
+        body.style.overflowY = 'auto';
+        body.style.height = '100%';
+        if (main) {
+            main.style.overflowY = 'visible';
+            main.style.height = 'auto';
+            main.style.minHeight = 'auto';
+        }
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -33,9 +56,10 @@ const Index = () => {
 
         // Handle smooth scroll for navbar links
         const handleSmoothScroll = (e) => {
-            if (e.target.hash && e.target.getAttribute('href').startsWith('#')) {
+            const link = e.currentTarget;
+            if (link.hash && link.getAttribute('href').startsWith('#')) {
                 e.preventDefault();
-                const targetId = e.target.hash.substring(1);
+                const targetId = link.hash.substring(1);
                 const target = document.getElementById(targetId);
                 if (target) {
                     const navbarHeight = 80; // Altura del navbar
@@ -63,6 +87,16 @@ const Index = () => {
             anchors.forEach(anchor => {
                 anchor.removeEventListener('click', handleSmoothScroll);
             });
+
+            html.style.overflowY = previousHtmlOverflowY;
+            html.style.height = previousHtmlHeight;
+            body.style.overflowY = previousBodyOverflowY;
+            body.style.height = previousBodyHeight;
+            if (main) {
+                main.style.overflowY = previousMainOverflowY;
+                main.style.height = previousMainHeight;
+                main.style.minHeight = previousMainMinHeight;
+            }
         };
     }, []);
 
