@@ -176,6 +176,7 @@ import DashboardConectmosTraficoConsumo from "../components/dashboards/dashboard
 
 import DashboardGeneralConectcom from "../components/dashboards/dashboards-conetcom/DashboardGeneralConectcom";
 
+import DashboardFinancieroConetcom from "../components/dashboards/dashboards-conetcom/DashboardFinancieroConetcom";
 
 
 
@@ -1198,6 +1199,19 @@ export const Rutas = () => {
                 </RutaProtegida>
               }
             />
+
+            <Route
+              path={"/DashboardFinancieroConetcom"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <DashboardFinancieroConetcom />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+
+
 
 
 
