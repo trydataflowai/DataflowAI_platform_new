@@ -5,6 +5,7 @@ import styles from '../../../styles/Dashboards/dashboards-conetcom/DashboardGene
 import { obtenerConetcomClientes } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcomclientes';
 import { obtenerConetcomPlanes } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcom_planes';
 import { obtenerConetcomFacturacion } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcom_facturacion';
+import { obtenerPrediccionChurnRate } from '../../../api/DashboardsApis/dashboards-conetcom/Predicciones';
 
 const toList = (data) => {
   if (Array.isArray(data)) return data;
@@ -38,6 +39,10 @@ const DashboardGeneralConectcom = () => {
   const now = new Date();
   const [churnMonth, setChurnMonth] = useState(now.getMonth());
   const [churnYear, setChurnYear] = useState(now.getFullYear());
+  const [predictionHorizon, setPredictionHorizon] = useState(3);
+  const [prediccionChurn, setPrediccionChurn] = useState(null);
+  const [predLoading, setPredLoading] = useState(false);
+  const [predError, setPredError] = useState('');
 
   const accesos = [
     { label: 'Conetcom Clientes', path: '/Crud/Dashboard/ConetcomClientes' },
@@ -72,6 +77,32 @@ const DashboardGeneralConectcom = () => {
 
     cargarMrr();
   }, []);
+
+  useEffect(() => {
+    let activo = true;
+
+    const cargarPrediccion = async () => {
+      try {
+        setPredLoading(true);
+        setPredError('');
+        const data = await obtenerPrediccionChurnRate({ horizonte: predictionHorizon });
+        if (!activo) return;
+        setPrediccionChurn(data);
+      } catch (err) {
+        if (!activo) return;
+        setPrediccionChurn(null);
+        setPredError(err?.message || 'No se pudo obtener la prediccion de churn rate.');
+      } finally {
+        if (!activo) return;
+        setPredLoading(false);
+      }
+    };
+
+    cargarPrediccion();
+    return () => {
+      activo = false;
+    };
+  }, [predictionHorizon]);
 
   const {
     mrr,
@@ -253,6 +284,68 @@ const DashboardGeneralConectcom = () => {
     }).format(value || 0);
 
   const formatPercent = (value) => `${(value || 0).toFixed(2)}%`;
+  const formatMonthLabel = (ano, mes) => {
+    const label = MESES[mes - 1] || '';
+    const shortYear = String(ano).slice(-2);
+    return `${label.slice(0, 3)} ${shortYear}`;
+  };
+
+  const predictionBaseYear = prediccionChurn?.base_year;
+  const predictionBaseMonth = prediccionChurn?.base_month;
+  const predictionLastLabel =
+    predictionBaseYear && predictionBaseMonth
+      ? `${MESES[predictionBaseMonth - 1]} ${predictionBaseYear}`
+      : '';
+  const showPrediction = Boolean(prediccionChurn && predictionBaseYear === churnYear);
+
+  const churnChartData = useMemo(() => {
+    if (!prediccionChurn || !showPrediction || !Array.isArray(prediccionChurn.historico_base)) {
+      return churnRateSeries.map((item) => ({
+        label: item.mes,
+        churnRate: item.churnRate,
+        churnPred: null,
+      }));
+    }
+
+    const historico = prediccionChurn.historico_base;
+    const chartData = historico.map((item) => ({
+      label: formatMonthLabel(item.ano, item.mes),
+      churnRate: item.churn_rate,
+      churnPred: null,
+    }));
+
+    const lastHist = historico[historico.length - 1];
+    if (lastHist && chartData.length) {
+      chartData[chartData.length - 1].churnPred = lastHist.churn_rate;
+    }
+
+    (prediccionChurn.predicciones || []).forEach((pred) => {
+      chartData.push({
+        label: formatMonthLabel(pred.ano, pred.mes),
+        churnRate: null,
+        churnPred: pred.churn_rate,
+      });
+    });
+
+    return chartData;
+  }, [prediccionChurn, churnRateSeries, showPrediction]);
+
+  const churnTableRows = useMemo(() => {
+    if (!prediccionChurn || !Array.isArray(prediccionChurn.historico_base)) return [];
+    const historico = prediccionChurn.historico_base.map((item) => ({
+      ano: item.ano,
+      mes: MESES[item.mes - 1] || '',
+      churn_rate: item.churn_rate,
+      tipo: 'historico',
+    }));
+    const predRows = (prediccionChurn.predicciones || []).map((item) => ({
+      ano: item.ano,
+      mes: MESES[item.mes - 1] || '',
+      churn_rate: item.churn_rate,
+      tipo: 'prediccion',
+    }));
+    return [...historico, ...predRows];
+  }, [prediccionChurn]);
   const selectedPeriod = `${MESES[churnMonth]} ${churnYear}`;
 
   return (
@@ -404,6 +497,23 @@ const DashboardGeneralConectcom = () => {
             />
           </div>
           <div className={styles.filterGroup}>
+            <span className={styles.filterLabel}>Prediccion (meses)</span>
+            <div className={styles.predictionButtons}>
+              {[1, 3, 6].map((valor) => (
+                <button
+                  key={valor}
+                  type="button"
+                  className={`${styles.predictionButton} ${
+                    predictionHorizon === valor ? styles.predictionButtonActive : ''
+                  }`}
+                  onClick={() => setPredictionHorizon(valor)}
+                >
+                  {valor}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className={styles.filterGroup}>
             <span className={styles.filterLabel}>Churn Rate</span>
             {loadingMrr ? (
               <span className={styles.filterValueMuted}>Cargando...</span>
@@ -418,8 +528,23 @@ const DashboardGeneralConectcom = () => {
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
               <h3 className={styles.chartTitle}>Churn Rate por mes</h3>
-              <span className={styles.chartBadge}>{churnYear}</span>
+              <span className={styles.chartBadge}>
+                {showPrediction ? predictionBaseYear : churnYear}
+              </span>
             </div>
+            {predLoading ? (
+              <p className={styles.chartMeta}>Cargando prediccion...</p>
+            ) : predError ? (
+              <p className={styles.chartMetaError}>{predError}</p>
+            ) : prediccionChurn && showPrediction ? (
+              <p className={styles.chartMeta}>
+                Prediccion {predictionHorizon} meses - Ultimo dato: {predictionLastLabel}
+              </p>
+            ) : prediccionChurn ? (
+              <p className={styles.chartMeta}>
+                Prediccion disponible para {predictionBaseYear}.
+              </p>
+            ) : null}
             {loadingMrr ? (
               <p className={styles.chartLoading}>Cargando grafica...</p>
             ) : mrrError ? (
@@ -427,12 +552,31 @@ const DashboardGeneralConectcom = () => {
             ) : (
               <div className={styles.chartBody}>
                 <ResponsiveContainer width="100%" height={260}>
-                  <LineChart data={churnRateSeries}>
+                  <LineChart data={churnChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
+                    <XAxis dataKey="label" />
                     <YAxis tickFormatter={(value) => `${value}%`} />
                     <Tooltip formatter={(value) => `${Number(value).toFixed(2)}%`} />
-                    <Line type="monotone" dataKey="churnRate" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+                    {showPrediction ? <Legend /> : null}
+                    <Line
+                      type="monotone"
+                      dataKey="churnRate"
+                      name="Churn rate"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                    {showPrediction ? (
+                      <Line
+                        type="monotone"
+                        dataKey="churnPred"
+                        name="Prediccion"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        strokeDasharray="5 5"
+                      />
+                    ) : null}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -481,6 +625,47 @@ const DashboardGeneralConectcom = () => {
                     />
                   </LineChart>
                 </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className={styles.tableGrid}>
+          <div className={styles.tableCard}>
+            <div className={styles.chartHeader}>
+              <h3 className={styles.tableTitle}>Tabla churn rate + prediccion</h3>
+              {prediccionChurn ? (
+                <span className={styles.chartBadge}>{prediccionChurn.base_year}</span>
+              ) : null}
+            </div>
+            {predLoading ? (
+              <p className={styles.tableEmpty}>Cargando prediccion...</p>
+            ) : predError ? (
+              <p className={styles.tableEmpty}>{predError}</p>
+            ) : churnTableRows.length === 0 ? (
+              <p className={styles.tableEmpty}>Sin datos de prediccion.</p>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Ano</th>
+                      <th>Mes</th>
+                      <th>% Churn Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {churnTableRows.map((row, index) => (
+                      <tr
+                        key={`${row.ano}-${row.mes}-${index}`}
+                        className={row.tipo === 'prediccion' ? styles.predictionRow : undefined}
+                      >
+                        <td>{row.ano}</td>
+                        <td>{row.mes}</td>
+                        <td>{formatPercent(row.churn_rate)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

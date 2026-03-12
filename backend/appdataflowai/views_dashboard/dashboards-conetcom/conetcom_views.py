@@ -12,6 +12,7 @@ from rest_framework.viewsets import ModelViewSet
 import datetime as dt
 import pandas as pd
 from decimal import Decimal, InvalidOperation
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 from appdataflowai.models import (
     conetcom_campanas,
@@ -62,6 +63,8 @@ conetcom_tickets_soporte_import_serializer = serializers_module.conetcom_tickets
 conetcom_trafico_consumo_import_serializer = serializers_module.conetcom_trafico_consumo_import_serializer
 conetcom_campanas_import_serializer = serializers_module.conetcom_campanas_import_serializer
 conetcom_interacciones_campanas_import_serializer = serializers_module.conetcom_interacciones_campanas_import_serializer
+conetcom_prediccion_churnrate_request_serializer = serializers_module.conetcom_prediccion_churnrate_request_serializer
+conetcom_prediccion_churnrate_response_serializer = serializers_module.conetcom_prediccion_churnrate_response_serializer
 
 
 def _read_import_file(file):
@@ -1093,3 +1096,168 @@ class conetcom_interacciones_campanas_import_views(APIView):
             {"importados": created, "actualizados": updated},
             status=status.HTTP_201_CREATED,
         )
+
+
+class conetcom_prediccion_churnrate_view(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = conetcom_prediccion_churnrate_request_serializer(data=request.query_params)
+        if serializer.is_valid():
+            horizonte = serializer.validated_data.get("horizonte", 3)
+        else:
+            horizonte = 3
+
+        if horizonte not in {1, 3, 6}:
+            horizonte = 3
+
+        usuario = request.user
+        empresa = getattr(usuario, "id_empresa", None)
+        if empresa is None:
+            return Response({"error": "Usuario sin empresa asociada."}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = conetcom_clientes.objects.filter(id_empresa=empresa).values(
+            "fecha_alta_cliente",
+            "fecha_finalizacion_contrato",
+            "estado_cliente",
+        )
+        if not qs.exists():
+            return Response(
+                {"error": "No hay datos de clientes para calcular churn."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        df = pd.DataFrame(list(qs))
+        if df.empty:
+            return Response(
+                {"error": "No hay datos suficientes para calcular churn."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        df["fecha_alta_cliente"] = pd.to_datetime(df["fecha_alta_cliente"], errors="coerce")
+        df["fecha_finalizacion_contrato"] = pd.to_datetime(df["fecha_finalizacion_contrato"], errors="coerce")
+        df = df[df["fecha_alta_cliente"].notna()].copy()
+        if df.empty:
+            return Response(
+                {"error": "No hay fechas validas para calcular churn."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        last_dates = df[["fecha_alta_cliente", "fecha_finalizacion_contrato"]].max()
+        last_date = last_dates.max()
+        if pd.isna(last_date):
+            return Response(
+                {"error": "No se encontro una fecha valida para la serie."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        min_date = df["fecha_alta_cliente"].min()
+        start_month = pd.Timestamp(year=min_date.year, month=min_date.month, day=1)
+        end_month = pd.Timestamp(year=last_date.year, month=last_date.month, day=1)
+        month_starts = pd.date_range(start=start_month, end=end_month, freq="MS")
+
+        estado_cancelado = (
+            df["estado_cliente"].fillna("").astype(str).str.strip().str.lower() == "cancelado"
+        )
+        fecha_alta = df["fecha_alta_cliente"]
+        fecha_fin = df["fecha_finalizacion_contrato"]
+
+        series_vals = []
+        for month_start in month_starts:
+            next_month = month_start + pd.offsets.MonthBegin(1)
+            activos_inicio = (fecha_alta < month_start) & ((fecha_fin.isna()) | (fecha_fin >= month_start))
+            cancelados_mes = estado_cancelado & (fecha_fin >= month_start) & (fecha_fin < next_month)
+            activos_count = int(activos_inicio.sum())
+            cancelados_count = int(cancelados_mes.sum())
+            churn_rate = (cancelados_count / activos_count) * 100 if activos_count > 0 else 0.0
+            series_vals.append((month_start, churn_rate))
+
+        series_index = [item[0] for item in series_vals]
+        series_data = pd.Series([item[1] for item in series_vals], index=series_index).astype(float)
+
+        modelo = "naive_mean"
+        sigma = float(series_data.std(ddof=1)) if len(series_data) > 1 else 0.0
+        forecast_vals = None
+
+        if len(series_data) >= 2:
+            try:
+                seasonal = "add" if len(series_data) >= 24 else None
+                seasonal_periods = 12 if seasonal else None
+                model = ExponentialSmoothing(
+                    series_data,
+                    trend="add",
+                    seasonal=seasonal,
+                    seasonal_periods=seasonal_periods,
+                    initialization_method="estimated",
+                )
+                fit = model.fit(optimized=True)
+                forecast_vals = fit.forecast(steps=horizonte)
+                residuals = fit.resid
+                sigma = float(residuals.std(ddof=1)) if len(residuals) > 1 else sigma
+                modelo = "ExponentialSmoothing_hw" if seasonal else "ExponentialSmoothing_trend"
+            except Exception:
+                try:
+                    model = ExponentialSmoothing(
+                        series_data,
+                        trend="add",
+                        seasonal=None,
+                        initialization_method="estimated",
+                    )
+                    fit = model.fit(optimized=True)
+                    forecast_vals = fit.forecast(steps=horizonte)
+                    residuals = fit.resid
+                    sigma = float(residuals.std(ddof=1)) if len(residuals) > 1 else sigma
+                    modelo = "ExponentialSmoothing_trend"
+                except Exception:
+                    forecast_vals = None
+
+        if forecast_vals is None:
+            last_value = float(series_data.iloc[-1]) if len(series_data) else 0.0
+            forecast_vals = [last_value for _ in range(horizonte)]
+
+        last_index = series_data.index.max()
+        preds = []
+        for i, val in enumerate(forecast_vals, start=1):
+            periodo = (last_index + pd.DateOffset(months=i)).to_pydatetime().date().replace(day=1)
+            pred_val = float(val)
+            pred_val = max(0.0, min(100.0, pred_val))
+            lower = pred_val - 1.96 * sigma
+            upper = pred_val + 1.96 * sigma
+            preds.append(
+                {
+                    "ano": periodo.year,
+                    "mes": periodo.month,
+                    "churn_rate": round(pred_val, 2),
+                    "lower": round(max(0.0, lower), 2),
+                    "upper": round(min(100.0, upper), 2),
+                }
+            )
+
+        series_map = {(idx.year, idx.month): float(val) for idx, val in series_data.items()}
+        base_year = last_index.year
+        base_month = last_index.month
+        historico_base = []
+        for month in range(1, base_month + 1):
+            rate = series_map.get((base_year, month), 0.0)
+            historico_base.append(
+                {
+                    "ano": base_year,
+                    "mes": month,
+                    "churn_rate": round(rate, 2),
+                }
+            )
+
+        response = {
+            "horizonte": horizonte,
+            "modelo": modelo,
+            "trained_at": dt.datetime.utcnow().isoformat() + "Z",
+            "ultimo_periodo": last_index.to_pydatetime().date().isoformat(),
+            "base_year": base_year,
+            "base_month": base_month,
+            "historico_base": historico_base,
+            "predicciones": preds,
+        }
+
+        out_serializer = conetcom_prediccion_churnrate_response_serializer(data=response)
+        out_serializer.is_valid(raise_exception=True)
+        return Response(out_serializer.data, status=status.HTTP_200_OK)

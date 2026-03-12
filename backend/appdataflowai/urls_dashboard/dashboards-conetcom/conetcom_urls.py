@@ -44,6 +44,11 @@ router.register(
 urlpatterns = router.urls
 urlpatterns += [
     path(
+        "prediccion/conetcom_churnrate/",
+        views_module.conetcom_prediccion_churnrate_view.as_view(),
+        name="conetcom_prediccion_churnrate",
+    ),
+    path(
         "importar/conetcom_planes",
         views_module.conetcom_planes_import_views.as_view(),
         name="conetcom_planes_import_url",

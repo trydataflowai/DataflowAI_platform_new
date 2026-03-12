@@ -116,3 +116,26 @@ class conetcom_campanas_import_serializer(serializers.Serializer):
 
 class conetcom_interacciones_campanas_import_serializer(serializers.Serializer):
     file = serializers.FileField()
+
+
+class conetcom_prediccion_churnrate_request_serializer(serializers.Serializer):
+    horizonte = serializers.IntegerField(required=False, min_value=1, max_value=12, default=3)
+
+
+class conetcom_prediccion_churnrate_item_serializer(serializers.Serializer):
+    ano = serializers.IntegerField()
+    mes = serializers.IntegerField()
+    churn_rate = serializers.FloatField()
+    lower = serializers.FloatField(required=False, allow_null=True)
+    upper = serializers.FloatField(required=False, allow_null=True)
+
+
+class conetcom_prediccion_churnrate_response_serializer(serializers.Serializer):
+    horizonte = serializers.IntegerField()
+    modelo = serializers.CharField(max_length=100)
+    trained_at = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    ultimo_periodo = serializers.DateField()
+    base_year = serializers.IntegerField()
+    base_month = serializers.IntegerField()
+    historico_base = conetcom_prediccion_churnrate_item_serializer(many=True)
+    predicciones = conetcom_prediccion_churnrate_item_serializer(many=True)
