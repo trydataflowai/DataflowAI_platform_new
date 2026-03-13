@@ -49,6 +49,11 @@ urlpatterns += [
         name="conetcom_prediccion_churnrate",
     ),
     path(
+        "prediccion/conetcom_upselling/",
+        views_module.conetcom_prediccion_upselling_view.as_view(),
+        name="conetcom_prediccion_upselling",
+    ),
+    path(
         "importar/conetcom_planes",
         views_module.conetcom_planes_import_views.as_view(),
         name="conetcom_planes_import_url",

@@ -139,3 +139,33 @@ class conetcom_prediccion_churnrate_response_serializer(serializers.Serializer):
     base_month = serializers.IntegerField()
     historico_base = conetcom_prediccion_churnrate_item_serializer(many=True)
     predicciones = conetcom_prediccion_churnrate_item_serializer(many=True)
+
+
+class conetcom_prediccion_upselling_request_serializer(serializers.Serializer):
+    horizonte = serializers.IntegerField(required=False, min_value=1, max_value=12, default=3)
+
+
+class conetcom_prediccion_facturacion_item_serializer(serializers.Serializer):
+    ano = serializers.IntegerField()
+    mes = serializers.IntegerField()
+    total_facturado = serializers.FloatField()
+    lower = serializers.FloatField(required=False, allow_null=True)
+    upper = serializers.FloatField(required=False, allow_null=True)
+
+
+class conetcom_prediccion_upselling_cliente_serializer(serializers.Serializer):
+    id_cliente = serializers.CharField()
+    nombre_cliente = serializers.CharField()
+    oportunidad = serializers.FloatField()
+
+
+class conetcom_prediccion_upselling_response_serializer(serializers.Serializer):
+    horizonte = serializers.IntegerField()
+    modelo = serializers.CharField(max_length=100)
+    trained_at = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    ultimo_periodo = serializers.DateField()
+    base_year = serializers.IntegerField()
+    base_month = serializers.IntegerField()
+    historico_facturacion = conetcom_prediccion_facturacion_item_serializer(many=True)
+    predicciones_facturacion = conetcom_prediccion_facturacion_item_serializer(many=True)
+    oportunidades = conetcom_prediccion_upselling_cliente_serializer(many=True)

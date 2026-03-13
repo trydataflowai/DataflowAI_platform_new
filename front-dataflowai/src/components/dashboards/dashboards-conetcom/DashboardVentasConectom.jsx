@@ -20,6 +20,7 @@ import { obtenerConetcomFacturacion } from '../../../api/DashboardsApis/dashboar
 import { obtenerConetcomPagos } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcom_pagos';
 import { obtenerConetcomCampanas } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcom_campanas';
 import { obtenerConetcomInteraccionesCampanas } from '../../../api/DashboardsApis/dashboards-conetcom/Dashboardconetcom_interacciones_campanas';
+import { obtenerPrediccionUpselling } from '../../../api/DashboardsApis/dashboards-conetcom/Predicciones';
 
 const MESES = [
   'Enero',
@@ -97,6 +98,10 @@ const DashboardVentasConetcom = () => {
   const [error, setError] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [upsellHorizon, setUpsellHorizon] = useState(3);
+  const [upsellData, setUpsellData] = useState(null);
+  const [upsellLoading, setUpsellLoading] = useState(false);
+  const [upsellError, setUpsellError] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -130,6 +135,31 @@ const DashboardVentasConetcom = () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const cargarPrediccion = async () => {
+      try {
+        setUpsellLoading(true);
+        setUpsellError('');
+        const data = await obtenerPrediccionUpselling({ horizonte: upsellHorizon });
+        if (!mounted) return;
+        setUpsellData(data);
+      } catch (err) {
+        if (!mounted) return;
+        setUpsellData(null);
+        setUpsellError(err?.message || 'No se pudo obtener la prediccion de upselling.');
+      } finally {
+        if (mounted) setUpsellLoading(false);
+      }
+    };
+
+    cargarPrediccion();
+    return () => {
+      mounted = false;
+    };
+  }, [upsellHorizon]);
 
   const {
     totalFacturadoMes,
@@ -309,42 +339,96 @@ const DashboardVentasConetcom = () => {
     }).format(value || 0);
 
   const formatPercent = (value) => `${(value || 0).toFixed(2)}%`;
+  const formatMonthLabel = (ano, mes) => {
+    const label = MESES[mes - 1] || '';
+    const shortYear = String(ano).slice(-2);
+    return `${label.slice(0, 3)} ${shortYear}`;
+  };
+
+  const upsellBaseYear = upsellData?.base_year;
+  const upsellBaseMonth = upsellData?.base_month;
+  const upsellLastLabel =
+    upsellBaseYear && upsellBaseMonth
+      ? `${MESES[upsellBaseMonth - 1]} ${upsellBaseYear}`
+      : '';
+  const showForecast = Boolean(upsellData && upsellBaseYear === selectedYear);
+
+  const ventasForecastData = useMemo(() => {
+    if (!upsellData || !showForecast || !Array.isArray(upsellData.historico_facturacion)) {
+      return ventasSeries.map((item) => ({
+        label: item.mes,
+        facturado: item.facturado,
+        forecast: null,
+      }));
+    }
+
+    const historico = upsellData.historico_facturacion;
+    const data = historico.map((item) => ({
+      label: formatMonthLabel(item.ano, item.mes),
+      facturado: item.total_facturado,
+      forecast: null,
+    }));
+
+    const lastHist = historico[historico.length - 1];
+    if (lastHist && data.length) {
+      data[data.length - 1].forecast = lastHist.total_facturado;
+    }
+
+    (upsellData.predicciones_facturacion || []).forEach((pred) => {
+      data.push({
+        label: formatMonthLabel(pred.ano, pred.mes),
+        facturado: null,
+        forecast: pred.total_facturado,
+      });
+    });
+
+    return data;
+  }, [upsellData, ventasSeries, showForecast]);
+
+  const upsellRows = useMemo(() => {
+    if (!upsellData || !Array.isArray(upsellData.oportunidades)) return [];
+    return upsellData.oportunidades.map((item) => ({
+      id: item.id_cliente,
+      nombre: item.nombre_cliente,
+      oportunidad: item.oportunidad,
+    }));
+  }, [upsellData]);
   const periodoLabel = `${MESES[selectedMonth]} ${selectedYear}`;
 
   return (
-    <div className="container">
-      <header className="header">
-        <div className="headerText">
-          <p className="eyebrow">Conetcom</p>
-          <h1 className="title">Dashboard de ventas</h1>
-          <p className="subtitle">
+    <div className="container_vta_conetcom">
+      <header className="header_vta_conetcom">
+        <div className="headerText_vta_conetcom">
+          <p className="eyebrow_vta_conetcom">Conetcom</p>
+          <h1 className="title_vta_conetcom">Dashboard de ventas</h1>
+          <p className="subtitle_vta_conetcom">
             Seguimiento de facturacion, recaudo y campanas para el periodo seleccionado.
           </p>
         </div>
-        <div className="headerActions">
-          <div className="headerBadge">
-            <span className="badgeLabel">Periodo</span>
-            <strong className="badgeValue">{periodoLabel}</strong>
+        <div className="headerActions_vta_conetcom">
+          <div className="headerBadge_vta_conetcom">
+            <span className="badgeLabel_vta_conetcom">Periodo</span>
+            <strong className="badgeValue_vta_conetcom">{periodoLabel}</strong>
           </div>
-          <div className="headerBadge">
-            <span className="badgeLabel">Conversion</span>
-            <strong className="badgeValue">{formatPercent(conversionRateMes)}</strong>
+          <div className="headerBadge_vta_conetcom">
+            <span className="badgeLabel_vta_conetcom">Conversion</span>
+            <strong className="badgeValue_vta_conetcom">{formatPercent(conversionRateMes)}</strong>
           </div>
         </div>
       </header>
 
-      {error ? <div className="errorBanner">{error}</div> : null}
+      {error ? <div className="errorBanner_vta_conetcom">{error}</div> : null}
 
-      <section className="section">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Filtros</h2>
-          <p className="sectionHint">Selecciona el mes y ano para actualizar el reporte.</p>
+      <section className="section_vta_conetcom">
+        <div className="sectionHeader_vta_conetcom">
+          <h2 className="sectionTitle_vta_conetcom">Filtros</h2>
+          <p className="sectionHint_vta_conetcom">Selecciona el mes y ano para actualizar el reporte.</p>
         </div>
-        <div className="filterRow">
-          <div className="filterGroup">
-            <span className="filterLabel">Mes</span>
+        <div className="filterRow_vta_conetcom">
+          <div className="filterGroup_vta_conetcom">
+            <span className="filterLabel_vta_conetcom">Mes</span>
             <select
-              className="filterControl"
+              className="filterControl_vta_conetcom"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
             >
@@ -355,128 +439,173 @@ const DashboardVentasConetcom = () => {
               ))}
             </select>
           </div>
-          <div className="filterGroup">
-            <span className="filterLabel">Ano</span>
+          <div className="filterGroup_vta_conetcom">
+            <span className="filterLabel_vta_conetcom">Ano</span>
             <input
-              className="filterControl"
+              className="filterControl_vta_conetcom"
               type="number"
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value) || now.getFullYear())}
             />
           </div>
-          <div className="filterGroup">
-            <span className="filterLabel">Interacciones</span>
-            {loading ? (
-              <span className="filterValueMuted">Cargando...</span>
-            ) : error ? (
-              <span className="filterValueMuted">--</span>
-            ) : (
-              <span className="filterValue">{interaccionesMesTotal}</span>
-            )}
-          </div>
-          <div className="filterGroup">
-            <span className="filterLabel">Ingresos campanas</span>
-            {loading ? (
-              <span className="filterValueMuted">Cargando...</span>
-            ) : error ? (
-              <span className="filterValueMuted">--</span>
-            ) : (
-              <span className="filterValue">{formatCurrency(ingresosCampanasMes)}</span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Indicadores</h2>
-          <p className="sectionHint">Resumen del mes seleccionado.</p>
-        </div>
-        <div className="kpiGrid">
-          <article className="card">
-            <p className="cardLabel">Facturacion del mes</p>
-            {loading ? (
-              <p className="cardValueMuted">Cargando...</p>
-            ) : error ? (
-              <p className="cardValueMuted">--</p>
-            ) : (
-              <p className="cardValue">{formatCurrency(totalFacturadoMes)}</p>
-            )}
-          </article>
-          <article className="card">
-            <p className="cardLabel">Recaudo del mes</p>
-            {loading ? (
-              <p className="cardValueMuted">Cargando...</p>
-            ) : error ? (
-              <p className="cardValueMuted">--</p>
-            ) : (
-              <p className="cardValue">{formatCurrency(totalRecaudadoMes)}</p>
-            )}
-          </article>
-          <article className="card">
-            <p className="cardLabel">Ticket promedio</p>
-            {loading ? (
-              <p className="cardValueMuted">Cargando...</p>
-            ) : error ? (
-              <p className="cardValueMuted">--</p>
-            ) : (
-              <p className="cardValue">{formatCurrency(ticketPromedio)}</p>
-            )}
-          </article>
-          <article className="card">
-            <p className="cardLabel">Nuevos clientes</p>
-            {loading ? (
-              <p className="cardValueMuted">Cargando...</p>
-            ) : error ? (
-              <p className="cardValueMuted">--</p>
-            ) : (
-              <p className="cardValue">{nuevosClientes}</p>
-            )}
-            <p className="cardHint">Altas registradas en el periodo.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Ventas y recaudo</h2>
-          <p className="sectionHint">Evolucion mensual para el ano seleccionado.</p>
-        </div>
-        <div className="chartGrid">
-          <div className="chartCard">
-            <div className="chartHeader">
-              <h3 className="chartTitle">Facturacion mensual</h3>
-              <span className="chartBadge">{selectedYear}</span>
+          <div className="filterGroup_vta_conetcom">
+            <span className="filterLabel_vta_conetcom">Prediccion (meses)</span>
+            <div className="predictionButtons_vta_conetcom">
+              {[1, 3, 6].map((valor) => (
+                <button
+                  key={valor}
+                  type="button"
+                  className={`predictionButton_vta_conetcom ${upsellHorizon === valor ? 'predictionButtonActive_vta_conetcom' : ''}`}
+                  onClick={() => setUpsellHorizon(valor)}
+                >
+                  {valor}
+                </button>
+              ))}
             </div>
+          </div>
+          <div className="filterGroup_vta_conetcom">
+            <span className="filterLabel_vta_conetcom">Interacciones</span>
             {loading ? (
-              <p className="chartLoading">Cargando grafica...</p>
+              <span className="filterValueMuted_vta_conetcom">Cargando...</span>
             ) : error ? (
-              <p className="chartLoading">Sin datos.</p>
+              <span className="filterValueMuted_vta_conetcom">--</span>
             ) : (
-              <div className="chartBody">
+              <span className="filterValue_vta_conetcom">{interaccionesMesTotal}</span>
+            )}
+          </div>
+          <div className="filterGroup_vta_conetcom">
+            <span className="filterLabel_vta_conetcom">Ingresos campanas</span>
+            {loading ? (
+              <span className="filterValueMuted_vta_conetcom">Cargando...</span>
+            ) : error ? (
+              <span className="filterValueMuted_vta_conetcom">--</span>
+            ) : (
+              <span className="filterValue_vta_conetcom">{formatCurrency(ingresosCampanasMes)}</span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="section_vta_conetcom">
+        <div className="sectionHeader_vta_conetcom">
+          <h2 className="sectionTitle_vta_conetcom">Indicadores</h2>
+          <p className="sectionHint_vta_conetcom">Resumen del mes seleccionado.</p>
+        </div>
+        <div className="kpiGrid_vta_conetcom">
+          <article className="card_vta_conetcom">
+            <p className="cardLabel_vta_conetcom">Facturacion del mes</p>
+            {loading ? (
+              <p className="cardValueMuted_vta_conetcom">Cargando...</p>
+            ) : error ? (
+              <p className="cardValueMuted_vta_conetcom">--</p>
+            ) : (
+              <p className="cardValue_vta_conetcom">{formatCurrency(totalFacturadoMes)}</p>
+            )}
+          </article>
+          <article className="card_vta_conetcom">
+            <p className="cardLabel_vta_conetcom">Recaudo del mes</p>
+            {loading ? (
+              <p className="cardValueMuted_vta_conetcom">Cargando...</p>
+            ) : error ? (
+              <p className="cardValueMuted_vta_conetcom">--</p>
+            ) : (
+              <p className="cardValue_vta_conetcom">{formatCurrency(totalRecaudadoMes)}</p>
+            )}
+          </article>
+          <article className="card_vta_conetcom">
+            <p className="cardLabel_vta_conetcom">Ticket promedio</p>
+            {loading ? (
+              <p className="cardValueMuted_vta_conetcom">Cargando...</p>
+            ) : error ? (
+              <p className="cardValueMuted_vta_conetcom">--</p>
+            ) : (
+              <p className="cardValue_vta_conetcom">{formatCurrency(ticketPromedio)}</p>
+            )}
+          </article>
+          <article className="card_vta_conetcom">
+            <p className="cardLabel_vta_conetcom">Nuevos clientes</p>
+            {loading ? (
+              <p className="cardValueMuted_vta_conetcom">Cargando...</p>
+            ) : error ? (
+              <p className="cardValueMuted_vta_conetcom">--</p>
+            ) : (
+              <p className="cardValue_vta_conetcom">{nuevosClientes}</p>
+            )}
+            <p className="cardHint_vta_conetcom">Altas registradas en el periodo.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="section_vta_conetcom">
+        <div className="sectionHeader_vta_conetcom">
+          <h2 className="sectionTitle_vta_conetcom">Ventas y recaudo</h2>
+          <p className="sectionHint_vta_conetcom">Evolucion mensual para el ano seleccionado.</p>
+        </div>
+        <div className="chartGrid_vta_conetcom">
+          <div className="chartCard_vta_conetcom">
+            <div className="chartHeader_vta_conetcom">
+              <h3 className="chartTitle_vta_conetcom">Facturacion mensual</h3>
+              <span className="chartBadge_vta_conetcom">{showForecast ? upsellBaseYear : selectedYear}</span>
+            </div>
+            {upsellLoading ? (
+              <p className="chartMeta_vta_conetcom">Cargando prediccion...</p>
+            ) : upsellError ? (
+              <p className="chartMetaError_vta_conetcom">{upsellError}</p>
+            ) : upsellData && showForecast ? (
+              <p className="chartMeta_vta_conetcom">
+                Prediccion {upsellHorizon} meses - Ultimo dato: {upsellLastLabel}
+              </p>
+            ) : upsellData ? (
+              <p className="chartMeta_vta_conetcom">Prediccion disponible para {upsellBaseYear}.</p>
+            ) : null}
+            {loading ? (
+              <p className="chartLoading_vta_conetcom">Cargando grafica...</p>
+            ) : error ? (
+              <p className="chartLoading_vta_conetcom">Sin datos.</p>
+            ) : (
+              <div className="chartBody_vta_conetcom">
                 <ResponsiveContainer width="100%" height={260}>
-                  <LineChart data={ventasSeries}>
+                  <LineChart data={ventasForecastData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
+                    <XAxis dataKey="label" />
                     <YAxis tickFormatter={(value) => formatCurrency(value)} />
                     <Tooltip formatter={(value) => formatCurrency(value)} />
-                    <Line type="monotone" dataKey="facturado" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+                    {showForecast ? <Legend /> : null}
+                    <Line
+                      type="monotone"
+                      dataKey="facturado"
+                      name="Facturado"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                    {showForecast ? (
+                      <Line
+                        type="monotone"
+                        dataKey="forecast"
+                        name="Prediccion"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        strokeDasharray="5 5"
+                      />
+                    ) : null}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             )}
           </div>
-          <div className="chartCard">
-            <div className="chartHeader">
-              <h3 className="chartTitle">Recaudo mensual</h3>
-              <span className="chartBadge">{selectedYear}</span>
+          <div className="chartCard_vta_conetcom">
+            <div className="chartHeader_vta_conetcom">
+              <h3 className="chartTitle_vta_conetcom">Recaudo mensual</h3>
+              <span className="chartBadge_vta_conetcom">{selectedYear}</span>
             </div>
             {loading ? (
-              <p className="chartLoading">Cargando grafica...</p>
+              <p className="chartLoading_vta_conetcom">Cargando grafica...</p>
             ) : error ? (
-              <p className="chartLoading">Sin datos.</p>
+              <p className="chartLoading_vta_conetcom">Sin datos.</p>
             ) : (
-              <div className="chartBody">
+              <div className="chartBody_vta_conetcom">
                 <ResponsiveContainer width="100%" height={260}>
                   <LineChart data={recaudoSeries}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -489,17 +618,17 @@ const DashboardVentasConetcom = () => {
               </div>
             )}
           </div>
-          <div className="chartCard">
-            <div className="chartHeader">
-              <h3 className="chartTitle">Conversion de campanas</h3>
-              <span className="chartBadge">{selectedYear}</span>
+          <div className="chartCard_vta_conetcom">
+            <div className="chartHeader_vta_conetcom">
+              <h3 className="chartTitle_vta_conetcom">Conversion de campanas</h3>
+              <span className="chartBadge_vta_conetcom">{selectedYear}</span>
             </div>
             {loading ? (
-              <p className="chartLoading">Cargando grafica...</p>
+              <p className="chartLoading_vta_conetcom">Cargando grafica...</p>
             ) : error ? (
-              <p className="chartLoading">Sin datos.</p>
+              <p className="chartLoading_vta_conetcom">Sin datos.</p>
             ) : (
-              <div className="chartBody">
+              <div className="chartBody_vta_conetcom">
                 <ResponsiveContainer width="100%" height={260}>
                   <LineChart data={conversionSeries}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -515,25 +644,66 @@ const DashboardVentasConetcom = () => {
         </div>
       </section>
 
-      <section className="section">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Canales y campanas</h2>
-          <p className="sectionHint">Distribucion de ventas y funnel de interacciones.</p>
+      <section className="section_vta_conetcom">
+        <div className="sectionHeader_vta_conetcom">
+          <h2 className="sectionTitle_vta_conetcom">Upselling</h2>
+          <p className="sectionHint_vta_conetcom">Oportunidad de recompra o mejora de plan por cliente.</p>
         </div>
-        <div className="chartGrid">
-          <div className="chartCard">
-            <div className="chartHeader">
-              <h3 className="chartTitle">Ventas por canal</h3>
-              <span className="chartBadge">{periodoLabel}</span>
+        <div className="tableGrid_vta_conetcom">
+          <div className="tableCard_vta_conetcom">
+            <div className="chartHeader_vta_conetcom">
+              <h3 className="tableTitle_vta_conetcom">Tabla de oportunidades</h3>
+              {upsellData ? <span className="chartBadge_vta_conetcom">{upsellData.base_year}</span> : null}
+            </div>
+            {upsellLoading ? (
+              <p className="tableEmpty_vta_conetcom">Cargando prediccion...</p>
+            ) : upsellError ? (
+              <p className="tableEmpty_vta_conetcom">{upsellError}</p>
+            ) : upsellRows.length === 0 ? (
+              <p className="tableEmpty_vta_conetcom">Sin datos de oportunidad.</p>
+            ) : (
+              <div className="tableWrap_vta_conetcom">
+                <table className="table_vta_conetcom">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>% Oportunidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upsellRows.map((row) => (
+                      <tr key={row.id} className={row.oportunidad >= 70 ? 'predictionRow_vta_conetcom' : undefined}>
+                        <td>{row.nombre}</td>
+                        <td>{formatPercent(row.oportunidad)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="section_vta_conetcom">
+        <div className="sectionHeader_vta_conetcom">
+          <h2 className="sectionTitle_vta_conetcom">Canales y campanas</h2>
+          <p className="sectionHint_vta_conetcom">Distribucion de ventas y funnel de interacciones.</p>
+        </div>
+        <div className="chartGrid_vta_conetcom">
+          <div className="chartCard_vta_conetcom">
+            <div className="chartHeader_vta_conetcom">
+              <h3 className="chartTitle_vta_conetcom">Ventas por canal</h3>
+              <span className="chartBadge_vta_conetcom">{periodoLabel}</span>
             </div>
             {loading ? (
-              <p className="chartLoading">Cargando grafica...</p>
+              <p className="chartLoading_vta_conetcom">Cargando grafica...</p>
             ) : error ? (
-              <p className="chartLoading">Sin datos.</p>
+              <p className="chartLoading_vta_conetcom">Sin datos.</p>
             ) : ventasPorCanal.length === 0 ? (
-              <p className="chartLoading">Sin ventas para el periodo.</p>
+              <p className="chartLoading_vta_conetcom">Sin ventas para el periodo.</p>
             ) : (
-              <div className="chartBody">
+              <div className="chartBody_vta_conetcom">
                 <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
                     <Pie data={ventasPorCanal} dataKey="total" nameKey="canal" innerRadius={55} outerRadius={95}>
@@ -548,17 +718,17 @@ const DashboardVentasConetcom = () => {
               </div>
             )}
           </div>
-          <div className="chartCard">
-            <div className="chartHeader">
-              <h3 className="chartTitle">Funnel de campanas</h3>
-              <span className="chartBadge">{periodoLabel}</span>
+          <div className="chartCard_vta_conetcom">
+            <div className="chartHeader_vta_conetcom">
+              <h3 className="chartTitle_vta_conetcom">Funnel de campanas</h3>
+              <span className="chartBadge_vta_conetcom">{periodoLabel}</span>
             </div>
             {loading ? (
-              <p className="chartLoading">Cargando grafica...</p>
+              <p className="chartLoading_vta_conetcom">Cargando grafica...</p>
             ) : error ? (
-              <p className="chartLoading">Sin datos.</p>
+              <p className="chartLoading_vta_conetcom">Sin datos.</p>
             ) : (
-              <div className="chartBody">
+              <div className="chartBody_vta_conetcom">
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={funnelData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -574,21 +744,21 @@ const DashboardVentasConetcom = () => {
         </div>
       </section>
 
-      <section className="section">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Detalle por clientes y campanas</h2>
-          <p className="sectionHint">Top clientes y rendimiento de campanas.</p>
+      <section className="section_vta_conetcom">
+        <div className="sectionHeader_vta_conetcom">
+          <h2 className="sectionTitle_vta_conetcom">Detalle por clientes y campanas</h2>
+          <p className="sectionHint_vta_conetcom">Top clientes y rendimiento de campanas.</p>
         </div>
-        <div className="tableGrid">
-          <div className="tableCard">
-            <h3 className="tableTitle">Top clientes por facturacion</h3>
+        <div className="tableGrid_vta_conetcom">
+          <div className="tableCard_vta_conetcom">
+            <h3 className="tableTitle_vta_conetcom">Top clientes por facturacion</h3>
             {loading ? (
-              <p className="tableEmpty">Cargando clientes...</p>
+              <p className="tableEmpty_vta_conetcom">Cargando clientes...</p>
             ) : error ? (
-              <p className="tableEmpty">Sin datos.</p>
+              <p className="tableEmpty_vta_conetcom">Sin datos.</p>
             ) : (
-              <div className="tableWrap">
-                <table className="table">
+              <div className="tableWrap_vta_conetcom">
+                <table className="table_vta_conetcom">
                   <thead>
                     <tr>
                       <th>Cliente</th>
@@ -613,15 +783,15 @@ const DashboardVentasConetcom = () => {
               </div>
             )}
           </div>
-          <div className="tableCard">
-            <h3 className="tableTitle">Campanas con mayor rendimiento</h3>
+          <div className="tableCard_vta_conetcom">
+            <h3 className="tableTitle_vta_conetcom">Campanas con mayor rendimiento</h3>
             {loading ? (
-              <p className="tableEmpty">Cargando campanas...</p>
+              <p className="tableEmpty_vta_conetcom">Cargando campanas...</p>
             ) : error ? (
-              <p className="tableEmpty">Sin datos.</p>
+              <p className="tableEmpty_vta_conetcom">Sin datos.</p>
             ) : (
-              <div className="tableWrap">
-                <table className="table">
+              <div className="tableWrap_vta_conetcom">
+                <table className="table_vta_conetcom">
                   <thead>
                     <tr>
                       <th>Campana</th>

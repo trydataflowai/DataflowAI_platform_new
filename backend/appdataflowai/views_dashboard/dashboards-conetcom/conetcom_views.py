@@ -1,6 +1,5 @@
 import importlib.util
 import os
-
 from django.utils.dateparse import parse_date, parse_datetime
 from django.db import transaction
 from django.db.models import Q
@@ -65,6 +64,8 @@ conetcom_campanas_import_serializer = serializers_module.conetcom_campanas_impor
 conetcom_interacciones_campanas_import_serializer = serializers_module.conetcom_interacciones_campanas_import_serializer
 conetcom_prediccion_churnrate_request_serializer = serializers_module.conetcom_prediccion_churnrate_request_serializer
 conetcom_prediccion_churnrate_response_serializer = serializers_module.conetcom_prediccion_churnrate_response_serializer
+conetcom_prediccion_upselling_request_serializer = serializers_module.conetcom_prediccion_upselling_request_serializer
+conetcom_prediccion_upselling_response_serializer = serializers_module.conetcom_prediccion_upselling_response_serializer
 
 
 def _read_import_file(file):
@@ -1259,5 +1260,247 @@ class conetcom_prediccion_churnrate_view(APIView):
         }
 
         out_serializer = conetcom_prediccion_churnrate_response_serializer(data=response)
+        out_serializer.is_valid(raise_exception=True)
+        return Response(out_serializer.data, status=status.HTTP_200_OK)
+
+
+class conetcom_prediccion_upselling_view(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = conetcom_prediccion_upselling_request_serializer(data=request.query_params)
+        if serializer.is_valid():
+            horizonte = serializer.validated_data.get("horizonte", 3)
+        else:
+            horizonte = 3
+
+        if horizonte not in {1, 3, 6}:
+            horizonte = 3
+
+        usuario = request.user
+        empresa = getattr(usuario, "id_empresa", None)
+        if empresa is None:
+            return Response({"error": "Usuario sin empresa asociada."}, status=status.HTTP_400_BAD_REQUEST)
+
+        facturas_qs = conetcom_facturacion.objects.filter(id_empresa=empresa).values(
+            "fecha_emision",
+            "valor_total_facturado",
+            "id_cliente",
+        )
+        if not facturas_qs.exists():
+            return Response(
+                {"error": "No hay facturacion para calcular predicciones."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        df_fact = pd.DataFrame(list(facturas_qs))
+        if df_fact.empty:
+            return Response(
+                {"error": "No hay datos suficientes para facturacion."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        df_fact["fecha_emision"] = pd.to_datetime(df_fact["fecha_emision"], errors="coerce")
+        df_fact["valor_total_facturado"] = pd.to_numeric(
+            df_fact["valor_total_facturado"], errors="coerce"
+        ).fillna(0.0)
+        df_fact = df_fact[df_fact["fecha_emision"].notna()].copy()
+        if df_fact.empty:
+            return Response(
+                {"error": "No hay fechas validas para facturacion."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        df_fact["id_cliente"] = df_fact["id_cliente"].astype(str)
+        df_fact["periodo"] = df_fact["fecha_emision"].dt.to_period("M").dt.to_timestamp()
+
+        series = df_fact.groupby("periodo")["valor_total_facturado"].sum().sort_index()
+        if series.empty:
+            return Response(
+                {"error": "No hay serie de facturacion para predecir."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        month_index = pd.date_range(start=series.index.min(), end=series.index.max(), freq="MS")
+        series = series.reindex(month_index, fill_value=0.0)
+        series_data = series.astype(float)
+
+        modelo = "naive_mean"
+        sigma = float(series_data.std(ddof=1)) if len(series_data) > 1 else 0.0
+        forecast_vals = None
+
+        if len(series_data) >= 2:
+            try:
+                seasonal = "add" if len(series_data) >= 24 else None
+                seasonal_periods = 12 if seasonal else None
+                model = ExponentialSmoothing(
+                    series_data,
+                    trend="add",
+                    seasonal=seasonal,
+                    seasonal_periods=seasonal_periods,
+                    initialization_method="estimated",
+                )
+                fit = model.fit(optimized=True)
+                forecast_vals = fit.forecast(steps=horizonte)
+                residuals = fit.resid
+                sigma = float(residuals.std(ddof=1)) if len(residuals) > 1 else sigma
+                modelo = "ExponentialSmoothing_hw" if seasonal else "ExponentialSmoothing_trend"
+            except Exception:
+                try:
+                    model = ExponentialSmoothing(
+                        series_data,
+                        trend="add",
+                        seasonal=None,
+                        initialization_method="estimated",
+                    )
+                    fit = model.fit(optimized=True)
+                    forecast_vals = fit.forecast(steps=horizonte)
+                    residuals = fit.resid
+                    sigma = float(residuals.std(ddof=1)) if len(residuals) > 1 else sigma
+                    modelo = "ExponentialSmoothing_trend"
+                except Exception:
+                    forecast_vals = None
+
+        if forecast_vals is None:
+            last_value = float(series_data.iloc[-1]) if len(series_data) else 0.0
+            forecast_vals = [last_value for _ in range(horizonte)]
+
+        last_index = series_data.index.max()
+        preds_fact = []
+        for i, val in enumerate(forecast_vals, start=1):
+            periodo = (last_index + pd.DateOffset(months=i)).to_pydatetime().date().replace(day=1)
+            pred_val = float(val)
+            lower = pred_val - 1.96 * sigma
+            upper = pred_val + 1.96 * sigma
+            preds_fact.append(
+                {
+                    "ano": periodo.year,
+                    "mes": periodo.month,
+                    "total_facturado": round(max(0.0, pred_val), 2),
+                    "lower": round(max(0.0, lower), 2),
+                    "upper": round(max(0.0, upper), 2),
+                }
+            )
+
+        series_map = {(idx.year, idx.month): float(val) for idx, val in series_data.items()}
+        base_year = last_index.year
+        base_month = last_index.month
+        historico_facturacion = []
+        for month in range(1, base_month + 1):
+            total = series_map.get((base_year, month), 0.0)
+            historico_facturacion.append(
+                {
+                    "ano": base_year,
+                    "mes": month,
+                    "total_facturado": round(float(total), 2),
+                }
+            )
+
+        clientes_qs = conetcom_clientes.objects.filter(id_empresa=empresa).values(
+            "id_cliente",
+            "nombre_cliente",
+            "id_plan_contratado",
+        )
+        clientes_list = list(clientes_qs)
+
+        planes_qs = conetcom_planes.objects.filter(id_empresa=empresa).values(
+            "id_plan",
+            "precio_mensual",
+        )
+        planes_price = {
+            str(item["id_plan"]): float(item["precio_mensual"] or 0.0) for item in planes_qs
+        }
+
+        reference_date = df_fact["fecha_emision"].max()
+        cutoff = reference_date - pd.DateOffset(months=6)
+        last_invoice = df_fact.groupby("id_cliente")["fecha_emision"].max()
+        recent_df = df_fact[df_fact["fecha_emision"] >= cutoff]
+        freq = recent_df.groupby("id_cliente").size()
+        monetary = recent_df.groupby("id_cliente")["valor_total_facturado"].sum()
+
+        raw_rows = []
+        recency_vals = []
+        freq_vals = []
+        monetary_vals = []
+        plan_vals = []
+
+        for cliente in clientes_list:
+            id_cliente = str(cliente.get("id_cliente") or "")
+            if not id_cliente:
+                continue
+            last_date = last_invoice.get(id_cliente, pd.NaT)
+            if pd.isna(last_date):
+                recency_days = 9999
+            else:
+                recency_days = int((reference_date - last_date).days)
+            freq_val = int(freq.get(id_cliente, 0))
+            mon_val = float(monetary.get(id_cliente, 0.0))
+            plan_id = cliente.get("id_plan_contratado")
+            plan_price = float(planes_price.get(str(plan_id), 0.0))
+
+            raw_rows.append(
+                {
+                    "id_cliente": id_cliente,
+                    "nombre_cliente": cliente.get("nombre_cliente") or id_cliente,
+                    "recency": recency_days,
+                    "frequency": freq_val,
+                    "monetary": mon_val,
+                    "plan_price": plan_price,
+                }
+            )
+            recency_vals.append(recency_days)
+            freq_vals.append(freq_val)
+            monetary_vals.append(mon_val)
+            plan_vals.append(plan_price)
+
+        def _normalize(value, min_v, max_v, default=0.5):
+            if max_v == min_v:
+                return default
+            return (value - min_v) / (max_v - min_v)
+
+        rec_min = min(recency_vals) if recency_vals else 0.0
+        rec_max = max(recency_vals) if recency_vals else 1.0
+        freq_min = min(freq_vals) if freq_vals else 0.0
+        freq_max = max(freq_vals) if freq_vals else 1.0
+        mon_min = min(monetary_vals) if monetary_vals else 0.0
+        mon_max = max(monetary_vals) if monetary_vals else 1.0
+        plan_min = min(plan_vals) if plan_vals else 0.0
+        plan_max = max(plan_vals) if plan_vals else 1.0
+
+        oportunidades = []
+        for row in raw_rows:
+            rec_norm = _normalize(row["recency"], rec_min, rec_max, default=0.5)
+            rec_score = 1 - rec_norm
+            freq_norm = _normalize(row["frequency"], freq_min, freq_max, default=0.0)
+            mon_norm = _normalize(row["monetary"], mon_min, mon_max, default=0.0)
+            plan_norm = _normalize(row["plan_price"], plan_min, plan_max, default=0.5)
+            plan_score = 1 - plan_norm
+
+            score = (0.35 * rec_score) + (0.25 * freq_norm) + (0.25 * mon_norm) + (0.15 * plan_score)
+            oportunidad = max(0.0, min(100.0, score * 100))
+
+            oportunidades.append(
+                {
+                    "id_cliente": row["id_cliente"],
+                    "nombre_cliente": row["nombre_cliente"],
+                    "oportunidad": round(oportunidad, 2),
+                }
+            )
+
+        oportunidades = sorted(oportunidades, key=lambda x: x["oportunidad"], reverse=True)[:30]
+
+        response = {
+            "horizonte": horizonte,
+            "modelo": modelo,
+            "trained_at": dt.datetime.utcnow().isoformat() + "Z",
+            "ultimo_periodo": last_index.to_pydatetime().date().isoformat(),
+            "base_year": base_year,
+            "base_month": base_month,
+            "historico_facturacion": historico_facturacion,
+            "predicciones_facturacion": preds_fact,
+            "oportunidades": oportunidades,
+        }
+
+        out_serializer = conetcom_prediccion_upselling_response_serializer(data=response)
         out_serializer.is_valid(raise_exception=True)
         return Response(out_serializer.data, status=status.HTTP_200_OK)

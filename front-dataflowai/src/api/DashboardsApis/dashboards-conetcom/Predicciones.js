@@ -1,5 +1,6 @@
 const API_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const RESOURCE = 'prediccion/conetcom_churnrate/';
+const RESOURCE_UPSELLING = 'prediccion/conetcom_upselling/';
 
 const getAuthToken = () => {
   const raw =
@@ -43,6 +44,24 @@ export const obtenerPrediccionChurnRate = async (params = {}) => {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     const msg = body?.error || 'Error al obtener prediccion de churn rate';
+    throw new Error(msg);
+  }
+  return body;
+};
+
+export const obtenerPrediccionUpselling = async (params = {}) => {
+  if (!getAuthToken()) {
+    throw new Error('No hay sesion activa. Inicia sesion nuevamente.');
+  }
+  const query = buildQuery(params);
+  const res = await fetch(`${API_URL}/${RESOURCE_UPSELLING}${query ? `?${query}` : ''}`, {
+    ...defaultOptions(),
+    method: 'GET',
+  });
+  if (res.status === 401) throw new Error('Sesion invalida o expirada. Vuelve a iniciar sesion.');
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = body?.error || 'Error al obtener prediccion de upselling';
     throw new Error(msg);
   }
   return body;

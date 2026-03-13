@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-.container {
+.container_vta_conetcom {
   --bg: #f4f8ff;
   --ink: #0f172a;
   --muted: #475569;
@@ -11,6 +11,11 @@
   --primary-soft: rgba(37, 99, 235, 0.12);
   --shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
   --shadow-sm: 0 12px 24px rgba(15, 23, 42, 0.06);
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 100vh;
   padding: 2.4rem clamp(1.4rem, 3vw, 3.2rem) 3.5rem;
   background:
@@ -21,7 +26,7 @@
   font-family: 'Sora', sans-serif;
 }
 
-.header {
+.header_vta_conetcom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -34,7 +39,7 @@
   margin-bottom: 2rem;
 }
 
-.headerActions {
+.headerActions_vta_conetcom {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -42,12 +47,12 @@
   justify-content: flex-end;
 }
 
-.headerText {
+.headerText_vta_conetcom {
   display: grid;
   gap: 0.5rem;
 }
 
-.eyebrow {
+.eyebrow_vta_conetcom {
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.25rem;
@@ -56,21 +61,21 @@
   font-weight: 600;
 }
 
-.title {
+.title_vta_conetcom {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(2rem, 3vw, 2.7rem);
   letter-spacing: -0.02em;
 }
 
-.subtitle {
+.subtitle_vta_conetcom {
   margin: 0;
   color: var(--muted);
   max-width: 42rem;
   line-height: 1.6;
 }
 
-.headerBadge {
+.headerBadge_vta_conetcom {
   display: grid;
   gap: 0.4rem;
   padding: 1rem 1.2rem;
@@ -80,24 +85,24 @@
   min-width: 180px;
 }
 
-.badgeLabel {
+.badgeLabel_vta_conetcom {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.12rem;
   color: var(--primary-2);
 }
 
-.badgeValue {
+.badgeValue_vta_conetcom {
   font-size: 1.1rem;
   font-weight: 700;
   font-family: 'Space Grotesk', sans-serif;
 }
 
-.accessMenu {
+.accessMenu_vta_conetcom {
   position: relative;
 }
 
-.accessButton {
+.accessButton_vta_conetcom {
   border: 1px solid rgba(37, 99, 235, 0.2);
   background: #ffffff;
   color: var(--primary-2);
@@ -108,13 +113,13 @@
   transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
 
-.accessButton:hover {
+.accessButton_vta_conetcom:hover {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.45);
   box-shadow: 0 10px 18px rgba(37, 99, 235, 0.12);
 }
 
-.accessDropdown {
+.accessDropdown_vta_conetcom {
   position: absolute;
   right: 0;
   top: calc(100% + 0.6rem);
@@ -129,7 +134,7 @@
   gap: 0.2rem;
 }
 
-.accessItem {
+.accessItem_vta_conetcom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -145,11 +150,11 @@
   text-align: left;
 }
 
-.accessItem:hover {
+.accessItem_vta_conetcom:hover {
   background: rgba(37, 99, 235, 0.08);
 }
 
-.errorBanner {
+.errorBanner_vta_conetcom {
   background: #fee2e2;
   border: 1px solid #fecaca;
   color: #991b1b;
@@ -159,11 +164,11 @@
   font-weight: 600;
 }
 
-.section {
+.section_vta_conetcom {
   margin-bottom: 2.4rem;
 }
 
-.sectionHeader {
+.sectionHeader_vta_conetcom {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
@@ -171,26 +176,26 @@
   margin-bottom: 1.1rem;
 }
 
-.sectionTitle {
+.sectionTitle_vta_conetcom {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
   font-family: 'Space Grotesk', sans-serif;
 }
 
-.sectionHint {
+.sectionHint_vta_conetcom {
   margin: 0;
   color: var(--muted);
   font-size: 0.9rem;
 }
 
-.kpiGrid {
+.kpiGrid_vta_conetcom {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.card {
+.card_vta_conetcom {
   background: var(--card);
   border-radius: 18px;
   padding: 1.1rem 1.25rem;
@@ -200,7 +205,7 @@
   gap: 0.6rem;
 }
 
-.cardLabel {
+.cardLabel_vta_conetcom {
   margin: 0;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -208,31 +213,31 @@
   color: var(--muted);
 }
 
-.cardValue {
+.cardValue_vta_conetcom {
   margin: 0;
   font-size: 1.45rem;
   font-family: 'Space Grotesk', sans-serif;
   letter-spacing: -0.01em;
 }
 
-.cardValueMuted {
+.cardValueMuted_vta_conetcom {
   margin: 0;
   font-size: 1rem;
   color: var(--muted);
 }
 
-.cardHint {
+.cardHint_vta_conetcom {
   margin: 0;
   color: var(--muted);
   font-size: 0.8rem;
 }
 
-.cardRow {
+.cardRow_vta_conetcom {
   display: grid;
   gap: 0.6rem;
 }
 
-.cardMeta {
+.cardMeta_vta_conetcom {
   display: block;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -240,13 +245,13 @@
   color: var(--muted);
 }
 
-.cardValueSm {
+.cardValueSm_vta_conetcom {
   display: block;
   font-size: 1.05rem;
   font-weight: 600;
 }
 
-.filterRow {
+.filterRow_vta_conetcom {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem 1.6rem;
@@ -258,19 +263,19 @@
   margin-bottom: 1.6rem;
 }
 
-.filterGroup {
+.filterGroup_vta_conetcom {
   display: grid;
   gap: 0.4rem;
 }
 
-.filterLabel {
+.filterLabel_vta_conetcom {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08rem;
   color: var(--muted);
 }
 
-.filterControl {
+.filterControl_vta_conetcom {
   padding: 0.55rem 0.75rem;
   border-radius: 10px;
   border: 1px solid var(--stroke);
@@ -280,23 +285,53 @@
   min-width: 160px;
 }
 
-.filterValue {
+.predictionButtons_vta_conetcom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.predictionButton_vta_conetcom {
+  border: 1px solid var(--stroke);
+  background: #ffffff;
+  color: var(--ink);
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.predictionButton_vta_conetcom:hover {
+  border-color: rgba(37, 99, 235, 0.45);
+  transform: translateY(-1px);
+}
+
+.predictionButtonActive_vta_conetcom {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.2);
+}
+
+.filterValue_vta_conetcom {
   font-weight: 600;
   color: var(--primary-2);
   font-size: 1.05rem;
 }
 
-.filterValueMuted {
+.filterValueMuted_vta_conetcom {
   color: var(--muted);
 }
 
-.chartGrid {
+.chartGrid_vta_conetcom {
   display: grid;
   gap: 1.2rem;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
-.chartCard {
+.chartCard_vta_conetcom {
   background: var(--card);
   border-radius: 18px;
   border: 1px solid var(--stroke);
@@ -306,20 +341,32 @@
   gap: 0.8rem;
 }
 
-.chartHeader {
+.chartHeader_vta_conetcom {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
 }
 
-.chartTitle {
+.chartMeta_vta_conetcom {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.chartMetaError_vta_conetcom {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.78rem;
+}
+
+.chartTitle_vta_conetcom {
   margin: 0;
   font-size: 1rem;
   font-family: 'Space Grotesk', sans-serif;
 }
 
-.chartBadge {
+.chartBadge_vta_conetcom {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08rem;
@@ -330,22 +377,22 @@
   border: 1px solid rgba(37, 99, 235, 0.2);
 }
 
-.chartBody {
+.chartBody_vta_conetcom {
   width: 100%;
 }
 
-.chartLoading {
+.chartLoading_vta_conetcom {
   margin: 0;
   color: var(--muted);
 }
 
-.tableGrid {
+.tableGrid_vta_conetcom {
   display: grid;
   gap: 1.2rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-.tableCard {
+.tableCard_vta_conetcom {
   background: var(--card);
   border-radius: 18px;
   border: 1px solid var(--stroke);
@@ -355,23 +402,23 @@
   gap: 0.8rem;
 }
 
-.tableTitle {
+.tableTitle_vta_conetcom {
   margin: 0;
   font-size: 1rem;
   font-family: 'Space Grotesk', sans-serif;
 }
 
-.tableWrap {
+.tableWrap_vta_conetcom {
   overflow-x: auto;
 }
 
-.table {
+.table_vta_conetcom {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
 }
 
-.table th {
+.table_vta_conetcom th {
   text-align: left;
   padding: 0.65rem 0.35rem;
   font-size: 0.72rem;
@@ -381,47 +428,53 @@
   border-bottom: 1px solid var(--stroke);
 }
 
-.table td {
+.table_vta_conetcom td {
   padding: 0.65rem 0.35rem;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.table tbody tr:hover {
+.table_vta_conetcom tbody tr:hover {
   background: rgba(37, 99, 235, 0.05);
 }
 
-.tableEmpty {
+.predictionRow_vta_conetcom {
+  color: #b91c1c;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.tableEmpty_vta_conetcom {
   margin: 0;
   color: var(--muted);
 }
 
-.quickArrow {
+.quickArrow_vta_conetcom {
   font-size: 1.1rem;
   color: var(--primary);
 }
 
 @media (max-width: 900px) {
-  .header {
+  .header_vta_conetcom {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .headerBadge {
+  .headerBadge_vta_conetcom {
     width: 100%;
   }
 
-  .headerActions {
+  .headerActions_vta_conetcom {
     width: 100%;
     justify-content: flex-start;
   }
 
-  .accessDropdown {
+  .accessDropdown_vta_conetcom {
     right: auto;
     left: 0;
     width: 100%;
   }
 
-  .filterRow {
+  .filterRow_vta_conetcom {
     align-items: stretch;
   }
 }
