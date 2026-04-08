@@ -2219,7 +2219,7 @@ STATE_CHOICES = [
     ('cancelado', 'Cancelado'),
 ]
 
-# Tipo de cliente (Residencial / Empresarial / Mayorista)
+# Tipo de cliente (Residencial / Empresarial / Mayoristas)
 TYPE_CLIENT_CHOICES = [
     ('residencial', 'Residencial'),
     ('empresarial', 'Empresarial'),
@@ -2507,3 +2507,110 @@ class conetcom_interacciones_campanas(models.Model):
 
     def __str__(self):
         return f"{self.id_interaccion}"
+
+
+
+from django.db import models
+
+# ==================== LOOP SERVICIOS TOTEK ====================
+
+LOOPSERVICIOSTOTEK_ESTADO_CHOICES = [
+    ('FINALIZADO', 'Finalizado'),
+    ('CANCELADO', 'Cancelado'),
+    ('REPROGRAMADO', 'Reprogramado'),
+    ('NO_INSTALADO', 'No Instalado'),
+]
+
+LOOPSERVICIOSTOTEK_TIPO_EMPRESA_CHOICES = [
+    ('DIRECTO', 'Directo'),
+    ('RETAIL', 'Retail'),
+]
+
+LOOPSERVICIOSTOTEK_SATISFACCION_CHOICES = [
+    (1, '1 - Muy insatisfecho'),
+    (2, '2 - Insatisfecho'),
+    (3, '3 - Neutral'),
+    (4, '4 - Satisfecho'),
+    (5, '5 - Muy satisfecho'),
+]
+
+LOOPSERVICIOSTOTEK_CIUDAD_PRINCIPAL_CHOICES = [
+    ('BOGOTA', 'Bogotá'),
+    ('MEDELLIN', 'Medellín'),
+    ('CALI', 'Cali'),
+    ('BARRANQUILLA', 'Barranquilla'),
+    ('CARTAGENA', 'Cartagena'),
+    ('VILLAVICENCIO', 'Villavicencio'),
+    ('YOPAL', 'Yopal'),
+    ('GIRARDOT', 'Girardot'),
+    ('IBAGUE', 'Ibagué'),
+    ('ARMENIA', 'Armenia'),
+    ('NEIVA', 'Neiva'),
+    ('MANIZALES', 'Manizales'),
+    ('PEREIRA', 'Pereira'),
+    ('BUCARAMANGA', 'Bucaramanga'),
+    ('CUCUTA', 'Cúcuta'),
+    ('SANTA_MARTA', 'Santa Marta'),
+    ('VALLEDUPAR', 'Valledupar'),
+    ('TUNJA', 'Tunja'),
+    ('SINCELEJO', 'Sincelejo'),
+    ('MONTERIA', 'Montería'),
+    ('OTRA', 'Otra'),
+]
+
+
+class ServiciosLoopTotek(models.Model):
+    id_registro = models.AutoField(primary_key=True, db_column='id_registro')
+
+    id_empresa = models.ForeignKey('Empresa', on_delete=models.PROTECT, db_column='id_empresa')
+    id_producto = models.ForeignKey('Producto', on_delete=models.PROTECT, db_column='id_producto')
+
+    # Tiempo
+    fecha_servicio = models.DateField(db_column='fecha_servicio', null=True, blank=True)
+    mes = models.CharField(max_length=20, db_column='mes', null=True, blank=True)
+    ano = models.IntegerField(db_column='ano', null=True, blank=True)
+
+    # Tipo empresa y categoria
+    tipo_empresa = models.CharField(
+        max_length=50, db_column='tipo_empresa',
+        choices=LOOPSERVICIOSTOTEK_TIPO_EMPRESA_CHOICES, null=True, blank=True
+    )
+    categoria_servicio = models.CharField(max_length=100, db_column='categoria_servicio', null=True, blank=True)
+    descripcion_servicio = models.CharField(max_length=500, db_column='descripcion_servicio', null=True, blank=True)
+    cantidad_instalada = models.IntegerField(db_column='cantidad_instalada', default=0)
+
+    # Estado del servicio
+    estado_servicio = models.CharField(
+        max_length=50, db_column='estado_servicio',
+        choices=LOOPSERVICIOSTOTEK_ESTADO_CHOICES, default='FINALIZADO'
+    )
+
+    # Motivos
+    motivo_cancelacion = models.CharField(max_length=200, db_column='motivo_cancelacion', null=True, blank=True)
+    motivo_reprogramacion = models.CharField(max_length=200, db_column='motivo_reprogramacion', null=True, blank=True)
+
+    # Satisfaccion (escala 1-5)
+    satisfaccion_cliente = models.IntegerField(
+        db_column='satisfaccion_cliente',
+        choices=LOOPSERVICIOSTOTEK_SATISFACCION_CHOICES, null=True, blank=True
+    )
+
+    # Ubicacion
+    ciudad_principal = models.CharField(
+        max_length=100, db_column='ciudad_principal',
+        choices=LOOPSERVICIOSTOTEK_CIUDAD_PRINCIPAL_CHOICES, null=True, blank=True
+    )
+    ciudad = models.CharField(max_length=150, db_column='ciudad', null=True, blank=True)
+    municipio_sector = models.CharField(max_length=200, db_column='municipio_sector', null=True, blank=True)
+
+    # Tecnico / Orden de trabajo
+    codigo_ot = models.CharField(max_length=50, db_column='codigo_ot', null=True, blank=True)
+    nombre_instalador = models.CharField(max_length=250, db_column='nombre_instalador', null=True, blank=True)
+
+    # Notas
+    notas = models.TextField(db_column='notas', null=True, blank=True)
+
+    class Meta:
+        db_table = 'servicios_loop_totek'
+        verbose_name_plural = 'Servicios Loop Totek'
+        ordering = ['-fecha_servicio']

@@ -20,7 +20,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Usuario, RegistrosSesion
+from .models import Usuario, RegistrosSesion,ServiciosLoopTotek 
 from .serializers import PasswordRecoveryRequestSerializer, PasswordRecoveryConfirmSerializer
 
 logger = logging.getLogger(__name__)
@@ -10199,6 +10199,535 @@ class MetasComercialesBluettiTemplateView(APIView):
             notes=[
                 "canal puede ser nombre_canal o codigo_canal (sin canal_id).",
                 "ano, canal, pais y meta_monetaria son obligatorios.",
+            ],
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.db import transaction
+from django.http import HttpResponse
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+import pandas as pd
+
+def _clean_cell(value):
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    return str(value).strip()
+
+
+def _to_int_or_none(value, default=None):
+    txt = _clean_cell(value)
+    if txt == "":
+        return default
+    try:
+        return int(float(txt))
+    except Exception:
+        return default
+
+
+def _read_bulk_file(file, date_columns=None):
+    if file.name.endswith(".csv"):
+        df = pd.read_csv(file)
+    else:
+        df = pd.read_excel(file)
+
+    df.columns = [str(c).strip() for c in df.columns]
+
+    if date_columns:
+        for col in date_columns:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+    return df
+
+
+def _build_template_response(filename, sheet_name, columns, sample_rows=None, notes=None):
+    df = pd.DataFrame(sample_rows or [], columns=columns)
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    with pd.ExcelWriter(response, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name=sheet_name)
+        if notes:
+            notes_df = pd.DataFrame({"nota": notes})
+            notes_df.to_excel(writer, index=False, sheet_name="Instrucciones")
+    return response
+# LOOP SERVICIOS TOTEK
+# ==============================================================
+
+
+from .serializers import (
+    ServiciosLoopTotekSerializer,
+    ServiciosLoopTotekBulkItemSerializer,
+)
+
+LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID = 1
+LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID = 24
+
+
+# ---------------------------
+# KPIS DASHBOARD
+# ---------------------------
+class LoopserviciosTotekKpisView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        from django.db.models import Sum, Count, Q
+        qs = ServiciosLoopTotek.objects.filter(
+            id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+            id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+        )
+
+        # Total instalaciones (estado FINALIZADO)
+        total_instalaciones = qs.filter(estado_servicio='FINALIZADO').aggregate(
+            total=Sum('cantidad_instalada')
+        )['total'] or 0
+
+        # Por tipo empresa
+        por_tipo_empresa = list(
+            qs.filter(estado_servicio='FINALIZADO')
+            .values('tipo_empresa')
+            .annotate(total=Sum('cantidad_instalada'))
+            .order_by('-total')
+        )
+
+        # Por categoria servicio
+        por_categoria = list(
+            qs.filter(estado_servicio='FINALIZADO')
+            .values('categoria_servicio')
+            .annotate(total=Sum('cantidad_instalada'))
+            .order_by('-total')
+        )
+
+        # Por descripcion servicio (top 15)
+        por_descripcion = list(
+            qs.filter(estado_servicio='FINALIZADO')
+            .values('descripcion_servicio')
+            .annotate(total=Sum('cantidad_instalada'))
+            .order_by('-total')[:15]
+        )
+
+        # OT Cancelados
+        ot_cancelados_total = qs.filter(estado_servicio='CANCELADO').aggregate(
+            total=Count('id_registro')
+        )['total'] or 0
+        ot_cancelados_por_motivo = list(
+            qs.filter(estado_servicio='CANCELADO')
+            .values('motivo_cancelacion')
+            .annotate(total=Count('id_registro'))
+            .order_by('-total')
+        )
+
+        # OT Reprogramados
+        ot_reprogramados_total = qs.filter(estado_servicio='REPROGRAMADO').aggregate(
+            total=Count('id_registro')
+        )['total'] or 0
+        ot_reprogramados_por_motivo = list(
+            qs.filter(estado_servicio='REPROGRAMADO')
+            .values('motivo_reprogramacion')
+            .annotate(total=Count('id_registro'))
+            .order_by('-total')
+        )
+
+        # Satisfaccion cliente (escala 1-5)
+        from django.db.models import Avg
+        satisfaccion_qs = qs.filter(satisfaccion_cliente__isnull=False)
+        total_con_respuesta = satisfaccion_qs.count()
+        promedio_satisfaccion = round(
+            float(satisfaccion_qs.aggregate(avg=Avg('satisfaccion_cliente'))['avg'] or 0), 2
+        )
+        distribucion_satisfaccion = [
+            {'calificacion': val, 'total': satisfaccion_qs.filter(satisfaccion_cliente=val).count()}
+            for val in range(1, 6)
+        ]
+
+        # Por ciudad principal
+        por_ciudad_principal = list(
+            qs.filter(estado_servicio='FINALIZADO')
+            .values('ciudad_principal')
+            .annotate(total=Sum('cantidad_instalada'))
+            .order_by('-total')
+        )
+
+        # Por ciudad detalle
+        por_ciudad = list(
+            qs.filter(estado_servicio='FINALIZADO')
+            .values('ciudad')
+            .annotate(total=Sum('cantidad_instalada'))
+            .order_by('-total')[:20]
+        )
+
+        # Por instalador (top 20)
+        por_instalador = list(
+            qs.filter(estado_servicio='FINALIZADO')
+            .values('nombre_instalador')
+            .annotate(total=Sum('cantidad_instalada'))
+            .order_by('-total')[:20]
+        )
+
+        # Por codigo OT (top 20)
+        por_codigo_ot = list(
+            qs.values('codigo_ot')
+            .annotate(total=Count('id_registro'))
+            .order_by('-total')[:20]
+        )
+
+        return Response({
+            'total_instalaciones': total_instalaciones,
+            'por_tipo_empresa': por_tipo_empresa,
+            'por_categoria': por_categoria,
+            'por_descripcion': por_descripcion,
+            'ot_cancelados': {
+                'total': ot_cancelados_total,
+                'por_motivo': ot_cancelados_por_motivo,
+            },
+            'ot_reprogramados': {
+                'total': ot_reprogramados_total,
+                'por_motivo': ot_reprogramados_por_motivo,
+            },
+            'satisfaccion': {
+                'promedio': promedio_satisfaccion,
+                'total_con_respuesta': total_con_respuesta,
+                'distribucion': distribucion_satisfaccion,
+            },
+            'por_ciudad_principal': por_ciudad_principal,
+            'por_ciudad': por_ciudad,
+            'por_instalador': por_instalador,
+            'por_codigo_ot': por_codigo_ot,
+        }, status=status.HTTP_200_OK)
+
+
+# ---------------------------
+# CRUD INDIVIDUAL
+# ---------------------------
+class LoopserviciosTotekListCreateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        qs = ServiciosLoopTotek.objects.filter(
+            id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+            id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+        )
+        serializer = ServiciosLoopTotekSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ServiciosLoopTotekSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(ServiciosLoopTotekSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+
+class LoopserviciosTotekDetailView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        return ServiciosLoopTotek.objects.filter(
+            id_registro=pk,
+            id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+            id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+        ).first()
+
+    def put(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ServiciosLoopTotekSerializer(instance, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(ServiciosLoopTotekSerializer(obj).data)
+
+    def patch(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ServiciosLoopTotekSerializer(instance, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(ServiciosLoopTotekSerializer(obj).data)
+
+    def delete(self, request, pk):
+        instance = self.get_object(pk)
+        if not instance:
+            return Response({'error': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------
+# BULK IMPORT
+# ---------------------------
+class LoopserviciosTotekBulkImportView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No se envio ningun archivo'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            df = _read_bulk_file(file)
+        except Exception as e:
+            return Response({'error': f'Archivo invalido: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        columnas_requeridas = {'estado_servicio'}
+        if not columnas_requeridas.issubset(df.columns):
+            return Response(
+                {'error': 'Columnas invalidas', 'faltantes': list(columnas_requeridas - set(df.columns))},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        registros = []
+        errores = []
+        for idx, row in df.iterrows():
+            estado = _clean_cell(row.get('estado_servicio', 'FINALIZADO'))
+            if not estado:
+                estado = 'FINALIZADO'
+
+            fecha_raw = _clean_cell(row.get('fecha_servicio'))
+            fecha = None
+            if fecha_raw:
+                try:
+                    import datetime
+                    fecha = datetime.datetime.strptime(str(fecha_raw)[:10], '%Y-%m-%d').date()
+                except Exception:
+                    errores.append(f'Fila {idx + 2}: fecha_servicio invalida ({fecha_raw})')
+                    continue
+
+            cantidad_raw = row.get('cantidad_instalada', 0)
+            try:
+                cantidad = int(cantidad_raw) if cantidad_raw not in [None, ''] else 0
+            except (ValueError, TypeError):
+                cantidad = 0
+
+            ano_raw = row.get('ano')
+            try:
+                ano = int(ano_raw) if ano_raw not in [None, ''] else None
+            except (ValueError, TypeError):
+                ano = None
+
+            sat_raw = _to_int_or_none(row.get('satisfaccion_cliente'))
+            if sat_raw is not None and sat_raw not in (1, 2, 3, 4, 5):
+                errores.append(
+                    f'Fila {idx + 2}: satisfaccion_cliente invalida ({sat_raw}). '
+                    f'Valores validos: 1=Muy insatisfecho, 2=Insatisfecho, 3=Neutral, 4=Satisfecho, 5=Muy satisfecho'
+                )
+                continue
+            satisfaccion = sat_raw
+
+            registros.append(
+                ServiciosLoopTotek(
+                    id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+                    id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+                    fecha_servicio=fecha,
+                    mes=_clean_cell(row.get('mes', '')),
+                    ano=ano,
+                    tipo_empresa=_clean_cell(row.get('tipo_empresa', '')),
+                    categoria_servicio=_clean_cell(row.get('categoria_servicio', '')),
+                    descripcion_servicio=_clean_cell(row.get('descripcion_servicio', '')),
+                    cantidad_instalada=cantidad,
+                    estado_servicio=estado,
+                    motivo_cancelacion=_clean_cell(row.get('motivo_cancelacion', '')),
+                    motivo_reprogramacion=_clean_cell(row.get('motivo_reprogramacion', '')),
+                    satisfaccion_cliente=satisfaccion,
+                    ciudad_principal=_clean_cell(row.get('ciudad_principal', '')),
+                    ciudad=_clean_cell(row.get('ciudad', '')),
+                    municipio_sector=_clean_cell(row.get('municipio_sector', '')),
+                    codigo_ot=_clean_cell(row.get('codigo_ot', '')),
+                    nombre_instalador=_clean_cell(row.get('nombre_instalador', '')),
+                    notas=_clean_cell(row.get('notas', '')),
+                )
+            )
+
+        if errores:
+            return Response(
+                {'error': 'Errores de validacion en plantilla', 'detalles': errores[:50]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ServiciosLoopTotek.objects.bulk_create(registros, batch_size=1000)
+        return Response({'importados': len(registros)}, status=status.HTTP_201_CREATED)
+
+
+# ---------------------------
+# BULK UPDATE EXCEL
+# ---------------------------
+class LoopserviciosTotekBulkUpdateExcelView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No se envio ningun archivo'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith('.csv'):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+        except Exception as e:
+            return Response({'error': f'Archivo invalido: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'id_registro' not in df.columns:
+            return Response({'error': 'Falta columna id_registro'}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = 0
+        for _, row in df.iterrows():
+            instance = ServiciosLoopTotek.objects.filter(
+                id_registro=row['id_registro'],
+                id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+                id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+            ).first()
+            if not instance:
+                continue
+            data = row.dropna().to_dict()
+            data.pop('id_registro', None)
+            serializer = ServiciosLoopTotekSerializer(instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                updated += 1
+
+        return Response({'updated': updated}, status=status.HTTP_200_OK)
+
+
+# ---------------------------
+# BULK DELETE
+# ---------------------------
+class LoopserviciosTotekBulkDeleteView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def delete(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list):
+            return Response({'error': 'ids debe ser una lista'}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = ServiciosLoopTotek.objects.filter(
+            id_registro__in=ids,
+            id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+            id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+        ).delete()
+        return Response({'deleted': deleted}, status=status.HTTP_200_OK)
+
+
+# ---------------------------
+# EXPORT
+# ---------------------------
+class LoopserviciosTotekExportView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        qs = ServiciosLoopTotek.objects.filter(
+            id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+            id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+        ).values(
+            'id_registro', 'fecha_servicio', 'mes', 'ano',
+            'tipo_empresa', 'categoria_servicio', 'descripcion_servicio', 'cantidad_instalada',
+            'estado_servicio', 'motivo_cancelacion', 'motivo_reprogramacion',
+            'satisfaccion_cliente', 'ciudad_principal', 'ciudad', 'municipio_sector',
+            'codigo_ot', 'nombre_instalador', 'notas',
+        )
+        df = pd.DataFrame(list(qs))
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="servicios_loop_totek.xlsx"'
+        with pd.ExcelWriter(response, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Servicios')
+        return response
+
+
+# ---------------------------
+# TEMPLATE
+# ---------------------------
+class LoopserviciosTotekTemplateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        return _build_template_response(
+            filename='plantilla_servicios_loop_totek.xlsx',
+            sheet_name='Plantilla',
+            columns=[
+                'fecha_servicio', 'mes', 'ano',
+                'tipo_empresa', 'categoria_servicio', 'descripcion_servicio', 'cantidad_instalada',
+                'estado_servicio', 'motivo_cancelacion', 'motivo_reprogramacion',
+                'satisfaccion_cliente', 'ciudad_principal', 'ciudad',
+                'codigo_ot', 'nombre_instalador', 'notas',
+            ],
+            sample_rows=[{
+                'fecha_servicio': '2026-02-01',
+                'mes': 'febrero',
+                'ano': 2026,
+                'tipo_empresa': 'RETAIL',
+                'categoria_servicio': 'FERRETERIA',
+                'descripcion_servicio': '1x INSTALACION CERRADURA DIGITAL PUERTA METALICA',
+                'cantidad_instalada': 1,
+                'estado_servicio': 'FINALIZADO',
+                'motivo_cancelacion': '',
+                'motivo_reprogramacion': '',
+                'satisfaccion_cliente': 4,
+                'ciudad_principal': 'BOGOTA',
+                'ciudad': 'BOGOTA. D.C.',
+                'codigo_ot': 'HCL459068',
+                'nombre_instalador': 'Fausto Carvallo Guzman',
+                'notas': '',
+            }],
+            notes=[
+                'estado_servicio: FINALIZADO | CANCELADO | REPROGRAMADO | NO_INSTALADO',
+                'tipo_empresa: DIRECTO | RETAIL',
+                'satisfaccion_cliente: 1=Muy insatisfecho | 2=Insatisfecho | 3=Neutral | 4=Satisfecho | 5=Muy satisfecho (dejar vacio si no aplica)',
+                'ciudad_principal: BOGOTA | MEDELLIN | CALI | BARRANQUILLA | CARTAGENA | VILLAVICENCIO | YOPAL | GIRARDOT | IBAGUE | ARMENIA | NEIVA | MANIZALES | PEREIRA | BUCARAMANGA | CUCUTA | SANTA_MARTA | VALLEDUPAR | TUNJA | SINCELEJO | MONTERIA | OTRA',
+                'Bogota incluye: Bogota D.C., Cajica, Mosquera, Soacha y sus municipios.',
+                'Medellin incluye: Medellin, Rionegro y sus municipios.',
+                'Cali incluye: Cali, Palmira, Tulua y sus municipios.',
+                'No incluyas id_empresa, id_producto ni id_registro.',
             ],
         )
 

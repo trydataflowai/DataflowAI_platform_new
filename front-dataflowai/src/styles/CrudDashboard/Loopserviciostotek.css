@@ -1,0 +1,479 @@
+/* =====================================================
+   LOOP SERVICIOS TOTEK — CRUD STYLES
+   Prefijo: Loopst_
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --Loopst-bg-main: #0a1a12;
+  --Loopst-bg-card: #0f2318;
+  --Loopst-bg-muted: #142b1e;
+  --Loopst-primary: #00c27c;
+  --Loopst-secondary: #00a86b;
+  --Loopst-danger: #ef4444;
+  --Loopst-warn: #f59e0b;
+  --Loopst-text-main: #f1f5f9;
+  --Loopst-text-muted: #94a3b8;
+  --Loopst-border: #1e3b2a;
+  --Loopst-radius: 12px;
+  --Loopst-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ─── Container — respeta el sidebar ────────────────── */
+.Loopst_container {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  padding: 28px 32px;
+  background: radial-gradient(circle at top left, rgba(0,194,124,0.07), transparent 55%), var(--Loopst-bg-main);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: var(--Loopst-text-main);
+}
+
+/* ─── Header ─────────────────────────────────────────── */
+.Loopst_header_row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.Loopst_logo_badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #00c27c, #00a86b);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  padding: 4px 14px;
+  border-radius: 8px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.Loopst_title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  background: linear-gradient(135deg, #00c27c, #33d494);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.Loopst_subtitle {
+  font-size: 13px;
+  color: var(--Loopst-text-muted);
+  margin: 0;
+}
+
+/* ─── Nav Menu ───────────────────────────────────────── */
+.Loopst_nav_wrapper { position: relative; }
+
+.Loopst_nav_btn {
+  background: var(--Loopst-bg-card);
+  border: 1px solid var(--Loopst-border);
+  color: var(--Loopst-primary);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s;
+}
+.Loopst_nav_btn:hover { background: var(--Loopst-bg-muted); }
+
+.Loopst_nav_menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--Loopst-bg-card);
+  border: 1px solid var(--Loopst-border);
+  border-radius: var(--Loopst-radius);
+  box-shadow: var(--Loopst-shadow);
+  z-index: 200;
+  min-width: 240px;
+  overflow: hidden;
+}
+.Loopst_nav_menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--Loopst-text-main);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s;
+}
+.Loopst_nav_menu button:hover { background: var(--Loopst-bg-muted); color: var(--Loopst-primary); }
+
+/* ─── Actions bar ────────────────────────────────────── */
+.Loopst_actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.Loopst_search {
+  flex: 1;
+  min-width: 220px;
+  padding: 9px 14px;
+  background: var(--Loopst-bg-card);
+  border: 1px solid var(--Loopst-border);
+  border-radius: 8px;
+  color: var(--Loopst-text-main);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.Loopst_search:focus { border-color: var(--Loopst-primary); }
+.Loopst_search::placeholder { color: var(--Loopst-text-muted); }
+
+.Loopst_btn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--Loopst-border);
+  background: var(--Loopst-bg-card);
+  color: var(--Loopst-text-main);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+.Loopst_btn:hover { background: var(--Loopst-bg-muted); border-color: var(--Loopst-primary); }
+
+.Loopst_btn.btn-nuevo {
+  background: linear-gradient(135deg, #00c27c, #00a86b);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+.Loopst_btn.btn-nuevo:hover { opacity: 0.88; }
+
+.Loopst_btn.btn-exportar {
+  border-color: var(--Loopst-primary);
+  color: var(--Loopst-primary);
+}
+.Loopst_btn.btn-exportar:hover { background: rgba(0,194,124,0.1); }
+
+.Loopst_btn.btn-danger {
+  border-color: var(--Loopst-danger);
+  color: var(--Loopst-danger);
+}
+.Loopst_btn.btn-danger:hover { background: rgba(239,68,68,0.1); }
+
+/* ─── Table ──────────────────────────────────────────── */
+.Loopst_table_wrapper {
+  background: var(--Loopst-bg-card);
+  border: 1px solid var(--Loopst-border);
+  border-radius: var(--Loopst-radius);
+  overflow-x: auto;       /* scroll horizontal en pantallas pequeñas */
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: var(--Loopst-shadow);
+}
+
+.Loopst_table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 900px;       /* scroll horizontal antes de romper el layout */
+}
+
+.Loopst_table thead tr {
+  background: var(--Loopst-bg-muted);
+  border-bottom: 1px solid var(--Loopst-border);
+}
+
+.Loopst_table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--Loopst-primary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.Loopst_th_btn {
+  background: none;
+  border: none;
+  color: var(--Loopst-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+.Loopst_th_btn:hover { color: #33d494; }
+
+.Loopst_table tbody tr {
+  border-bottom: 1px solid var(--Loopst-border);
+  transition: background 0.15s;
+}
+.Loopst_table tbody tr:hover { background: var(--Loopst-bg-muted); }
+.Loopst_table tbody tr:last-child { border-bottom: none; }
+
+.Loopst_table td {
+  padding: 11px 14px;
+  color: var(--Loopst-text-main);
+  vertical-align: middle;
+}
+
+/* ─── Badges ─────────────────────────────────────────── */
+.Loopst_badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.Loopst_badge_ok    { background: rgba(0,194,124,0.18); color: #00c27c; }
+.Loopst_badge_cancel { background: rgba(239,68,68,0.18); color: #ef4444; }
+.Loopst_badge_rep   { background: rgba(245,158,11,0.18); color: #f59e0b; }
+.Loopst_badge_no    { background: rgba(148,163,184,0.18); color: #94a3b8; }
+
+/* ─── Action buttons in table ────────────────────────── */
+.Loopst_actions_cell { white-space: nowrap; }
+
+.Loopst_btn_edit {
+  background: rgba(0,194,124,0.15);
+  border: 1px solid rgba(0,194,124,0.3);
+  color: #00c27c;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 6px;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s;
+}
+.Loopst_btn_edit:hover { background: rgba(0,194,124,0.28); }
+
+.Loopst_btn_del {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #ef4444;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s;
+}
+.Loopst_btn_del:hover { background: rgba(239,68,68,0.22); }
+
+/* ─── Pagination ─────────────────────────────────────── */
+.Loopst_pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-top: 1px solid var(--Loopst-border);
+  font-size: 13px;
+  color: var(--Loopst-text-muted);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.Loopst_pagination select {
+  background: var(--Loopst-bg-muted);
+  border: 1px solid var(--Loopst-border);
+  color: var(--Loopst-text-main);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin: 0 4px;
+}
+
+.Loopst_pagination_controls { display: flex; align-items: center; gap: 8px; }
+.Loopst_pagination_controls button {
+  background: var(--Loopst-bg-muted);
+  border: 1px solid var(--Loopst-border);
+  color: var(--Loopst-text-main);
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s;
+}
+.Loopst_pagination_controls button:hover:not(:disabled) { border-color: var(--Loopst-primary); color: var(--Loopst-primary); }
+.Loopst_pagination_controls button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ─── Modal ──────────────────────────────────────────── */
+.Loopst_modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.Loopst_modal_content {
+  background: var(--Loopst-bg-card);
+  border: 1px solid var(--Loopst-border);
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+}
+
+.Loopst_modal_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--Loopst-border);
+}
+
+.Loopst_modal_header h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--Loopst-primary);
+  margin: 0;
+}
+
+.Loopst_modal_close {
+  background: none;
+  border: none;
+  color: var(--Loopst-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.Loopst_modal_close:hover { color: var(--Loopst-danger); }
+
+/* Modal grid */
+.Loopst_modal_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.Loopst_form_group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.Loopst_full_width { grid-column: 1 / -1; }
+
+.Loopst_form_group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--Loopst-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.Loopst_form_group input,
+.Loopst_form_group select,
+.Loopst_form_group textarea {
+  padding: 9px 12px;
+  background: var(--Loopst-bg-muted);
+  border: 1px solid var(--Loopst-border);
+  border-radius: 8px;
+  color: var(--Loopst-text-main);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+.Loopst_form_group input:focus,
+.Loopst_form_group select:focus,
+.Loopst_form_group textarea:focus { border-color: var(--Loopst-primary); }
+.Loopst_form_group select option { background: var(--Loopst-bg-card); }
+
+.Loopst_modal_actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--Loopst-border);
+}
+
+/* ─── Toast ──────────────────────────────────────────── */
+.Loopst_toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  animation: Loopst_slideIn 0.3s ease;
+}
+.Loopst_toast.success { background: #0f3b25; border: 1px solid #00c27c; color: #00c27c; }
+.Loopst_toast.error   { background: #3b0f0f; border: 1px solid #ef4444; color: #ef4444; }
+
+@keyframes Loopst_slideIn {
+  from { transform: translateX(60px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ─── Loading / Empty ────────────────────────────────── */
+.Loopst_loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  color: var(--Loopst-text-muted);
+}
+
+.Loopst_spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--Loopst-border);
+  border-top-color: var(--Loopst-primary);
+  border-radius: 50%;
+  animation: Loopst_spin 0.8s linear infinite;
+}
+@keyframes Loopst_spin { to { transform: rotate(360deg); } }
+
+.Loopst_empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--Loopst-text-muted);
+  font-size: 14px;
+}

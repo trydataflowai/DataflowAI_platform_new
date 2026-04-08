@@ -2093,3 +2093,40 @@ class ConetcomInteraccionesCampanasAdmin(admin.ModelAdmin):
     )
     ordering = ('-fecha_envio',)
     date_hierarchy = 'fecha_envio'
+
+
+
+
+
+from django.contrib import admin
+
+from .models import ServiciosLoopTotek
+
+
+@admin.register(ServiciosLoopTotek)
+class ServiciosLoopTotekAdmin(admin.ModelAdmin):
+    list_display = (
+        "id_registro",
+        "fecha_servicio",
+        "estado_servicio",
+        "tipo_empresa",
+        "categoria_servicio",
+        "ciudad_principal",
+        "nombre_instalador",
+        "codigo_ot",
+    )
+    list_filter = (
+        "estado_servicio",
+        "tipo_empresa",
+        "categoria_servicio",
+        "ciudad_principal",
+    )
+    search_fields = (
+        "codigo_ot",
+        "nombre_instalador",
+        "ciudad",
+        "municipio_sector",
+        "categoria_servicio",
+        "descripcion_servicio",
+    )
+    ordering = ("-fecha_servicio",)

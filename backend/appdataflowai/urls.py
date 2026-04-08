@@ -274,6 +274,18 @@ from .views import (
 
 
 
+    #URLS DE DASHBOARD LOOP
+    LoopserviciosTotekKpisView,
+    LoopserviciosTotekListCreateView,
+    LoopserviciosTotekDetailView,
+    LoopserviciosTotekBulkImportView,
+    LoopserviciosTotekBulkUpdateExcelView,
+    LoopserviciosTotekBulkDeleteView,
+    LoopserviciosTotekExportView,
+    LoopserviciosTotekTemplateView,
+
+
+
 
 )
 
@@ -594,6 +606,18 @@ urlpatterns = [
     path('metas-comerciales-bluetti/bulk-delete/', MetasComercialesBluettiBulkDeleteView.as_view(), name='metas_comerciales_bluetti_bulk_delete'),
     path('metas-comerciales-bluetti/export/', MetasComercialesBluettiExportView.as_view(), name='metas_comerciales_bluetti_export'),
     path('metas-comerciales-bluetti/export-template/', MetasComercialesBluettiTemplateView.as_view(), name='metas_comerciales_bluetti_export_template'),
+
+
+
+    #URLS DE DASHBOARD LOOP
+    path('loopserviciostotek/kpis/', LoopserviciosTotekKpisView.as_view(), name='loopserviciostotek_kpis'),
+    path('loopserviciostotek/', LoopserviciosTotekListCreateView.as_view(), name='loopserviciostotek_list_create'),
+    path('loopserviciostotek/<int:pk>/', LoopserviciosTotekDetailView.as_view(), name='loopserviciostotek_detail'),
+    path('loopserviciostotek/bulk-import/', LoopserviciosTotekBulkImportView.as_view(), name='loopserviciostotek_bulk_import'),
+    path('loopserviciostotek/bulk-update-excel/', LoopserviciosTotekBulkUpdateExcelView.as_view(), name='loopserviciostotek_bulk_update_excel'),
+    path('loopserviciostotek/bulk-delete/', LoopserviciosTotekBulkDeleteView.as_view(), name='loopserviciostotek_bulk_delete'),
+    path('loopserviciostotek/export/', LoopserviciosTotekExportView.as_view(), name='loopserviciostotek_export'),
+    path('loopserviciostotek/export-template/', LoopserviciosTotekTemplateView.as_view(), name='loopserviciostotek_export_template'),
 
 
 

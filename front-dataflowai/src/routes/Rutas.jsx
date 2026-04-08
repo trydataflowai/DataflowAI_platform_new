@@ -181,6 +181,14 @@ import DashboardVentasConetcom from "../components/dashboards/dashboards-conetco
 
 
 
+// ==============================
+// LOOP SERVICIOS TOTEK
+// ==============================
+import LoopserviciosTotekDashboard from "../components/dashboards/LoopserviciosTotekDashboard";
+import LoopserviciosTotekCrud from "../components/pages/dashboardcrud/LoopserviciosTotekCrud";
+ 
+
+
 /* ---------------------------
    Configuración de layouts
    --------------------------- */
@@ -1224,6 +1232,33 @@ export const Rutas = () => {
             />
 
 
+
+
+              // ==============================
+            // RUTAS LOOP SERVICIOS TOTEK
+            // ==============================
+ 
+            <Route
+              path={"/LoopserviciosTotekDashboard"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <LoopserviciosTotekDashboard />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
+ 
+            <Route
+              path={"/LoopserviciosTotekCrud"}
+              element={
+                <RutaProtegida>
+                  <SideBarLayout>
+                    <LoopserviciosTotekCrud />
+                  </SideBarLayout>
+                </RutaProtegida>
+              }
+            />
 
 
 

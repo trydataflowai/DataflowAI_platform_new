@@ -1,6 +1,6 @@
 # appdataflowai/serializers.py
 from rest_framework import serializers
-from .models import Producto
+from .models import Producto, ServiciosLoopTotek
 
 class ProductoSerializer(serializers.ModelSerializer):
     estado = serializers.CharField(source='id_estado.estado')  # Mostrar nombre del estado
@@ -2732,3 +2732,67 @@ class MetasComercialesBluettiBulkSerializer(serializers.ListSerializer):
 class MetasComercialesBluettiBulkItemSerializer(MetasComercialesBluettiSerializer):
     class Meta(MetasComercialesBluettiSerializer.Meta):
         list_serializer_class = MetasComercialesBluettiBulkSerializer
+
+
+
+
+
+from rest_framework import serializers
+
+LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID = 1
+LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID = 24
+
+
+class ServiciosLoopTotekSerializer(serializers.ModelSerializer):
+    """
+    CRUD para ServiciosLoopTotek
+    Fuerza id_empresa=1 e id_producto=24
+    """
+    id_registro = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ServiciosLoopTotek
+        fields = [
+            'id_registro', 'id',
+            'id_empresa', 'id_producto',
+            'fecha_servicio', 'mes', 'ano',
+            'tipo_empresa', 'categoria_servicio', 'descripcion_servicio', 'cantidad_instalada',
+            'estado_servicio', 'motivo_cancelacion', 'motivo_reprogramacion',
+            'satisfaccion_cliente', 'ciudad_principal', 'ciudad', 'municipio_sector',
+            'codigo_ot', 'nombre_instalador', 'notas',
+        ]
+        read_only_fields = ('id_registro', 'id', 'id_empresa', 'id_producto')
+
+    def get_id(self, obj):
+        return obj.id_registro
+
+    def create(self, validated_data):
+        validated_data['id_empresa_id'] = LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('id_empresa', None)
+        validated_data.pop('id_producto', None)
+        validated_data['id_empresa_id'] = LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID
+        validated_data['id_producto_id'] = LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID
+        return super().update(instance, validated_data)
+
+
+class ServiciosLoopTotekBulkSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        objs = [
+            ServiciosLoopTotek(
+                id_empresa_id=LOOPSERVICIOSTOTEK_DEFAULT_EMPRESA_ID,
+                id_producto_id=LOOPSERVICIOSTOTEK_DEFAULT_PRODUCTO_ID,
+                **item
+            )
+            for item in validated_data
+        ]
+        return ServiciosLoopTotek.objects.bulk_create(objs, batch_size=1000)
+
+
+class ServiciosLoopTotekBulkItemSerializer(ServiciosLoopTotekSerializer):
+    class Meta(ServiciosLoopTotekSerializer.Meta):
+        list_serializer_class = ServiciosLoopTotekBulkSerializer

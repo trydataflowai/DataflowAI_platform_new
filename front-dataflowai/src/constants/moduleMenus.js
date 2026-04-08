@@ -10,3 +10,10 @@ export const BLUETTI_MODULE_LINKS = [
   { label: "Inventarios Sell Out Bluetti", path: "/InventariosSelloutBluetti" },
   { label: "Metas Bluetti", path: "/MetasBluetti" },
 ];
+
+
+// ==================== LOOP SERVICIOS TOTEK ====================
+export const LOOPSERVICIOSTOTEK_MODULE_LINKS = [
+  { label: "Dashboard Servicios Totek", path: "/LoopserviciosTotekDashboard" },
+  { label: "CRUD Servicios Totek", path: "/LoopserviciosTotekCrud" },
+];
